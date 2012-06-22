@@ -6,7 +6,7 @@ c Thus keep the format:
 c parameter ( MAX_VAR = x )
 c Also make sure parameter is spelled in lower case.
 c Do not change the line with SNW_FLG.
-c $Id$
+c $Id: wgtpar.h,v 5.2 2004/05/06 22:29:42 tbohn Exp $
 c ====================================================================
 
       integer MAX_PIX,MAX_SPP,MAX_STA,MAX_SOI,MAX_VEG

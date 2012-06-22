@@ -11,7 +11,7 @@
         statements and typedef statements, which is what vicNl_def.h
         is primarily composed of.
 
-  $Id$
+  $Id: global.h,v 4.9.2.10 2009/11/12 01:54:07 vicadmin Exp $
 
   29-Oct-03 Added version string and removed unused options from
 	    optstring.							TJB

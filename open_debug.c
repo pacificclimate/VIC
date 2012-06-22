@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: open_debug.c,v 4.3 2004/05/11 20:35:09 tbohn Exp $";
 
 #if LINK_DEBUG
 void open_debug() {

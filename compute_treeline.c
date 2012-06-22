@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: compute_treeline.c,v 1.3.2.1 2009/01/24 01:15:42 vicadmin Exp $";
 
 void compute_treeline(atmos_data_struct        *atmos,
                       dmy_struct               *dmy,

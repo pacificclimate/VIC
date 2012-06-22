@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: StabilityCorrection.c,v 5.2 2004/05/06 22:29:38 tbohn Exp $";
 
 /*****************************************************************************
   Function name: StabilityCorrection()

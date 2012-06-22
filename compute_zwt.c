@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: compute_zwt.c,v 1.1.2.3 2011/03/07 05:14:57 vicadmin Exp $";
 
 double compute_zwt(soil_con_struct  *soil_con,
                    int               lindex,

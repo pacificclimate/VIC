@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: snow_melt.c,v 5.7.2.6 2009/12/12 19:42:13 vicadmin Exp $";
 
 /*****************************************************************************
   Function name: SnowMelt()

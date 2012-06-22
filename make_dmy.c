@@ -6,7 +6,7 @@
 #define LEAPYR(y) (!((y)%400) || (!((y)%4) && ((y)%100)))
 #endif
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: make_dmy.c,v 4.4.2.1 2007/05/04 21:30:46 vicadmin Exp $";
 
 dmy_struct *make_dmy(global_param_struct *global)
 /**********************************************************************

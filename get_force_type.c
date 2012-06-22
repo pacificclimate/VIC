@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: get_force_type.c,v 4.5.2.6 2011/12/23 06:57:55 vicadmin Exp $";
 
 void get_force_type(char   *cmdstr, 
 		    int     file_num,

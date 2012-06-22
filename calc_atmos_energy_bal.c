@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "vicNl.h"
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_atmos_energy_bal.c,v 5.3.2.7 2009/12/12 19:42:13 vicadmin Exp $";
 
 double calc_atmos_energy_bal(double  InOverSensible,
 			     double  InUnderSensible,

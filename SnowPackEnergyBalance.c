@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: SnowPackEnergyBalance.c,v 5.7.2.2 2009/09/20 02:32:07 vicadmin Exp $";
 
 /*****************************************************************************
   Function name: SnowPackEnergyBalance()

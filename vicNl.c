@@ -4,7 +4,7 @@
 #include <vicNl.h>
 #include <global.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: vicNl.c,v 5.14.2.19 2011/01/05 22:35:53 vicadmin Exp $";
 
 /** Main Program **/
 

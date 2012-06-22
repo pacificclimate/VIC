@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
  
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: write_atmosdata.c,v 4.2 2004/05/11 20:35:10 tbohn Exp $";
 
 void write_atmosdata(atmos_data_struct *atmos, int nrecs)
 /**********************************************************************

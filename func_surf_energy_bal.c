@@ -3,7 +3,7 @@
 #include <math.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: func_surf_energy_bal.c,v 5.8.2.20 2011/08/09 23:54:03 vicadmin Exp $";
 
 double func_surf_energy_bal(double Ts, va_list ap)
 /**********************************************************************

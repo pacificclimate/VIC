@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: get_dist.c,v 1.1.2.1 2007/11/08 01:27:21 vicadmin Exp $";
 
 double get_dist(double lat1, double long1, double lat2, double long2)
 /*******************************************************************************

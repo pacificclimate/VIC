@@ -19,7 +19,7 @@
 #include <vicNl.h>
 #include <math.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: CalcAerodynamic.c,v 5.1.2.2 2009/06/09 09:54:10 vicadmin Exp $";
 
   
 /*****************************************************************************

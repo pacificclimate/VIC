@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: snow_intercept.c,v 5.7.2.9 2010/04/29 03:00:12 vicadmin Exp $";
 
 /*****************************************************************************
   Function name: SnowInterception()

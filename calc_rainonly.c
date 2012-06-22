@@ -7,7 +7,7 @@
 				   is allowed to fall as snow or rain in
 				   a mixed precipitation event */
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_rainonly.c,v 5.2.2.2 2007/11/08 01:23:36 vicadmin Exp $";
 
 double calc_rainonly(double air_temp,
 		     double prec,

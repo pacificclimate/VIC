@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: make_in_and_outfiles.c,v 5.6.2.2 2011/06/01 21:48:49 vicadmin Exp $";
 
 void make_in_and_outfiles(filep_struct         *filep, 
 			  filenames_struct     *filenames,

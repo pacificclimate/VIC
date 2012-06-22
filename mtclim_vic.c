@@ -291,7 +291,7 @@ MTCLIM version 3.1 testing
 #include <mtclim_constants_vic.h>   /* physical constants */
 #include <mtclim_parameters_vic.h>  /* model parameters */
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: mtclim_vic.c,v 1.1.2.1 2011/12/23 06:57:55 vicadmin Exp $";
 
 /****************************
  **                         **

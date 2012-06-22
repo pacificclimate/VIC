@@ -3,7 +3,7 @@
 #include <math.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_air_temperature.c,v 4.2.2.1 2011/12/23 06:57:55 vicadmin Exp $";
 
 /****************************************************************************
   Subroutines developed by Bart Nijssen to estimate the daily temperature

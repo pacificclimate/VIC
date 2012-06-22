@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: display_current_settings.c,v 1.10.2.19 2011/12/23 06:57:55 vicadmin Exp $";
 
 void display_current_settings(int                 mode,
                               filenames_struct    *names,

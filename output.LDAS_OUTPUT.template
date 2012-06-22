@@ -1,5 +1,5 @@
 # Output List for VIC LDAS_OUTPUT Configuration
-# RCS ID: $Id$
+# RCS ID: $Id: output.LDAS_OUTPUT.template,v 5.1 2006/09/27 18:53:48 vicadmin Exp $
 # NOTE: the year, month, and day (and hour, if sub-daily) will all be written
 # as ints as of VIC 4.0.6.  In previous versions, for LDAS_OUTPUT, year was
 # written as unsigned short int, and month, day and hour were written as char.

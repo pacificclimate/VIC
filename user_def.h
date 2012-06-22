@@ -7,7 +7,7 @@
   Any additions or removals of parameters in this file must also
   be made in display_current_settings.c.
 
-  $Id$
+  $Id: user_def.h,v 5.12.2.8 2011/08/08 23:27:08 vicadmin Exp $
 
   Modifications:
   2006-Sep-23 Implemented flexible output configuration; removed the

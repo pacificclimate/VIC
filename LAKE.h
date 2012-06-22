@@ -1,5 +1,5 @@
 /******************************************************************************
-// $Id$
+// $Id: LAKE.h,v 5.9.2.16 2011/03/07 05:14:55 vicadmin Exp $
   Modifications:
   2006-Nov-07 Removed LAKE_MODEL option.				TJB
   2007-Aug-16 Made return value of initialize_prcp an int.		JCA

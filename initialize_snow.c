@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: initialize_snow.c,v 5.4.2.3 2010/04/24 23:17:38 vicadmin Exp $";
 
 void initialize_snow (snow_data_struct **snow, 
 		      int                veg_num,

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: read_veglib.c,v 4.2.2.4 2010/04/29 03:00:12 vicadmin Exp $";
 
 veg_lib_struct *read_veglib(FILE *veglib, int *Ntype)
 /**********************************************************************

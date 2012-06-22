@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: output_list_utils.c,v 5.4.2.21 2011/12/23 06:57:55 vicadmin Exp $";
 
 out_data_struct *create_output_list() {
 /*************************************************************

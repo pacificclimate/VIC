@@ -1,5 +1,5 @@
 # Output List for VIC OPTIMIZE Configuration
-# RCS ID: $Id$
+# RCS ID: $Id: output.OPTIMIZE.template,v 5.1 2006/09/27 18:53:49 vicadmin Exp $
 ################################################################################
 BINARY_OUTPUT	FALSE
 COMPRESS	FALSE

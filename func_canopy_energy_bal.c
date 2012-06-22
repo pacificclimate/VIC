@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: func_canopy_energy_bal.c,v 5.3.2.3 2009/09/14 23:58:39 vicadmin Exp $";
 
 double func_canopy_energy_bal(double Tfoliage, va_list ap)
 /*********************************************************************

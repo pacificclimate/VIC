@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vicNl.h>
  
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: close_files.c,v 5.8.2.2 2010/11/14 23:44:53 vicadmin Exp $";
 
 void close_files(filep_struct         *filep,
                  out_data_file_struct *out_data_files,

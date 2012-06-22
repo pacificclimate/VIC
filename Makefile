@@ -33,7 +33,7 @@
 # 2010-Dec-01 Added compute_zwt.c.						TJB
 # 2011-Nov-04 Renamed mtclim* files to remove version number from filenames.	TJB
 #
-# $Id$
+# $Id: Makefile,v 5.10.2.14 2011/12/23 06:57:55 vicadmin Exp $
 #
 # -----------------------------------------------------------------------
 

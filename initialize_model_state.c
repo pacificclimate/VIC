@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: initialize_model_state.c,v 5.8.2.27 2011/07/05 22:31:54 vicadmin Exp $";
 
 int initialize_model_state(dist_prcp_struct    *prcp,
 			   dmy_struct           dmy,

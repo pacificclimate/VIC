@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: write_debug.c,v 5.2.2.3 2007/05/09 18:25:40 vicadmin Exp $";
 
 #if LINK_DEBUG
 void write_debug(atmos_data_struct    *atmos,

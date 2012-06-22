@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <math.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: surface_fluxes.c,v 5.12.2.21 2011/06/01 21:48:49 vicadmin Exp $";
 
 #if CLOSE_ENERGY
 #define MAX_ITER 250 /* Max number of iterations for total energy balance */

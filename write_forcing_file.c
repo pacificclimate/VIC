@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: write_forcing_file.c,v 5.6.2.4 2011/12/23 06:57:56 vicadmin Exp $";
 
 #if OUTPUT_FORCE
 void write_forcing_file(atmos_data_struct *atmos,

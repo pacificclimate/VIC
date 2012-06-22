@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: arno_evap.c,v 5.3.2.6 2010/04/29 03:00:12 vicadmin Exp $";
 
 /****************************************************************************
                                                                            

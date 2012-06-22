@@ -3,7 +3,7 @@
 #include <math.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: func_atmos_energy_bal.c,v 5.1 2001/08/15 22:42:20 cherkaue Exp $";
 
 double func_atmos_energy_bal(double Tcanopy, va_list ap) {
 /**********************************************************************

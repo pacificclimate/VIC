@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_snow_coverage.c,v 5.2 2004/05/06 22:29:39 tbohn Exp $";
 
 double calc_snow_coverage(int    *store_snow,
 			  double  depth_full_snow_cover,

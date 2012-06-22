@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: initialize_lake.c,v 5.10.2.19 2011/03/07 05:14:57 vicadmin Exp $";
 
 int initialize_lake (lake_var_struct   *lake, 
 		      lake_con_struct   lake_con,

@@ -1,5 +1,5 @@
 # Output List for VIC ALMA OUTPUT_FORCE Configuration
-# RCS ID: $Id$
+# RCS ID: $Id: output.OUTPUT_FORCE.ALMA.template,v 5.1 2006/09/27 18:53:49 vicadmin Exp $
 ################################################################################
 ALMA_OUTPUT	TRUE
 N_OUTFILES	1

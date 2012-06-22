@@ -6,7 +6,7 @@
 
 #define MAXIT 1000
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: frozen_soil.c,v 5.4.2.27 2011/06/10 21:23:49 vicadmin Exp $";
 
 int calc_layer_average_thermal_props(energy_bal_struct *energy,
 				     layer_data_struct *layer_wet,

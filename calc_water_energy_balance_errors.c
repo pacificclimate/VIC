@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_water_energy_balance_errors.c,v 5.1.2.1 2007/08/27 21:57:21 vicadmin Exp $";
 
 double calc_water_balance_error(int    rec,
 				double inflow,

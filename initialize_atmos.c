@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: initialize_atmos.c,v 5.9.2.14 2011/12/23 06:57:55 vicadmin Exp $";
 
 void initialize_atmos(atmos_data_struct        *atmos,
                       dmy_struct               *dmy,

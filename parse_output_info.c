@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
  
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: parse_output_info.c,v 5.2.2.5 2009/05/17 21:22:08 vicadmin Exp $";
 
 void parse_output_info(filenames_struct      *names,
                        FILE                  *gp,

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_cloud_cover_fraction.c,v 4.2 2004/05/06 22:29:38 tbohn Exp $";
 
 void calc_cloud_cover_fraction(atmos_data_struct *atmos,
 			       dmy_struct        *dmy,

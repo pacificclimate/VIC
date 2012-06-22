@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: solve_snow.c,v 5.9.2.14 2010/12/28 22:14:17 vicadmin Exp $";
 
 double solve_snow(char                 overstory,
 		  double               BareAlbedo,

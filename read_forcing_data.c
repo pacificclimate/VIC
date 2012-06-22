@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
  
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: read_forcing_data.c,v 4.1 2000/05/16 21:07:16 vicadmin Exp $";
 
 double **read_forcing_data(FILE                **infile,
 			   global_param_struct   global_param)

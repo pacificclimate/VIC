@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: svp.c,v 5.1 2001/08/15 23:44:57 cherkaue Exp $";
 
 double svp(double temp)
 /**********************************************************************

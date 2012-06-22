@@ -4,7 +4,7 @@
 
 #define MAX_CHANGE 0.9
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: snow_utility.c,v 5.4.2.2 2008/04/22 23:19:54 vicadmin Exp $";
 
 double snow_density(snow_data_struct *snow, double new_snow, double sswq, double Tgrnd, double Tair, double dt)
 {

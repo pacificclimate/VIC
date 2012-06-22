@@ -1,5 +1,5 @@
 # Output List for VIC Default OUTPUT_FORCE Configuration
-# RCS ID: $Id$
+# RCS ID: $Id: output.OUTPUT_FORCE.template,v 5.1 2006/09/27 18:53:49 vicadmin Exp $
 ################################################################################
 N_OUTFILES	1
 OUTFILE		full_data	8

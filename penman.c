@@ -35,7 +35,7 @@
 #include <string.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: penman.c,v 5.3.2.1 2009/06/09 09:54:11 vicadmin Exp $";
 
 #define CLOSURE 4000		/** Pa **/
 #define RSMAX 5000

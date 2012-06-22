@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "vicNl.h"
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: calc_surf_energy_bal.c,v 5.9.2.18 2011/08/09 23:54:03 vicadmin Exp $";
 
 double calc_surf_energy_bal(double             Le,
 			    double             LongUnderIn,

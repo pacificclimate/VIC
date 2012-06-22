@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: advected_sensible_heat.c,v 5.2 2004/05/06 22:29:38 tbohn Exp $";
 
 double advected_sensible_heat(double SnowCoverFract, 
 			      double AirDens, 

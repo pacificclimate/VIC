@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: alloc_atmos.c,v 5.5.2.5 2011/12/23 06:57:55 vicadmin Exp $";
 
 /****************************************************************************/
 /*			       alloc_atmos()                                */

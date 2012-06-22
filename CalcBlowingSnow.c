@@ -30,7 +30,7 @@
 #include <vicNl.h>
 #include <mtclim_constants_vic.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: CalcBlowingSnow.c,v 1.4.2.2 2011/12/23 06:57:55 vicadmin Exp $";
 
 #define GRAMSPKG 1000.
 #define CH_WATER 4186.8e3

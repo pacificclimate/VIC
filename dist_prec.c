@@ -3,7 +3,7 @@
 #include <vicNl.h>
 #include <math.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: dist_prec.c,v 5.10.2.5 2009/09/28 21:46:57 vicadmin Exp $";
 
 int  dist_prec(atmos_data_struct   *atmos,
                dist_prcp_struct    *prcp,

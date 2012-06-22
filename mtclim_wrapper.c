@@ -41,7 +41,7 @@
 #include <mtclim_constants_vic.h>
 #include <mtclim_parameters_vic.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: mtclim_wrapper.c,v 1.1.2.1 2011/12/23 06:57:55 vicadmin Exp $";
 
 /******************************************************************************/
 /*			TYPE DEFINITIONS, GLOBALS, ETC.                       */

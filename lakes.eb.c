@@ -3,7 +3,7 @@
 #include <math.h>
 #include <vicNl.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: lakes.eb.c,v 5.11.2.45 2011/10/19 06:20:15 vicadmin Exp $";
 
 int solve_lake(double             snowfall,
 	       double             rainfall,
