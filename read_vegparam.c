@@ -113,8 +113,8 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   temp[0].Cv_sum = 0.0;
 
   for (i = 0; i < vegetat_type_num; i++) {
-    temp[i].zone_depth = calloc(options.ROOT_ZONES,sizeof(float));
-    temp[i].zone_fract = calloc(options.ROOT_ZONES,sizeof(float));
+    temp[i].zone_depth = (float*)calloc(options.ROOT_ZONES,sizeof(float));
+    temp[i].zone_fract = (float*)calloc(options.ROOT_ZONES,sizeof(float));
     temp[i].vegetat_type_num = vegetat_type_num;
 
     // Read the root zones line
@@ -126,14 +126,14 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     ttrim( tmpline );
     token = strtok (tmpline, delimiters);    /*  token => veg_class, move 'line' pointer to next field */  
     Nfields = 0;
-    vegarr[Nfields] = calloc( 500, sizeof(char));
+    vegarr[Nfields] = (char*)calloc( 500, sizeof(char));
     strcpy(vegarr[Nfields],token);
     Nfields++;
 
     token = strtok (NULL, delimiters);
     while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
     while ( token != NULL ) {
-      vegarr[Nfields] = calloc( 500, sizeof(char));      
+      vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
       strcpy(vegarr[Nfields],token);
       Nfields++;
       token = strtok (NULL, delimiters);
@@ -209,7 +209,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
         nrerror(ErrStr);
       }      
       Nfields = 0;
-      vegarr[Nfields] = calloc( 500, sizeof(char));      
+      vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
       strcpy(tmpline, line);
       ttrim( tmpline );
       token = strtok (tmpline, delimiters); 
@@ -217,7 +217,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       Nfields++;
  
       while( ( token = strtok (NULL, delimiters)) != NULL ){
-        vegarr[Nfields] = calloc( 500, sizeof(char));      
+        vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
         strcpy(vegarr[Nfields],token);
         Nfields++;
       }
@@ -293,9 +293,9 @@ veg_con_struct *read_vegparam(FILE *vegparam,
         temp[vegetat_type_num].Cv         = 0.001;
         temp[vegetat_type_num].veg_class  = options.AboveTreelineVeg;
         temp[vegetat_type_num].Cv_sum     = temp[vegetat_type_num-1].Cv_sum;
-        temp[vegetat_type_num].zone_depth = calloc( options.ROOT_ZONES,
+        temp[vegetat_type_num].zone_depth = (float*)calloc( options.ROOT_ZONES,
                                                   sizeof(float));
-        temp[vegetat_type_num].zone_fract = calloc( options.ROOT_ZONES,
+        temp[vegetat_type_num].zone_fract = (float*)calloc( options.ROOT_ZONES,
                                                   sizeof(float));
         temp[vegetat_type_num].vegetat_type_num = vegetat_type_num+1;
 

@@ -138,7 +138,7 @@ void fdjac3(double x[], double fvec[], double a[], double b[], double c[],
 #undef MAXSIZE
 
 
-void tridiag(double a[], double b[], double c[], double r[], unsigned n)
+void tridiag(double a[], double b[], double c[], double r[], int n)
 {
 
 /******************************************************************

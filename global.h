@@ -19,9 +19,9 @@
 	      mainly for pot_evap computations but also defines the
 	      characteristics of bare soil.				TJB
 **********************************************************************/
-char *version = "4.1.2 beta 1";
+const char *version = "4.1.2 beta 1";
 
-char *optstring = "g:vo";
+const char *optstring = "g:vo";
 
 #if QUICK_FS
 double   temps[] = { -1.e-5, -0.075, -0.20, -0.50, -1.00, -2.50, -5, -10 };

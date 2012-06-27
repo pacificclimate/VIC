@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vicNl.h>
+#include <unistd.h>  /* This is where you get getopt() from, stupid. */
 
 static char vcid[] = "$Id$";
 
@@ -26,7 +27,7 @@ filenames_struct cmd_proc(int argc, char *argv[])
 #if LINK_DEBUG
   extern debug_struct debug;
 #endif
-  extern int getopt();
+  /*  extern int getopt(); */
   extern char *optarg;
   extern char *optstring;
 

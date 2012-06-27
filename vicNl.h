@@ -357,7 +357,7 @@ double hermint(double, int, double *, double *, double *, double *, double *);
 void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
-void   init_output_list(out_data_struct *, int, char *, int, float);
+void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, dmy_struct *, FILE **,
 #if OUTPUT_FORCE
 			soil_con_struct *, out_data_file_struct *, out_data_struct *);
@@ -410,10 +410,10 @@ void mtclim_wrapper(int, int, double, double, double, double,
 double new_snow_density(double);
 int    newt_raph(void (*vecfunc)(double *, double *, int, int, ...), 
                double *, int);
-void   nrerror(char *);
+void   nrerror(const char *);
 
 void   open_debug();
-FILE  *open_file(char string[], char type[]);
+FILE  *open_file(const char *string, const char *type);
 FILE  *open_state_file(global_param_struct *, filenames_struct, int, int);
 
 void parse_output_info(filenames_struct *, FILE *, out_data_file_struct **, out_data_struct *);
@@ -471,7 +471,7 @@ void set_node_parameters(double *, double *, double *, double *, double *, doubl
 #endif
 			 int, int, char);
 out_data_file_struct *set_output_defaults(out_data_struct *);
-int set_output_var(out_data_file_struct *, int, int, out_data_struct *, char *, int, char *, int, float);
+int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char);
 double snow_density(snow_data_struct *, double, double, double, double, double);
 int    snow_intercept(double, double, double, double, double, double,
@@ -565,12 +565,12 @@ void transpiration(layer_data_struct *, int, int, double, double, double,
 #endif
                    float *);
 void tridag(double *,double *,double *,double *,double *,int);
-void tridiag(double *, double *, double *, double *, unsigned);
+void tridiag(double *, double *, double *, double *, int);
 int update_thermal_nodes(dist_prcp_struct *, 
 			  int, int, int, soil_con_struct *, veg_con_struct *);
 void usage(char *);
 
-void   vicerror(char *);
+void   vicerror(const char *);
 double volumetric_heat_capacity(double,double,double,double);
 
 void wrap_compute_zwt(soil_con_struct *, cell_data_struct *);

@@ -398,7 +398,7 @@ out_data_struct *create_output_list() {
 }
 
 
-void init_output_list(out_data_struct *out_data, int write, char *format, int type, float mult) {
+void init_output_list(out_data_struct *out_data, int write, const char *format, int type, float mult) {
 /*************************************************************
   init_output_list()      Ted Bohn     September 08, 2006
 
@@ -424,9 +424,9 @@ int set_output_var(out_data_file_struct *out_data_files,
                     int write,
                     int filenum,
                     out_data_struct *out_data,
-                    char *varname,
+                    const char *varname,
                     int varnum,
-                    char *format,
+                    const char *format,
                     int type,
                     float mult) {
 /*************************************************************

@@ -521,7 +521,7 @@ extern char ref_veg_ref_crop[];
 
 
 /***** VIC model version *****/
-extern char *version;
+/* extern const char *version;  This is not defined here so don't be stupid and declare it. */
 
 /* global variables */
 extern int NR;			/* array index for atmos struct that indicates

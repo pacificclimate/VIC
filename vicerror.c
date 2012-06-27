@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-void vicerror(char error_text[])
+void vicerror(const char *error_text)
 /**********************************************************************
 	vicerror.c	Keith Cherkauer		April 23, 1997
 
@@ -27,7 +27,7 @@ void vicerror(char error_text[])
 #endif
 
         filenames_struct fnames;
-	void _exit();
+        /*	void _exit();  Even more no. */
 
         options.COMPRESS=FALSE;	/* turn off compression of last set of files */
 
@@ -38,5 +38,5 @@ void vicerror(char error_text[])
 	fprintf(stderr,"...now exiting to system...\n");
         fflush(stdout);
         fflush(stderr);
-	_exit(1);
+	_Exit(1);
 }
