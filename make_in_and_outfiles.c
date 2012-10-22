@@ -1,7 +1,9 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vicNl.h>
+#include <netcdf.h>
 
 static char vcid[] = "$Id$";
 
@@ -52,10 +54,16 @@ void make_in_and_outfiles(filep_struct         *filep,
   ********************************/
 
   strcpy(filenames->forcing[0], filenames->f_path_pfx[0]);
-  strcat(filenames->forcing[0], latchar);
-  strcat(filenames->forcing[0], "_");
-  strcat(filenames->forcing[0], lngchar);
-  if(param_set.FORCE_FORMAT[0] == BINARY)
+  /* Append lat/lon for non-NetCDF files */
+  if(param_set.FORCE_FORMAT[0] != NETCDF) {
+    strcat(filenames->forcing[0], latchar);
+    strcat(filenames->forcing[0], "_");
+    strcat(filenames->forcing[0], lngchar);
+  }
+
+  if (param_set.FORCE_FORMAT[0] == NETCDF)
+    assert(nc_open(filenames->forcing[0], NC_NOWRITE, &filep->forcing_ncid[0]) == NC_NOERR); /* TODO proper error handling */
+  else if(param_set.FORCE_FORMAT[0] == BINARY)
     filep->forcing[0] = open_file(filenames->forcing[0], "rb");
   else
     filep->forcing[0] = open_file(filenames->forcing[0], "r");
@@ -63,10 +71,14 @@ void make_in_and_outfiles(filep_struct         *filep,
   filep->forcing[1] = NULL;
   if(strcasecmp(filenames->f_path_pfx[1],"MISSING")!=0) {
     strcpy(filenames->forcing[1], filenames->f_path_pfx[1]);
-    strcat(filenames->forcing[1], latchar);
-    strcat(filenames->forcing[1], "_");
-    strcat(filenames->forcing[1], lngchar);
-    if(param_set.FORCE_FORMAT[0] == BINARY) 
+    if(param_set.FORCE_FORMAT[1] != NETCDF) {
+      strcat(filenames->forcing[1], latchar);
+      strcat(filenames->forcing[1], "_");
+      strcat(filenames->forcing[1], lngchar);
+    }
+    if(param_set.FORCE_FORMAT[1] == NETCDF)
+      assert(nc_open(filenames->forcing[1], NC_NOWRITE, &filep->forcing_ncid[1]) == NC_NOERR); /* TODO proper error handling */
+    else if(param_set.FORCE_FORMAT[1] == BINARY) /* MPN: Changed this to [1]; It's used elsewhere so I presume it's actually set. */
       filep->forcing[1] = open_file(filenames->forcing[1], "rb");
     else 
       filep->forcing[1] = open_file(filenames->forcing[1], "r");

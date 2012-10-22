@@ -440,8 +440,10 @@ global_param_struct get_global_param(filenames_struct *names,
 	  param_set.FORCE_FORMAT[file_num] = BINARY;
 	else if (strcasecmp(flgstr, "ASCII") == 0)
 	  param_set.FORCE_FORMAT[file_num] = ASCII;
+        else if (strcasecmp(flgstr, "NETCDF") == 0)
+          param_set.FORCE_FORMAT[file_num] = NETCDF;
 	else
-	  nrerror("FORCE_FORMAT must be either ASCII or BINARY.");
+	  nrerror("FORCE_FORMAT must be \"NETCDF\", \"ASCII\", or \"BINARY\".");
       }
       else if (strcasecmp("FORCE_ENDIAN",optstr)==0) {
 	sscanf(cmdstr, "%*s %s", flgstr);

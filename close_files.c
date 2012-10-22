@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vicNl.h>
+#include <netcdf.h>
  
 static char vcid[] = "$Id$";
 
@@ -30,6 +31,7 @@ void close_files(filep_struct         *filep,
 **********************************************************************/
 {
   extern option_struct options;
+  extern param_set_struct param_set;
 #if LINK_DEBUG
   extern debug_struct debug;
 #endif
@@ -39,10 +41,16 @@ void close_files(filep_struct         *filep,
     Close All Input Files
     **********************/
 
-  fclose(filep->forcing[0]);
+  if(param_set.FORCE_FORMAT[0] != NETCDF)
+    fclose(filep->forcing[0]);
+  else /* FIXME this should only happen ONCE per invokation of VIC! (below too) */
+    nc_close(filep->forcing_ncid[0]);
   if(options.COMPRESS) compress_files(fnames->forcing[0]);
   if(filep->forcing[1]!=NULL) {
-    fclose(filep->forcing[1]);
+    if(param_set.FORCE_FORMAT[1] != NETCDF)
+      fclose(filep->forcing[1]);
+    else
+      nc_close(filep->forcing_ncid[1]);      
     if(options.COMPRESS) compress_files(fnames->forcing[1]);
   }
 

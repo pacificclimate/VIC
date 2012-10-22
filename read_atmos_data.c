@@ -1,15 +1,19 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vicNl.h>
+#include <netcdf.h>
 
 static char vcid[] = "$Id$";
 
 void read_atmos_data(FILE                 *infile,
+                     int                   ncid,
 		     global_param_struct   global_param,
 		     int                   file_num,
 		     int                   forceskip,
-		     double              **forcing_data)
+		     double              **forcing_data,
+                     soil_con_struct      *soil_con)
 /**********************************************************************
   read_atmos_data
   
@@ -103,12 +107,160 @@ void read_atmos_data(FILE                 *infile,
   }
 
   if(infile==NULL)fprintf(stderr,"NULL file\n");
+
+  if (param_set.FORCE_FORMAT[file_num] == NETCDF) {
+    /*****************************
+    *  Read NetCDF Forcing Data  *
+    *****************************/
+
+    /* Assumptions, for now:
+     * -dims are all (time, lat, lon)
+     * -time, lat, lon are named accordingly
+     * -pr, tasmax, tasmin, wind are named accordingly, and are specified in order of PREC, TMAX, TMIN, WIND
+     * -vartype is double for dimvars, ... (?)
+     * -need to implement proper FP comparison of dims
+     */
+
+    int ndims; /* scratch for nc_inq_varndims */
+    nc_type vartype; /* scratch for nc_inq_vartype */
+    int ncerr;
+
+    /* dims */ /* rename ndays because it may be misleading */
+    size_t ndays, nlats, nlons;
+    int timevarid, latvarid, lonvarid, timetype, lattype, lontype, timedimid, latdimid, londimid;
+    double *time, *lats, *lons; /* actual dimvar data */ /* not using time, yet; just assuming... */
+    size_t dimvarstart = 0, dimvarcount;
+    /* vars */
+    const char *varnames[] = {"pr", "tasmax", "tasmin", "wind"}; /* TODO un-hardcode order and fix field_index array; also FIXME this ASSUMES that global file is not charged to some other order */
+    const int nvars = sizeof(varnames) / sizeof(*varnames);
+    int varids[nvars];
+    int vardimids[3];
+
+    /* hyperslab bounds */
+    size_t starts[3] = {skip_recs, -1, -1}; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
+    size_t counts[3] = {global_param.nrecs * global_param.dt / param_set.FORCE_DT[file_num], 1, 1}; /* FIXME make this support multiple cells... */
+
+
+    /* handle dimvars */
+    assert(nc_inq_varid(ncid, "time", &timevarid) == NC_NOERR);
+    assert(nc_inq_vartype(ncid, timevarid, &vartype) == NC_NOERR);
+    assert(vartype == NC_DOUBLE);
+    assert(nc_inq_varndims(ncid, timevarid, &ndims) == NC_NOERR);
+    assert(ndims == 1);
+    assert(nc_inq_vardimid(ncid, timevarid, &timedimid) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, timevarid, &ndays) == NC_NOERR); /* use this later to determine whether we have enough data */
+
+    assert(nc_inq_varid(ncid, "lat", &latvarid) == NC_NOERR);
+    assert(nc_inq_vartype(ncid, latvarid, &vartype) == NC_NOERR);
+    assert(vartype == NC_DOUBLE);
+    assert(nc_inq_varndims(ncid, latvarid, &ndims) == NC_NOERR);
+    assert(ndims == 1);
+    assert(nc_inq_vardimid(ncid, latvarid, &latdimid) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, latvarid, &nlats) == NC_NOERR);
+
+    assert(nc_inq_varid(ncid, "lon", &lonvarid) == NC_NOERR);
+    assert(nc_inq_vartype(ncid, lonvarid, &vartype) == NC_NOERR);
+    assert(vartype == NC_DOUBLE);
+    assert(nc_inq_varndims(ncid, lonvarid, &ndims) == NC_NOERR);
+    assert(ndims == 1);
+    assert(nc_inq_vardimid(ncid, lonvarid, &londimid) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, lonvarid, &nlons) == NC_NOERR);
+    
+    /* get lat/lon */ /* FIXME also get time and scan for it */
+    lats = (double *)malloc(nlats * sizeof(*lats)); assert(lats != NULL);
+    dimvarcount = nlats;
+    nc_get_vara_double(ncid, latvarid, &dimvarstart, &dimvarcount, lats);
+    lons = (double *)malloc(nlons * sizeof(*lons)); assert(lons != NULL);
+    dimvarcount = nlons;
+    nc_get_vara_double(ncid, lonvarid, &dimvarstart, &dimvarcount, lons);
+    
+    /* figure out slices */
+    for (unsigned int latidx = 0; latidx < nlats; latidx++) {
+      if (lats[latidx] == soil_con->lat) { /* FIXME, proper FP comparison would be really good!! */
+        starts[1] = latidx;
+        break;
+      }
+      assert(latidx != (nlats - 1)); /* die if we make it to the last iteration without finding a match FIXME better spew */
+    }
+    for (unsigned int lonidx = 0; lonidx < nlons; lonidx++) {
+      if (lons[lonidx] == soil_con->lng) {
+        starts[2] = lonidx;
+        break;
+      }
+      assert(lonidx != (nlons - 1));
+    }
+
+    /* handle vars */
+    for(int varidx = 0; varidx < nvars; ++varidx) {
+      int attlen;
+      float scale_factor;
+
+      /* Get varid + check type */
+      assert(nc_inq_varid(ncid, varnames[varidx], &varids[varidx]) == NC_NOERR);
+      assert(nc_inq_vartype(ncid, varids[varidx], &vartype) == NC_NOERR);
+      assert(vartype == NC_SHORT || vartype == NC_USHORT);
+      /* Check ndims + dim order */
+      assert(nc_inq_varndims(ncid, varids[varidx], &ndims) == NC_NOERR);
+      assert(ndims = 3);
+      assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
+      assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
+
+      /* Get and convert data -- fixme; need to sort out field_index and adapt it to ncdf... */
+      switch (vartype) {
+      case NC_SHORT: {
+        assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+        short int *data = (short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
+        /* DEBUG - probably duplicate this or move this up... */
+        fprintf(stderr, "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d]\n", varids[varidx], varnames[varidx], (int)starts[0], (int)(starts[0]+counts[0]-1), (int)starts[1], (int)(starts[1]+counts[1]-1), (int)starts[2], (int)(starts[2]+counts[2]-1));
+        if((ncerr = nc_get_vara_short(ncid, varids[varidx], starts, counts, data)) != NC_NOERR) {
+          fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
+          exit(1);
+        }
+        for (int rec = 0; rec < (global_param.nrecs * global_param.dt); rec++) {
+          /* FIXME (and below) handle missing value (probably by bailing) */
+          forcing_data[field_index[varidx]][rec]  = (double)data[rec] * scale_factor;
+        }
+        free(data);
+        break;
+      }
+      case NC_USHORT: {
+        assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+        unsigned short int *data = (unsigned short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
+        if((ncerr = nc_get_vara_ushort(ncid, varids[varidx], starts, counts, data)) != NC_NOERR) {
+          fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
+          exit(1);
+        }
+        for (int rec = 0; rec < (global_param.nrecs * global_param.dt); rec++) {
+          forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
+        }        
+        free(data);
+        break;
+      }
+      case NC_FLOAT:
+      case NC_DOUBLE:
+      default: assert(0);
+      }
+    }
+
+    /* NC_MAX_NAME, NC_MAX_VAR_DIMS, nc_inq_varid(ncid, "name", &varid); (for expected dim) 
+     *    nc_inq_var(ncid, varid, );  Don't need this until we're actually figuring out dims dynamically
+     * nc_inq_dim(ncid, dimid, name_str, &dimlength); */
+
+    
+
+    /* TODO:
+     * -position dim support?
+     * -better matching of lats + lons
+     * -support for other possible variable names (check that only ONE matches!)
+     * -close files
+     */
+  }
   
   /***************************
     Read BINARY Forcing Data
   ***************************/
-
-  if(param_set.FORCE_FORMAT[file_num] == BINARY){
+  
+  else if(param_set.FORCE_FORMAT[file_num] == BINARY){
 	  
     /** test whether the machine is little-endian or big-endian **/
     i = 1;

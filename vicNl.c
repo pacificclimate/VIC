@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
       fprintf(stderr,"Initializing Forcing Data\n");
 #endif /* VERBOSE */
 
-      initialize_atmos(atmos, dmy, filep.forcing,
+      initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid,
 #if OUTPUT_FORCE
 		       &soil_con, out_data_files, out_data); 
 #else /* OUTPUT_FORCE */

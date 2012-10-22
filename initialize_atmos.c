@@ -7,6 +7,7 @@ static char vcid[] = "$Id$";
 void initialize_atmos(atmos_data_struct        *atmos,
                       dmy_struct               *dmy,
 		      FILE                    **infile,
+                      int                      *ncids,
 #if OUTPUT_FORCE
 		      soil_con_struct          *soil_con,
                       out_data_file_struct     *out_data_files,
@@ -312,7 +313,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
     read in meteorological data 
   *******************************/
 
-  forcing_data = read_forcing_data(infile, global_param);
+  forcing_data = read_forcing_data(infile, ncids, global_param, soil_con /* MPN: added for now so we have lat/lon */);
   
   fprintf(stderr,"\nRead meteorological forcing file\n");
 

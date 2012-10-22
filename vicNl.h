@@ -358,7 +358,7 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void   init_output_list(out_data_struct *, int, const char *, int, float);
-void   initialize_atmos(atmos_data_struct *, dmy_struct *, FILE **,
+void   initialize_atmos(atmos_data_struct *, dmy_struct *, FILE **, int *ncids,
 #if OUTPUT_FORCE
 			soil_con_struct *, out_data_file_struct *, out_data_struct *);
 #else
@@ -429,8 +429,8 @@ int    put_data(dist_prcp_struct *, atmos_data_struct *,
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
-void   read_atmos_data(FILE *, global_param_struct, int, int, double **);
-double **read_forcing_data(FILE **, global_param_struct);
+void   read_atmos_data(FILE *, int ncid, global_param_struct, int, int, double **, soil_con_struct *);
+double **read_forcing_data(FILE **, int *ncids, global_param_struct, soil_con_struct *);
 void   read_initial_model_state(FILE *, dist_prcp_struct *, 
 				global_param_struct *, int, int, int, 
 				soil_con_struct *, int, char *,

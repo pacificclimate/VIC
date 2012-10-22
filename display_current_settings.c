@@ -331,8 +331,10 @@ void display_current_settings(int                 mode,
         fprintf(stderr,"FORCE_ENDIAN\t\tBIG\n");
       if (param_set.FORCE_FORMAT[file_num] == BINARY)
         fprintf(stderr,"FORCE_FORMAT\t\tBINARY\n");
-      else
+      else if (param_set.FORCE_FORMAT[file_num] == ASCII)
         fprintf(stderr,"FORCE_FORMAT\t\tASCII\n");
+      else
+        fprintf(stderr,"FORCE_FORMAT\t\tNETCDF\n");        
     }
   }
   fprintf(stderr,"GRID_DECIMAL\t\t%d\n",options.GRID_DECIMAL);

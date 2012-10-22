@@ -49,7 +49,7 @@ CC = g++
 
 # Uncomment for normal optimized code flags (fastest run option)
 #CFLAGS  = -I. -O3 -Wall -Wno-unused
-LIBRARY = -lm
+LIBRARY = -lm -lnetcdf
 
 # Uncomment to include debugging information
 CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused

@@ -137,6 +137,7 @@
 /***** Met file formats *****/
 #define ASCII 1
 #define BINARY 2
+#define NETCDF 3
 
 /***** Snow Albedo parametrizations *****/
 #define USACE   0
@@ -534,6 +535,7 @@ extern int NF;			/* array index loop counter limit for atmos
 /** file structures **/
 typedef struct {
   FILE *forcing[2];     /* atmospheric forcing data files */
+  int forcing_ncid[2];
   FILE *globalparam;    /* global parameters file */
   FILE *init_state;     /* initial model state file */
   FILE *lakeparam;      /* lake parameter file */
@@ -755,7 +757,7 @@ typedef struct {
   int  FORCE_DT[2];     /* forcing file time step */
   int  FORCE_ENDIAN[2]; /* endian-ness of input file, used for
 			   DAILY_BINARY format */
-  int  FORCE_FORMAT[2]; /* ASCII or BINARY */
+  int  FORCE_FORMAT[2]; /* NETCDF or ASCII or BINARY */
   int  FORCE_INDEX[2][N_FORCING_TYPES];
   int  N_TYPES[2];
 } param_set_struct;

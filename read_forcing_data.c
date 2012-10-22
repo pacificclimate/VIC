@@ -6,7 +6,9 @@
 static char vcid[] = "$Id$";
 
 double **read_forcing_data(FILE                **infile,
-			   global_param_struct   global_param)
+                           int                  *ncids,
+			   global_param_struct   global_param,
+                           soil_con_struct      *soil_con)
 /**********************************************************************
   read_forcing_data    Keith Cherkauer      January 10, 2000
 
@@ -34,8 +36,8 @@ double **read_forcing_data(FILE                **infile,
 
   /** Read First Forcing Data File **/
   if(param_set.FORCE_DT[0] > 0) {
-    read_atmos_data(infile[0], global_param, 0, global_param.forceskip[0],
-		    forcing_data);
+    read_atmos_data(infile[0], ncids[0], global_param, 0, global_param.forceskip[0],
+		    forcing_data, soil_con);
   }
   else {
     sprintf(errorstr,"ERROR: File time step must be defined for at least the first forcing file (FILE_DT).\n");
@@ -44,8 +46,8 @@ double **read_forcing_data(FILE                **infile,
 
   /** Read Second Forcing Data File **/
   if(param_set.FORCE_DT[1] > 0) {
-    read_atmos_data(infile[1], global_param, 1, global_param.forceskip[1], 
-		    forcing_data);
+    read_atmos_data(infile[1], ncids[1], global_param, 1, global_param.forceskip[1], 
+		    forcing_data, soil_con);
   }
 
   return(forcing_data);

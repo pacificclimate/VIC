@@ -94,7 +94,7 @@ LW_CLOUD	LW_CLOUD_DEARDORFF	# This controls the algorithm used to estimate the i
 #			FORCE_TYPE	PREC
 #######################################################################
 FORCING1	(put the forcing path/prefix here)	# Forcing file path and prefix, ending in "_"
-FORCE_FORMAT	BINARY	# BINARY or ASCII
+FORCE_FORMAT	BINARY	# NETCDF or BINARY or ASCII
 FORCE_ENDIAN	LITTLE	# LITTLE (PC/Linux) or BIG (SUN)
 N_TYPES		4	# Number of variables (columns)
 FORCE_TYPE	PREC	UNSIGNED	40
