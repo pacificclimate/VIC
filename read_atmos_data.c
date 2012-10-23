@@ -121,6 +121,9 @@ void read_atmos_data(FILE                 *infile,
      * -need to implement proper FP comparison of dims
      */
 
+    /* TODO some of these should be parameters once this is complete... */
+    const int nforcesteps = global_param.nrecs * global_param.dt / param_set.FORCE_DT[file_num]; /* number of forcing timesteps to be loaded */
+
     int ndims; /* scratch for nc_inq_varndims */
     nc_type vartype; /* scratch for nc_inq_vartype */
     int ncerr;
@@ -136,10 +139,12 @@ void read_atmos_data(FILE                 *infile,
     int varids[nvars];
     int vardimids[3];
 
-    /* hyperslab bounds */
+    /* hyperslab bounds and permutation */
     size_t starts[3] = {skip_recs, -1, -1}; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
-    size_t counts[3] = {global_param.nrecs * global_param.dt / param_set.FORCE_DT[file_num], 1, 1}; /* FIXME make this support multiple cells... */
-
+    size_t counts[3] = {nforcesteps, 1, 1}; /* FIXME make this support multiple cells, and allow permutation to fit dim reordering... */
+    int dimlengths[3] = {1, 1, nforcesteps}; /* FIXME THIS SHOULD BE A PARAMETER */
+    const ptrdiff_t perm[3] = {1, dimlengths[1] * dimlengths[2], dimlengths[2]};
+    
 
     /* handle dimvars */
     assert(nc_inq_varid(ncid, "time", &timevarid) == NC_NOERR);
@@ -212,7 +217,7 @@ void read_atmos_data(FILE                 *infile,
         short int *data = (short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
         /* DEBUG - probably duplicate this or move this up... */
         fprintf(stderr, "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d]\n", varids[varidx], varnames[varidx], (int)starts[0], (int)(starts[0]+counts[0]-1), (int)starts[1], (int)(starts[1]+counts[1]-1), (int)starts[2], (int)(starts[2]+counts[2]-1));
-        if((ncerr = nc_get_vara_short(ncid, varids[varidx], starts, counts, data)) != NC_NOERR) {
+        if((ncerr = nc_get_varm_short(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
           fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
           exit(1);
         }
@@ -226,7 +231,7 @@ void read_atmos_data(FILE                 *infile,
       case NC_USHORT: {
         assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
         unsigned short int *data = (unsigned short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
-        if((ncerr = nc_get_vara_ushort(ncid, varids[varidx], starts, counts, data)) != NC_NOERR) {
+        if((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
           fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
           exit(1);
         }
@@ -240,6 +245,8 @@ void read_atmos_data(FILE                 *infile,
       case NC_DOUBLE:
       default: assert(0);
       }
+
+      rec = nforcesteps;
     }
 
     /* NC_MAX_NAME, NC_MAX_VAR_DIMS, nc_inq_varid(ncid, "name", &varid); (for expected dim) 
