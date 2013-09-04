@@ -5,7 +5,7 @@
 static char vcid[] = "$Id$";
 
 void initialize_atmos(atmos_data_struct        *atmos,
-                      dmy_struct               *dmy,
+                      const dmy_struct               *dmy,
 		      FILE                    **infile,
                       int                      *ncids,
 #if OUTPUT_FORCE

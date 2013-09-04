@@ -12,7 +12,7 @@ int  put_data(dist_prcp_struct  *prcp,
               out_data_file_struct   *out_data_files,
               out_data_struct   *out_data,
               save_data_struct  *save_data,
-	      dmy_struct        *dmy,
+	      const dmy_struct  *dmy,
               int                rec)
 /**********************************************************************
 	put_data.c	Dag Lohmann		January 1996
@@ -260,6 +260,7 @@ int  put_data(dist_prcp_struct  *prcp,
   // Initialize output data to zero
   zero_output_list(out_data);
 
+  /* MPN */
   // Set output versions of input forcings
   out_data[OUT_AIR_TEMP].data[0]  = atmos->air_temp[NR];
   out_data[OUT_DENSITY].data[0]   = atmos->density[NR];

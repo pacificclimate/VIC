@@ -5,7 +5,7 @@
 static char vcid[] = "$Id$";
 
 void compute_treeline(atmos_data_struct        *atmos,
-                      dmy_struct               *dmy,
+                      const dmy_struct               *dmy,
 		      double                   avgJulyAirTemp,
 		      double                   *Tfactor,
 		      char                     *AboveTreeLine)

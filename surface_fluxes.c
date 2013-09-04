@@ -48,7 +48,7 @@ int surface_fluxes(char                 overstory,
 		   int                  rec,
 		   int                  veg_class,
 		   atmos_data_struct   *atmos,
-		   dmy_struct          *dmy,
+		   const dmy_struct    *dmy,
 		   energy_bal_struct   *energy,
 		   global_param_struct *gp,
 		   cell_data_struct    *cell_dry,
@@ -468,7 +468,7 @@ int surface_fluxes(char                 overstory,
     Compute surface fluxes 
   *************************/
 
-  do {
+  do { /* MPN TODO This is stupid.  Makes it into a for loop because it is a fixed number of iterations! */
 
     /** Solve energy balance for all sub-model time steps **/
 
@@ -898,7 +898,7 @@ int surface_fluxes(char                 overstory,
     store_melt_energy       += step_melt_energy;
     store_sensible          += soil_energy.sensible; 
     if ( step_snow.swq == 0 && INCLUDE_SNOW ) {
-      if ( last_snow_coverage == 0 && step_prec > 0 ) last_snow_coverage = 1;
+      if ( last_snow_coverage == 0 && (long int)step_prec > 0 ) last_snow_coverage = 1; /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
       store_advected_sensible += snow_energy.advected_sensible * last_snow_coverage; 
       store_advection         += snow_energy.advection * last_snow_coverage; 
       store_deltaCC           += snow_energy.deltaCC * last_snow_coverage; 

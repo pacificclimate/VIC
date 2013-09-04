@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 #include <string.h>
+#include <assert.h>
 
 static char vcid[] = "$Id$";
 
@@ -164,7 +165,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
   soil_con_struct temp;
 
   if(options.ARC_SOIL) {
-
+    assert(0); /* presently unsupported; maybe support vector functionality later? */
     /** Read Arc/INFO-style soil parameter files **/
     temp = read_soilparam_arc(soilparam, soilparamdir, &Ncells, RUN_MODEL, *cell_cnt);
     *cell_cnt++;

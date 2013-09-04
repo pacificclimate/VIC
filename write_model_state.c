@@ -269,7 +269,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 
 	/* Write total soil moisture */
 	for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
-	  tmpval = cell[dist][veg][band].layer[lidx].moist;
+	  tmpval = cell[dist][veg][band].layer[lidx].moist; /* MPN */
 	  if ( options.BINARY_STATE_FILE )
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  else
@@ -279,6 +279,7 @@ void write_model_state(dist_prcp_struct    *prcp,
         /* Write average ice content */
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
+#error
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    tmpval = cell[dist][veg][band].layer[lidx].ice[frost_area];
 	    if ( options.BINARY_STATE_FILE ) {

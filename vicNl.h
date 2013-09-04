@@ -179,7 +179,7 @@ double calc_surf_energy_bal(double, double, double, double, double, double,
                             double *, double *, double *, double *, double *,
                             float *, int, int,
                             int, int, int, int, int, int, int, int, int, int,
-                            atmos_data_struct *, dmy_struct *,
+                            atmos_data_struct *, const dmy_struct *,
                             energy_bal_struct *, layer_data_struct *,
                             layer_data_struct *,
                             snow_data_struct *, soil_con_struct *,
@@ -200,7 +200,7 @@ double canopy_evap(layer_data_struct *, layer_data_struct *,
                    float *);
 #endif
 void   check_files(filep_struct *, filenames_struct *);
-FILE  *check_state_file(char *, dmy_struct *, global_param_struct *, int, int, 
+FILE  *check_state_file(char *, const dmy_struct *, global_param_struct *, int, int, 
                         int *);
 void   close_files(filep_struct *, out_data_file_struct *, filenames_struct *);
 filenames_struct cmd_proc(int argc, char *argv[]);
@@ -220,7 +220,7 @@ void   collect_wb_terms(cell_data_struct, veg_var_struct, snow_data_struct, lake
 void   compress_files(char string[]);
 void   compute_dz(double *, double *, int, double);
 void   correct_precip(double *, double, double, double, double);
-void   compute_pot_evap(int, dmy_struct *, int, int, double, double , double, double, double, double **, double *);
+void   compute_pot_evap(int, const dmy_struct *, int, int, double, double , double, double, double, double **, double *);
 void   compute_runoff_and_asat(soil_con_struct *, double *, double, double *, double *);
 void   compute_soil_layer_thermal_properties(layer_data_struct *, double *,
 					     double *, double *, double *, 
@@ -229,14 +229,14 @@ void   compute_soil_layer_thermal_properties(layer_data_struct *, double *,
                                              double *,
 #endif
 					     int);
-void   compute_treeline(atmos_data_struct *, dmy_struct *, double, double *, char *);
+void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double *, char *);
 double compute_zwt(soil_con_struct *, int, double);
 out_data_struct *create_output_list();
 
 void   display_current_settings(int, filenames_struct *, global_param_struct *);
 int    dist_prec(atmos_data_struct *,dist_prcp_struct *,soil_con_struct *,
 		 veg_con_struct *, lake_con_struct *,
-		 dmy_struct *,global_param_struct *,
+		 const dmy_struct *,global_param_struct *,
 		 filep_struct *, out_data_file_struct *,
 		 out_data_struct *, save_data_struct *,
 		 int, int, char, char, char *, int *);
@@ -338,7 +338,7 @@ void   free_veglib(veg_lib_struct **);
 void   free_out_data_files(out_data_file_struct **);
 void   free_out_data(out_data_struct **);
 int    full_energy(char, int, int, atmos_data_struct *, dist_prcp_struct *,
-		   dmy_struct *, global_param_struct *, lake_con_struct *,
+		   const dmy_struct *, global_param_struct *, lake_con_struct *,
                    soil_con_struct *, veg_con_struct *);
 double func_aero_resist(double,double,double,double,double);
 double func_atmos_energy_bal(double, va_list);
@@ -358,14 +358,14 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void   init_output_list(out_data_struct *, int, const char *, int, float);
-void   initialize_atmos(atmos_data_struct *, dmy_struct *, FILE **, int *ncids,
+void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids,
 #if OUTPUT_FORCE
 			soil_con_struct *, out_data_file_struct *, out_data_struct *);
 #else
 			soil_con_struct *);
 #endif
 void   initialize_global();
-int   initialize_model_state(dist_prcp_struct *, dmy_struct,
+int   initialize_model_state(dist_prcp_struct *, const dmy_struct,
 			      global_param_struct *, filep_struct, 
 			      int, int, int, int, 
 			      double, soil_con_struct *,
@@ -404,7 +404,7 @@ double maximum_unfrozen_water_quick(double, double, double **);
 double modify_Ksat(double);
 void mtclim_wrapper(int, int, double, double, double, double,
                       double, double, double, double,
-                      int, dmy_struct *, double *,
+                    int, /* MPN: separate instance; should probably be const */ dmy_struct *, double *,
                       double *, double *, double *, double *, double *);
 
 double new_snow_density(double);
@@ -425,7 +425,7 @@ int    put_data(dist_prcp_struct *, atmos_data_struct *,
 		soil_con_struct *, veg_con_struct *,
                 lake_con_struct *, out_data_file_struct *,
 		out_data_struct *, save_data_struct *,
- 	        dmy_struct *, int); 
+ 	        const dmy_struct *, int); 
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
@@ -505,7 +505,7 @@ double solve_snow(char, double, double, double, double, double, double,
                   double *, double *, double *, double *, double *, double *,
                   double *, double *, double *, double *, double *, double *,
                   float *, int, int, int, int, int, int, int, int, int, int *,
-                  dmy_struct *, atmos_data_struct *, energy_bal_struct *,
+                  const dmy_struct *, atmos_data_struct *, energy_bal_struct *,
                   layer_data_struct *, layer_data_struct *,
                   snow_data_struct *, soil_con_struct *,
                   veg_var_struct *, veg_var_struct *);
@@ -549,7 +549,7 @@ int    surface_fluxes(char, double, double, double, double,
                       double *, double *, double *, double *, 
                       double *, double *, double *, double *, double *,
 		      float *, int, int, int, int, int, 
-                      int, int, int, int, atmos_data_struct *, dmy_struct *, 
+                      int, int, int, int, atmos_data_struct *, const dmy_struct *, 
                       energy_bal_struct *, global_param_struct *, 
                       cell_data_struct *, cell_data_struct *, 
                       snow_data_struct *, soil_con_struct *, 
@@ -575,16 +575,16 @@ double volumetric_heat_capacity(double,double,double,double);
 
 void wrap_compute_zwt(soil_con_struct *, cell_data_struct *);
 void write_atmosdata(atmos_data_struct *, int);
-void write_data(out_data_file_struct *, out_data_struct *, dmy_struct *, int);
+void write_data(out_data_file_struct *, out_data_struct *, const dmy_struct *, int);
 void write_debug(atmos_data_struct *, soil_con_struct *, cell_data_struct *,
                  energy_bal_struct *, snow_data_struct *, veg_var_struct *,
-                 dmy_struct *, global_param_struct *,
+                 const dmy_struct *, global_param_struct *,
                  double, double, int, int, int, int, int, char);
 void write_dist_prcp(dist_prcp_struct *);
 #if OUTPUT_FORCE
 void write_forcing_file(atmos_data_struct *, int, out_data_file_struct *, out_data_struct *);
 #endif
-void write_header(out_data_file_struct *, out_data_struct *, dmy_struct *, global_param_struct);
+void write_header(out_data_file_struct *, out_data_struct *, const dmy_struct *, global_param_struct);
 void write_layer(layer_data_struct *, int, int, 
 #if SPATIAL_FROST
                  double *,

@@ -6,7 +6,7 @@ static char vcid[] = "$Id$";
 
 void write_data(out_data_file_struct *out_data_files,
 		out_data_struct *out_data,
-		dmy_struct      *dmy,
+		const dmy_struct      *dmy,
 		int              dt)
 /**********************************************************************
 	write_data	Dag Lohmann		Janurary 1996

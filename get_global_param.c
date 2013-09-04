@@ -104,7 +104,7 @@ global_param_struct get_global_param(filenames_struct *names,
 #if LINK_DEBUG
   extern debug_struct     debug;
 #endif
-  extern int              NF, NR;
+/*  extern int              NF, NR; MPN:  Derp, no, this doesn't do anything, and don't write crap code with 'extern' in block scope.*/
 
   char cmdstr[MAXSTRING];
   char optstr[MAXSTRING];

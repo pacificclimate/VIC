@@ -6,11 +6,11 @@
 static char vcid[] = "$Id$";
 
 int  full_energy(char                 NEWCELL,
-		 int                  gridcell,
+		 const int                  gridcell,
                  int                  rec,
                  atmos_data_struct   *atmos,
                  dist_prcp_struct    *prcp,
-                 dmy_struct          *dmy,
+                 const dmy_struct    *dmy,
                  global_param_struct *gp,
 		 lake_con_struct     *lake_con,
                  soil_con_struct     *soil_con,
@@ -341,7 +341,7 @@ int  full_energy(char                 NEWCELL,
 
         /* Initialize wind speeds */
         tmp_wind[0] = atmos->wind[NR];
-        tmp_wind[1] = -999.;
+        tmp_wind[1] = -999.; /* MPN:  FIXME:  Find crap like this and SET AS NaN */
         tmp_wind[2] = -999.;
  
         /* Set surface descriptive variables */

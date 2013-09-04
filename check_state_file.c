@@ -6,7 +6,7 @@
 static char vcid[] = "$Id$";
 
 FILE *check_state_file(char                *init_state_name,
-		       dmy_struct          *dmy,
+		       const dmy_struct          *dmy, /* MPN: unused !*/
 		       global_param_struct *global,
 		       int                  Nlayer,
 		       int                  Nnodes,

@@ -10,14 +10,14 @@ int  dist_prec(atmos_data_struct   *atmos,
                soil_con_struct     *soil_con,
                veg_con_struct      *veg_con,
 	       lake_con_struct     *lake_con,
-               dmy_struct          *dmy,
+               const dmy_struct    *dmy,
                global_param_struct *global_param,
                filep_struct        *filep,
                out_data_file_struct *out_data_files,
                out_data_struct     *out_data,
                save_data_struct    *save_data,
                int                  rec,
-               int                  cellnum,
+               const int                  cellnum,
                char                 NEWCELL,
                char                 LASTREC,
 	       char                *init_STILL_STORM,
@@ -83,6 +83,7 @@ int  dist_prec(atmos_data_struct   *atmos,
   extern debug_struct debug;
 #endif
 
+  /* MPN : FIXME:  Move state out! */
   static char STILL_STORM[MAX_VEG];
   static int  DRY_TIME[MAX_VEG];
 
@@ -108,7 +109,7 @@ int  dist_prec(atmos_data_struct   *atmos,
     If rec >= 0, proceed with simulation
   **************************************************/
   // check if state file has been used to initialize storm tracking
-  if ( init_DRY_TIME >= 0 ) {
+  if ( (long int)init_DRY_TIME >= 0 ) { /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
     // initialize storm tracking
     for ( veg = 0; veg <= veg_con[0].vegetat_type_num; veg++ ) {
       DRY_TIME[veg] = init_DRY_TIME[veg];
@@ -208,7 +209,7 @@ int  dist_prec(atmos_data_struct   *atmos,
 
   }
 
-  else {
+  else { /* FIXME dumb flow control */
 
     /**************************************************
       Controls Grid Cell Averaged Precipitation Model

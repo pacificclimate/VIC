@@ -7,7 +7,7 @@ static char vcid[] = "$Id$";
 
 void write_header(out_data_file_struct *out_data_files,
 		  out_data_struct      *out_data,
-                  dmy_struct           *dmy,
+                  const dmy_struct           *dmy,
                   global_param_struct   global)
 /**********************************************************************
 	write_header	Ted Bohn		Janurary 2007

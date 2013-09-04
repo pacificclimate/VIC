@@ -4,6 +4,8 @@
 #include <string.h>
 #include <vicNl.h>
 #include <netcdf.h>
+#define __STDC_LIMIT_MACROS 1
+#include <stdint.h>
 
 static char vcid[] = "$Id$";
 
@@ -140,8 +142,8 @@ void read_atmos_data(FILE                 *infile,
     int vardimids[3];
 
     /* hyperslab bounds and permutation */
-    size_t starts[3] = {skip_recs, -1, -1}; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
-    size_t counts[3] = {nforcesteps, 1, 1}; /* FIXME make this support multiple cells, and allow permutation to fit dim reordering... */
+    size_t starts[3] = {(size_t)skip_recs, SIZE_MAX, SIZE_MAX}; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
+    size_t counts[3] = {(size_t)nforcesteps, 1, 1}; /* TODO make this support multiple cells, and allow permutation to fit dim reordering... */
     int dimlengths[3] = {1, 1, nforcesteps}; /* FIXME THIS SHOULD BE A PARAMETER */
     const ptrdiff_t perm[3] = {1, dimlengths[1] * dimlengths[2], dimlengths[2]};
     
@@ -198,7 +200,8 @@ void read_atmos_data(FILE                 *infile,
     /* handle vars */
     for(int varidx = 0; varidx < nvars; ++varidx) {
       int attlen;
-      float scale_factor;
+      float scale_factor = NAN, inverse_scale_factor = NAN; /* leave uninitialized in case of has_inverse_scale_factor */
+      int has_inverse_scale_factor = 0;
 
       /* Get varid + check type */
       assert(nc_inq_varid(ncid, varnames[varidx], &varids[varidx]) == NC_NOERR);
@@ -210,37 +213,49 @@ void read_atmos_data(FILE                 *infile,
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
       assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
 
-      /* Get and convert data -- fixme; need to sort out field_index and adapt it to ncdf... */
+      /* Get and convert data -- fixme; need to sort out field_index or related (borrow from their enum?) and adapt it to ncdf so indices are not hardcoded here... */
       switch (vartype) {
       case NC_SHORT: {
-        assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+        /* TODO check for relevant return code values instead of just NC_NOERR for cases where value might just not be present, although require at least one of scale_factor and inverse_scale_factor for integer-packed data */
+        if (nc_get_att_float(ncid, varids[varidx], "scale_factor", &inverse_scale_factor) == NC_NOERR)
+          has_inverse_scale_factor = 1;
+        else
+          assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
         short int *data = (short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
-        /* DEBUG - probably duplicate this or move this up... */
-        fprintf(stderr, "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d]\n", varids[varidx], varnames[varidx], (int)starts[0], (int)(starts[0]+counts[0]-1), (int)starts[1], (int)(starts[1]+counts[1]-1), (int)starts[2], (int)(starts[2]+counts[2]-1));
+        /* MPN FIXME DEBUG - probably duplicate this or move this up... */
+        fprintf(stderr, "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ", varids[varidx], varnames[varidx], (int)starts[0], (int)(starts[0]+counts[0]-1), (int)starts[1], (int)(starts[1]+counts[1]-1), (int)starts[2], (int)(starts[2]+counts[2]-1));
         if((ncerr = nc_get_varm_short(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
           fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
           exit(1);
         }
-        for (int rec = 0; rec < (global_param.nrecs * global_param.dt); rec++) {
-          /* FIXME (and below) handle missing value (probably by bailing) */
-          forcing_data[field_index[varidx]][rec]  = (double)data[rec] * scale_factor;
-        }
+        fprintf(stderr, "done\n");
+        /* FIXME (and below) handle missing value (probably by bailing, because this data should be contiguous) */
+        if (has_inverse_scale_factor)
+          /* Implemented for numerically-identical operation to classic VIC input */
+          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] / inverse_scale_factor;
+        else
+          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
         free(data);
         break;
       }
       case NC_USHORT: {
-        assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+        if (nc_get_att_float(ncid, varids[varidx], "scale_factor", &inverse_scale_factor) == NC_NOERR)
+          has_inverse_scale_factor = 1;
+        else
+          assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
         unsigned short int *data = (unsigned short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
         if((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
           fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
           exit(1);
         }
-        for (int rec = 0; rec < (global_param.nrecs * global_param.dt); rec++) {
-          forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
-        }        
+        if (has_inverse_scale_factor)
+          /* Implemented for numerically-identical operation to classic VIC input */
+          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] / inverse_scale_factor;
+        else
+          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
         free(data);
         break;
-      }
+        }
       case NC_FLOAT:
       case NC_DOUBLE:
       default: assert(0);
@@ -258,8 +273,8 @@ void read_atmos_data(FILE                 *infile,
     /* TODO:
      * -position dim support?
      * -better matching of lats + lons
-     * -support for other possible variable names (check that only ONE matches!)
-     * -close files
+     * -support for other possible synonymous variable names (check that only ONE matches!)
+     * -close files (inconsequential for now)
      */
   }
   

@@ -53,6 +53,7 @@ LIBRARY = -lm -lnetcdf
 
 # Uncomment to include debugging information
 CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused
+CXXFLAGS = -I. -g -Wall -Wextra -Werror -Wno-unused
 #LIBRARY = -lm
 
 # Uncomment to include execution profiling information

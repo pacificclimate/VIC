@@ -1039,6 +1039,7 @@ typedef struct {
   double zwt;                          /* average water table position [cm] - method 1 */
   double zwt2;                         /* average water table position [cm] - method 2 */
   double zwt3;                         /* average water table position [cm] - method 3 */
+  /* FIXME rename to something like HRU_data_struct */
 } cell_data_struct;
 
 /***********************************************************************
