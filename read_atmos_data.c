@@ -209,7 +209,7 @@ void read_atmos_data(FILE                 *infile,
       assert(vartype == NC_SHORT || vartype == NC_USHORT);
       /* Check ndims + dim order */
       assert(nc_inq_varndims(ncid, varids[varidx], &ndims) == NC_NOERR);
-      assert(ndims = 3);
+      assert(ndims == 3);
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
       assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
 
@@ -217,7 +217,7 @@ void read_atmos_data(FILE                 *infile,
       switch (vartype) {
       case NC_SHORT: {
         /* TODO check for relevant return code values instead of just NC_NOERR for cases where value might just not be present, although require at least one of scale_factor and inverse_scale_factor for integer-packed data */
-        if (nc_get_att_float(ncid, varids[varidx], "scale_factor", &inverse_scale_factor) == NC_NOERR)
+        if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor", &inverse_scale_factor) == NC_NOERR)	//TODO: move outside of switch
           has_inverse_scale_factor = 1;
         else
           assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
@@ -239,7 +239,7 @@ void read_atmos_data(FILE                 *infile,
         break;
       }
       case NC_USHORT: {
-        if (nc_get_att_float(ncid, varids[varidx], "scale_factor", &inverse_scale_factor) == NC_NOERR)
+        if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor", &inverse_scale_factor) == NC_NOERR)
           has_inverse_scale_factor = 1;
         else
           assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
