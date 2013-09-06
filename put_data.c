@@ -194,12 +194,6 @@ int  put_data(dist_prcp_struct  *prcp,
   static int              Tsurf_fbcount_total;
   static int              Tsoil_fbcount_total;
 
-  cell_data_struct     ***cell;
-  energy_bal_struct     **energy;
-  lake_var_struct         lake_var;
-  snow_data_struct      **snow;
-  veg_var_struct       ***veg_var;
-
   AboveTreeLine = soil_con->AboveTreeLine;
   AreaFract = soil_con->AreaFract;
   depth = soil_con->depth;
@@ -236,7 +230,7 @@ int  put_data(dist_prcp_struct  *prcp,
           if (options.LAKES && veg_con[veg].LAKE) {
             if (band == 0) {
               // Fraction of tile that is flooded
-              Clake = lake_var.sarea/lake_con->basin[0];
+              Clake = prcp->lake_var.sarea/lake_con->basin[0];
 	      Cv += veg_con[veg].Cv*(1-Clake);
             }
           }
@@ -280,12 +274,6 @@ int  put_data(dist_prcp_struct  *prcp,
   out_data[OUT_VP].data[0]        = atmos->vp[NR]/kPa2Pa;
   out_data[OUT_VPD].data[0]       = atmos->vpd[NR]/kPa2Pa;
   out_data[OUT_WIND].data[0]      = atmos->wind[NR];
- 
-  cell    = prcp->cell;
-  energy  = prcp->energy;
-  lake_var = prcp->lake_var;
-  snow    = prcp->snow;
-  veg_var = prcp->veg_var;
 
   /****************************************
     Store Output for all Vegetation Types (except lakes)
@@ -306,7 +294,7 @@ int  put_data(dist_prcp_struct  *prcp,
 
       // Check if this is lake/wetland tile
       if (options.LAKES && veg_con[veg].LAKE) {
-        Clake = lake_var.sarea/lake_con->basin[0];
+        Clake = prcp->lake_var.sarea/lake_con->basin[0];
         Nbands = 1;
         IsWet = 1;
       }
@@ -333,9 +321,9 @@ int  put_data(dist_prcp_struct  *prcp,
           *******************************************************/
           for ( dist = 0; dist < Ndist; dist++ ) {
             if(dist==0) 
-              mu = prcp[0].mu[veg];
+              mu = prcp->mu[veg];
             else 
-              mu = 1. - prcp[0].mu[veg];
+              mu = 1. - prcp->mu[veg];
 
             /** compute running totals of various landcovers **/
             if (HasVeg)
@@ -344,16 +332,16 @@ int  put_data(dist_prcp_struct  *prcp,
               cv_baresoil += Cv * mu * ThisAreaFract * ThisTreeAdjust;
             if (overstory)
               cv_overstory += Cv * mu * ThisAreaFract * ThisTreeAdjust;
-            if (snow[veg][band].swq> 0.0)
+            if (prcp->snow[veg][band].swq> 0.0)
               cv_snow += Cv * mu * ThisAreaFract * ThisTreeAdjust;
 
 	    /*********************************
               Record Water Balance Terms 
 	    *********************************/
-            collect_wb_terms(cell[dist][veg][band],
-                             veg_var[dist][veg][band],
-                             snow[veg][band],
-                             lake_var,
+            collect_wb_terms(prcp->cell[dist][veg][band],
+                             prcp->veg_var[dist][veg][band],
+                             prcp->snow[veg][band],
+                             prcp->lake_var,
                              mu,
                              Cv,
                              ThisAreaFract,
@@ -373,9 +361,9 @@ int  put_data(dist_prcp_struct  *prcp,
 	  /**********************************
 	    Record Energy Balance Terms
 	  **********************************/
-          collect_eb_terms(energy[veg][band],
-                           snow[veg][band],
-                           cell[WET][veg][band],
+          collect_eb_terms(prcp->energy[veg][band],
+                           prcp->snow[veg][band],
+                           prcp->cell[WET][veg][band],
                            &Tsoil_fbcount_total,
                            &Tsurf_fbcount_total,
                            &Tsnowsurf_fbcount_total,
@@ -402,7 +390,7 @@ int  put_data(dist_prcp_struct  *prcp,
           if (IsWet) {
             // Wetland soil temperatures
             for(i=0;i<options.Nnode;i++) {
-              out_data[OUT_SOIL_TNODE_WL].data[i] = energy[veg][band].T[i];
+              out_data[OUT_SOIL_TNODE_WL].data[i] = prcp->energy[veg][band].T[i];
             }
           }
 
@@ -417,29 +405,29 @@ int  put_data(dist_prcp_struct  *prcp,
             // Note: doing this for eb terms will lead to reporting of eb errors 
             // this should be fixed when we implement full thermal solution beneath lake
             for (i=0; i<MAX_FRONTS; i++) {
-              lake_var.energy.fdepth[i]      = energy[veg][band].fdepth[i];
-              lake_var.energy.tdepth[i]      = energy[veg][band].fdepth[i];
+              prcp->lake_var.energy.fdepth[i]      = prcp->energy[veg][band].fdepth[i];
+              prcp->lake_var.energy.tdepth[i]      = prcp->energy[veg][band].fdepth[i];
             }
             for (i=0; i<options.Nnode; i++) {
-              lake_var.energy.ice[i]         = energy[veg][band].ice[i];
-              lake_var.energy.T[i]           = energy[veg][band].T[i];
+              prcp->lake_var.energy.ice[i]         = prcp->energy[veg][band].ice[i];
+              prcp->lake_var.energy.T[i]           = prcp->energy[veg][band].T[i];
             }
             for (i=0; i<N_PET_TYPES; i++) {
-              lake_var.soil.pot_evap[i]      = cell[WET][veg][band].pot_evap[i];
+              prcp->lake_var.soil.pot_evap[i]      = prcp->cell[WET][veg][band].pot_evap[i];
             }
-            lake_var.soil.rootmoist          = cell[WET][veg][band].rootmoist;
-            lake_var.energy.deltaH           = energy[veg][band].deltaH;
-            lake_var.energy.fusion           = energy[veg][band].fusion;
-            lake_var.energy.grnd_flux        = energy[veg][band].grnd_flux;
+            prcp->lake_var.soil.rootmoist          = prcp->cell[WET][veg][band].rootmoist;
+            prcp->lake_var.energy.deltaH           = prcp->energy[veg][band].deltaH;
+            prcp->lake_var.energy.fusion           = prcp->energy[veg][band].fusion;
+            prcp->lake_var.energy.grnd_flux        = prcp->energy[veg][band].grnd_flux;
 
 
   	    /*********************************
               Record Water Balance Terms 
 	    *********************************/
-            collect_wb_terms(lake_var.soil,
-                             veg_var[WET][0][0],
-                             lake_var.snow,
-                             lake_var,
+            collect_wb_terms(prcp->lake_var.soil,
+                             prcp->veg_var[WET][0][0],
+                             prcp->lake_var.snow,
+                             prcp->lake_var,
                              1.0,
                              Cv,
                              ThisAreaFract,
@@ -457,9 +445,9 @@ int  put_data(dist_prcp_struct  *prcp,
 	    /**********************************
 	      Record Energy Balance Terms
 	    **********************************/
-            collect_eb_terms(lake_var.energy,
-                             lake_var.snow,
-                             lake_var.soil,
+            collect_eb_terms(prcp->lake_var.energy,
+                             prcp->lake_var.snow,
+                             prcp->lake_var.soil,
                              &Tsoil_fbcount_total,
                              &Tsurf_fbcount_total,
                              &Tsnowsurf_fbcount_total,
@@ -484,12 +472,12 @@ int  put_data(dist_prcp_struct  *prcp,
             // Store Lake-Specific Variables
 
             // Lake ice
-            if (lake_var.new_ice_area > 0.0) {
-              out_data[OUT_LAKE_ICE].data[0]   = (lake_var.ice_water_eq/lake_var.new_ice_area) * ice_density / RHO_W;
-              out_data[OUT_LAKE_ICE_TEMP].data[0]   = lake_var.tempi;
-              out_data[OUT_LAKE_ICE_HEIGHT].data[0] = lake_var.hice;
-              out_data[OUT_LAKE_SWE].data[0] = lake_var.swe/lake_var.areai; // m over lake ice
-              out_data[OUT_LAKE_SWE_V].data[0] = lake_var.swe; // m3
+            if (prcp->lake_var.new_ice_area > 0.0) {
+              out_data[OUT_LAKE_ICE].data[0]   = (prcp->lake_var.ice_water_eq/prcp->lake_var.new_ice_area) * ice_density / RHO_W;
+              out_data[OUT_LAKE_ICE_TEMP].data[0]   = prcp->lake_var.tempi;
+              out_data[OUT_LAKE_ICE_HEIGHT].data[0] = prcp->lake_var.hice;
+              out_data[OUT_LAKE_SWE].data[0] = prcp->lake_var.swe/prcp->lake_var.areai; // m over lake ice
+              out_data[OUT_LAKE_SWE_V].data[0] = prcp->lake_var.swe; // m3
             }
             else {
               out_data[OUT_LAKE_ICE].data[0]   = 0.0;
@@ -498,26 +486,26 @@ int  put_data(dist_prcp_struct  *prcp,
               out_data[OUT_LAKE_SWE].data[0]   = 0.0;
               out_data[OUT_LAKE_SWE_V].data[0]   = 0.0;
             }
-            out_data[OUT_LAKE_DSWE_V].data[0] = lake_var.swe - lake_var.swe_save; // m3
-            out_data[OUT_LAKE_DSWE].data[0] = (lake_var.swe - lake_var.swe_save)*1000/soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_DSWE_V].data[0] = prcp->lake_var.swe - prcp->lake_var.swe_save; // m3
+            out_data[OUT_LAKE_DSWE].data[0] = (prcp->lake_var.swe - prcp->lake_var.swe_save)*1000/soil_con->cell_area; // mm over gridcell
 
             // Lake dimensions
             out_data[OUT_LAKE_AREA_FRAC].data[0] = Cv*Clake;
-            out_data[OUT_LAKE_DEPTH].data[0] = lake_var.ldepth;
-	    out_data[OUT_LAKE_SURF_AREA].data[0]  = lake_var.sarea;
+            out_data[OUT_LAKE_DEPTH].data[0] = prcp->lake_var.ldepth;
+	    out_data[OUT_LAKE_SURF_AREA].data[0]  = prcp->lake_var.sarea;
 	    if (out_data[OUT_LAKE_SURF_AREA].data[0] > 0)
-	      out_data[OUT_LAKE_ICE_FRACT].data[0]  = lake_var.new_ice_area/out_data[OUT_LAKE_SURF_AREA].data[0];
+	      out_data[OUT_LAKE_ICE_FRACT].data[0]  = prcp->lake_var.new_ice_area/out_data[OUT_LAKE_SURF_AREA].data[0];
 	    else
 	      out_data[OUT_LAKE_ICE_FRACT].data[0]  = 0.;
-            out_data[OUT_LAKE_VOLUME].data[0]     = lake_var.volume;
-            out_data[OUT_LAKE_DSTOR_V].data[0]    = lake_var.volume - lake_var.volume_save;
-            out_data[OUT_LAKE_DSTOR].data[0]      = (lake_var.volume - lake_var.volume_save)*1000/soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_VOLUME].data[0]     = prcp->lake_var.volume;
+            out_data[OUT_LAKE_DSTOR_V].data[0]    = prcp->lake_var.volume - prcp->lake_var.volume_save;
+            out_data[OUT_LAKE_DSTOR].data[0]      = (prcp->lake_var.volume - prcp->lake_var.volume_save)*1000/soil_con->cell_area; // mm over gridcell
 
             // Other lake characteristics
-            out_data[OUT_LAKE_SURF_TEMP].data[0]  = lake_var.temp[0];
+            out_data[OUT_LAKE_SURF_TEMP].data[0]  = prcp->lake_var.temp[0];
             if (out_data[OUT_LAKE_SURF_AREA].data[0] > 0) {
-              out_data[OUT_LAKE_MOIST].data[0]      = (lake_var.volume / soil_con->cell_area) * 1000.; // mm over gridcell
-              out_data[OUT_SURFSTOR].data[0]        = (lake_var.volume / soil_con->cell_area) * 1000.; // same as OUT_LAKE_MOIST
+              out_data[OUT_LAKE_MOIST].data[0]      = (prcp->lake_var.volume / soil_con->cell_area) * 1000.; // mm over gridcell
+              out_data[OUT_SURFSTOR].data[0]        = (prcp->lake_var.volume / soil_con->cell_area) * 1000.; // same as OUT_LAKE_MOIST
             }
             else {
               out_data[OUT_LAKE_MOIST].data[0] = 0;
@@ -525,22 +513,22 @@ int  put_data(dist_prcp_struct  *prcp,
             }
 
             // Lake moisture fluxes
-            out_data[OUT_LAKE_BF_IN_V].data[0] = lake_var.baseflow_in; // m3
-            out_data[OUT_LAKE_BF_OUT_V].data[0] = lake_var.baseflow_out; // m3
-            out_data[OUT_LAKE_CHAN_IN_V].data[0] = lake_var.channel_in; // m3
-            out_data[OUT_LAKE_CHAN_OUT_V].data[0] = lake_var.runoff_out; // m3
-            out_data[OUT_LAKE_EVAP_V].data[0] = lake_var.evapw; // m3
-            out_data[OUT_LAKE_PREC_V].data[0] = lake_var.prec; // m3
-            out_data[OUT_LAKE_RCHRG_V].data[0] = lake_var.recharge; // m3
-            out_data[OUT_LAKE_RO_IN_V].data[0] = lake_var.runoff_in; // m3
-            out_data[OUT_LAKE_VAPFLX_V].data[0] = lake_var.vapor_flux; // m3
-            out_data[OUT_LAKE_BF_IN].data[0] = lake_var.baseflow_in*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_BF_OUT].data[0] = lake_var.baseflow_out*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_CHAN_OUT].data[0] = lake_var.runoff_out*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_EVAP].data[0] = lake_var.evapw*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_RCHRG].data[0] = lake_var.recharge*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_RO_IN].data[0] = lake_var.runoff_in*1000./soil_con->cell_area; // mm over gridcell
-            out_data[OUT_LAKE_VAPFLX].data[0] = lake_var.vapor_flux*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_BF_IN_V].data[0] = prcp->lake_var.baseflow_in; // m3
+            out_data[OUT_LAKE_BF_OUT_V].data[0] = prcp->lake_var.baseflow_out; // m3
+            out_data[OUT_LAKE_CHAN_IN_V].data[0] = prcp->lake_var.channel_in; // m3
+            out_data[OUT_LAKE_CHAN_OUT_V].data[0] = prcp->lake_var.runoff_out; // m3
+            out_data[OUT_LAKE_EVAP_V].data[0] = prcp->lake_var.evapw; // m3
+            out_data[OUT_LAKE_PREC_V].data[0] = prcp->lake_var.prec; // m3
+            out_data[OUT_LAKE_RCHRG_V].data[0] = prcp->lake_var.recharge; // m3
+            out_data[OUT_LAKE_RO_IN_V].data[0] = prcp->lake_var.runoff_in; // m3
+            out_data[OUT_LAKE_VAPFLX_V].data[0] = prcp->lake_var.vapor_flux; // m3
+            out_data[OUT_LAKE_BF_IN].data[0] = prcp->lake_var.baseflow_in*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_BF_OUT].data[0] = prcp->lake_var.baseflow_out*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_CHAN_OUT].data[0] = prcp->lake_var.runoff_out*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_EVAP].data[0] = prcp->lake_var.evapw*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_RCHRG].data[0] = prcp->lake_var.recharge*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_RO_IN].data[0] = prcp->lake_var.runoff_in*1000./soil_con->cell_area; // mm over gridcell
+            out_data[OUT_LAKE_VAPFLX].data[0] = prcp->lake_var.vapor_flux*1000./soil_con->cell_area; // mm over gridcell
 
           } // End if options.LAKES etc.
 

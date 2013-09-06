@@ -1039,8 +1039,20 @@ typedef struct {
   double zwt;                          /* average water table position [cm] - method 1 */
   double zwt2;                         /* average water table position [cm] - method 2 */
   double zwt3;                         /* average water table position [cm] - method 3 */
-  /* FIXME rename to something like HRU_data_struct */
 } cell_data_struct;
+
+/***********************************************************
+  This structure stores the per-cell data that must exist
+  before or after running the model for that cell; also
+  eventually must contain state to be affected by glacier
+  dynamics model. Previously "cell_data_struct" in vicNL.c
+  ***********************************************************/
+typedef struct {
+  soil_con_struct  soil_con;
+  char            *init_STILL_STORM;
+  int             *init_DRY_TIME;
+  char             ErrStr[MAXSTRING];
+} cell_info_struct;
 
 /***********************************************************************
   This structure stores energy balance components, and variables used to

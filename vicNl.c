@@ -103,50 +103,19 @@ int main(int argc, char *argv[])
 
   /** Variable Declarations **/
 
-  /* char                     LASTREC; MPN: moved within cell loop below */
-  /*  char                     MODEL_DONE;*/
-  /*  char                     RUN_MODEL; */
-  /*  int                      rec, i,  j; MPN: declare IN loops below? */
-  /*  int                      veg; MPN: declare IN LOOP */
-  /*  int                      dist; MPN: This is never used by anything ever */
-  /*  int                      band; MPN: This is never used by anything ever */
-  /*  int                      Ndist; MPN: declared below so it can be const */
   int                      Nveg_type; /* MPN: LEAVING THIS ALONE: init by pass-by-ref below, then unmodified */
-  /*  int                      cellnum; MPN: using cellidx in loop below */
-  /*  int                      index; MPN: This is never used by anything ever. */
-  /*  int                     *init_DRY_TIME; MPN: moved into cell struct */
-  /*  int                      Ncells; MPN: This is never used by anything ever */
-  /*  int                      cell_cnt; MPN: moved into cell-data-init loop below */
   int                      startrec; /* MPN: LEAVING THIS ALONE: init by pass-by-ref below, then unmodified */
-  /*  int                      ErrorFlag; MPN: moved into cell loop below */
-  /*  float                    mu; MPN This is never used by anything ever */
-  /*  double                   storage; MPN This is never used by anything ever */
-  /*  double                   veg_fract; MPN This is never used by anything ever */
-  /*  double                   band_fract; MPN This is never used by anything ever */
-  /*  double                   Clake; MPN This is never used by anything ever */
   dmy_struct              *dmy; /* MPN: LEAVING THIS ALONE: initialized, then all calls pass this as const; but it should still be made const...  */
   atmos_data_struct       *atmos; /* FIXME: not dealt with yet */
   veg_con_struct          *veg_con; /* FIXME: not dealt with yet */
-  /*  soil_con_struct          soil_con;  MPN: replaced with vector below */
+
   /* MPN: FIXME: none of these are dealt with yet */
-
-
-
-
   filenames_struct         filenames;
   filep_struct             filep;
   out_data_file_struct     *out_data_files;
   out_data_struct          *out_data;
   save_data_struct         save_data;
 
-  /* per-cell data that must exist before or after running the model for that cell; also eventually must contain state to be affected by glacier dynamics model */
-  typedef struct { /* FIXME move to header */
-    soil_con_struct  soil_con;
-    char            *init_STILL_STORM;
-    int             *init_DRY_TIME;
-    char             ErrStr[MAXSTRING];
-  } cell_data_struct;
-  
   /** Read Model Options **/ /* MPN: fixme this should be returned and should then be const */
   initialize_global(); /* MPN: This needs to be distinguished from whatever on earth get_global_param() below does */
   filenames = cmd_proc(argc, argv);
@@ -186,7 +155,7 @@ int main(int argc, char *argv[])
   /*  cellnum = -1; MPN:  unused and replaced with cellidx */
 
   /** Make Date Data Structure **/
-  dmy      = make_dmy(&global_param);
+  dmy = make_dmy(&global_param);
 
   /** allocate memory for the atmos_data_struct **/
   alloc_atmos(global_param.nrecs, &atmos);
@@ -216,10 +185,10 @@ int main(int argc, char *argv[])
    *****************************************/
   char done_reading_forcings = FALSE, is_valid_soil_cell; /* this effectively replaces MODEL_DONE */
   int ncells = 0 /* zero-based */, nallocatedcells = 10 /* arbitrary */;
-  cell_data_struct *cell_data_structs = (cell_data_struct *)malloc(nallocatedcells * sizeof(cell_data_struct)); assert(cell_data_structs != NULL); /* TODO move to top somewhere */
+  cell_info_struct *cell_data_structs = (cell_info_struct *)malloc(nallocatedcells * sizeof(cell_info_struct)); assert(cell_data_structs != NULL); /* TODO move to top somewhere */
   while (!done_reading_forcings) {
     if (ncells >= (nallocatedcells - 1)) {
-      cell_data_structs = (cell_data_struct *)realloc(cell_data_structs, (nallocatedcells = (int)(nallocatedcells * 1.4)) * sizeof(*cell_data_structs));
+      cell_data_structs = (cell_info_struct *)realloc(cell_data_structs, (nallocatedcells = (int)(nallocatedcells * 1.4)) * sizeof(*cell_data_structs));
       assert(cell_data_structs != NULL);
     }
 
@@ -251,15 +220,13 @@ int main(int argc, char *argv[])
     dist_prcp_struct         prcp; /* stores information about distributed precipitation */
 
     /* referencing in from persistent shared data struct for things that need to persiste beyond end of cell run */
-    soil_con_struct &soil_con = cell_data_structs[cellidx].soil_con;
-    char *&init_STILL_STORM = cell_data_structs[cellidx].init_STILL_STORM;
-    int *&init_DRY_TIME = cell_data_structs[cellidx].init_DRY_TIME;
+    soil_con_struct soil_con = cell_data_structs[cellidx].soil_con;
     char *ErrStr = cell_data_structs[cellidx].ErrStr; /* MPN: get rid of this and use proper varargs error handling */
 
 
     if(/*RUN_MODEL MPN: remove braces altogether... */1) {
 #if LINK_DEBUG
-      if(debug.PRT_SOIL) write_soilparam(&soil_con); 
+      if(debug.PRT_SOIL) write_soilparam(&soil_con);
 #endif
 
 #if QUICK_FS
@@ -326,9 +293,9 @@ int main(int argc, char *argv[])
 
       initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid,
 #if OUTPUT_FORCE
-		       &soil_con, out_data_files, out_data); 
+		       &soil_con, out_data_files, out_data);
 #else /* OUTPUT_FORCE */
-                       &soil_con); 
+                       &soil_con);
 #endif /* OUTPUT_FORCE */
 
 #if !OUTPUT_FORCE
@@ -348,7 +315,7 @@ int main(int argc, char *argv[])
 			     options.Nnode, Ndist, 
 			     atmos[0].air_temp[NR],
 			     &soil_con, veg_con, lake_con,
-			     &init_STILL_STORM, &init_DRY_TIME);
+			     &cell_data_structs[cellidx].init_STILL_STORM, &cell_data_structs[cellidx].init_DRY_TIME);
       if ( ErrorFlag == ERROR ) {
 	if ( options.CONTINUEONERROR == TRUE ) {
 	  // Handle grid cell solution error
@@ -374,7 +341,7 @@ int main(int argc, char *argv[])
       ErrorFlag = dist_prec(&atmos[0], &prcp, &soil_con, veg_con,
 		  &lake_con, dmy, &global_param, &filep, out_data_files,
                             out_data, &save_data, -global_param.nrecs, /*cellnum*/ cellidx,
-                            NEWCELL, /* LASTREC COPYPASTA */ FALSE, init_STILL_STORM, init_DRY_TIME);
+                            NEWCELL, /* LASTREC COPYPASTA */ FALSE, cell_data_structs[cellidx].init_STILL_STORM, cell_data_structs[cellidx].init_DRY_TIME);
 
       /******************************************
 	Run Model in Grid Cell for all Time Steps
@@ -386,7 +353,7 @@ int main(int argc, char *argv[])
         ErrorFlag = dist_prec(&atmos[rec], &prcp, &soil_con, veg_con,
 		  &lake_con, dmy, &global_param, &filep,
                               out_data_files, out_data, &save_data, rec, /*cellnum*/ cellidx,
-                              NEWCELL, LASTREC, init_STILL_STORM, init_DRY_TIME);
+                              NEWCELL, LASTREC, cell_data_structs[cellidx].init_STILL_STORM, cell_data_structs[cellidx].init_DRY_TIME);
 
         if ( ErrorFlag == ERROR ) {
           if ( options.CONTINUEONERROR == TRUE ) {
@@ -402,7 +369,7 @@ int main(int argc, char *argv[])
 
         NEWCELL=FALSE;
 	for ( int veg = 0; veg <= veg_con[0].vegetat_type_num; veg++ )
-	  init_DRY_TIME[veg] = -999;
+	  cell_data_structs[cellidx].init_DRY_TIME[veg] = -999;
 
       }	/* End Rec Loop */
 
