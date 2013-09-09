@@ -335,37 +335,36 @@ int surface_fluxes(char                 overstory,
   layer_dry = cell_dry->layer;
   layer_wet = cell_wet->layer;
 
-  step_aero_resist = (double**)calloc(N_PET_TYPES,sizeof(double*));
-  for (p=0; p<N_PET_TYPES; p++) {
-    step_aero_resist[p] = (double*)calloc(2,sizeof(double));
+  step_aero_resist = (double**) calloc(N_PET_TYPES, sizeof(double*));
+  for (p = 0; p < N_PET_TYPES; p++) {
+    step_aero_resist[p] = (double*) calloc(2, sizeof(double));
   }
 
   /***********************************************************************
-    Set temporary variables - preserves original values until iterations
-    are completed
-  ***********************************************************************/
+   Set temporary variables - preserves original values until iterations
+   are completed
+   ***********************************************************************/
 
-  energy->advection       = 0; 
-  energy->deltaCC         = 0; 
-  if ( snow->swq > 0 ) {
-      snow_flux = energy->snow_flux;
-  }
-  else 
+  energy->advection = 0;
+  energy->deltaCC = 0;
+  if (snow->swq > 0) {
+    snow_flux = energy->snow_flux;
+  } else
     snow_flux = -(energy->grnd_flux + energy->deltaH + energy->fusion);
-  energy->refreeze_energy = 0; 
-  coverage                = snow->coverage;
-  snow_energy             = (*energy);
-  soil_energy             = (*energy);
-  snow_veg_var[WET]       = (*veg_var_wet);
-  snow_veg_var[DRY]       = (*veg_var_dry);
-  soil_veg_var[WET]       = (*veg_var_wet);
-  soil_veg_var[DRY]       = (*veg_var_dry);
-  step_snow               = (*snow);
-  for ( lidx = 0; lidx < Nlayers; lidx++ ) {
+  energy->refreeze_energy = 0;
+  coverage = snow->coverage;
+  snow_energy = (*energy);
+  soil_energy = (*energy);
+  snow_veg_var[WET] = (*veg_var_wet);
+  snow_veg_var[DRY] = (*veg_var_dry);
+  soil_veg_var[WET] = (*veg_var_wet);
+  soil_veg_var[DRY] = (*veg_var_dry);
+  step_snow = (*snow);
+  for (lidx = 0; lidx < Nlayers; lidx++) {
     step_layer[WET][lidx] = layer_wet[lidx];
     step_layer[DRY][lidx] = layer_dry[lidx];
   }
-  for ( lidx = 0; lidx < Nlayers; lidx++ ) {
+  for (lidx = 0; lidx < Nlayers; lidx++) {
     step_layer[WET][lidx].evap = 0;
     step_layer[DRY][lidx].evap = 0;
   }
@@ -379,104 +378,102 @@ int surface_fluxes(char                 overstory,
   snow_veg_var[DRY].throughfall = 0;
 
   /********************************
-    Set-up sub-time step controls
-    (May eventually want to set this up so that it is also true 
-    if frozen soils are present)
-  ********************************/
+   Set-up sub-time step controls
+   (May eventually want to set this up so that it is also true
+   if frozen soils are present)
+   ********************************/
 
-  if(snow->swq > 0 || snow->snow_canopy > 0 || atmos->snowflag[NR]) {
-    hidx      = 0;
-    step_inc  = 1;
-    endhidx   = hidx + NF;
-    step_dt   = options.SNOW_STEP;
-  }
-  else {
-    hidx      = NR;
-    step_inc  = 1;
-    endhidx   = hidx + step_inc;
-    step_dt   = gp->dt;
+  if (snow->swq > 0 || snow->snow_canopy > 0 || atmos->snowflag[NR]) {
+    hidx = 0;
+    step_inc = 1;
+    endhidx = hidx + NF;
+    step_dt = options.SNOW_STEP;
+  } else {
+    hidx = NR;
+    step_inc = 1;
+    endhidx = hidx + step_inc;
+    step_dt = gp->dt;
   }
 
   /*******************************************
-    Initialize sub-model time step variables
-  *******************************************/
+   Initialize sub-model time step variables
+   *******************************************/
 
   // energy structure
-  store_AlbedoOver        = 0;
-  store_AlbedoUnder       = 0;
-  store_AtmosLatent       = 0;
-  store_AtmosLatentSub    = 0;
-  store_AtmosSensible     = 0;
-  store_LongOverIn        = 0;
-  store_LongUnderIn       = 0;
-  store_LongUnderOut      = 0;
-  store_NetLongAtmos      = 0;
-  store_NetLongOver       = 0;
-  store_NetLongUnder      = 0;
-  store_NetShortAtmos     = 0;
-  store_NetShortGrnd      = 0;
-  store_NetShortOver      = 0;
-  store_NetShortUnder     = 0;
-  store_ShortOverIn       = 0;
-  store_ShortUnderIn      = 0;
+  store_AlbedoOver = 0;
+  store_AlbedoUnder = 0;
+  store_AtmosLatent = 0;
+  store_AtmosLatentSub = 0;
+  store_AtmosSensible = 0;
+  store_LongOverIn = 0;
+  store_LongUnderIn = 0;
+  store_LongUnderOut = 0;
+  store_NetLongAtmos = 0;
+  store_NetLongOver = 0;
+  store_NetLongUnder = 0;
+  store_NetShortAtmos = 0;
+  store_NetShortGrnd = 0;
+  store_NetShortOver = 0;
+  store_NetShortUnder = 0;
+  store_ShortOverIn = 0;
+  store_ShortUnderIn = 0;
   store_advected_sensible = 0;
-  store_advection         = 0; 
-  store_canopy_advection  = 0;
-  store_canopy_latent     = 0;
+  store_advection = 0;
+  store_canopy_advection = 0;
+  store_canopy_latent = 0;
   store_canopy_latent_sub = 0;
-  store_canopy_sensible   = 0;
-  store_canopy_refreeze   = 0;
-  store_deltaCC           = 0; 
-  store_deltaH            = 0;
-  store_fusion            = 0;
-  store_grnd_flux         = 0;
-  store_latent            = 0;
-  store_latent_sub        = 0;
-  store_melt_energy       = 0;
-  store_refreeze_energy   = 0; 
-  store_sensible          = 0;
-  store_snow_flux         = 0; 
+  store_canopy_sensible = 0;
+  store_canopy_refreeze = 0;
+  store_deltaCC = 0;
+  store_deltaH = 0;
+  store_fusion = 0;
+  store_grnd_flux = 0;
+  store_latent = 0;
+  store_latent_sub = 0;
+  store_melt_energy = 0;
+  store_refreeze_energy = 0;
+  store_sensible = 0;
+  store_snow_flux = 0;
   // snow structure
-  last_snow_coverage      = snow->coverage;
+  last_snow_coverage = snow->coverage;
   store_canopy_vapor_flux = 0;
-  store_melt              = 0;
-  store_vapor_flux        = 0;
-  store_surface_flux      = 0;
-  store_blowing_flux      = 0;
+  store_melt = 0;
+  store_vapor_flux = 0;
+  store_surface_flux = 0;
+  store_blowing_flux = 0;
   // veg_var and cell structures
-  for ( dist = 0; dist < Ndist; dist++ ) {
+  for (dist = 0; dist < Ndist; dist++) {
     store_throughfall[dist] = 0.;
-    store_canopyevap[dist]  = 0.;
-    for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+    store_canopyevap[dist] = 0.;
+    for (lidx = 0; lidx < options.Nlayer; lidx++) {
       store_layerevap[dist][lidx] = 0.;
     }
   }
-  step_Wdew[WET]          = veg_var_wet->Wdew;
-  step_Wdew[DRY]          = veg_var_wet->Wdew;
+  step_Wdew[WET] = veg_var_wet->Wdew;
+  step_Wdew[DRY] = veg_var_wet->Wdew;
   // misc
-  store_ppt[WET]          = 0;
-  store_ppt[DRY]          = 0;
-  step_prec[DRY]          = 0;
+  store_ppt[WET] = 0;
+  store_ppt[DRY] = 0;
+  step_prec[DRY] = 0;
   store_aero_cond_used[0] = 0;
   store_aero_cond_used[1] = 0;
-  (*snow_inflow)          = 0;
-  for (p=0; p<N_PET_TYPES; p++)
+  (*snow_inflow) = 0;
+  for (p = 0; p < N_PET_TYPES; p++)
     store_pot_evap[p] = 0;
-  N_steps                 = 0;
-      
+  N_steps = 0;
+
   /*************************
-    Compute surface fluxes 
-  *************************/
+   Compute surface fluxes
+   *************************/
 
   do { /* MPN TODO This is stupid.  Makes it into a for loop because it is a fixed number of iterations! */
 
     /** Solve energy balance for all sub-model time steps **/
 
-
     /* set air temperature and precipitation for this snow band */
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[band];
     step_prec[WET] = atmos->prec[hidx] / mu * soil_con->Pfactor[band];
-    
+
     // initialize ground surface temperaure
     Tgrnd = energy->T[0];
 
@@ -485,36 +482,31 @@ int surface_fluxes(char                 overstory,
     VPcanopy = atmos->vp[hidx];
     VPDcanopy = atmos->vpd[hidx];
 
-    over_iter  = 0;
-    tol_over   = 999;
+    over_iter = 0;
+    tol_over = 999;
 
-    last_Tcanopy      = 999;
-    last_snow_flux    = 999;
+    last_Tcanopy = 999;
+    last_snow_flux = 999;
 
     // initialize bisection startup
-    BISECT_OVER  = FALSE;
-    A_tol_over   = 999;
-    B_tol_over   = 999;
+    BISECT_OVER = FALSE;
+    A_tol_over = 999;
+    B_tol_over = 999;
 
     // Compute mass flux of blowing snow
-    if( !overstory && options.BLOWING && step_snow.swq > 0.) {
+    if (!overstory && options.BLOWING && step_snow.swq > 0.) {
       Ls = (677. - 0.07 * step_snow.surf_temp) * JOULESPCAL * GRAMSPKG;
       step_snow.blowing_flux = CalcBlowingSnow((double) step_dt, Tair,
-						step_snow.last_snow, step_snow.surf_water,
-						wind[2], Ls, atmos->density[hidx],
-						atmos->pressure[hidx],
-						atmos->vp[hidx], roughness[2],
-						ref_height[2], step_snow.depth,
-						lag_one, sigma_slope,
-						step_snow.surf_temp, iveg, Nveg, fetch,
-						displacement[1], roughness[1],
-						&step_snow.transport);
-      if ( (int)step_snow.blowing_flux == ERROR ) {
-        return ( ERROR );
+          step_snow.last_snow, step_snow.surf_water, wind[2], Ls,
+          atmos->density[hidx], atmos->pressure[hidx], atmos->vp[hidx],
+          roughness[2], ref_height[2], step_snow.depth, lag_one, sigma_slope,
+          step_snow.surf_temp, iveg, Nveg, fetch, displacement[1], roughness[1],
+          &step_snow.transport);
+      if ((int) step_snow.blowing_flux == ERROR) {
+        return (ERROR);
       }
-      step_snow.blowing_flux*=step_dt*SECPHOUR/RHO_W; /* m/time step */
-    }
-    else
+      step_snow.blowing_flux *= step_dt * SECPHOUR / RHO_W; /* m/time step */
+    } else
       step_snow.blowing_flux = 0.0;
 
     do {
@@ -522,286 +514,257 @@ int surface_fluxes(char                 overstory,
       /** Iterate for overstory solution **/
 
       over_iter++;
-      last_tol_over  = tol_over;
+      last_tol_over = tol_over;
 
       under_iter = 0;
-      tol_under  = 999;
+      tol_under = 999;
       UnderStory = 999;
 
       UNSTABLE_CNT = 0;
-      
+
       // bisect understory
       BISECT_UNDER = FALSE;
-      A_tol_under  = 999;
-      B_tol_under  = 999;
+      A_tol_under = 999;
+      B_tol_under = 999;
       store_tol_under = 999;
-      
-      A_tol_over   = 999;
-      B_tol_over   = 999;
+
+      A_tol_over = 999;
+      B_tol_over = 999;
       store_tol_over = 999;
 
       do {
 
-	/** Iterate for understory solution - itererates to find snow flux **/
+        /** Iterate for understory solution - itererates to find snow flux **/
 
-	under_iter++;
-	last_tol_under = tol_under;
+        under_iter++;
+        last_tol_under = tol_under;
 
-	if ( last_Tcanopy != 999 ) Tcanopy = (last_Tcanopy + Tcanopy) / 2.;
-	last_Tcanopy       = Tcanopy;
-	A_tol_over         = store_tol_over;
-	A_Tcanopy          = Tcanopy;
+        if (last_Tcanopy != 999)
+          Tcanopy = (last_Tcanopy + Tcanopy) / 2.;
+        last_Tcanopy = Tcanopy;
+        A_tol_over = store_tol_over;
+        A_Tcanopy = Tcanopy;
 
-	// update understory energy balance terms for iteration
-	if ( last_snow_flux != 999 ) { 
-	  if ( ( fabs(store_tol_under) > fabs(A_tol_under) 
-		 && A_tol_under != 999 
-		 && fabs(store_tol_under - A_tol_under) > 1. ) 
-	       || tol_under < 0 ) { // stepped the correct way
-	    UNSTABLE_CNT++;
-	    if ( UNSTABLE_CNT > 3 || tol_under < 0 )
-	      UNSTABLE_SNOW = TRUE;
-	  }
-	  else if ( !INCLUDE_SNOW ) { // stepped the wrong way
-	    snow_flux = (last_snow_flux + iter_soil_energy.snow_flux) / 2.;
-	  } 
-	}
-	last_snow_flux = snow_flux;
-	A_tol_under    = store_tol_under;
-	A_snow_flux    = snow_flux;
-
-	snow_grnd_flux = -snow_flux;
-	
-	// Initialize structures for new iteration
-	iter_snow_energy    = snow_energy;
-	iter_soil_energy    = soil_energy;
-	iter_snow_veg_var[WET] = snow_veg_var[WET];
-	iter_snow_veg_var[DRY] = snow_veg_var[DRY];
-	iter_soil_veg_var[WET] = soil_veg_var[WET];
-	iter_soil_veg_var[DRY] = soil_veg_var[DRY];
-	iter_snow           = step_snow;
-	for ( lidx = 0; lidx < Nlayers; lidx++ ) {
-	  iter_layer[WET][lidx] = step_layer[WET][lidx];
-	  iter_layer[DRY][lidx] = step_layer[DRY][lidx];
-	}
-	iter_snow_veg_var[WET].Wdew = step_Wdew[WET];
-	iter_snow_veg_var[DRY].Wdew = step_Wdew[DRY];
-	iter_soil_veg_var[WET].Wdew = step_Wdew[WET];
-	iter_soil_veg_var[DRY].Wdew = step_Wdew[DRY];
-	for ( dist = 0; dist < Ndist; dist ++ ) {
-	  iter_snow_veg_var[dist].canopyevap = 0;
-	  iter_soil_veg_var[dist].canopyevap = 0;
-	  for ( lidx = 0; lidx < Nlayers; lidx ++ ) 
-	    iter_layer[dist][lidx].evap = 0;
+        // update understory energy balance terms for iteration
+        if (last_snow_flux != 999) {
+          if ((fabs(store_tol_under) > fabs(A_tol_under) && A_tol_under != 999
+              && fabs(store_tol_under - A_tol_under) > 1.) || tol_under < 0) { // stepped the correct way
+            UNSTABLE_CNT++;
+            if (UNSTABLE_CNT > 3 || tol_under < 0)
+              UNSTABLE_SNOW = TRUE;
+          } else if (!INCLUDE_SNOW) { // stepped the wrong way
+            snow_flux = (last_snow_flux + iter_soil_energy.snow_flux) / 2.;
+          }
         }
-	for (q=0; q<3; q++) {
-	  iter_aero_resist[q] = aero_resist[N_PET_TYPES][q];
-	}
+        last_snow_flux = snow_flux;
+        A_tol_under = store_tol_under;
+        A_snow_flux = snow_flux;
+
+        snow_grnd_flux = -snow_flux;
+
+        // Initialize structures for new iteration
+        iter_snow_energy = snow_energy;
+        iter_soil_energy = soil_energy;
+        iter_snow_veg_var[WET] = snow_veg_var[WET];
+        iter_snow_veg_var[DRY] = snow_veg_var[DRY];
+        iter_soil_veg_var[WET] = soil_veg_var[WET];
+        iter_soil_veg_var[DRY] = soil_veg_var[DRY];
+        iter_snow = step_snow;
+        for (lidx = 0; lidx < Nlayers; lidx++) {
+          iter_layer[WET][lidx] = step_layer[WET][lidx];
+          iter_layer[DRY][lidx] = step_layer[DRY][lidx];
+        }
+        iter_snow_veg_var[WET].Wdew = step_Wdew[WET];
+        iter_snow_veg_var[DRY].Wdew = step_Wdew[DRY];
+        iter_soil_veg_var[WET].Wdew = step_Wdew[WET];
+        iter_soil_veg_var[DRY].Wdew = step_Wdew[DRY];
+        for (dist = 0; dist < Ndist; dist++) {
+          iter_snow_veg_var[dist].canopyevap = 0;
+          iter_soil_veg_var[dist].canopyevap = 0;
+          for (lidx = 0; lidx < Nlayers; lidx++)
+            iter_layer[dist][lidx].evap = 0;
+        }
+        for (q = 0; q < 3; q++) {
+          iter_aero_resist[q] = aero_resist[N_PET_TYPES][q];
+        }
         iter_aero_resist_used[0] = aero_resist_used[0];
         iter_aero_resist_used[1] = aero_resist_used[1];
-	iter_snow.canopy_vapor_flux = 0;
-	iter_snow.vapor_flux = 0;
-	iter_snow.surface_flux = 0;
+        iter_snow.canopy_vapor_flux = 0;
+        iter_snow.vapor_flux = 0;
+        iter_snow.surface_flux = 0;
         /* iter_snow.blowing_flux has already been reset to step_snow.blowing_flux */
-	LongUnderOut       = iter_soil_energy.LongUnderOut;
+        LongUnderOut = iter_soil_energy.LongUnderOut;
 
-	/** Solve snow accumulation, ablation and interception **/
-	step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut, 
-			       gp->MIN_RAIN_TEMP, gp->MAX_SNOW_TEMP, 
-			       Tcanopy, Tgrnd, Tair, dp, mu, 
-			       step_prec[WET], snow_grnd_flux, gp->wind_h, 
-			       &energy->AlbedoUnder, &step_Evap, Le, 
-			       &LongUnderIn, &NetLongSnow, &NetShortGrnd, 
-			       &NetShortSnow, &ShortUnderIn, &OldTSurf, 
-			       iter_aero_resist, iter_aero_resist_used,
-			       &coverage, &delta_coverage, 
-			       &delta_snow_heat, displacement, 
-			       gauge_correction, &step_melt_energy, 
-			       &step_out_prec, &step_out_rain, &step_out_snow,
-			       step_ppt, rainfall, ref_height, 
-			       roughness, snow_inflow, snowfall, &surf_atten, 
-			       wind, root, UNSTABLE_SNOW, options.Nnode, 
-			       Nveg, iveg, band, step_dt, rec, hidx, veg_class,
-			       &UnderStory, dmy, atmos, &(iter_snow_energy), 
-			       iter_layer[DRY], iter_layer[WET], &(iter_snow), 
-			       soil_con, &(iter_snow_veg_var[DRY]), 
-			       &(iter_snow_veg_var[WET]));
-      
+        /** Solve snow accumulation, ablation and interception **/
+        step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
+            gp->MIN_RAIN_TEMP, gp->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, mu,
+            step_prec[WET], snow_grnd_flux, gp->wind_h, &energy->AlbedoUnder,
+            &step_Evap, Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
+            &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,
+            iter_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
+            displacement, gauge_correction, &step_melt_energy, &step_out_prec,
+            &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
+            roughness, snow_inflow, snowfall, &surf_atten, wind, root,
+            UNSTABLE_SNOW, options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
+            veg_class, &UnderStory, dmy, atmos, &(iter_snow_energy),
+            iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
+            &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]));
+
 // iter_snow_energy.sensible + iter_snow_energy.latent + iter_snow_energy.latent_sub + NetShortSnow + NetLongSnow + ( snow_grnd_flux + iter_snow_energy.advection - iter_snow_energy.deltaCC + iter_snow_energy.refreeze_energy + iter_snow_energy.advected_sensible ) * step_snow.coverage
-        if ( step_melt == ERROR ) return (ERROR);
+        if (step_melt == ERROR)
+          return (ERROR);
 
-	/* Check that the snow surface temperature was estimated, if not
-	   prepare to include thin snowpack in the estimation of the
-	   snow-free surface energy balance */
-	if ( ( iter_snow.surf_temp == 999 || UNSTABLE_SNOW ) 
-	     && iter_snow.swq > 0 ) {
-	  INCLUDE_SNOW = UnderStory + 1;
-	  iter_soil_energy.advection = iter_snow_energy.advection;
-	  iter_snow.surf_temp = step_snow.surf_temp;
-	  step_melt_energy = 0;
-	}
-	else {
-	  INCLUDE_SNOW = FALSE;
-	}
-
-	/**************************************************
-          Solve Energy Balance Components at Soil Surface
-        **************************************************/
-	      
-	Tsurf = calc_surf_energy_bal((*Le), LongUnderIn, NetLongSnow, 
-				     NetShortGrnd, NetShortSnow, OldTSurf, 
-				     ShortUnderIn, iter_snow.albedo, 
-				     iter_snow_energy.latent, 
-				     iter_snow_energy.latent_sub, 
-				     iter_snow_energy.sensible, 
-				     Tcanopy, VPDcanopy, 
-				     VPcanopy, iter_snow_energy.advection, 
-				     step_snow.coldcontent, delta_coverage, dp, 
-				     ice0, step_melt_energy, moist0, mu, 
-				     iter_snow.coverage, 
-				     (step_snow.depth + iter_snow.depth) / 2., 
-				     BareAlbedo, surf_atten, 
-				     iter_snow.vapor_flux,
-				     iter_aero_resist, iter_aero_resist_used,
-				     displacement, &step_melt, step_ppt, 
-				     rainfall, ref_height, roughness, 
-				     snowfall, wind, root, INCLUDE_SNOW, 
-				     UnderStory, options.Nnode, Nveg, band, 
-				     step_dt, hidx, iveg, options.Nlayer, 
-				     (int)overstory, rec, veg_class, atmos, 
-				     &(dmy[rec]), &iter_soil_energy, 
-				     iter_layer[DRY], iter_layer[WET], 
-				     &(iter_snow), soil_con, 
-				     &iter_soil_veg_var[DRY], &iter_soil_veg_var[WET], gp->nrecs); 
-
-        if ( (int)Tsurf == ERROR ) {
-          // Return error flag to skip rest of grid cell
-          return ( ERROR );
+        /* Check that the snow surface temperature was estimated, if not
+         prepare to include thin snowpack in the estimation of the
+         snow-free surface energy balance */
+        if ((iter_snow.surf_temp == 999 || UNSTABLE_SNOW)
+            && iter_snow.swq > 0) {
+          INCLUDE_SNOW = UnderStory + 1;
+          iter_soil_energy.advection = iter_snow_energy.advection;
+          iter_snow.surf_temp = step_snow.surf_temp;
+          step_melt_energy = 0;
+        } else {
+          INCLUDE_SNOW = FALSE;
         }
 
-	if ( INCLUDE_SNOW ) {
-	  /* store melt from thin snowpack */
-	  step_ppt[WET] += step_melt;
-	}
-	
-	/*****************************************
-          Compute energy balance with atmosphere
-        *****************************************/
-	if ( iter_snow.snow && overstory && MAX_ITER > 0 ) {
-	  // do this if overstory is active and energy balance is closed
-	  Tcanopy = calc_atmos_energy_bal(iter_snow_energy.canopy_sensible,
-					  iter_soil_energy.sensible, 
-					  iter_snow_energy.canopy_latent, 
-					  iter_soil_energy.latent, 
-					  iter_snow_energy.canopy_latent_sub, 
-					  iter_soil_energy.latent_sub, 
-					  (*Le),
-					  iter_snow_energy.NetLongOver, 
-					  iter_soil_energy.NetLongUnder, 
-					  iter_snow_energy.NetShortOver, 
-					  iter_soil_energy.NetShortUnder, 
-					  iter_aero_resist_used[1], Tair, 
-					  atmos->density[hidx], 
-					  atmos->vp[hidx], atmos->vpd[hidx], 
-					  &iter_soil_energy.AtmosError, 
-					  &iter_soil_energy.AtmosLatent,
-					  &iter_soil_energy.AtmosLatentSub,
-					  &iter_soil_energy.NetLongAtmos, 
-					  &iter_soil_energy.NetShortAtmos, 
-					  &iter_soil_energy.AtmosSensible, 
-					  &VPcanopy, &VPDcanopy,
-					  &iter_soil_energy.Tcanopy_fbflag,
-					  &iter_soil_energy.Tcanopy_fbcount);
-	  /* iterate to find Tcanopy which will solve the atmospheric energy
-	     balance.  Since I do not know vp in the canopy, use the
-	     sum of latent heats from the ground and foliage, and iterate
-	     on the temperature used for the sensible heat flux from the
-	     canopy air to the mixing level */
-          if ( (int)Tcanopy == ERROR ) {
+        /**************************************************
+         Solve Energy Balance Components at Soil Surface
+         **************************************************/
+
+        Tsurf = calc_surf_energy_bal((*Le), LongUnderIn, NetLongSnow,
+            NetShortGrnd, NetShortSnow, OldTSurf, ShortUnderIn,
+            iter_snow.albedo, iter_snow_energy.latent,
+            iter_snow_energy.latent_sub, iter_snow_energy.sensible, Tcanopy,
+            VPDcanopy, VPcanopy, iter_snow_energy.advection,
+            step_snow.coldcontent, delta_coverage, dp, ice0, step_melt_energy,
+            moist0, mu, iter_snow.coverage,
+            (step_snow.depth + iter_snow.depth) / 2., BareAlbedo, surf_atten,
+            iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
+            displacement, &step_melt, step_ppt, rainfall, ref_height, roughness,
+            snowfall, wind, root, INCLUDE_SNOW, UnderStory, options.Nnode, Nveg,
+            band, step_dt, hidx, iveg, options.Nlayer, (int) overstory, rec,
+            veg_class, atmos, &(dmy[rec]), &iter_soil_energy, iter_layer[DRY],
+            iter_layer[WET], &(iter_snow), soil_con, &iter_soil_veg_var[DRY],
+            &iter_soil_veg_var[WET], gp->nrecs);
+
+        if ((int) Tsurf == ERROR) {
+          // Return error flag to skip rest of grid cell
+          return (ERROR);
+        }
+
+        if (INCLUDE_SNOW) {
+          /* store melt from thin snowpack */
+          step_ppt[WET] += step_melt;
+        }
+
+        /*****************************************
+         Compute energy balance with atmosphere
+         *****************************************/
+        if (iter_snow.snow && overstory && MAX_ITER > 0) {
+          // do this if overstory is active and energy balance is closed
+          Tcanopy = calc_atmos_energy_bal(iter_snow_energy.canopy_sensible,
+              iter_soil_energy.sensible, iter_snow_energy.canopy_latent,
+              iter_soil_energy.latent, iter_snow_energy.canopy_latent_sub,
+              iter_soil_energy.latent_sub, (*Le), iter_snow_energy.NetLongOver,
+              iter_soil_energy.NetLongUnder, iter_snow_energy.NetShortOver,
+              iter_soil_energy.NetShortUnder, iter_aero_resist_used[1], Tair,
+              atmos->density[hidx], atmos->vp[hidx], atmos->vpd[hidx],
+              &iter_soil_energy.AtmosError, &iter_soil_energy.AtmosLatent,
+              &iter_soil_energy.AtmosLatentSub, &iter_soil_energy.NetLongAtmos,
+              &iter_soil_energy.NetShortAtmos, &iter_soil_energy.AtmosSensible,
+              &VPcanopy, &VPDcanopy, &iter_soil_energy.Tcanopy_fbflag,
+              &iter_soil_energy.Tcanopy_fbcount);
+          /* iterate to find Tcanopy which will solve the atmospheric energy
+           balance.  Since I do not know vp in the canopy, use the
+           sum of latent heats from the ground and foliage, and iterate
+           on the temperature used for the sensible heat flux from the
+           canopy air to the mixing level */
+          if ((int) Tcanopy == ERROR) {
             // Return error flag to skip rest of grid cell
-            return ( ERROR );
+            return (ERROR);
           }
-	}
-	else {
-	  // else put surface fluxes into atmospheric flux storage so that 
-	  // the model will continue to function
-	  iter_soil_energy.AtmosLatent    = iter_soil_energy.latent;
-	  iter_soil_energy.AtmosLatentSub = iter_soil_energy.latent_sub;
-	  iter_soil_energy.AtmosSensible  = iter_soil_energy.sensible;
-	  iter_soil_energy.NetLongAtmos   = iter_soil_energy.NetLongUnder;
-	  iter_soil_energy.NetShortAtmos  = iter_soil_energy.NetShortUnder;
-	}
-	iter_soil_energy.Tcanopy = Tcanopy;
-	iter_snow_energy.Tcanopy = Tcanopy;
+        } else {
+          // else put surface fluxes into atmospheric flux storage so that
+          // the model will continue to function
+          iter_soil_energy.AtmosLatent = iter_soil_energy.latent;
+          iter_soil_energy.AtmosLatentSub = iter_soil_energy.latent_sub;
+          iter_soil_energy.AtmosSensible = iter_soil_energy.sensible;
+          iter_soil_energy.NetLongAtmos = iter_soil_energy.NetLongUnder;
+          iter_soil_energy.NetShortAtmos = iter_soil_energy.NetShortUnder;
+        }
+        iter_soil_energy.Tcanopy = Tcanopy;
+        iter_snow_energy.Tcanopy = Tcanopy;
 
-	/*****************************************
-          Compute iteration tolerance statistics 
-        *****************************************/
+        /*****************************************
+         Compute iteration tolerance statistics
+         *****************************************/
 
-	// compute understory tolerance
-	if ( INCLUDE_SNOW || ( iter_snow.swq == 0 && delta_coverage == 0 ) ) {
-	  store_tol_under = 0;
-	  tol_under       = 0;
-	}
-	else {
-	  store_tol_under = snow_flux - iter_soil_energy.snow_flux;
-	  tol_under       = fabs(store_tol_under);
-	}
-	if ( fabs( tol_under - last_tol_under ) < GRND_TOL && tol_under > 1. )
-	  tol_under = -999;
+        // compute understory tolerance
+        if (INCLUDE_SNOW || (iter_snow.swq == 0 && delta_coverage == 0)) {
+          store_tol_under = 0;
+          tol_under = 0;
+        } else {
+          store_tol_under = snow_flux - iter_soil_energy.snow_flux;
+          tol_under = fabs(store_tol_under);
+        }
+        if (fabs(tol_under - last_tol_under) < GRND_TOL && tol_under > 1.)
+          tol_under = -999;
 
-	// compute overstory tolerance
-	if ( overstory && iter_snow.snow ) {
-	  store_tol_over = Tcanopy - last_Tcanopy;
-	  tol_over       = fabs( store_tol_over );
-	}
-	else {
-	  store_tol_over = 0;
-	  tol_over       = 0;
-	}
-		
-      } while ( ( fabs( tol_under - last_tol_under ) > GRND_TOL )
-		&& ( tol_under != 0 ) && (under_iter < MAX_ITER) );
+        // compute overstory tolerance
+        if (overstory && iter_snow.snow) {
+          store_tol_over = Tcanopy - last_Tcanopy;
+          tol_over = fabs(store_tol_over);
+        } else {
+          store_tol_over = 0;
+          tol_over = 0;
+        }
 
-    } while ( ( fabs( tol_over - last_tol_over ) > OVER_TOL 
-		&& overstory ) && ( tol_over != 0 ) 
-	      && (over_iter < MAX_ITER) );
- 
+      } while ((fabs(tol_under - last_tol_under) > GRND_TOL) && (tol_under != 0)
+          && (under_iter < MAX_ITER));
+
+    } while ((fabs(tol_over - last_tol_over) > OVER_TOL && overstory)
+        && (tol_over != 0) && (over_iter < MAX_ITER));
+
     /**************************************
-      Compute Potential Evap
-    **************************************/
+     Compute Potential Evap
+     **************************************/
     // First, determine the stability correction used in the iteration
     if (iter_aero_resist_used[0] == HUGE_RESIST)
       stability_factor[0] = HUGE_RESIST;
     else
-      stability_factor[0] = iter_aero_resist_used[0]/aero_resist[N_PET_TYPES][UnderStory];
+      stability_factor[0] = iter_aero_resist_used[0]
+          / aero_resist[N_PET_TYPES][UnderStory];
     if (iter_aero_resist_used[1] == iter_aero_resist_used[0])
       stability_factor[1] = stability_factor[0];
     else {
       if (iter_aero_resist_used[1] == HUGE_RESIST)
         stability_factor[1] = HUGE_RESIST;
       else
-        stability_factor[1] = iter_aero_resist_used[1]/aero_resist[N_PET_TYPES][1];
+        stability_factor[1] = iter_aero_resist_used[1]
+            / aero_resist[N_PET_TYPES][1];
     }
 
     // Next, loop over pot_evap types and apply the correction to the relevant aerodynamic resistance
-    for (p=0; p<N_PET_TYPES; p++) {
+    for (p = 0; p < N_PET_TYPES; p++) {
       if (stability_factor[0] == HUGE_RESIST)
         step_aero_resist[p][0] = HUGE_RESIST;
       else
-        step_aero_resist[p][0] = aero_resist[p][UnderStory]*stability_factor[0];
+        step_aero_resist[p][0] = aero_resist[p][UnderStory]
+            * stability_factor[0];
       if (stability_factor[1] == HUGE_RESIST)
         step_aero_resist[p][1] = HUGE_RESIST;
       else
-        step_aero_resist[p][1] = aero_resist[p][1]*stability_factor[1];
+        step_aero_resist[p][1] = aero_resist[p][1] * stability_factor[1];
     }
 
     // Finally, compute pot_evap
-    compute_pot_evap(veg_class, dmy, rec, gp->dt, atmos->shortwave[hidx], iter_soil_energy.NetLongAtmos, Tair, VPDcanopy, soil_con->elevation, step_aero_resist, iter_pot_evap);
+    compute_pot_evap(veg_class, dmy, rec, gp->dt, atmos->shortwave[hidx],
+        iter_soil_energy.NetLongAtmos, Tair, VPDcanopy, soil_con->elevation,
+        step_aero_resist, iter_pot_evap);
 
     /**************************************
-      Store sub-model time step variables 
-    **************************************/
+     Store sub-model time step variables
+     **************************************/
 
     snow_energy = iter_snow_energy;
     soil_energy = iter_soil_energy;
@@ -810,120 +773,125 @@ int surface_fluxes(char                 overstory,
     soil_veg_var[WET] = iter_soil_veg_var[WET];
     soil_veg_var[DRY] = iter_soil_veg_var[DRY];
     step_snow = iter_snow;
-    for(lidx = 0; lidx < options.Nlayer; lidx++) {
+    for (lidx = 0; lidx < options.Nlayer; lidx++) {
       step_layer[WET][lidx] = iter_layer[WET][lidx];
       step_layer[DRY][lidx] = iter_layer[DRY][lidx];
     }
 
-    for(dist = 0; dist < Ndist; dist++) {
+    for (dist = 0; dist < Ndist; dist++) {
 
-      if(iveg != Nveg) {
-	if(step_snow.snow) {
-	  store_throughfall[dist] += snow_veg_var[dist].throughfall;
-	  store_canopyevap[dist]  += snow_veg_var[dist].canopyevap;
-	  soil_veg_var[dist].Wdew  = snow_veg_var[dist].Wdew;
-	}
-	else {
-	  store_throughfall[dist] += soil_veg_var[dist].throughfall;
-	  store_canopyevap[dist]  += soil_veg_var[dist].canopyevap;
-	  snow_veg_var[dist].Wdew  = soil_veg_var[dist].Wdew;
-	}
+      if (iveg != Nveg) {
+        if (step_snow.snow) {
+          store_throughfall[dist] += snow_veg_var[dist].throughfall;
+          store_canopyevap[dist] += snow_veg_var[dist].canopyevap;
+          soil_veg_var[dist].Wdew = snow_veg_var[dist].Wdew;
+        } else {
+          store_throughfall[dist] += soil_veg_var[dist].throughfall;
+          store_canopyevap[dist] += soil_veg_var[dist].canopyevap;
+          snow_veg_var[dist].Wdew = soil_veg_var[dist].Wdew;
+        }
         step_Wdew[dist] = soil_veg_var[dist].Wdew;
       }
 
-      for(lidx = 0; lidx < options.Nlayer; lidx++)
-	store_layerevap[dist][lidx] += step_layer[dist][lidx].evap;
+      for (lidx = 0; lidx < options.Nlayer; lidx++)
+        store_layerevap[dist][lidx] += step_layer[dist][lidx].evap;
 
       store_ppt[dist] += step_ppt[dist];
     }
-    if (iter_aero_resist_used[0]>0)
-      store_aero_cond_used[0] += 1/iter_aero_resist_used[0];
+    if (iter_aero_resist_used[0] > 0)
+      store_aero_cond_used[0] += 1 / iter_aero_resist_used[0];
     else
       store_aero_cond_used[0] += HUGE_RESIST;
-    if (iter_aero_resist_used[1]>0)
-      store_aero_cond_used[1] += 1/iter_aero_resist_used[1];
+    if (iter_aero_resist_used[1] > 0)
+      store_aero_cond_used[1] += 1 / iter_aero_resist_used[1];
     else
       store_aero_cond_used[1] += HUGE_RESIST;
 
-    if(iveg != Nveg) 
+    if (iveg != Nveg)
       store_canopy_vapor_flux += step_snow.canopy_vapor_flux;
-    store_melt         += step_melt;
-    store_vapor_flux   += step_snow.vapor_flux;
+    store_melt += step_melt;
+    store_vapor_flux += step_snow.vapor_flux;
     store_surface_flux += step_snow.surface_flux;
     store_blowing_flux += step_snow.blowing_flux;
-      
+
     out_prec[0] += step_out_prec * mu;
     out_rain[0] += step_out_rain * mu;
     out_snow[0] += step_out_snow * mu;
 
-    if ( INCLUDE_SNOW ) {
+    if (INCLUDE_SNOW) {
       /* copy needed flux terms to the snowpack */
-      snow_energy.advected_sensible  = soil_energy.advected_sensible; 
-      snow_energy.advection          = soil_energy.advection; 
-      snow_energy.deltaCC            = soil_energy.deltaCC; 
-      snow_energy.latent             = soil_energy.latent;
-      snow_energy.latent_sub         = soil_energy.latent_sub;
-      snow_energy.refreeze_energy    = soil_energy.refreeze_energy; 
-      snow_energy.sensible           = soil_energy.sensible;
-      snow_energy.snow_flux          = soil_energy.snow_flux; 
+      snow_energy.advected_sensible = soil_energy.advected_sensible;
+      snow_energy.advection = soil_energy.advection;
+      snow_energy.deltaCC = soil_energy.deltaCC;
+      snow_energy.latent = soil_energy.latent;
+      snow_energy.latent_sub = soil_energy.latent_sub;
+      snow_energy.refreeze_energy = soil_energy.refreeze_energy;
+      snow_energy.sensible = soil_energy.sensible;
+      snow_energy.snow_flux = soil_energy.snow_flux;
     }
 
-    store_AlbedoOver        += snow_energy.AlbedoOver; 
-    store_AlbedoUnder       += soil_energy.AlbedoUnder;
-    store_AtmosLatent       += soil_energy.AtmosLatent;
-    store_AtmosLatentSub    += soil_energy.AtmosLatentSub;
-    store_AtmosSensible     += soil_energy.AtmosSensible;
-    store_LongOverIn        += snow_energy.LongOverIn; 
-    store_LongUnderIn       += LongUnderIn; 
-    store_LongUnderOut      += soil_energy.LongUnderOut; 
-    store_NetLongAtmos      += soil_energy.NetLongAtmos; 
-    store_NetLongOver       += snow_energy.NetLongOver; 
-    store_NetLongUnder      += soil_energy.NetLongUnder; 
-    store_NetShortAtmos     += soil_energy.NetShortAtmos; 
-    store_NetShortGrnd      += NetShortGrnd; 
-    store_NetShortOver      += snow_energy.NetShortOver; 
-    store_NetShortUnder     += soil_energy.NetShortUnder; 
-    store_ShortOverIn       += snow_energy.ShortOverIn; 
-    store_ShortUnderIn      += soil_energy.ShortUnderIn; 
-    store_canopy_advection  += snow_energy.canopy_advection; 
-    store_canopy_latent     += snow_energy.canopy_latent; 
-    store_canopy_latent_sub += snow_energy.canopy_latent_sub; 
-    store_canopy_sensible   += snow_energy.canopy_sensible; 
-    store_canopy_refreeze   += snow_energy.canopy_refreeze; 
-    store_deltaH            += soil_energy.deltaH; 
-    store_fusion            += soil_energy.fusion; 
-    store_grnd_flux         += soil_energy.grnd_flux; 
-    store_latent            += soil_energy.latent; 
-    store_latent_sub        += soil_energy.latent_sub; 
-    store_melt_energy       += step_melt_energy;
-    store_sensible          += soil_energy.sensible; 
-    if ( step_snow.swq == 0 && INCLUDE_SNOW ) {
-      if ( last_snow_coverage == 0 && (long int)step_prec > 0 ) last_snow_coverage = 1; /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
-      store_advected_sensible += snow_energy.advected_sensible * last_snow_coverage; 
-      store_advection         += snow_energy.advection * last_snow_coverage; 
-      store_deltaCC           += snow_energy.deltaCC * last_snow_coverage; 
-      store_snow_flux         += soil_energy.snow_flux * last_snow_coverage; 
-      store_refreeze_energy   += snow_energy.refreeze_energy * last_snow_coverage; 
+    store_AlbedoOver += snow_energy.AlbedoOver;
+    store_AlbedoUnder += soil_energy.AlbedoUnder;
+    store_AtmosLatent += soil_energy.AtmosLatent;
+    store_AtmosLatentSub += soil_energy.AtmosLatentSub;
+    store_AtmosSensible += soil_energy.AtmosSensible;
+    store_LongOverIn += snow_energy.LongOverIn;
+    store_LongUnderIn += LongUnderIn;
+    store_LongUnderOut += soil_energy.LongUnderOut;
+    store_NetLongAtmos += soil_energy.NetLongAtmos;
+    store_NetLongOver += snow_energy.NetLongOver;
+    store_NetLongUnder += soil_energy.NetLongUnder;
+    store_NetShortAtmos += soil_energy.NetShortAtmos;
+    store_NetShortGrnd += NetShortGrnd;
+    store_NetShortOver += snow_energy.NetShortOver;
+    store_NetShortUnder += soil_energy.NetShortUnder;
+    store_ShortOverIn += snow_energy.ShortOverIn;
+    store_ShortUnderIn += soil_energy.ShortUnderIn;
+    store_canopy_advection += snow_energy.canopy_advection;
+    store_canopy_latent += snow_energy.canopy_latent;
+    store_canopy_latent_sub += snow_energy.canopy_latent_sub;
+    store_canopy_sensible += snow_energy.canopy_sensible;
+    store_canopy_refreeze += snow_energy.canopy_refreeze;
+    store_deltaH += soil_energy.deltaH;
+    store_fusion += soil_energy.fusion;
+    store_grnd_flux += soil_energy.grnd_flux;
+    store_latent += soil_energy.latent;
+    store_latent_sub += soil_energy.latent_sub;
+    store_melt_energy += step_melt_energy;
+    store_sensible += soil_energy.sensible;
+    if (step_snow.swq == 0 && INCLUDE_SNOW) {
+      if (last_snow_coverage == 0 && (long int) step_prec > 0)
+        last_snow_coverage = 1; /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
+      store_advected_sensible += snow_energy.advected_sensible
+          * last_snow_coverage;
+      store_advection += snow_energy.advection * last_snow_coverage;
+      store_deltaCC += snow_energy.deltaCC * last_snow_coverage;
+      store_snow_flux += soil_energy.snow_flux * last_snow_coverage;
+      store_refreeze_energy += snow_energy.refreeze_energy * last_snow_coverage;
+    } else if (step_snow.snow || INCLUDE_SNOW) {
+      store_advected_sensible += snow_energy.advected_sensible
+          * (step_snow.coverage + delta_coverage);
+      store_advection += snow_energy.advection
+          * (step_snow.coverage + delta_coverage);
+      store_deltaCC += snow_energy.deltaCC
+          * (step_snow.coverage + delta_coverage);
+      store_snow_flux += soil_energy.snow_flux
+          * (step_snow.coverage + delta_coverage);
+      store_refreeze_energy += snow_energy.refreeze_energy
+          * (step_snow.coverage + delta_coverage);
     }
-    else if ( step_snow.snow || INCLUDE_SNOW ) {
-      store_advected_sensible += snow_energy.advected_sensible * (step_snow.coverage + delta_coverage);
-      store_advection         += snow_energy.advection * (step_snow.coverage + delta_coverage); 
-      store_deltaCC           += snow_energy.deltaCC * (step_snow.coverage + delta_coverage); 
-      store_snow_flux         += soil_energy.snow_flux * (step_snow.coverage + delta_coverage); 
-      store_refreeze_energy   += snow_energy.refreeze_energy * (step_snow.coverage + delta_coverage); 
-    }
-    for (p=0; p<N_PET_TYPES; p++)
+    for (p = 0; p < N_PET_TYPES; p++)
       store_pot_evap[p] += iter_pot_evap[p];
 
     /* increment time step */
-    N_steps ++;
+    N_steps++;
     hidx += step_inc;
 
   } while (hidx < endhidx);
 
   /************************************************
-    Store snow variables for sub-model time steps 
-  ************************************************/
+   Store snow variables for sub-model time steps
+   ************************************************/
 
   (*snow) = step_snow;
   snow->vapor_flux = store_vapor_flux;
@@ -932,81 +900,81 @@ int surface_fluxes(char                 overstory,
   snow->canopy_vapor_flux = store_canopy_vapor_flux;
   (*Melt) = store_melt;
   snow->melt = store_melt;
-  for(dist = 0; dist < 2; dist++) ppt[dist] = store_ppt[dist];
+  for (dist = 0; dist < 2; dist++)
+    ppt[dist] = store_ppt[dist];
 
   /******************************************************
-    Store energy flux averages for sub-model time steps 
-  ******************************************************/
+   Store energy flux averages for sub-model time steps
+   ******************************************************/
 
   (*energy) = soil_energy;
-  energy->AlbedoOver        = store_AlbedoOver / (double)N_steps; 
-  energy->AlbedoUnder       = store_AlbedoUnder / (double)N_steps;
-  energy->AtmosLatent       = store_AtmosLatent / (double)N_steps; 
-  energy->AtmosLatentSub    = store_AtmosLatentSub / (double)N_steps; 
-  energy->AtmosSensible     = store_AtmosSensible / (double)N_steps; 
-  energy->LongOverIn        = store_LongOverIn / (double)N_steps; 
-  energy->LongUnderIn       = store_LongUnderIn / (double)N_steps; 
-  energy->LongUnderOut      = store_LongUnderOut / (double)N_steps; 
-  energy->NetLongAtmos      = store_NetLongAtmos / (double)N_steps; 
-  energy->NetLongOver       = store_NetLongOver / (double)N_steps; 
-  energy->NetLongUnder      = store_NetLongUnder / (double)N_steps; 
-  energy->NetShortAtmos     = store_NetShortAtmos / (double)N_steps; 
-  energy->NetShortGrnd      = store_NetShortGrnd / (double)N_steps; 
-  energy->NetShortOver      = store_NetShortOver / (double)N_steps; 
-  energy->NetShortUnder     = store_NetShortUnder / (double)N_steps; 
-  energy->ShortOverIn       = store_ShortOverIn / (double)N_steps; 
-  energy->ShortUnderIn      = store_ShortUnderIn / (double)N_steps; 
-  energy->advected_sensible = store_advected_sensible / (double)N_steps; 
-  energy->canopy_advection  = store_canopy_advection / (double)N_steps; 
-  energy->canopy_latent     = store_canopy_latent / (double)N_steps; 
-  energy->canopy_latent_sub = store_canopy_latent_sub / (double)N_steps; 
-  energy->canopy_refreeze   = store_canopy_refreeze / (double)N_steps; 
-  energy->canopy_sensible   = store_canopy_sensible / (double)N_steps; 
-  energy->deltaH            = store_deltaH / (double)N_steps; 
-  energy->fusion            = store_fusion / (double)N_steps; 
-  energy->grnd_flux         = store_grnd_flux / (double)N_steps; 
-  energy->latent            = store_latent / (double)N_steps; 
-  energy->latent_sub        = store_latent_sub / (double)N_steps; 
-  energy->melt_energy       = store_melt_energy / (double)N_steps;
-  energy->sensible          = store_sensible / (double)N_steps; 
+  energy->AlbedoOver = store_AlbedoOver / (double) N_steps;
+  energy->AlbedoUnder = store_AlbedoUnder / (double) N_steps;
+  energy->AtmosLatent = store_AtmosLatent / (double) N_steps;
+  energy->AtmosLatentSub = store_AtmosLatentSub / (double) N_steps;
+  energy->AtmosSensible = store_AtmosSensible / (double) N_steps;
+  energy->LongOverIn = store_LongOverIn / (double) N_steps;
+  energy->LongUnderIn = store_LongUnderIn / (double) N_steps;
+  energy->LongUnderOut = store_LongUnderOut / (double) N_steps;
+  energy->NetLongAtmos = store_NetLongAtmos / (double) N_steps;
+  energy->NetLongOver = store_NetLongOver / (double) N_steps;
+  energy->NetLongUnder = store_NetLongUnder / (double) N_steps;
+  energy->NetShortAtmos = store_NetShortAtmos / (double) N_steps;
+  energy->NetShortGrnd = store_NetShortGrnd / (double) N_steps;
+  energy->NetShortOver = store_NetShortOver / (double) N_steps;
+  energy->NetShortUnder = store_NetShortUnder / (double) N_steps;
+  energy->ShortOverIn = store_ShortOverIn / (double) N_steps;
+  energy->ShortUnderIn = store_ShortUnderIn / (double) N_steps;
+  energy->advected_sensible = store_advected_sensible / (double) N_steps;
+  energy->canopy_advection = store_canopy_advection / (double) N_steps;
+  energy->canopy_latent = store_canopy_latent / (double) N_steps;
+  energy->canopy_latent_sub = store_canopy_latent_sub / (double) N_steps;
+  energy->canopy_refreeze = store_canopy_refreeze / (double) N_steps;
+  energy->canopy_sensible = store_canopy_sensible / (double) N_steps;
+  energy->deltaH = store_deltaH / (double) N_steps;
+  energy->fusion = store_fusion / (double) N_steps;
+  energy->grnd_flux = store_grnd_flux / (double) N_steps;
+  energy->latent = store_latent / (double) N_steps;
+  energy->latent_sub = store_latent_sub / (double) N_steps;
+  energy->melt_energy = store_melt_energy / (double) N_steps;
+  energy->sensible = store_sensible / (double) N_steps;
   if (snow->snow || INCLUDE_SNOW) {
-    energy->advection       = store_advection / (double)N_steps; 
-    energy->deltaCC         = store_deltaCC / (double)N_steps; 
-    energy->refreeze_energy = store_refreeze_energy / (double)N_steps; 
-    energy->snow_flux       = store_snow_flux / (double)N_steps; 
+    energy->advection = store_advection / (double) N_steps;
+    energy->deltaCC = store_deltaCC / (double) N_steps;
+    energy->refreeze_energy = store_refreeze_energy / (double) N_steps;
+    energy->snow_flux = store_snow_flux / (double) N_steps;
   }
-  energy->Tfoliage          = snow_energy.Tfoliage;
-  energy->Tfoliage_fbflag   = snow_energy.Tfoliage_fbflag;
-  energy->Tfoliage_fbcount  = snow_energy.Tfoliage_fbcount;
+  energy->Tfoliage = snow_energy.Tfoliage;
+  energy->Tfoliage_fbflag = snow_energy.Tfoliage_fbflag;
+  energy->Tfoliage_fbcount = snow_energy.Tfoliage_fbcount;
 
 // energy->AtmosSensible + energy->AtmosLatent + energy->AtmosLatentSub + energy->NetShortAtmos + energy->NetLongAtmos + energy->grnd_flux + energy->deltaH + energy->fusion + energy->advection - energy->deltaCC + energy->refreeze_energy + energy->advected_sensible
 
   /**********************************************************
-    Store vegetation variable sums for sub-model time steps 
-  **********************************************************/
+   Store vegetation variable sums for sub-model time steps
+   **********************************************************/
 
-  if(iveg != Nveg) {
+  if (iveg != Nveg) {
     veg_var_wet->throughfall = store_throughfall[WET];
     veg_var_dry->throughfall = store_throughfall[DRY];
-    veg_var_wet->canopyevap  = store_canopyevap[WET];
-    veg_var_dry->canopyevap  = store_canopyevap[DRY];
-    if(snow->snow) {
-      veg_var_wet->Wdew        = snow_veg_var[WET].Wdew;
-      veg_var_dry->Wdew        = snow_veg_var[DRY].Wdew;
-    }
-    else {
-      veg_var_wet->Wdew        = soil_veg_var[WET].Wdew;
-      veg_var_dry->Wdew        = soil_veg_var[DRY].Wdew;
+    veg_var_wet->canopyevap = store_canopyevap[WET];
+    veg_var_dry->canopyevap = store_canopyevap[DRY];
+    if (snow->snow) {
+      veg_var_wet->Wdew = snow_veg_var[WET].Wdew;
+      veg_var_dry->Wdew = snow_veg_var[DRY].Wdew;
+    } else {
+      veg_var_wet->Wdew = soil_veg_var[WET].Wdew;
+      veg_var_dry->Wdew = soil_veg_var[DRY].Wdew;
     }
   }
 
   /**********************************************************
-    Store soil layer variables for sub-model time steps 
-  **********************************************************/
+   Store soil layer variables for sub-model time steps
+   **********************************************************/
 
-  for(lidx=0;lidx<Nlayers;lidx++) {
-    layer_wet[lidx]      = step_layer[WET][lidx];
-    layer_dry[lidx]      = step_layer[DRY][lidx];
+  for (lidx = 0; lidx < Nlayers; lidx++) {
+    layer_wet[lidx] = step_layer[WET][lidx];
+    layer_dry[lidx] = step_layer[DRY][lidx];
     layer_wet[lidx].evap = store_layerevap[WET][lidx];
     layer_dry[lidx].evap = store_layerevap[DRY][lidx];
 #if EXCESS_ICE
@@ -1014,51 +982,51 @@ int surface_fluxes(char                 overstory,
     evap_prior_dry[lidx] = store_layerevap[DRY][lidx];
 #endif
   }
-  if (store_aero_cond_used[0]>0 && store_aero_cond_used[0]<HUGE_RESIST)
-    aero_resist_used[0] = 1/(store_aero_cond_used[0]/(double)N_steps);
-  else if (store_aero_cond_used[0]>=HUGE_RESIST)
+  if (store_aero_cond_used[0] > 0 && store_aero_cond_used[0] < HUGE_RESIST)
+    aero_resist_used[0] = 1 / (store_aero_cond_used[0] / (double) N_steps);
+  else if (store_aero_cond_used[0] >= HUGE_RESIST)
     aero_resist_used[0] = 0;
   else
     aero_resist_used[0] = HUGE_RESIST;
-  if (store_aero_cond_used[1]>0 && store_aero_cond_used[1]<HUGE_RESIST)
-    aero_resist_used[1] = 1/(store_aero_cond_used[1]/(double)N_steps);
-  else if (store_aero_cond_used[1]>=HUGE_RESIST)
+  if (store_aero_cond_used[1] > 0 && store_aero_cond_used[1] < HUGE_RESIST)
+    aero_resist_used[1] = 1 / (store_aero_cond_used[1] / (double) N_steps);
+  else if (store_aero_cond_used[1] >= HUGE_RESIST)
     aero_resist_used[1] = 0;
   else
     aero_resist_used[1] = HUGE_RESIST;
-  for (p=0; p<N_PET_TYPES; p++)
-    pot_evap[p] = store_pot_evap[p]/(double)N_steps;
+  for (p = 0; p < N_PET_TYPES; p++)
+    pot_evap[p] = store_pot_evap[p] / (double) N_steps;
 
-  for (p=0; p<N_PET_TYPES; p++) {
-    free((char *)step_aero_resist[p]);
+  for (p = 0; p < N_PET_TYPES; p++) {
+    free((char *) step_aero_resist[p]);
   }
-  free((char *)step_aero_resist);
+  free((char *) step_aero_resist);
 
   /********************************************************
-    Compute Runoff, Baseflow, and Soil Moisture Transport
-  ********************************************************/
+   Compute Runoff, Baseflow, and Soil Moisture Transport
+   ********************************************************/
 
 #if EXCESS_ICE
-  if(SubsidenceUpdate != 2){
+  if(SubsidenceUpdate != 2) {
 #endif
-    (*inflow_wet) = ppt[WET];
-    (*inflow_dry) = ppt[DRY];
+  (*inflow_wet) = ppt[WET];
+  (*inflow_dry) = ppt[DRY];
 
-    ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt, 
+  ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
 #if EXCESS_ICE
-		       SubsidenceUpdate,
+      SubsidenceUpdate,
 #endif
 #if SPATIAL_FROST
-		       soil_con->frost_fract,
+      soil_con->frost_fract,
 #endif // SPATIAL_FROST
-		       mu, gp->dt, options.Nnode, band, rec, iveg);
-    
-    return( ErrorFlag );
+      mu, gp->dt, options.Nnode, band, rec, iveg);
+
+  return (ErrorFlag);
 #if EXCESS_ICE
-  }
+}
 #endif
 
-  return(0);
+  return (0);
 }
 
 #undef MAX_ITER

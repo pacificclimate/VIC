@@ -68,52 +68,54 @@ void read_atmos_data(FILE                 *infile,
   
   extern option_struct options;
   extern param_set_struct param_set;
-  
-  int             rec;
-  int             skip_recs;
-  int             i;
-  int             endian;
-  int             fields;
-  int             Nfields;
-  int             day=0;
-  int            *field_index;
-  unsigned short  ustmp;
-  signed short    stmp;
-  char            str[MAXSTRING+1];
-  char            ErrStr[MAXSTRING+1];
-  unsigned short  Identifier[4];
-  int             Nbytes;
 
-  Nfields     = param_set.N_TYPES[file_num];
+  int rec;
+  int skip_recs;
+  int i;
+  int endian;
+  int fields;
+  int Nfields;
+  int day = 0;
+  int *field_index;
+  unsigned short ustmp;
+  signed short stmp;
+  char str[MAXSTRING + 1];
+  char ErrStr[MAXSTRING + 1];
+  unsigned short Identifier[4];
+  int Nbytes;
+
+  Nfields = param_set.N_TYPES[file_num];
   field_index = param_set.FORCE_INDEX[file_num];
 
   /** locate starting record **/
   /* if ascii then the following refers to the number of lines to skip,
-     if binary the following needs multiplying by the number of input fields */
-  skip_recs = (int)((float)(global_param.dt * forceskip)) 
-    / (float)param_set.FORCE_DT[file_num];
-  if((((global_param.dt < 24 && (param_set.FORCE_DT[file_num] * forceskip) 
-	% global_param.dt) > 0)) 
-     || (global_param.dt == 24 && (global_param.dt 
-				   % param_set.FORCE_DT[file_num] > 0)))
+   if binary the following needs multiplying by the number of input fields */
+  skip_recs = (int) ((float) (global_param.dt * forceskip)) / (float) param_set.FORCE_DT[file_num];
+  if ((((global_param.dt < 24
+      && (param_set.FORCE_DT[file_num] * forceskip) % global_param.dt) > 0))
+      || (global_param.dt == 24
+          && (global_param.dt % param_set.FORCE_DT[file_num] > 0)))
     nrerror("Currently unable to handle a model starting date that does not correspond to a line in the forcing file.");
 
   /** Error checking - Model can be run at any time step using daily forcing
-      data, but if sub-daily data is used, the model must be run at the
-      same time step as the data.  That way aggregation and disaggragation 
-      techniques are left to the user. **/
-  if(param_set.FORCE_DT[file_num] < 24 
-     && global_param.dt != param_set.FORCE_DT[file_num]) {
-    sprintf(ErrStr,"When forcing the model with sub-daily data, the model must be run at the same time step as the forcing data.  Currently the model time step is %i hours, while forcing file %i has a time step of %i hours.",global_param.dt,file_num,param_set.FORCE_DT[file_num]);
+   data, but if sub-daily data is used, the model must be run at the
+   same time step as the data.  That way aggregation and disaggragation
+   techniques are left to the user. **/
+  if (param_set.FORCE_DT[file_num] < 24
+      && global_param.dt != param_set.FORCE_DT[file_num]) {
+    sprintf(ErrStr,
+        "When forcing the model with sub-daily data, the model must be run at the same time step as the forcing data.  Currently the model time step is %i hours, while forcing file %i has a time step of %i hours.",
+        global_param.dt, file_num, param_set.FORCE_DT[file_num]);
     nrerror(ErrStr);
   }
 
-  if(infile==NULL)fprintf(stderr,"NULL file\n");
+  if (infile == NULL)
+    fprintf(stderr, "NULL file\n");
 
   if (param_set.FORCE_FORMAT[file_num] == NETCDF) {
     /*****************************
-    *  Read NetCDF Forcing Data  *
-    *****************************/
+     *  Read NetCDF Forcing Data  *
+     *****************************/
 
     /* Assumptions, for now:
      * -dims are all (time, lat, lon)
@@ -124,29 +126,31 @@ void read_atmos_data(FILE                 *infile,
      */
 
     /* TODO some of these should be parameters once this is complete... */
-    const int nforcesteps = global_param.nrecs * global_param.dt / param_set.FORCE_DT[file_num]; /* number of forcing timesteps to be loaded */
+    const int nforcesteps = global_param.nrecs * global_param.dt
+        / param_set.FORCE_DT[file_num]; /* number of forcing timesteps to be loaded */
 
     int ndims; /* scratch for nc_inq_varndims */
     nc_type vartype; /* scratch for nc_inq_vartype */
     int ncerr;
 
-    /* dims */ /* rename ndays because it may be misleading */
+    /* dims *//* rename ndays because it may be misleading */
     size_t ndays, nlats, nlons;
-    int timevarid, latvarid, lonvarid, timetype, lattype, lontype, timedimid, latdimid, londimid;
-    double *time, *lats, *lons; /* actual dimvar data */ /* not using time, yet; just assuming... */
+    int timevarid, latvarid, lonvarid, timetype, lattype, lontype, timedimid,
+        latdimid, londimid;
+    double *time, *lats, *lons; /* actual dimvar data *//* not using time, yet; just assuming... */
     size_t dimvarstart = 0, dimvarcount;
     /* vars */
-    const char *varnames[] = {"pr", "tasmax", "tasmin", "wind"}; /* TODO un-hardcode order and fix field_index array; also FIXME this ASSUMES that global file is not charged to some other order */
+    const char *varnames[] = { "pr", "tasmax", "tasmin", "wind" }; /* TODO un-hardcode order and fix field_index array; also FIXME this ASSUMES that global file is not charged to some other order */
     const int nvars = sizeof(varnames) / sizeof(*varnames);
     int varids[nvars];
     int vardimids[3];
 
     /* hyperslab bounds and permutation */
-    size_t starts[3] = {(size_t)skip_recs, SIZE_MAX, SIZE_MAX}; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
-    size_t counts[3] = {(size_t)nforcesteps, 1, 1}; /* TODO make this support multiple cells, and allow permutation to fit dim reordering... */
-    int dimlengths[3] = {1, 1, nforcesteps}; /* FIXME THIS SHOULD BE A PARAMETER */
-    const ptrdiff_t perm[3] = {1, dimlengths[1] * dimlengths[2], dimlengths[2]};
-    
+    size_t starts[3] = { (size_t) skip_recs, SIZE_MAX, SIZE_MAX }; /* FIXME this may need to be multiplied by FORCE_DT or something?  not sure of the semantics here but for now we have 24h forcings so this shouldn't matter */
+    size_t counts[3] = { (size_t) nforcesteps, 1, 1 }; /* TODO make this support multiple cells, and allow permutation to fit dim reordering... */
+    int dimlengths[3] = { 1, 1, nforcesteps }; /* FIXME THIS SHOULD BE A PARAMETER */
+    const ptrdiff_t perm[3] =
+        { 1, dimlengths[1] * dimlengths[2], dimlengths[2] };
 
     /* handle dimvars */
     assert(nc_inq_varid(ncid, "time", &timevarid) == NC_NOERR);
@@ -155,7 +159,8 @@ void read_atmos_data(FILE                 *infile,
     assert(nc_inq_varndims(ncid, timevarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, timevarid, &timedimid) == NC_NOERR);
-    assert(nc_inq_dimlen(ncid, timevarid, &ndays) == NC_NOERR); /* use this later to determine whether we have enough data */
+    assert(nc_inq_dimlen(ncid, timevarid, &ndays) == NC_NOERR);
+    /* use this later to determine whether we have enough data */
 
     assert(nc_inq_varid(ncid, "lat", &latvarid) == NC_NOERR);
     assert(nc_inq_vartype(ncid, latvarid, &vartype) == NC_NOERR);
@@ -172,22 +177,25 @@ void read_atmos_data(FILE                 *infile,
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, lonvarid, &londimid) == NC_NOERR);
     assert(nc_inq_dimlen(ncid, lonvarid, &nlons) == NC_NOERR);
-    
-    /* get lat/lon */ /* FIXME also get time and scan for it */
-    lats = (double *)malloc(nlats * sizeof(*lats)); assert(lats != NULL);
+
+    /* get lat/lon *//* FIXME also get time and scan for it */
+    lats = (double *) malloc(nlats * sizeof(*lats));
+    assert(lats != NULL);
     dimvarcount = nlats;
     nc_get_vara_double(ncid, latvarid, &dimvarstart, &dimvarcount, lats);
-    lons = (double *)malloc(nlons * sizeof(*lons)); assert(lons != NULL);
+    lons = (double *) malloc(nlons * sizeof(*lons));
+    assert(lons != NULL);
     dimvarcount = nlons;
     nc_get_vara_double(ncid, lonvarid, &dimvarstart, &dimvarcount, lons);
-    
+
     /* figure out slices */
     for (unsigned int latidx = 0; latidx < nlats; latidx++) {
       if (lats[latidx] == soil_con->lat) { /* FIXME, proper FP comparison would be really good!! */
         starts[1] = latidx;
         break;
       }
-      assert(latidx != (nlats - 1)); /* die if we make it to the last iteration without finding a match FIXME better spew */
+      assert(latidx != (nlats - 1));
+      /* die if we make it to the last iteration without finding a match FIXME better spew */
     }
     for (unsigned int lonidx = 0; lonidx < nlons; lonidx++) {
       if (lons[lonidx] == soil_con->lng) {
@@ -198,7 +206,7 @@ void read_atmos_data(FILE                 *infile,
     }
 
     /* handle vars */
-    for(int varidx = 0; varidx < nvars; ++varidx) {
+    for (int varidx = 0; varidx < nvars; ++varidx) {
       int attlen;
       float scale_factor = NAN, inverse_scale_factor = NAN; /* leave uninitialized in case of has_inverse_scale_factor */
       int has_inverse_scale_factor = 0;
@@ -211,54 +219,79 @@ void read_atmos_data(FILE                 *infile,
       assert(nc_inq_varndims(ncid, varids[varidx], &ndims) == NC_NOERR);
       assert(ndims == 3);
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
-      assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
+      assert(
+          (vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
 
       /* Get and convert data -- fixme; need to sort out field_index or related (borrow from their enum?) and adapt it to ncdf so indices are not hardcoded here... */
       switch (vartype) {
-      case NC_SHORT: {
-        /* TODO check for relevant return code values instead of just NC_NOERR for cases where value might just not be present, although require at least one of scale_factor and inverse_scale_factor for integer-packed data */
-        if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor", &inverse_scale_factor) == NC_NOERR)	//TODO: move outside of switch
-          has_inverse_scale_factor = 1;
-        else
-          assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
-        short int *data = (short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
-        /* MPN FIXME DEBUG - probably duplicate this or move this up... */
-        fprintf(stderr, "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ", varids[varidx], varnames[varidx], (int)starts[0], (int)(starts[0]+counts[0]-1), (int)starts[1], (int)(starts[1]+counts[1]-1), (int)starts[2], (int)(starts[2]+counts[2]-1));
-        if((ncerr = nc_get_varm_short(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
-          fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
-          exit(1);
+        case NC_SHORT: {
+          /* TODO check for relevant return code values instead of just NC_NOERR for cases where value might just not be present, although require at least one of scale_factor and inverse_scale_factor for integer-packed data */
+          if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor",
+              &inverse_scale_factor) == NC_NOERR)	//TODO: move outside of switch
+            has_inverse_scale_factor = 1;
+          else
+            assert(
+                nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+          short int *data = (short int *) malloc(
+              (global_param.nrecs * global_param.dt) * sizeof(short));
+          /* MPN FIXME DEBUG - probably duplicate this or move this up... */
+          fprintf(stderr,
+              "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ",
+              varids[varidx], varnames[varidx], (int) starts[0],
+              (int) (starts[0] + counts[0] - 1), (int) starts[1],
+              (int) (starts[1] + counts[1] - 1), (int) starts[2],
+              (int) (starts[2] + counts[2] - 1));
+          if ((ncerr = nc_get_varm_short(ncid, varids[varidx], starts, counts,
+              NULL, perm, data)) != NC_NOERR) {
+            fprintf(stderr, "Error reading NetCDF variable data: %s\n",
+                nc_strerror(ncerr));
+            exit(1);
+          }
+          fprintf(stderr, "done\n");
+          /* FIXME (and below) handle missing value (probably by bailing, because this data should be contiguous) */
+          if (has_inverse_scale_factor)
+            /* Implemented for numerically-identical operation to classic VIC input */
+            for (int rec = 0; rec < nforcesteps; rec++)
+              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+                  / inverse_scale_factor;
+          else
+            for (int rec = 0; rec < nforcesteps; rec++)
+              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+                  * scale_factor;
+          free(data);
+          break;
         }
-        fprintf(stderr, "done\n");
-        /* FIXME (and below) handle missing value (probably by bailing, because this data should be contiguous) */
-        if (has_inverse_scale_factor)
-          /* Implemented for numerically-identical operation to classic VIC input */
-          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] / inverse_scale_factor;
-        else
-          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
-        free(data);
-        break;
-      }
-      case NC_USHORT: {
-        if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor", &inverse_scale_factor) == NC_NOERR)
-          has_inverse_scale_factor = 1;
-        else
-          assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
-        unsigned short int *data = (unsigned short int *)malloc((global_param.nrecs * global_param.dt) * sizeof(short));
-        if((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
-          fprintf(stderr, "Error reading NetCDF variable data: %s\n", nc_strerror(ncerr));
-          exit(1);
+        case NC_USHORT: {
+          if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor",
+              &inverse_scale_factor) == NC_NOERR)
+            has_inverse_scale_factor = 1;
+          else
+            assert(
+                nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+          unsigned short int *data = (unsigned short int *) malloc(
+              (global_param.nrecs * global_param.dt) * sizeof(short));
+          if ((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts,
+              NULL, perm, data)) != NC_NOERR) {
+            fprintf(stderr, "Error reading NetCDF variable data: %s\n",
+                nc_strerror(ncerr));
+            exit(1);
+          }
+          if (has_inverse_scale_factor)
+            /* Implemented for numerically-identical operation to classic VIC input */
+            for (int rec = 0; rec < nforcesteps; rec++)
+              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+                  / inverse_scale_factor;
+          else
+            for (int rec = 0; rec < nforcesteps; rec++)
+              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+                  * scale_factor;
+          free(data);
+          break;
         }
-        if (has_inverse_scale_factor)
-          /* Implemented for numerically-identical operation to classic VIC input */
-          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] / inverse_scale_factor;
-        else
-          for (int rec = 0; rec < nforcesteps; rec++) forcing_data[field_index[varidx]][rec] = (double)data[rec] * scale_factor;
-        free(data);
-        break;
-        }
-      case NC_FLOAT:
-      case NC_DOUBLE:
-      default: assert(0);
+        case NC_FLOAT:
+        case NC_DOUBLE:
+        default:
+          assert(0);
       }
 
       rec = nforcesteps;
@@ -268,8 +301,6 @@ void read_atmos_data(FILE                 *infile,
      *    nc_inq_var(ncid, varid, );  Don't need this until we're actually figuring out dims dynamically
      * nc_inq_dim(ncid, dimid, name_str, &dimlength); */
 
-    
-
     /* TODO:
      * -position dim support?
      * -better matching of lats + lons
@@ -277,89 +308,89 @@ void read_atmos_data(FILE                 *infile,
      * -close files (inconsequential for now)
      */
   }
-  
+
   /***************************
-    Read BINARY Forcing Data
-  ***************************/
-  
-  else if(param_set.FORCE_FORMAT[file_num] == BINARY){
-	  
+   Read BINARY Forcing Data
+   ***************************/
+
+  else if (param_set.FORCE_FORMAT[file_num] == BINARY) {
+
     /** test whether the machine is little-endian or big-endian **/
     i = 1;
-    if(*(char *)&i == 1)
+    if (*(char *) &i == 1)
       endian = LITTLE;
-    else    
+    else
       endian = BIG;
-	  
+
     // Check for presence of a header, & skip over it if appropriate.
     // A VIC header will start with 4 instances of the identifier,
     // followed by number of bytes in the header (Nbytes).
     // Nbytes is assumed to be the byte offset at which the data records start.
-    fseek(infile,0,SEEK_SET);
+    fseek(infile, 0, SEEK_SET);
     if (feof(infile))
       nrerror("No data in the forcing file.  Model stopping...");
-    for (i=0; i<4; i++) {
-      fread(&ustmp,sizeof(unsigned short),1,infile);
+    for (i = 0; i < 4; i++) {
+      fread(&ustmp, sizeof(unsigned short), 1, infile);
       if (endian != param_set.FORCE_ENDIAN[file_num]) {
         ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
       }
       Identifier[i] = ustmp;
     }
-    if (Identifier[0] != 0xFFFF || Identifier[1] != 0xFFFF || Identifier[2] != 0xFFFF || Identifier[3] != 0xFFFF) {
+    if (Identifier[0] != 0xFFFF || Identifier[1] != 0xFFFF
+        || Identifier[2] != 0xFFFF || Identifier[3] != 0xFFFF) {
       Nbytes = 0;
-    }
-    else {
-      fread(&ustmp,sizeof(unsigned short),1,infile);
+    } else {
+      fread(&ustmp, sizeof(unsigned short), 1, infile);
       if (endian != param_set.FORCE_ENDIAN[file_num]) {
         ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
       }
-      Nbytes = (int)ustmp;
+      Nbytes = (int) ustmp;
     }
-    fseek(infile,Nbytes,SEEK_SET);
-
+    fseek(infile, Nbytes, SEEK_SET);
 
     /** if forcing file starts before the model simulation, 
-	skip over its starting records **/
-    fseek(infile,skip_recs*Nfields*sizeof(short),SEEK_CUR);
+     skip over its starting records **/
+    fseek(infile, skip_recs * Nfields * sizeof(short), SEEK_CUR);
     if (feof(infile))
-      nrerror("No data for the specified time period in the forcing file.  Model stopping...");
-	  
+      nrerror(
+          "No data for the specified time period in the forcing file.  Model stopping...");
+
     /** Read BINARY forcing data **/
     rec = 0;
-	  
-    while ( !feof(infile) && (rec * param_set.FORCE_DT[file_num] 
-			      < global_param.nrecs * global_param.dt) ) {
 
-      for(i=0;i<Nfields;i++) {
-	if(param_set.TYPE[field_index[i]].SIGNED) {
-	  fread(&stmp,sizeof(short int),1,infile);
-	  if (endian != param_set.FORCE_ENDIAN[file_num]) {
-	    stmp = ((stmp & 0xFF) << 8) | ((stmp >> 8) & 0xFF);
-	  }
-	  forcing_data[field_index[i]][rec] 
-	    = (double)stmp / param_set.TYPE[field_index[i]].multiplier;
-	}
-	else {
-	  fread(&ustmp,sizeof(unsigned short int),1,infile);
-	  if (endian != param_set.FORCE_ENDIAN[file_num]) {
-	    ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
-	  }
-	  forcing_data[field_index[i]][rec] 
-	    = (double)ustmp / param_set.TYPE[field_index[i]].multiplier;
-	}
+    while (!feof(infile)
+        && (rec * param_set.FORCE_DT[file_num]
+            < global_param.nrecs * global_param.dt)) {
+
+      for (i = 0; i < Nfields; i++) {
+        if (param_set.TYPE[field_index[i]].SIGNED) {
+          fread(&stmp, sizeof(short int), 1, infile);
+          if (endian != param_set.FORCE_ENDIAN[file_num]) {
+            stmp = ((stmp & 0xFF) << 8) | ((stmp >> 8) & 0xFF);
+          }
+          forcing_data[field_index[i]][rec] = (double) stmp
+              / param_set.TYPE[field_index[i]].multiplier;
+        } else {
+          fread(&ustmp, sizeof(unsigned short int), 1, infile);
+          if (endian != param_set.FORCE_ENDIAN[file_num]) {
+            ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
+          }
+          forcing_data[field_index[i]][rec] = (double) ustmp
+              / param_set.TYPE[field_index[i]].multiplier;
+        }
       }
-			
+
       rec++;
-			
+
     }
   }
 
   /**************************
-    Read ASCII Forcing Data 
-  **************************/
+   Read ASCII Forcing Data
+   **************************/
 
-  else{
-	  
+  else {
+
     // No need to skip over a header here, since ascii file headers are skipped
     // in open_file().  However, if we wanted to read information from the header,
     // we'd want to do it here, after rewinding to the beginning of the file (or
@@ -368,29 +399,33 @@ void read_atmos_data(FILE                 *infile,
     // also read the headers if necessary).
 
     /* skip to the beginning of the required met data */
-    for(i=0;i<skip_recs;i++){
-      if( fgets(str, MAXSTRING, infile) == NULL )
-	nrerror("No data for the specified time period in the forcing file.  Model stopping...");
+    for (i = 0; i < skip_recs; i++) {
+      if (fgets(str, MAXSTRING, infile) == NULL)
+        nrerror(
+            "No data for the specified time period in the forcing file.  Model stopping...");
     }
-	  
-    /* read forcing data */
-    rec=0;
 
-    while( !feof(infile) && (rec * param_set.FORCE_DT[file_num] 
-			      < global_param.nrecs * global_param.dt ) ) {
-      for(i=0;i<Nfields;i++) 
-	fscanf(infile,"%lf", &forcing_data[field_index[i]][rec]);
+    /* read forcing data */
+    rec = 0;
+
+    while (!feof(infile)
+        && (rec * param_set.FORCE_DT[file_num]
+            < global_param.nrecs * global_param.dt)) {
+      for (i = 0; i < Nfields; i++)
+        fscanf(infile, "%lf", &forcing_data[field_index[i]][rec]);
       fgets(str, MAXSTRING, infile);
       rec++;
     }
   }
-  
-  if(rec * param_set.FORCE_DT[file_num] 
-     < global_param.nrecs * global_param.dt ) {
-    sprintf(ErrStr,"Not enough records in forcing file %i (%i * %i = %i) to run the number of records defined in the global file (%i * %i = %i).  Check forcing file time step, and global file", file_num+1, rec, param_set.FORCE_DT[file_num],
-	    rec*param_set.FORCE_DT[file_num], global_param.nrecs, 
-	    global_param.dt, global_param.nrecs*global_param.dt);
+
+  if (rec * param_set.FORCE_DT[file_num]
+      < global_param.nrecs * global_param.dt) {
+    sprintf(ErrStr,
+        "Not enough records in forcing file %i (%i * %i = %i) to run the number of records defined in the global file (%i * %i = %i).  Check forcing file time step, and global file",
+        file_num + 1, rec, param_set.FORCE_DT[file_num],
+        rec * param_set.FORCE_DT[file_num], global_param.nrecs, global_param.dt,
+        global_param.nrecs * global_param.dt);
     nrerror(ErrStr);
   }
-  
+
 }
