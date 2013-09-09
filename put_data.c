@@ -5,14 +5,14 @@
 static char vcid[] = "$Id$";
 
 int  put_data(dist_prcp_struct  *prcp,
-	      atmos_data_struct *atmos,
+	            atmos_data_struct *atmos,
               soil_con_struct   *soil_con,
-	      veg_con_struct    *veg_con,
+              veg_con_struct    *veg_con,
               lake_con_struct   *lake_con,
               out_data_file_struct   *out_data_files,
               out_data_struct   *out_data,
               save_data_struct  *save_data,
-	      const dmy_struct  *dmy,
+              const dmy_struct  *dmy,
               int                rec)
 /**********************************************************************
 	put_data.c	Dag Lohmann		January 1996

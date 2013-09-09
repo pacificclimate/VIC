@@ -11,10 +11,10 @@ static char vcid[] = "$Id$";
 
 void read_atmos_data(FILE                 *infile,
                      int                   ncid,
-		     global_param_struct   global_param,
-		     int                   file_num,
-		     int                   forceskip,
-		     double              **forcing_data,
+                     global_param_struct   global_param,
+                     int                   file_num,
+                     int                   forceskip,
+                     double              **forcing_data,
                      soil_con_struct      *soil_con)
 /**********************************************************************
   read_atmos_data
@@ -279,12 +279,10 @@ void read_atmos_data(FILE                 *infile,
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec]
-                  / inverse_scale_factor;
+              forcing_data[field_index[varidx]][rec] = (double) data[rec] / inverse_scale_factor;
           else
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec]
-                  * scale_factor;
+              forcing_data[field_index[varidx]][rec] = (double) data[rec] * scale_factor;
           free(data);
           break;
         }
@@ -368,15 +366,13 @@ void read_atmos_data(FILE                 *infile,
           if (endian != param_set.FORCE_ENDIAN[file_num]) {
             stmp = ((stmp & 0xFF) << 8) | ((stmp >> 8) & 0xFF);
           }
-          forcing_data[field_index[i]][rec] = (double) stmp
-              / param_set.TYPE[field_index[i]].multiplier;
+          forcing_data[field_index[i]][rec] = (double) stmp / param_set.TYPE[field_index[i]].multiplier;
         } else {
           fread(&ustmp, sizeof(unsigned short int), 1, infile);
           if (endian != param_set.FORCE_ENDIAN[file_num]) {
             ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
           }
-          forcing_data[field_index[i]][rec] = (double) ustmp
-              / param_set.TYPE[field_index[i]].multiplier;
+          forcing_data[field_index[i]][rec] = (double) ustmp / param_set.TYPE[field_index[i]].multiplier;
         }
       }
 
@@ -418,10 +414,8 @@ void read_atmos_data(FILE                 *infile,
     }
   }
 
-  if (rec * param_set.FORCE_DT[file_num]
-      < global_param.nrecs * global_param.dt) {
-    sprintf(ErrStr,
-        "Not enough records in forcing file %i (%i * %i = %i) to run the number of records defined in the global file (%i * %i = %i).  Check forcing file time step, and global file",
+  if (rec * param_set.FORCE_DT[file_num] < global_param.nrecs * global_param.dt) {
+    sprintf(ErrStr, "Not enough records in forcing file %i (%i * %i = %i) to run the number of records defined in the global file (%i * %i = %i).  Check forcing file time step, and global file",
         file_num + 1, rec, param_set.FORCE_DT[file_num],
         rec * param_set.FORCE_DT[file_num], global_param.nrecs, global_param.dt,
         global_param.nrecs * global_param.dt);

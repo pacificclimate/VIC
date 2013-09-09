@@ -183,22 +183,19 @@ int main(int argc, char *argv[])
    *****************************************/
   char done_reading_forcings = FALSE, is_valid_soil_cell; /* this effectively replaces MODEL_DONE */
   int ncells = 0 /* zero-based */, nallocatedcells = 10 /* arbitrary */;
-  cell_info_struct *cell_data_structs = (cell_info_struct *) malloc(
-      nallocatedcells * sizeof(cell_info_struct));
+  cell_info_struct *cell_data_structs = (cell_info_struct *) malloc(nallocatedcells * sizeof(cell_info_struct));
   assert(cell_data_structs != NULL);
   /* TODO move to top somewhere */
   while (!done_reading_forcings) {
     if (ncells >= (nallocatedcells - 1)) {
       cell_data_structs = (cell_info_struct *) realloc(cell_data_structs,
-          (nallocatedcells = (int) (nallocatedcells * 1.4))
-              * sizeof(*cell_data_structs));
+          (nallocatedcells = (int) (nallocatedcells * 1.4)) * sizeof(*cell_data_structs));
       assert(cell_data_structs != NULL);
     }
 
     /*    soil_con = read_soilparam(filep.soilparam, filenames.soil_dir, &cell_cnt, &RUN_MODEL, &MODEL_DONE); */
-    cell_data_structs[ncells++].soil_con = read_soilparam(filep.soilparam,
-        filenames.soil_dir, &cell_cnt, &is_valid_soil_cell,
-        &done_reading_forcings);
+    cell_data_structs[ncells++].soil_con = read_soilparam(filep.soilparam,filenames.soil_dir,
+        &cell_cnt, &is_valid_soil_cell, &done_reading_forcings);
     if (!is_valid_soil_cell) {
       --ncells;
       continue;
@@ -209,7 +206,6 @@ int main(int argc, char *argv[])
    Run Model for all Active Grid Cells
    ************************************/
   for (int cellidx = 0; cellidx < ncells; cellidx++) {
-    /*  while(!MODEL_DONE) { */
 
     /* relocated from top of function for reentrancy - TODO check that ALL of these are clobbered below and thus do not need to be persistent between cells or after cells are run */
     lake_con_struct lake_con;
@@ -242,12 +238,12 @@ int main(int argc, char *argv[])
         }
       }
 #endif /* QUICK_FS */
-
+      /*  while(!MODEL_DONE) { */
       NEWCELL = TRUE;
       /* cellnum++;  using cellidx instead now *//* MPN:  This is wrong because then the stupid debug code tests for this being >0, even though it really starts at 0, because YAY! */
 
 #if !OUTPUT_FORCE
-
+      /*  while(!MODEL_DONE) { */
       /** Read Grid Cell Vegetation Parameters **/
       veg_con = read_vegparam(filep.vegparam, soil_con.gridcel, Nveg_type);
       calc_root_fractions(veg_con, &soil_con);

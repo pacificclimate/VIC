@@ -126,8 +126,6 @@ void initialize_global() {
 #endif
   extern param_set_struct param_set;
 
-  int i, j;
-
   /** Initialize model option flags **/
 
   // simulation modes
@@ -211,16 +209,16 @@ void initialize_global() {
 
   /** Initialize forcing file input controls **/
 
-  for(j=0;j<N_FORCING_TYPES;j++) {
+  for(int j=0;j<N_FORCING_TYPES;j++) {
     param_set.TYPE[j].SUPPLIED = FALSE;
     param_set.TYPE[j].SIGNED   = 1;
     param_set.TYPE[j].multiplier = 1;
   }
-  for(i=0;i<2;i++) {
+  for(int i=0;i<2;i++) {
     param_set.FORCE_DT[i] = MISSING;
     param_set.N_TYPES[i] = MISSING;
     param_set.FORCE_FORMAT[i] = MISSING;
-    for(j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = MISSING;
+    for(int j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = MISSING;
   }
 
 }

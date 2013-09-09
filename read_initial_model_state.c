@@ -5,17 +5,17 @@
 
 static char vcid[] = "$Id$";
 
-void read_initial_model_state(FILE                *init_state,
-			      dist_prcp_struct    *prcp,
-			      global_param_struct *gp,
-			      int                  Nveg,
-			      int                  Nbands,
-			      int                  cellnum,
-			      soil_con_struct     *soil_con,
-			      int                  Ndist,
-			      char                *init_STILL_STORM,
-			      int                 *init_DRY_TIME,
-			      lake_con_struct      lake_con)
+void read_initial_model_state(FILE    *init_state,
+			            dist_prcp_struct    *prcp,
+			            global_param_struct *gp,
+			            int                  Nveg,
+			            int                  Nbands,
+			            int                  cellnum,
+			            soil_con_struct     *soil_con,
+			            int                  Ndist,
+			            char                *init_STILL_STORM,
+			            int                 *init_DRY_TIME,
+			            lake_con_struct      lake_con)
 /*********************************************************************
   read_initial_model_state   Keith Cherkauer         April 14, 2000
 
