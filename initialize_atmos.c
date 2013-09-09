@@ -108,37 +108,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
   extern global_param_struct global_param;
   extern int                 NR, NF;
 
-  int     i;
-  int     j;
-  int     k;
-  int     band;
-  int     day;
-  int     hour;
-  int     rec;
-  int     step;
-  int     idx;
   int    *tmaxhour;
   int    *tminhour;
-  double  deltat;
-  double  cell_area;
-  double  theta_l;
-  double  theta_s;
   double  hour_offset;
-  double  phi;
-  double  elevation;
-  double  slope;
-  double  aspect;
-  double  ehoriz;
-  double  whoriz;
-  double  annual_prec;
-  double  wind_h;
-  double  roughness;
-  double  avgJulyAirTemp;
-  double *Tfactor;
-  char   *AboveTreeLine;
-  double  min_Tfactor;
-  double  shortwave;
-  double  svp_tair;
   double *hourlyrad;
   double *prec;
   double *tmax;
@@ -146,58 +118,24 @@ void initialize_atmos(atmos_data_struct        *atmos,
   double *tair;
   double *tskc;
   double *daily_vp;
-  double  min, max;
-  double  rainonly;
   int     Ndays;
   int     stepspday;
   double  sum, sum2;
   double **forcing_data;
   double **local_forcing_data;
-  int     type;
-  double  air_temp;
-  double  factor;
-  double  delta_t_minus;
-  double  delta_t_plus;
-  int have_dewpt;
-  int have_shortwave;
   int hour_offset_int;
-  int tmp_starthour, tmp_endhour;
   int local_startyear, local_startmonth, local_startday;
   int local_starthour, local_endhour;
   int day_in_year, year, month, days_in_month;
-  int tmp_nrecs;
   int Ndays_local;
   dmy_struct *dmy_local;
   int month_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-  int fstepspday;
-  double tmp_double;
-  int save_prec_supplied;
-  int save_wind_supplied;
-  int save_vp_supplied;
 
-  wind_h = global_param.wind_h;
-  theta_l = (double)soil_con->time_zone_lng;
-  theta_s = (double)soil_con->lng;
-  hour_offset = (theta_l-theta_s)*24/360;
+  hour_offset = ((double)soil_con->time_zone_lng-(double)soil_con->lng)*24/360;
   if (hour_offset < 0)
     hour_offset_int = (int)(hour_offset-0.5);
   else
     hour_offset_int = (int)(hour_offset+0.5);
-  phi = soil_con->lat;
-  elevation = soil_con->elevation;
-  slope = soil_con->slope;
-  aspect = soil_con->aspect;
-  ehoriz = soil_con->ehoriz;
-  whoriz = soil_con->whoriz;
-  annual_prec = soil_con->annual_prec;
-  roughness = soil_con->rough;
-  cell_area = soil_con->cell_area;
-  avgJulyAirTemp = soil_con->avgJulyAirTemp;
-  Tfactor = soil_con->Tfactor;
-  AboveTreeLine = soil_con->AboveTreeLine;
-  save_prec_supplied = param_set.TYPE[PREC].SUPPLIED;
-  save_wind_supplied = param_set.TYPE[WIND].SUPPLIED;
-  save_vp_supplied = param_set.TYPE[VP].SUPPLIED;
 
   /* Check on minimum forcing requirements */
   if ( !param_set.TYPE[PREC].SUPPLIED
@@ -214,9 +152,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
     nrerror("Input meteorological forcing files must contain either WIND (wind speed) or both WIND_N (north component of wind speed) and WIND_E (east component of wind speed); check input files\n");
 
   /* compute number of simulation days */
-  tmp_starthour = 0;
-  tmp_endhour = 24 - global_param.dt;
-  tmp_nrecs = global_param.nrecs+global_param.starthour-tmp_starthour+tmp_endhour-dmy[global_param.nrecs-1].hour;
+  int tmp_starthour = 0;
+  int tmp_endhour = 24 - global_param.dt;
+  int tmp_nrecs = global_param.nrecs+global_param.starthour-tmp_starthour+tmp_endhour-dmy[global_param.nrecs-1].hour;
   Ndays = (tmp_nrecs * global_param.dt) / 24;
 
   /* compute number of full model time steps per day */
@@ -261,9 +199,10 @@ void initialize_atmos(atmos_data_struct        *atmos,
   }
   year = local_startyear;
   month = local_startmonth;
-  day = local_startday;
-  rec = 0;
-  hour = 0;
+  {
+  int day = local_startday;
+  int rec = 0;
+  int hour = 0;
   while (rec < Ndays_local*24) {
     dmy_local[rec].day_in_year = day_in_year;
     dmy_local[rec].year = year;
@@ -290,6 +229,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
         }
       }
     }
+  }
   }
 
   /* mtclim routine memory allocations */
@@ -325,7 +265,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
     Convert units from ALMA to VIC standard, if necessary
   *************************************************/
   if (options.ALMA_INPUT) {
-    for (type=0; type<N_FORCING_TYPES; type++) {
+    for (int type=0; type<N_FORCING_TYPES; type++) {
       if (param_set.TYPE[type].SUPPLIED) {
         /* Convert moisture flux rates to accumulated moisture flux per time step */
         if (   type == PREC
@@ -337,7 +277,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
             || type == LSSNOWF
             || type == CHANNEL_IN
            ) {
-          for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+          for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
             forcing_data[type][idx] *= global_param.dt * 3600;
           }
         }
@@ -346,7 +286,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
                  || type == TMIN
                  || type == TMAX
                 ) {
-          for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+          for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
             forcing_data[type][idx] -= KELVIN;
           }
         }
@@ -354,13 +294,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
   }
   else {
-    for (type=0; type<N_FORCING_TYPES; type++) {
+    for (int type=0; type<N_FORCING_TYPES; type++) {
       if (param_set.TYPE[type].SUPPLIED) {
         /* Convert pressures from kPa to Pa */
         if (   type == PRESSURE
             || type == VP
            ) {
-          for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+          for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
             forcing_data[type][idx] *= kPa2Pa;
           }
         }
@@ -379,7 +319,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if (forcing_data[PREC] == NULL) {
       forcing_data[PREC] = (double *)calloc((global_param.nrecs * NF),sizeof(double));
     }
-    for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+    for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
       forcing_data[PREC][idx] = forcing_data[RAINF][idx] + forcing_data[SNOWF][idx];
     }
     param_set.TYPE[PREC].SUPPLIED = param_set.TYPE[RAINF].SUPPLIED;
@@ -390,7 +330,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if (forcing_data[PREC] == NULL) {
       forcing_data[PREC] = (double *)calloc((global_param.nrecs * NF),sizeof(double));
     }
-    for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+    for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
       forcing_data[PREC][idx] = forcing_data[CRAINF][idx] + forcing_data[LSRAINF][idx]
                                + forcing_data[CSNOWF][idx] + forcing_data[LSSNOWF][idx];
     }
@@ -407,7 +347,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if (forcing_data[WIND] == NULL) {
       forcing_data[WIND] = (double *)calloc((global_param.nrecs * NF),sizeof(double));
     }
-    for (idx=0; idx<(global_param.nrecs*NF); idx++) {
+    for (int idx=0; idx<(global_param.nrecs*NF); idx++) {
       forcing_data[WIND][idx] = sqrt( forcing_data[WIND_E][idx]*forcing_data[WIND_E][idx]
                                     + forcing_data[WIND_N][idx]*forcing_data[WIND_N][idx] );
     }
@@ -420,7 +360,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
   *************************************************/
 
   local_forcing_data = (double **) calloc(N_FORCING_TYPES, sizeof(double*));
-  for (type=0; type<N_FORCING_TYPES; type++) {
+  for (int type=0; type<N_FORCING_TYPES; type++) {
     // Allocate enough space for hourly data
     if ( ( local_forcing_data[type] = (double *)calloc(Ndays_local*24, sizeof(double)) ) == NULL ) {
       nrerror("Memory allocation failure in initialize_atmos()");
@@ -428,8 +368,8 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if (param_set.TYPE[type].SUPPLIED) {
       if (param_set.FORCE_DT[param_set.TYPE[type].SUPPLIED-1] == 24) {
         // Daily forcings in non-local time will straddle local day boundaries and need to be padded with an extra day at start or end
-        for (idx=0; idx<Ndays_local; idx++) {
-          i = idx;
+        for (int idx=0; idx<Ndays_local; idx++) {
+          int i = idx;
           if (hour_offset_int > 0) i--; // W. Hemisphere, in GMT time
           if (i < 0) i = 0; // W. Hemisphere, in GMT time; pad extra day in front
           if (i >= Ndays) i = Ndays-1; // E. Hemisphere, in GMT time; pad extra day at end
@@ -439,9 +379,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
       else {
         // Local sub-daily forcings will be hourly for coding convenience
         // Sub-daily forcings need to a) start at hour 0, local time and b) draw from the correct element of the supplied forcings (if the supplied forcings are not in local time)
-        fstepspday = 24/param_set.FORCE_DT[param_set.TYPE[type].SUPPLIED-1];
-        for (idx=0; idx<(Ndays_local*24); idx++) {
-          i = (idx - global_param.starthour + hour_offset_int)/param_set.FORCE_DT[param_set.TYPE[type].SUPPLIED-1];
+        int fstepspday = 24/param_set.FORCE_DT[param_set.TYPE[type].SUPPLIED-1];
+        for (int idx=0; idx<(Ndays_local*24); idx++) {
+          int i = (idx - global_param.starthour + hour_offset_int)/param_set.FORCE_DT[param_set.TYPE[type].SUPPLIED-1];
           if (i < 0) i += fstepspday;
           if (i >= (Ndays*fstepspday)) i -= fstepspday;
           if (   type == PREC
@@ -472,14 +412,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
   if(param_set.TYPE[CHANNEL_IN].SUPPLIED) {
     if(param_set.FORCE_DT[param_set.TYPE[CHANNEL_IN].SUPPLIED-1] == 24) {
       /* daily channel_in provided */
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for (int j = 0; j < NF; j++) {
+          int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int idx = (int)((float)hour/24.0);
           atmos[rec].channel_in[j] = local_forcing_data[CHANNEL_IN][idx] / (float)(NF*stepspday); // divide evenly over the day
-          atmos[rec].channel_in[j] *= 1000/cell_area; // convert to mm over grid cell 
+          atmos[rec].channel_in[j] *= 1000/soil_con->cell_area; // convert to mm over grid cell
           sum += atmos[rec].channel_in[j];
         }
         if(NF>1) atmos[rec].channel_in[NR] = sum;
@@ -487,18 +427,18 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
     else {
       /* sub-daily channel_in provided */
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           atmos[rec].channel_in[i] = 0;
           while (hour < rec*global_param.dt + (i+1)*options.SNOW_STEP + global_param.starthour - hour_offset_int) {
-            idx = hour;
+            int idx = hour;
             if (idx < 0) idx += 24;
 	    atmos[rec].channel_in[i] += local_forcing_data[CHANNEL_IN][idx];
             hour++;
           }
-	  atmos[rec].channel_in[i] *= 1000/cell_area; // convert to mm over grid cell 
+	  atmos[rec].channel_in[i] *= 1000/soil_con->cell_area; // convert to mm over grid cell
 	  sum += atmos[rec].channel_in[i];
         }
         if(NF>1) atmos[rec].channel_in[NR] = sum;
@@ -506,9 +446,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
   }
   else {
-    for(rec = 0; rec < global_param.nrecs; rec++) {
+    for(int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for(i = 0; i < NF; i++) {
+      for(int i = 0; i < NF; i++) {
         atmos[rec].channel_in[i] = 0;
         sum += atmos[rec].channel_in[i];
       }
@@ -522,39 +462,39 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   if(param_set.FORCE_DT[param_set.TYPE[PREC].SUPPLIED-1] == 24) {
     /* daily precipitation provided */
-    for (rec = 0; rec < global_param.nrecs; rec++) {
+    for (int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for (j = 0; j < NF; j++) {
-        hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+      for (int j = 0; j < NF; j++) {
+        int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
         if (global_param.starthour - hour_offset_int < 0) hour += 24;
-        idx = (int)((float)hour/24.0);
+        int idx = (int)((float)hour/24.0);
         atmos[rec].prec[j] = local_forcing_data[PREC][idx] / (float)(NF*stepspday); // divide evenly over the day
         sum += atmos[rec].prec[j];
       }
       if(NF>1) atmos[rec].prec[NR] = sum;
     }
-    for (day = 0; day < Ndays_local; day++) {
+    for (int day = 0; day < Ndays_local; day++) {
       prec[day] = local_forcing_data[PREC][day];
     }
   }
   else {
     /* sub-daily precipitation provided */
-    for(rec = 0; rec < global_param.nrecs; rec++) {
+    for(int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for(i = 0; i < NF; i++) {
-        hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+      for(int i = 0; i < NF; i++) {
+        int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
         if (global_param.starthour - hour_offset_int < 0) hour += 24;
         atmos[rec].prec[i] = 0;
-        for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+        for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	  atmos[rec].prec[i] += local_forcing_data[PREC][idx];
         }
 	sum += atmos[rec].prec[i];
       }
       if(NF>1) atmos[rec].prec[NR] = sum;
     }
-    for (day = 0; day < Ndays_local; day++) {
+    for (int day = 0; day < Ndays_local; day++) {
       prec[day] = 0;
-      for (hour=0; hour<24; hour++) {
+      for (int hour=0; hour<24; hour++) {
         prec[day] += local_forcing_data[PREC][day*24+hour];
       }
     }
@@ -565,33 +505,37 @@ void initialize_atmos(atmos_data_struct        *atmos,
   *************************************************/
 
   if (param_set.TYPE[WIND].SUPPLIED) {
-    if(param_set.FORCE_DT[param_set.TYPE[WIND].SUPPLIED-1] == 24) {
+    if (param_set.FORCE_DT[param_set.TYPE[WIND].SUPPLIED - 1] == 24) {
       /* daily wind provided */
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
+        int j = 0;
         for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
-          if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int hour = rec * global_param.dt + j * options.SNOW_STEP
+              + global_param.starthour - hour_offset_int;
+          if (global_param.starthour - hour_offset_int < 0)
+            hour += 24;
+          int idx = (int) ((float) hour / 24.0);
           atmos[rec].wind[j] = local_forcing_data[WIND][idx]; // assume constant over the day
           sum += atmos[rec].wind[j];
         }
-        if(NF>1) atmos[rec].wind[NR] = sum / (float)NF;
-	if(global_param.dt == 24) {
-	  if(atmos[rec].wind[j] < options.MIN_WIND_SPEED)
-	    atmos[rec].wind[j] = options.MIN_WIND_SPEED;
-	}
+        if (NF > 1)
+          atmos[rec].wind[NR] = sum / (float) NF;
+        if (global_param.dt == 24) {
+          if (atmos[rec].wind[j] < options.MIN_WIND_SPEED)
+            atmos[rec].wind[j] = options.MIN_WIND_SPEED;
+        }
       }
     }
     else {
       /* sub-daily wind provided */
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
           atmos[rec].wind[i] = 0;
-          for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+          for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	    if(local_forcing_data[WIND][idx] < options.MIN_WIND_SPEED)
 	      atmos[rec].wind[i] += options.MIN_WIND_SPEED;
 	    else
@@ -606,9 +550,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
   }
   else {
     /* no wind data provided, use default constant */
-    for (rec = 0; rec < global_param.nrecs; rec++) {
-      for (i = 0; i < NF; i++) {
-	atmos[rec].wind[i] = 1.5;
+    for (int rec = 0; rec < global_param.nrecs; rec++) {
+      for (int i = 0; i < NF; i++) {
+        atmos[rec].wind[i] = 1.5;
       }
       atmos[rec].wind[NR] = 1.5;	
     }
@@ -625,14 +569,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
   if(param_set.TYPE[TMAX].SUPPLIED) {
     if(param_set.FORCE_DT[param_set.TYPE[TMAX].SUPPLIED-1] == 24) {
       /* daily tmax provided */
-      for (day = 0; day < Ndays_local; day++) {
-	tmax[day] = local_forcing_data[TMAX][day];
+      for (int day = 0; day < Ndays_local; day++) {
+        tmax[day] = local_forcing_data[TMAX][day];
       }
     }
     else {
       /* sub-daily tmax provided */
-      for (day = 0; day < Ndays_local; day++) {
-	tmax[day] = local_forcing_data[TMAX][day*24];
+      for (int day = 0; day < Ndays_local; day++) {
+        tmax[day] = local_forcing_data[TMAX][day*24];
       }
     }
   }
@@ -644,14 +588,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
   if(param_set.TYPE[TMIN].SUPPLIED) {
     if(param_set.FORCE_DT[param_set.TYPE[TMIN].SUPPLIED-1] == 24) {
       /* daily tmin provided */
-      for (day = 0; day < Ndays_local; day++) {
-	tmin[day] = local_forcing_data[TMIN][day];
+      for (int day = 0; day < Ndays_local; day++) {
+        tmin[day] = local_forcing_data[TMIN][day];
       }
     }
     else {
       /* sub-daily tmin provided */
-      for (day = 0; day < Ndays_local; day++) {
-	tmin[day] = local_forcing_data[TMIN][day*24];
+      for (int day = 0; day < Ndays_local; day++) {
+        tmin[day] = local_forcing_data[TMIN][day*24];
       }
     }
   }
@@ -661,13 +605,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
   *************************************************/
 
   if(param_set.TYPE[AIR_TEMP].SUPPLIED) {
-    for(rec = 0; rec < global_param.nrecs; rec++) {
+    for(int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for(i = 0; i < NF; i++) {
-        hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+      for(int i = 0; i < NF; i++) {
+        int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
         if (global_param.starthour - hour_offset_int < 0) hour += 24;
         atmos[rec].air_temp[i] = 0;
-        for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+        for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	  atmos[rec].air_temp[i] += local_forcing_data[AIR_TEMP][idx];
         }
         atmos[rec].air_temp[i] /= options.SNOW_STEP;
@@ -682,9 +626,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
   ******************************************************/
 
   if(!(param_set.TYPE[TMAX].SUPPLIED && param_set.TYPE[TMIN].SUPPLIED)) {
-    for (day=0; day<Ndays_local; day++) {
+    for (int day=0; day<Ndays_local; day++) {
       tmax[day] = tmin[day] = -9999;
-      for (hour = 0; hour < 24; hour++) {
+      for (int hour = 0; hour < 24; hour++) {
         if ( hour >= 9 && ( tmax[day] == -9999 || local_forcing_data[AIR_TEMP][hour] > tmax[day] ) ) tmax[day] = local_forcing_data[AIR_TEMP][hour];
         if ( hour < 12 && ( tmin[day] == -9999 || local_forcing_data[AIR_TEMP][hour] < tmin[day] ) ) tmin[day] = local_forcing_data[AIR_TEMP][hour];
       }
@@ -704,15 +648,15 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
     if(param_set.FORCE_DT[param_set.TYPE[VP].SUPPLIED-1] == 24) {
       /* daily vp provided */
-      for (day=0; day<Ndays_local; day++) {
+      for (int day=0; day<Ndays_local; day++) {
         daily_vp[day] = local_forcing_data[VP][day];
       }
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for (int j = 0; j < NF; j++) {
+          int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int idx = (int)((float)hour/24.0);
           atmos[rec].vp[j] = local_forcing_data[VP][idx]; // assume constant over the day
           sum += atmos[rec].vp[j];
         }
@@ -721,20 +665,20 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
     else {
       /* sub-daily vp provided */
-      for (day=0; day<Ndays_local; day++) {
+      for (int day=0; day<Ndays_local; day++) {
         daily_vp[day] = 0;
-        for (hour=0; hour<24; hour++) {
+        for (int hour=0; hour<24; hour++) {
           daily_vp[day] += local_forcing_data[VP][day*24+hour];
         }
         daily_vp[day] /= 24;
       }
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
           atmos[rec].vp[i] = 0;
-          for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+          for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	    atmos[rec].vp[i] += local_forcing_data[VP][idx];
           }
           atmos[rec].vp[i] /= options.SNOW_STEP;
@@ -756,30 +700,26 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if(param_set.TYPE[QAIR].SUPPLIED && param_set.TYPE[PRESSURE].SUPPLIED) {
       /* specific humidity and atm. pressure supplied */
       if(param_set.FORCE_DT[param_set.TYPE[QAIR].SUPPLIED-1] == 24) {
-        for (day=0; day<Ndays_local; day++) {
+        for (int day=0; day<Ndays_local; day++) {
+          double tmp_double = local_forcing_data[PRESSURE][day];
           if(param_set.FORCE_DT[param_set.TYPE[PRESSURE].SUPPLIED-1] == 24) {
             tmp_double = 0;
-            for (hour=0; hour<24; hour++) {
+            for (int hour=0; hour<24; hour++) {
               tmp_double += local_forcing_data[PRESSURE][day*24+hour];
             }
             tmp_double /= 24;
-          }
-          else {
-            tmp_double = local_forcing_data[PRESSURE][day];
           }
           local_forcing_data[VP][day] = local_forcing_data[QAIR][day] * tmp_double / EPS;
           daily_vp[day] = local_forcing_data[VP][day];
         }
       }
       else {
-        for (day=0; day<Ndays_local; day++) {
+        for (int day=0; day<Ndays_local; day++) {
           daily_vp[day] = 0;
-          for (hour=0; hour<24; hour++) {
+          for (int hour=0; hour<24; hour++) {
+            double tmp_double = local_forcing_data[PRESSURE][day*24+hour];
             if(param_set.FORCE_DT[param_set.TYPE[PRESSURE].SUPPLIED-1] == 24) {
               tmp_double = local_forcing_data[PRESSURE][day];
-            }
-            else {
-              tmp_double = local_forcing_data[PRESSURE][day*24+hour];
             }
             local_forcing_data[VP][day*24+hour] = local_forcing_data[QAIR][day*24+hour] * tmp_double / EPS;
             daily_vp[day] += local_forcing_data[VP][day*24+hour];
@@ -798,30 +738,26 @@ void initialize_atmos(atmos_data_struct        *atmos,
     else if(param_set.TYPE[REL_HUMID].SUPPLIED && param_set.TYPE[AIR_TEMP].SUPPLIED) {
       /* relative humidity and atm. pressure supplied */
       if(param_set.FORCE_DT[param_set.TYPE[REL_HUMID].SUPPLIED-1] == 24) {
-        for (day=0; day<Ndays_local; day++) {
+        for (int day=0; day<Ndays_local; day++) {
+          double tmp_double = svp(local_forcing_data[AIR_TEMP][day]);
           if(param_set.FORCE_DT[param_set.TYPE[AIR_TEMP].SUPPLIED-1] == 24) {
             tmp_double = 0;
-            for (hour=0; hour<24; hour++) {
+            for (int hour=0; hour<24; hour++) {
               tmp_double += svp(local_forcing_data[AIR_TEMP][day*24+hour]);
             }
             tmp_double /= 24;
-          }
-          else {
-            tmp_double = svp(local_forcing_data[AIR_TEMP][day]);
           }
           local_forcing_data[VP][day] = local_forcing_data[REL_HUMID][day] * tmp_double / 100;
           daily_vp[day] = local_forcing_data[VP][day];
         }
       }
       else {
-        for (day=0; day<Ndays_local; day++) {
+        for (int day=0; day<Ndays_local; day++) {
           daily_vp[day] = 0;
-          for (hour=0; hour<24; hour++) {
+          for (int hour=0; hour<24; hour++) {
+            double tmp_double = svp(local_forcing_data[AIR_TEMP][day*24+hour]);
             if(param_set.FORCE_DT[param_set.TYPE[AIR_TEMP].SUPPLIED-1] == 24) {
               tmp_double = svp(local_forcing_data[AIR_TEMP][day]);
-            }
-            else {
-              tmp_double = svp(local_forcing_data[AIR_TEMP][day*24+hour]);
             }
             local_forcing_data[VP][day*24+hour] = local_forcing_data[REL_HUMID][day*24+hour] * tmp_double / 100;
             daily_vp[day] += local_forcing_data[VP][day*24+hour];
@@ -834,11 +770,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   } // end if VP not supplied
 
+  int have_dewpt = 0;
   if (param_set.TYPE[VP].SUPPLIED) {
     have_dewpt = 2; // flag for MTCLIM
-  }
-  else {
-    have_dewpt = 0;
   }
 
 
@@ -846,10 +780,11 @@ void initialize_atmos(atmos_data_struct        *atmos,
     Shortwave, part 1.
   *************************************************/
 
+  int have_shortwave = 0;
   if (param_set.TYPE[SHORTWAVE].SUPPLIED) {
     have_shortwave = 1; // flag for MTCLIM
-    for (day=0; day<Ndays_local; day++) {
-      for (hour=0; hour<24; hour++) {
+    for (int day=0; day<Ndays_local; day++) {
+      for (int hour=0; hour<24; hour++) {
         if(param_set.FORCE_DT[param_set.TYPE[SHORTWAVE].SUPPLIED-1] == 24) {
           hourlyrad[day*24+hour] = local_forcing_data[SHORTWAVE][day];
         }
@@ -858,9 +793,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
         }
       }
     }
-  }
-  else {
-    have_shortwave = 0;
   }
 
   /**************************************************
@@ -873,8 +805,8 @@ void initialize_atmos(atmos_data_struct        *atmos,
     vp, MTCLIM will use them to compute the other variables
     more accurately.
   **************************************************/
-  mtclim_wrapper(have_dewpt, have_shortwave, hour_offset, elevation, slope,
-                   aspect, ehoriz, whoriz, annual_prec, phi, Ndays_local,
+  mtclim_wrapper(have_dewpt, have_shortwave, hour_offset, soil_con->elevation, soil_con->slope,
+                   soil_con->aspect, soil_con->ehoriz, soil_con->whoriz, soil_con->annual_prec, soil_con->lat, Ndays_local,
                    dmy_local, prec, tmax, tmin, tskc, daily_vp, hourlyrad);
 
   /***********************************************************
@@ -886,13 +818,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     c) completely estimated by MTCLIM, if no shortwave was supplied as a forcing
   ***********************************************************/
 
-  for(rec = 0; rec < global_param.nrecs; rec++) {
+  for(int rec = 0; rec < global_param.nrecs; rec++) {
     sum = 0;
-    for(i = 0; i < NF; i++) {
-      hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+    for(int i = 0; i < NF; i++) {
+      int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
       if (global_param.starthour - hour_offset_int < 0) hour += 24;
       atmos[rec].shortwave[i] = 0;
-      for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+      for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	atmos[rec].shortwave[i] += hourlyrad[idx];
       }
       atmos[rec].shortwave[i] /= options.SNOW_STEP;
@@ -918,13 +850,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
       Calculate the subdaily and daily temperature based on tmax and tmin 
     **********************************************************************/
     HourlyT(1, Ndays_local, tmaxhour, tmax, tminhour, tmin, tair);
-    for(rec = 0; rec < global_param.nrecs; rec++) {
+    for(int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for(i = 0; i < NF; i++) {
-        hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+      for(int i = 0; i < NF; i++) {
+        int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
         if (global_param.starthour - hour_offset_int < 0) hour += 24;
         atmos[rec].air_temp[i] = 0;
-        for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+        for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	  atmos[rec].air_temp[i] += tair[idx];
         }
         atmos[rec].air_temp[i] /= options.SNOW_STEP;
@@ -947,12 +879,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
   if (param_set.TYPE[DENSITY].SUPPLIED) {
     if(param_set.FORCE_DT[param_set.TYPE[DENSITY].SUPPLIED-1] == 24) {
       /* daily density provided */
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for (int j = 0; j < NF; j++) {
+          int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int idx = (int)((float)hour/24.0);
           atmos[rec].density[j] = local_forcing_data[DENSITY][idx]; // assume constant over the day
           sum += atmos[rec].density[j];
         }
@@ -961,13 +893,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
     else {
       /* sub-daily density provided */
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
           atmos[rec].density[i] = 0;
-          for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+          for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	    atmos[rec].density[i] += local_forcing_data[DENSITY][idx];
           }
           atmos[rec].density[i] /= options.SNOW_STEP;
@@ -988,18 +920,18 @@ void initialize_atmos(atmos_data_struct        *atmos,
       if (options.PLAPSE) {
         /* Assume average virtual temperature in air column
            between ground and sea level = KELVIN+atmos[rec].air_temp[NR] + 0.5*elevation*LAPSE_PM */
-        for (rec = 0; rec < global_param.nrecs; rec++) {
-          atmos[rec].pressure[NR] = PS_PM*exp(-elevation*G/(Rd*(KELVIN+atmos[rec].air_temp[NR]+0.5*elevation*LAPSE_PM)));
-          for (i = 0; i < NF; i++) {
-            atmos[rec].pressure[i] = PS_PM*exp(-elevation*G/(Rd*(KELVIN+atmos[rec].air_temp[i]+0.5*elevation*LAPSE_PM)));
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
+          atmos[rec].pressure[NR] = PS_PM*exp(-soil_con->elevation*G/(Rd*(KELVIN+atmos[rec].air_temp[NR]+0.5*soil_con->elevation*LAPSE_PM)));
+          for (int i = 0; i < NF; i++) {
+            atmos[rec].pressure[i] = PS_PM*exp(-soil_con->elevation*G/(Rd*(KELVIN+atmos[rec].air_temp[i]+0.5*soil_con->elevation*LAPSE_PM)));
           }
         }
       }
       else {
         /* set pressure to constant value */
-        for (rec = 0; rec < global_param.nrecs; rec++) {
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
 	  atmos[rec].pressure[NR] = 95500.;
-	  for (i = 0; i < NF; i++) {
+	  for (int i = 0; i < NF; i++) {
 	    atmos[rec].pressure[i] = atmos[rec].pressure[NR];
 	  }
         }
@@ -1008,17 +940,17 @@ void initialize_atmos(atmos_data_struct        *atmos,
     else {
       /* use observed densities to estimate pressure */
       if (options.PLAPSE) {
-        for (rec = 0; rec < global_param.nrecs; rec++) {
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
           atmos[rec].pressure[NR] = (KELVIN+atmos[rec].air_temp[NR])*atmos[rec].density[NR]*Rd;
-          for (i = 0; i < NF; i++) {
+          for (int i = 0; i < NF; i++) {
             atmos[rec].pressure[i] = (KELVIN+atmos[rec].air_temp[i])*atmos[rec].density[i]*Rd;
           }
         }
       }
       else {
-        for (rec = 0; rec < global_param.nrecs; rec++) {
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
 	  atmos[rec].pressure[NR] = (275.0 + atmos[rec].air_temp[NR]) *atmos[rec].density[NR]/0.003486;
-	  for (i = 0; i < NF; i++) {
+	  for (int i = 0; i < NF; i++) {
 	    atmos[rec].pressure[i] = (275.0 + atmos[rec].air_temp[i]) *atmos[rec].density[i]/0.003486;
 	  }
         }
@@ -1029,12 +961,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
     /* observed atmospheric pressure supplied */
     if(param_set.FORCE_DT[param_set.TYPE[PRESSURE].SUPPLIED-1] == 24) {
       /* daily pressure provided */
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for (int j = 0; j < NF; j++) {
+          int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int idx = (int)((float)hour/24.0);
           atmos[rec].pressure[j] = local_forcing_data[PRESSURE][idx]; // assume constant over the day
           sum += atmos[rec].pressure[j];
         }
@@ -1043,13 +975,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
     else {
       /* sub-daily pressure provided */
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
           atmos[rec].pressure[i] = 0;
-          for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+          for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	    atmos[rec].pressure[i] += local_forcing_data[PRESSURE][idx];
           }
           atmos[rec].pressure[i] /= options.SNOW_STEP;
@@ -1067,17 +999,17 @@ void initialize_atmos(atmos_data_struct        *atmos,
   if(!param_set.TYPE[DENSITY].SUPPLIED) {
     /* use pressure to estimate density */
     if (options.PLAPSE) {
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         atmos[rec].density[NR] = atmos[rec].pressure[NR]/(Rd*(KELVIN+atmos[rec].air_temp[NR]));
-        for (i = 0; i < NF; i++) {
+        for (int i = 0; i < NF; i++) {
           atmos[rec].density[i] = atmos[rec].pressure[i]/(Rd*(KELVIN+atmos[rec].air_temp[i]));
         }
       }
     }
     else {
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         atmos[rec].density[NR] = 0.003486*atmos[rec].pressure[NR]/ (275.0 + atmos[rec].air_temp[NR]);
-        for (i = 0; i < NF; i++) {
+        for (int i = 0; i < NF; i++) {
 	  atmos[rec].density[i] = 0.003486*atmos[rec].pressure[i]/ (275.0 + atmos[rec].air_temp[i]);
         }
       }
@@ -1100,12 +1032,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
       if(param_set.FORCE_DT[param_set.TYPE[QAIR].SUPPLIED-1] == 24) {
         /* daily specific humidity provided */
-        for (rec = 0; rec < global_param.nrecs; rec++) {
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
           sum = 0;
-          for (j = 0; j < NF; j++) {
-            hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+          for (int j = 0; j < NF; j++) {
+            int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
             if (global_param.starthour - hour_offset_int < 0) hour += 24;
-            idx = (int)((float)hour/24.0);
+            int idx = (int)((float)hour/24.0);
             atmos[rec].vp[j] = local_forcing_data[QAIR][idx] * atmos[rec].pressure[j] / EPS;
             sum += atmos[rec].vp[j];
           }
@@ -1114,14 +1046,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
       }
       else {
         /* sub-daily specific humidity provided */
-        for(rec = 0; rec < global_param.nrecs; rec++) {
+        for(int rec = 0; rec < global_param.nrecs; rec++) {
           sum = 0;
-          for(i = 0; i < NF; i++) {
-            hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+          for(int i = 0; i < NF; i++) {
+            int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
             if (global_param.starthour - hour_offset_int < 0) hour += 24;
             atmos[rec].vp[i] = 0;
-            for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
-	      atmos[rec].vp[i] += local_forcing_data[QAIR][idx] * atmos[rec].pressure[j] / EPS;
+            for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+	      atmos[rec].vp[i] += local_forcing_data[QAIR][idx] * atmos[rec].pressure[i] / EPS;
             }
             atmos[rec].vp[i] /= options.SNOW_STEP;
 	    sum += atmos[rec].vp[i];
@@ -1144,12 +1076,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
       if(param_set.FORCE_DT[param_set.TYPE[REL_HUMID].SUPPLIED-1] == 24) {
         /* daily specific humidity provided */
-        for (rec = 0; rec < global_param.nrecs; rec++) {
+        for (int rec = 0; rec < global_param.nrecs; rec++) {
           sum = 0;
-          for (j = 0; j < NF; j++) {
-            hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+          for (int j = 0; j < NF; j++) {
+            int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
             if (global_param.starthour - hour_offset_int < 0) hour += 24;
-            idx = (int)((float)hour/24.0);
+            int idx = (int)((float)hour/24.0);
             atmos[rec].vp[j] = local_forcing_data[REL_HUMID][idx] * svp(atmos[rec].air_temp[j]) / 100;
             sum += atmos[rec].vp[j];
           }
@@ -1158,14 +1090,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
       }
       else {
         /* sub-daily specific humidity provided */
-        for(rec = 0; rec < global_param.nrecs; rec++) {
+        for(int rec = 0; rec < global_param.nrecs; rec++) {
           sum = 0;
-          for(i = 0; i < NF; i++) {
-            hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+          for(int i = 0; i < NF; i++) {
+            int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
             if (global_param.starthour - hour_offset_int < 0) hour += 24;
             atmos[rec].vp[i] = 0;
-            for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
-	      atmos[rec].vp[i] += local_forcing_data[REL_HUMID][idx] * svp(atmos[rec].air_temp[j]) / 100;
+            for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+	      atmos[rec].vp[i] += local_forcing_data[REL_HUMID][idx] * svp(atmos[rec].air_temp[i]) / 100;
             }
             atmos[rec].vp[i] /= options.SNOW_STEP;
 	    sum += atmos[rec].vp[i];
@@ -1192,7 +1124,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
     if (options.VP_INTERP) {
       /* Linearly interpolate between daily VP values, assuming they occurred at time of tmin */
 
-      for (day = 0; day < Ndays_local; day++) {
+      for (int day = 0; day < Ndays_local; day++) {
+        double delta_t_minus;
+        double  delta_t_plus;
         if (day == 0 && Ndays_local == 1) {
           delta_t_minus = 24;
           delta_t_plus = 24;
@@ -1209,7 +1143,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
           delta_t_minus = tminhour[day]+24-tminhour[day-1];
           delta_t_plus = tminhour[day+1]+24-tminhour[day];
         }
-        for (hour = 0; hour < 24; hour++) {
+        for (int hour = 0; hour < 24; hour++) {
           if (hour < tminhour[day]) {
             if (day > 0)
               local_forcing_data[VP][day*24+hour] = daily_vp[day-1] + (daily_vp[day]-daily_vp[day-1])*(hour+24-tminhour[day-1])/delta_t_minus;
@@ -1229,8 +1163,8 @@ void initialize_atmos(atmos_data_struct        *atmos,
     else {
       /* Hold VP constant throughout day */
 
-      for (day = 0; day < Ndays_local; day++) {
-        for (hour = 0; hour < 24; hour++) {
+      for (int day = 0; day < Ndays_local; day++) {
+        for (int hour = 0; hour < 24; hour++) {
           local_forcing_data[VP][day*24+hour] = daily_vp[day];
         }
       }
@@ -1238,13 +1172,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
 
     /* Transfer sub-daily VP to atmos array */
-    for(rec = 0; rec < global_param.nrecs; rec++) {
+    for(int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for(i = 0; i < NF; i++) {
-        hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+      for(int i = 0; i < NF; i++) {
+        int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
         if (global_param.starthour - hour_offset_int < 0) hour += 24;
         atmos[rec].vp[i] = 0;
-        for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+        for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	  atmos[rec].vp[i] += local_forcing_data[VP][idx];
         }
         atmos[rec].vp[i] /= options.SNOW_STEP;
@@ -1259,10 +1193,10 @@ void initialize_atmos(atmos_data_struct        *atmos,
     Vapor Pressure Deficit
   *************************************************/
 
-  for(rec = 0; rec < global_param.nrecs; rec++) {
+  for(int rec = 0; rec < global_param.nrecs; rec++) {
     sum = 0;
     sum2 = 0;
-    for(i = 0; i < NF; i++) {
+    for(int i = 0; i < NF; i++) {
       atmos[rec].vpd[i] = svp(atmos[rec].air_temp[i]) - atmos[rec].vp[i];
       if (atmos[rec].vpd[i] < 0) {
         atmos[rec].vpd[i] = 0;
@@ -1284,12 +1218,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
     Cloud Transmissivity (from MTCLIM)
   *************************************************/
 
-  for (rec = 0; rec < global_param.nrecs; rec++) {
+  for (int rec = 0; rec < global_param.nrecs; rec++) {
     sum = 0;
-    for (j = 0; j < NF; j++) {
-      hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+    for (int j = 0; j < NF; j++) {
+      int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
       if (global_param.starthour - hour_offset_int < 0) hour += 24;
-      idx = (int)((float)hour/24.0);
+      int idx = (int)((float)hour/24.0);
       atmos[rec].tskc[j] = tskc[idx]; // assume constant over the day
       sum += atmos[rec].tskc[j];
     }
@@ -1310,9 +1244,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   if ( !param_set.TYPE[LONGWAVE].SUPPLIED ) {
     /** Incoming longwave radiation not supplied **/
-    for (rec = 0; rec < global_param.nrecs; rec++) {
+    for (int rec = 0; rec < global_param.nrecs; rec++) {
       sum = 0;
-      for (i = 0; i < NF; i++) {
+      for (int i = 0; i < NF; i++) {
 	calc_longwave(&(atmos[rec].longwave[i]), atmos[rec].tskc[i],
 		      atmos[rec].air_temp[i], atmos[rec].vp[i]);
         sum += atmos[rec].longwave[i];
@@ -1323,12 +1257,12 @@ void initialize_atmos(atmos_data_struct        *atmos,
   else {
     if(param_set.FORCE_DT[param_set.TYPE[LONGWAVE].SUPPLIED-1] == 24) {
       /* daily incoming longwave radiation provided */
-      for (rec = 0; rec < global_param.nrecs; rec++) {
+      for (int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for (j = 0; j < NF; j++) {
-          hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for (int j = 0; j < NF; j++) {
+          int hour = rec*global_param.dt + j*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
-          idx = (int)((float)hour/24.0);
+          int idx = (int)((float)hour/24.0);
           atmos[rec].longwave[j] = local_forcing_data[LONGWAVE][idx]; // assume constant over the day
           sum += atmos[rec].longwave[j];
         }
@@ -1337,13 +1271,13 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
     else {
       /* sub-daily incoming longwave radiation provided */
-      for(rec = 0; rec < global_param.nrecs; rec++) {
+      for(int rec = 0; rec < global_param.nrecs; rec++) {
         sum = 0;
-        for(i = 0; i < NF; i++) {
-          hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
+        for(int i = 0; i < NF; i++) {
+          int hour = rec*global_param.dt + i*options.SNOW_STEP + global_param.starthour - hour_offset_int;
           if (global_param.starthour - hour_offset_int < 0) hour += 24;
           atmos[rec].longwave[i] = 0;
-          for (idx = hour; idx < hour+options.SNOW_STEP; idx++) {
+          for (int idx = hour; idx < hour+options.SNOW_STEP; idx++) {
 	    atmos[rec].longwave[i] += local_forcing_data[LONGWAVE][idx];
           }
           atmos[rec].longwave[i] /= options.SNOW_STEP;
@@ -1359,14 +1293,14 @@ void initialize_atmos(atmos_data_struct        *atmos,
   ****************************************************/
 
 #if !OUTPUT_FORCE
-  min_Tfactor = Tfactor[0];
-  for (band = 1; band < options.SNOW_BAND; band++) {
-    if (Tfactor[band] < min_Tfactor)
-      min_Tfactor = Tfactor[band];
+  double min_Tfactor = soil_con->Tfactor[0];
+  for (int band = 1; band < options.SNOW_BAND; band++) {
+    if (soil_con->Tfactor[band] < min_Tfactor)
+      min_Tfactor = soil_con->Tfactor[band];
   }
-  for (rec = 0; rec < global_param.nrecs; rec++) {
+  for (int rec = 0; rec < global_param.nrecs; rec++) {
     atmos[rec].snowflag[NR] = FALSE;
-    for (i = 0; i < NF; i++) {
+    for (int i = 0; i < NF; i++) {
       if ((atmos[rec].air_temp[i] + min_Tfactor) < global_param.MAX_SNOW_TEMP
 	  &&  atmos[rec].prec[i] > 0) {
 	atmos[rec].snowflag[i] = TRUE;
@@ -1377,10 +1311,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
     }
   }
 #endif // OUTPUT_FORCE
-
-  param_set.TYPE[PREC].SUPPLIED = save_prec_supplied;
-  param_set.TYPE[WIND].SUPPLIED = save_wind_supplied;
-  param_set.TYPE[VP].SUPPLIED = save_vp_supplied;
  
   // Free temporary parameters
   free(hourlyrad);
@@ -1393,7 +1323,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
   free(tskc);
   free(daily_vp);
 
-  for(i=0;i<N_FORCING_TYPES;i++)  {
+  for(int i=0;i<N_FORCING_TYPES;i++)  {
 //    if (forcing_data[i] != NULL)
 //      free((char *)forcing_data[i]);
       free(forcing_data[i]);
@@ -1419,8 +1349,8 @@ void initialize_atmos(atmos_data_struct        *atmos,
   // and setting it to -999), calculate which snowbands are above the
   // treeline, based on average July air temperature.
   if (options.COMPUTE_TREELINE) {
-    if ( !(options.JULY_TAVG_SUPPLIED && avgJulyAirTemp == -999) ) {
-      compute_treeline( atmos, dmy, avgJulyAirTemp, Tfactor, AboveTreeLine );
+    if ( !(options.JULY_TAVG_SUPPLIED && soil_con->avgJulyAirTemp == -999) ) {
+      compute_treeline( atmos, dmy, soil_con->avgJulyAirTemp, soil_con->Tfactor, soil_con->AboveTreeLine );
     }
   }
 
