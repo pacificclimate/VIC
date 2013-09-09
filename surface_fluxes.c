@@ -606,7 +606,7 @@ int surface_fluxes(char                 overstory,
             &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
             roughness, snow_inflow, snowfall, &surf_atten, wind, root,
             UNSTABLE_SNOW, options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
-            veg_class, &UnderStory, dmy, atmos, &(iter_snow_energy),
+            veg_class, &UnderStory, dmy, *atmos, &(iter_snow_energy),
             iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
             &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]));
 

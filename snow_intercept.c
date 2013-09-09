@@ -123,7 +123,7 @@ int snow_intercept(double  Dt,
 		   int     rec,
 		   int     hidx,
 		   int     veg_class,
-		   atmos_data_struct *atmos,
+		   const atmos_data_struct &atmos,
 		   layer_data_struct *layer_dry,
 		   layer_data_struct *layer_wet,
 		   soil_con_struct   *soil_con,
@@ -178,19 +178,8 @@ int snow_intercept(double  Dt,
   double Evap;
   double OldTfoliage;
 
-  double  AirDens;
-  double  EactAir;
-  double  Press; // atmospheric pressure
-  double  Vpd; // vapor pressure defficit
-  double  shortwave; //
-
   char ErrorString[MAXSTRING];
 
-  AirDens   = atmos->density[hidx];
-  EactAir   = atmos->vp[hidx];
-  Press     = atmos->pressure[hidx];
-  Vpd       = atmos->vpd[hidx];
-  shortwave = atmos->shortwave[hidx];
 
   /* Initialize Tfoliage_fbflag */
   *Tfoliage_fbflag = 0;
@@ -349,8 +338,8 @@ int snow_intercept(double  Dt,
 #if SPATIAL_FROST
 				   soil_con->frost_fract, 
 #endif
-				   AirDens, EactAir, Press, Le, 
-				   Tcanopy, Vpd, mu, &Evap, Ra, Ra_used,
+				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
+				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
 				   veg_class, displacement, ref_height, 
 				   roughness, root, IntRainOrg, *IntSnow, 
@@ -391,8 +380,8 @@ int snow_intercept(double  Dt,
 #if SPATIAL_FROST
 			   soil_con->frost_fract, 
 #endif
-			   AirDens, EactAir, Press, Le, 
-			   Tcanopy, Vpd, mu, &Evap, Ra, Ra_used,
+			   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
+			   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 			   RainFall, Wind, UnderStory, iveg, 
 			   veg_class, displacement, ref_height, 
 			   roughness, root, IntRainOrg, *IntSnow, 
@@ -419,8 +408,8 @@ int snow_intercept(double  Dt,
 #if SPATIAL_FROST
 					    soil_con->frost_fract, 
 #endif
-					    AirDens, EactAir, Press, Le, 
-					    Tcanopy, Vpd, mu, &Evap, Ra, Ra_used,
+					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
+					    Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 					    RainFall, Wind, UnderStory, iveg, 
 					    veg_class, displacement, ref_height, 
 					    roughness, root, IntRainOrg, *IntSnow, 
@@ -442,8 +431,8 @@ int snow_intercept(double  Dt,
 #if SPATIAL_FROST
 				   soil_con->frost_fract, 
 #endif
-				   AirDens, EactAir, Press, Le, 
-				   Tcanopy, Vpd, mu, &Evap, Ra, Ra_used,
+				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
+				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
 				   veg_class, displacement, ref_height, 
 				   roughness, root, IntRainOrg, *IntSnow, 

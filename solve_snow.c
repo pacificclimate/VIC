@@ -57,7 +57,7 @@ double solve_snow(char                 overstory,
 		  int                  veg_class,
 		  int                 *UnderStory,
 		  const dmy_struct    *dmy,
-		  atmos_data_struct   *atmos,
+		  const atmos_data_struct &atmos,
 		  energy_bal_struct   *energy,
 		  layer_data_struct   *layer_dry,
 		  layer_data_struct   *layer_wet,
@@ -150,23 +150,11 @@ double solve_snow(char                 overstory,
   int                 month;
   int                 hour;
   int                 day_in_year;
-  double              density;
-  double              longwave;
-  double              pressure;
-  double              shortwave;
-  double              vp;
-  double              vpd;
 
   month       = dmy[rec].month;
   hour        = dmy[rec].hour;
   day_in_year = dmy[rec].day_in_year;
 
-  density   = atmos->density[hidx];
-  longwave  = atmos->longwave[hidx];
-  pressure  = atmos->pressure[hidx];
-  shortwave = atmos->shortwave[hidx];
-  vp        = atmos->vp[hidx];
-  vpd       = atmos->vpd[hidx];
 
   /* initialize moisture variables */
   melt     = 0.;
@@ -219,8 +207,8 @@ double solve_snow(char                 overstory,
   }
 
   /* initialize understory radiation inputs */
-  (*ShortUnderIn) = shortwave;
-  (*LongUnderIn)  = longwave;
+  (*ShortUnderIn) = atmos.shortwave[hidx];
+  (*LongUnderIn)  = atmos.longwave[hidx];
 
   if ( (snow->swq > 0 || snowfall[WET] > 0.
       || (snow->snow_canopy > 0. && overstory)) && mu==1 ) {
@@ -250,10 +238,10 @@ double solve_snow(char                 overstory,
         ***********************************************/
 
 	(*ShortUnderIn) *= (*surf_atten);  // SW transmitted through canopy
-	ShortOverIn      = (1. - (*surf_atten)) * shortwave; // canopy incident SW
+	ShortOverIn      = (1. - (*surf_atten)) * atmos.shortwave[hidx]; // canopy incident SW
 	ErrorFlag = snow_intercept((double)dt * SECPHOUR, 1., 
 		       veg_lib[veg_class].LAI[month-1], 
-		       (*Le), longwave, LongUnderOut, 
+		       (*Le), atmos.longwave[hidx], LongUnderOut,
 		       veg_lib[veg_class].Wdmax[month-1], 
 		       ShortOverIn, *ShortUnderIn, Tcanopy,
 		       BareAlbedo, mu, &energy->canopy_advection, 
@@ -276,7 +264,7 @@ double solve_snow(char                 overstory,
 	/* Store throughfall from canopy */
 	veg_var_wet->throughfall = rainfall[0] + snowfall[0];
 
-	energy->LongOverIn = longwave;
+	energy->LongOverIn = atmos.longwave[hidx];
 
       }  /* if overstory */
 
@@ -361,10 +349,10 @@ double solve_snow(char                 overstory,
       /** Call snow pack accumulation and ablation algorithm **/
       ErrorFlag = snow_melt((*Le), (*NetShortSnow), Tcanopy, Tgrnd, 
 		roughness, aero_resist[*UnderStory], aero_resist_used,
-		air_temp, *coverage, (double)dt * SECPHOUR, density, 
+		air_temp, *coverage, (double)dt * SECPHOUR, atmos.density[hidx],
 		displacement[*UnderStory], snow_grnd_flux, 
-		*LongUnderIn, pressure, rainfall[WET], snowfall[WET], 
-		vp, vpd, wind[*UnderStory], ref_height[*UnderStory], 
+		*LongUnderIn, atmos.pressure[hidx], rainfall[WET], snowfall[WET],
+		atmos.vp[hidx], atmos.vpd[hidx], wind[*UnderStory], ref_height[*UnderStory],
 		NetLongSnow, Torg_snow, &melt, &energy->error, 
 		&energy->advected_sensible, &energy->advection, 
 		&energy->deltaCC, &tmp_grnd_flux, &energy->latent, 
