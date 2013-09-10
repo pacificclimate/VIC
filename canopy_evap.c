@@ -66,9 +66,7 @@ double canopy_evap(layer_data_struct *layer_wet,
 		   double            *depth,
 		   double            *Wcr,
 		   double            *Wpwp,
-#if SPATIAL_FROST
 		   double            *frost_fract,
-#endif
 		   float             *root)
 /********************************************************************** 
   CANOPY EVAPORATION
@@ -197,14 +195,9 @@ double canopy_evap(layer_data_struct *layer_wet,
         Compute Evapotranspiration from Vegetation
       *******************************************/
       if(CALC_EVAP)
-	transpiration(tmp_layer, veg_class, month, rad, vpd, net_short, 
-		      air_temp, ra, ppt, f, delta_t, tmp_veg_var->Wdew, 
-		      elevation, depth, Wcr, Wpwp, &tmp_Wdew, &canopyevap, 
-		      layerevap, 
-#if SPATIAL_FROST
-		      frost_fract, 
-#endif
-		      root);
+        transpiration(tmp_layer, veg_class, month, rad, vpd, net_short,
+            air_temp, ra, ppt, f, delta_t, tmp_veg_var->Wdew, elevation, depth,
+            Wcr, Wpwp, &tmp_Wdew, &canopyevap, layerevap, frost_fract, root);
 
     }
 
@@ -248,9 +241,7 @@ void transpiration(layer_data_struct *layer,
 		   double *new_Wdew,
 		   double *canopyevap,
 		   double *layerevap,
-#if SPATIAL_FROST
 		   double *frost_fract,
-#endif
 		   float  *root)
 /**********************************************************************
   Computes evapotranspiration for unfrozen soils
@@ -271,9 +262,7 @@ void transpiration(layer_data_struct *layer,
   extern option_struct options;
 
   int    i;
-#if SPATIAL_FROST
   int    frost_area;
-#endif
   double gsm_inv;               	/* soil moisture stress factor */
   double moist1, moist2;                /* tmp holding of moisture */
   double evap;                          /* tmp holding for evap total */

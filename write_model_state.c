@@ -88,9 +88,7 @@ void write_model_state(dist_prcp_struct    *prcp,
   int    Ndist;
   int    Nbands;
   int    byte, Nbytes;
-#if SPATIAL_FROST
   int    frost_area;
-#endif // SPATIAL_FROST
 
   int    node;
 

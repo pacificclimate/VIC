@@ -156,10 +156,8 @@ int  put_data(dist_prcp_struct  *prcp,
   int                     overstory;
   int                     HasVeg;
   int                     IsWet;
-#if SPATIAL_FROST
   double            *frost_fract;
   double             frost_slope;
-#endif // SPATIAL_FROST
   double             dp;
   int                skipyear;
   double                  Cv;
@@ -190,10 +188,9 @@ int  put_data(dist_prcp_struct  *prcp,
   static int              Tsurf_fbcount_total;
   static int              Tsoil_fbcount_total;
 
-#if SPATIAL_FROST
   frost_fract = soil_con->frost_fract;
   frost_slope = soil_con->frost_slope;
-#endif // SPATIAL_FROST
+
   dp = soil_con->dp;
   skipyear = global_param.skipyear;
   dt_sec = global_param.dt*SECPHOUR;
@@ -343,9 +340,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              (1-Clake),
                              overstory,
                              soil_con->depth,
-#if SPATIAL_FROST
                              frost_fract,
-#endif // SPATIAL_FROST
                              out_data);
 
 	  } // End wet/dry loop
@@ -371,10 +366,8 @@ int  put_data(dist_prcp_struct  *prcp,
                            band,
                            soil_con->depth,
                            soil_con->dz_node,
-#if SPATIAL_FROST
                            frost_fract,
                            frost_slope,
-#endif // SPATIAL_FROST
                            out_data);
 
           // Store Wetland-Specific Variables
@@ -429,9 +422,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              Clake,
                              overstory,
                              soil_con->depth,
-#if SPATIAL_FROST
                              frost_fract,
-#endif // SPATIAL_FROST
                              out_data);
 
 	    /**********************************
@@ -455,10 +446,8 @@ int  put_data(dist_prcp_struct  *prcp,
                              band,
                              soil_con->depth,
                              soil_con->dz_node,
-#if SPATIAL_FROST
                              frost_fract,
                              frost_slope,
-#endif // SPATIAL_FROST
                              out_data);
 
             // Store Lake-Specific Variables
@@ -804,9 +793,7 @@ void collect_wb_terms(cell_data_struct  cell,
                       double            lakefactor,
                       int               overstory,
                       double           *depth,
-#if SPATIAL_FROST
                       double           *frost_fract,
-#endif // SPATIAL_FROST
                       out_data_struct  *out_data)
 {
 
@@ -818,9 +805,7 @@ void collect_wb_terms(cell_data_struct  cell,
   double tmp_moist;
   double tmp_ice;
   int index;
-#if SPATIAL_FROST
   int                     frost_area;
-#endif
 
   AreaFactor = Cv * mu * AreaFract * TreeAdjustFactor * lakefactor;
 
@@ -975,10 +960,8 @@ void collect_eb_terms(energy_bal_struct energy,
                       int               band,
                       double           *depth,
                       double           *dz,
-#if SPATIAL_FROST
                       double           *frost_fract,
                       double            frost_slope,
-#endif // SPATIAL_FROST
                       out_data_struct  *out_data)
 {
 
@@ -988,9 +971,7 @@ void collect_eb_terms(energy_bal_struct energy,
   double rad_temp;
   double surf_temp;
   int index;
-#if SPATIAL_FROST
   int    frost_area;
-#endif // SPATIAL_FROST
 
   AreaFactor = Cv * AreaFract * TreeAdjustFactor * lakefactor;
 

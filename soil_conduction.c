@@ -498,10 +498,8 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 			       double            *expt,
 			       double            *bubble,
 #endif // QUICK_FS
-#if SPATIAL_FROST
 			       double            *frost_fract,
 			       double             frost_slope,
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 			       double            *porosity,
 			       double            *effective_porosity,
@@ -555,7 +553,7 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 #else
   double tmp_ice[MAX_NODES][1];
   double tmpT[MAX_NODES][1+1];
-  double frost_fract[1];
+  //double frost_fract[1];
 #endif
   double tmpZ[MAX_NODES];
   double min_temp, max_temp, tmp_fract;
@@ -615,14 +613,16 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 #else
       min_temp = max_temp = tmpT[nidx][Nfrost];
 #endif
-      for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) {
-	if ( Nfrost > 1 ) {
-	  if ( frost_area == 0 ) tmp_fract = frost_fract[0] / 2.;
-	  else tmp_fract += (frost_fract[frost_area-1] / 2. 
-			     + frost_fract[frost_area] / 2.);
-	  tmpT[nidx][frost_area] = linear_interp(tmp_fract, 0, 1, min_temp, max_temp);
-	}
-	else tmpT[nidx][frost_area] = tmpT[nidx][Nfrost];
+      for (frost_area = 0; frost_area < Nfrost; frost_area++) {
+#if SPATIAL_FROST
+        if (frost_area == 0)
+          tmp_fract = frost_fract[0] / 2.;
+        else
+          tmp_fract += (frost_fract[frost_area - 1] / 2. + frost_fract[frost_area] / 2.);
+        tmpT[nidx][frost_area] = linear_interp(tmp_fract, 0, 1, min_temp, max_temp);
+#else
+        tmpT[nidx][frost_area] = tmpT[nidx][Nfrost];
+#endif // SPATIAL_FROST
       }
     }
 
@@ -696,10 +696,8 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 			       double            *expt,
 			       double            *bubble,
 #endif // QUICK_FS
-#if SPATIAL_FROST
 			       double            *frost_fract,
 			       double             frost_slope,
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 			       double            *porosity,
 			       double            *effective_porosity,
@@ -822,9 +820,7 @@ void compute_soil_layer_thermal_properties(layer_data_struct *layer,
 					   double            *bulk_density,
 					   double            *soil_density,
 					   double            *organic,
-#if SPATIAL_FROST
 					   double            *frost_fract,
-#endif
 					   int                Nlayers) {
 /********************************************************************
   This subroutine computes the thermal conductivity and volumetric
@@ -852,9 +848,7 @@ void compute_soil_layer_thermal_properties(layer_data_struct *layer,
 ********************************************************************/
 
   int    lidx;
-#if SPATIAL_FROST
   int    frost_area;
-#endif
   double moist, ice;
 
   /* compute layer thermal properties */
@@ -1014,9 +1008,7 @@ layer_data_struct find_average_layer(layer_data_struct *wet,
 
   extern option_struct options;
   layer_data_struct layer;
-#if SPATIAL_FROST
   int frost_area;
-#endif
 
   layer = *wet;
 

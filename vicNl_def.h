@@ -840,10 +840,10 @@ typedef struct {
   double   Zsum_node[MAX_NODES];      /* thermal node depth (m) */
   double   expt[MAX_LAYERS];          /* layer-specific exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6 */
   double   expt_node[MAX_NODES];      /* node-specific exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6 */
-#if SPATIAL_FROST
+
   double   frost_fract[FROST_SUBAREAS]; /* spatially distributed frost coverage fractions */
   double   frost_slope;               // slope of frost distribution
-#endif // SPATIAL_FROST
+
   double   gamma[MAX_NODES];          /* thermal solution constant */
   double   init_moist[MAX_LAYERS];    /* initial layer moisture level (mm) */
   double   max_infil;                 /* maximum infiltration rate */

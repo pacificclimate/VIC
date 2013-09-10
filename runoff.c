@@ -12,9 +12,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #if EXCESS_ICE
 	    int                SubsidenceUpdate,
 #endif // EXCESS_ICE
-#if SPATIAL_FROST
 	    double            *frost_fract,
-#endif // SPATIAL_FROST
 	    double             mu,
 	    int                dt,
             int                Nnodes,

@@ -131,9 +131,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
   double   tmp_runoff;
   int      dry;
   int      band;
-#if SPATIAL_FROST
   int      frost_area;
-#endif
   int      ErrorFlag;
   double   Cv;
   double   Zsum, dp;
@@ -716,9 +714,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 #else
 					   soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
@@ -744,10 +740,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						       soil_con->expt,
 						       soil_con->bubble,
 #endif // QUICK_FS
-#if SPATIAL_FROST
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 						       soil_con->porosity,
 						       soil_con->effective_porosity,
@@ -1055,9 +1049,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 #else
 					   soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
@@ -1083,10 +1075,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						       soil_con->expt,
 						       soil_con->bubble,
 #endif // QUICK_FS
-#if SPATIAL_FROST
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 						       soil_con->porosity,
 						       soil_con->effective_porosity,

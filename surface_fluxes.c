@@ -988,9 +988,7 @@ int surface_fluxes(char                 overstory,
 #if EXCESS_ICE
       SubsidenceUpdate,
 #endif
-#if SPATIAL_FROST
       soil_con->frost_fract,
-#endif // SPATIAL_FROST
       mu, gp->dt, options.Nnode, band, rec, iveg);
 
   return (ErrorFlag);

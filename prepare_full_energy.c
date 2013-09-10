@@ -94,9 +94,7 @@ void prepare_full_energy(int               iveg,
 					    soil_con->bulk_density,
 					    soil_con->soil_density,
 					    soil_con->organic,
-#if SPATIAL_FROST
 					    soil_con->frost_fract,
-#endif
 					    options.Nlayer);
     
       /** Save Thermal Conductivities for Energy Balance **/

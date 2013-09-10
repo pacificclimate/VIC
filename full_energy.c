@@ -123,9 +123,7 @@ int  full_energy(char                 NEWCELL,
   int                    band;
   int                    Nbands;
   int                    ErrorFlag;
-#if SPATIAL_FROST
   int                    frost_area;
-#endif // SPATIAL_FROST
   double                 out_prec[2*MAX_BANDS];
   double                 out_rain[2*MAX_BANDS];
   double                 out_snow[2*MAX_BANDS];

@@ -335,9 +335,7 @@ int snow_intercept(double  Dt,
 				   soil_con->elevation, 
 				   soil_con->Wcr, soil_con->Wpwp, 
 				   soil_con->depth, 
-#if SPATIAL_FROST
 				   soil_con->frost_fract, 
-#endif
 				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
 				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
@@ -377,9 +375,7 @@ int snow_intercept(double  Dt,
     *Tfoliage = root_brent(Tlower, Tupper, ErrorString, func_canopy_energy_bal,  band, 
 			   month, rec, Dt, soil_con->elevation, 
 			   soil_con->Wcr, soil_con->Wpwp, soil_con->depth, 
-#if SPATIAL_FROST
 			   soil_con->frost_fract, 
-#endif
 			   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
 			   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 			   RainFall, Wind, UnderStory, iveg, 
@@ -405,9 +401,7 @@ int snow_intercept(double  Dt,
 					    soil_con->elevation, 
 					    soil_con->Wcr, soil_con->Wpwp, 
 					    soil_con->depth, 
-#if SPATIAL_FROST
 					    soil_con->frost_fract, 
-#endif
 					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
 					    Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 					    RainFall, Wind, UnderStory, iveg, 
@@ -428,9 +422,7 @@ int snow_intercept(double  Dt,
     Qnet = solve_canopy_energy_bal(*Tfoliage, band, month, rec, Dt, 
 				   soil_con->elevation, soil_con->Wcr, 
 				   soil_con->Wpwp, soil_con->depth, 
-#if SPATIAL_FROST
 				   soil_con->frost_fract, 
-#endif
 				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
 				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
@@ -650,9 +642,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   double *Wcr;
   double *Wpwp;
   double *depth;
-#if SPATIAL_FROST
   double *frost_fract;
-#endif
 
   /* Atmopheric Condition and Forcings */
   double  AirDens;
@@ -721,9 +711,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   Wcr   = (double *) va_arg(ap, double *);
   Wpwp  = (double *) va_arg(ap, double *);
   depth = (double *) va_arg(ap, double *);
-#if SPATIAL_FROST
   frost_fract = (double *) va_arg(ap, double *);
-#endif
 
   /* Atmopheric Condition and Forcings */
   AirDens = (double) va_arg(ap, double);
@@ -829,17 +817,11 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
 
   printf("Wdew = %f\n", *Wdew);
 
-#if SPATIAL_FROST
   write_layer(layer_wet, iveg, options.Nlayer, frost_fract, depth);
-#else
-  write_layer(layer_wet, iveg, options.Nlayer, depth);
-#endif
+
   if(options.DIST_PRCP) 
-#if SPATIAL_FROST
     write_layer(layer_dry, iveg, options.Nlayer, frost_fract, depth);
-#else
-    write_layer(layer_dry, iveg, options.Nlayer, depth);
-#endif
+
   write_vegvar(&(veg_var_wet[0]),iveg);
   if(options.DIST_PRCP) 
     write_vegvar(&(veg_var_dry[0]),iveg);

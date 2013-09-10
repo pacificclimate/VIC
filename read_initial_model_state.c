@@ -106,9 +106,7 @@ void read_initial_model_state(FILE    *init_state,
   int    tmp_char;
   int    byte, Nbytes;
   int    tmp_int, node;
-#if SPATIAL_FROST
   int    frost_area;
-#endif
   
 #if !NO_REWIND 
   rewind(init_state);

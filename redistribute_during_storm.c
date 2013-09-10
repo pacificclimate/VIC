@@ -38,9 +38,7 @@ int  redistribute_during_storm(cell_data_struct ***cell,
   char          ErrorString[MAXSTRING];
   int           layer;
   int           band;
-#if SPATIAL_FROST
   int           frost_area;
-#endif
   double        temp_wet;
   double        temp_dry;
 

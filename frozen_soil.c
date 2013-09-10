@@ -82,9 +82,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #else
 					   soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
+
 #if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
@@ -100,9 +99,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #else
 					     soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					     soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 					     soil_con->porosity,
 					     soil_con->effective_porosity,
@@ -125,9 +122,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #else
 					   soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
@@ -148,9 +143,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #else
 					     soil_con->expt, soil_con->bubble, 
 #endif // QUICK_FS
-#if SPATIAL_FROST
 					     soil_con->frost_fract, soil_con->frost_slope, 
-#endif // SPATIAL_FROST
 #if EXCESS_ICE
 					     soil_con->porosity, soil_con->effective_porosity,
 #endif // EXCESS_ICE

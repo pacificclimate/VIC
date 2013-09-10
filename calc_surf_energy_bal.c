@@ -388,9 +388,7 @@ double calc_surf_energy_bal(double             Le,
 					   soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
 					   soil_con->gamma, energy->ice, energy->kappa_node,
 					   soil_con->max_moist_node, energy->moist,
-#if SPATIAL_FROST
 					   soil_con->frost_fract, 
-#endif // SPATIAL_FROST
 #if QUICK_FS
 					   soil_con->ufwc_table_layer[0], 
 					   soil_con->ufwc_table_node, 
@@ -485,9 +483,7 @@ double calc_surf_energy_bal(double             Le,
 					     soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
 					     soil_con->gamma, energy->ice, energy->kappa_node,
 					     soil_con->max_moist_node, energy->moist,
-#if SPATIAL_FROST
 					     soil_con->frost_fract, 
-#endif // SPTAIL_FROST
 #if QUICK_FS
 					     soil_con->ufwc_table_layer[0], 
 					     soil_con->ufwc_table_node, 
@@ -869,9 +865,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   double *moist_node;
 
   /* spatial frost terms */
-#if SPATIAL_FROST    
   double *frost_fract;
-#endif
 
   /* quick solution frozen soils terms */
 #if QUICK_FS
@@ -1018,9 +1012,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   max_moist_node          = (double *) va_arg(ap, double *);
   moist_node              = (double *) va_arg(ap, double *);
 
-#if SPATIAL_FROST    
   frost_fract             = (double *) va_arg(ap, double *);
-#endif
 
 #if QUICK_FS
   ufwc_table_layer        = (double **) va_arg(ap, double **);
@@ -1178,17 +1170,11 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   fprintf(stderr, "*snow_flux = %f\n",  *snow_flux);
   fprintf(stderr, "*store_error = %f\n",  *store_error);
 
-#if SPATIAL_FROST
   write_layer(layer_wet, iveg, options.Nlayer, frost_fract, depth);
-#else
-  write_layer(layer_wet, iveg, options.Nlayer, depth);
-#endif
+
   if(options.DIST_PRCP) 
-#if SPATIAL_FROST
     write_layer(layer_dry, iveg, options.Nlayer, frost_fract, depth);
-#else
-    write_layer(layer_dry, iveg, options.Nlayer, depth);
-#endif
+
   write_vegvar(&(veg_var_wet[0]),iveg);
   if(options.DIST_PRCP) 
     write_vegvar(&(veg_var_dry[0]),iveg);

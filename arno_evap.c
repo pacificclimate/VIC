@@ -70,12 +70,8 @@ double arno_evap(layer_data_struct *layer_wet,
 		 double             ra,
 		 double             delta_t,
 		 double             mu,
-#if SPATIAL_FROST
 		 double             moist_resid,
 		 double            *frost_fract)
-#else
-		 double             moist_resid)
-#endif
 {
   extern option_struct options;
 #if LINK_DEBUG
@@ -86,9 +82,7 @@ double arno_evap(layer_data_struct *layer_wet,
   int    i;
   int    Ndist;
   int    dist;
-#if SPATIAL_FROST
   int    frost_area;
-#endif
   double tmp,beta_asp,dummy;
   double ratio,as;
   double Epot;		/* potential bare soil evaporation */

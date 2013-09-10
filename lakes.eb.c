@@ -1960,9 +1960,7 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   double max_newfraction;
   double depth_in_save;
 
-#if SPATIAL_FROST
   frost_fract = soil_con.frost_fract;
-#endif
 
   delta_moist = (double*)calloc(options.Nlayer,sizeof(double));
   moist = (double*)calloc(options.Nlayer,sizeof(double));
