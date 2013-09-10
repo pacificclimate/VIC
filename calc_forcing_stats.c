@@ -4,7 +4,6 @@
 
 static char vcid[] = "$Id$";
 
-#if OUTPUT_FORCE_STATS
 
 double get_mean(double *, int, double);
 double get_stdev(double *, int, double, double);
@@ -207,5 +206,3 @@ double get_max(double *values, int N, double NoData) {
   return (max);
 
 }
-
-#endif
