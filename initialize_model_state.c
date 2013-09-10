@@ -878,14 +878,13 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
   int      dry;
   int      band;
   int      ErrorFlag;
-  double   Zsum, dp;
+  double   Zsum;
   double   tmpdp, tmpadj, Bexp;
   double   moist[MAX_VEG][MAX_BANDS][MAX_LAYERS];
 
   double Tnode_prior[MAX_NODES];
   double Zsum_prior[MAX_NODES];
   
-  dp = soil_con->dp;
 
   FIRST_VEG = TRUE;
 
@@ -917,7 +916,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
     soil_con->Zsum_node[1] = soil_con[0].depth[0];
     Zsum   = 2. * soil_con[0].depth[0];
     soil_con->Zsum_node[2] = Zsum;
-    tmpdp  = dp - soil_con[0].depth[0] * 2.5;
+    tmpdp  = soil_con->dp - soil_con[0].depth[0] * 2.5;
     tmpadj = 3.5;
     for ( index = 3; index < Nnodes-1; index++ ) {
       soil_con->dz_node[index] = tmpdp/(((double)Nnodes-tmpadj));
@@ -925,21 +924,21 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 	       +soil_con->dz_node[index-1])/2.;
       soil_con->Zsum_node[index] = Zsum;
     }
-    soil_con->dz_node[Nnodes-1] = (dp - Zsum 
+    soil_con->dz_node[Nnodes-1] = (soil_con->dp - Zsum 
 				   - soil_con->dz_node[Nnodes-2] 
 				   / 2. ) * 2.;
     Zsum += (soil_con->dz_node[Nnodes-2]
 	     +soil_con->dz_node[Nnodes-1])/2.;
     soil_con->Zsum_node[Nnodes-1] = Zsum;
-    if((int)(Zsum*1000+0.5) != (int)(dp*1000+0.5)) {
-      sprintf(ErrStr,"Sum of thermal node thicknesses (%f) in initialize_model_state do not equal dp (%f), check initialization procedure",Zsum,dp);
+    if((int)(Zsum*1000+0.5) != (int)(soil_con->dp*1000+0.5)) {
+      sprintf(ErrStr,"Sum of thermal node thicknesses (%f) in initialize_model_state do not equal dp (%f), check initialization procedure",Zsum,soil_con->dp);
       nrerror(ErrStr);
     }
   }
   else{ /* exponential grid transformation, EXP_TRANS = TRUE*/
     
     /*calculate exponential function parameter */
-    Bexp = logf(dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
+    Bexp = logf(soil_con->dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
     for ( index = 0; index <= Nnodes-1; index++ )
       soil_con->Zsum_node[index] = expf(Bexp*index)-1.;
     

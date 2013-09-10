@@ -156,10 +156,6 @@ int  put_data(dist_prcp_struct  *prcp,
   int                     overstory;
   int                     HasVeg;
   int                     IsWet;
-  char              *AboveTreeLine;
-  double            *AreaFract;
-  double            *depth;
-  double            *dz;
 #if SPATIAL_FROST
   double            *frost_fract;
   double             frost_slope;
@@ -194,10 +190,6 @@ int  put_data(dist_prcp_struct  *prcp,
   static int              Tsurf_fbcount_total;
   static int              Tsoil_fbcount_total;
 
-  AboveTreeLine = soil_con->AboveTreeLine;
-  AreaFract = soil_con->AreaFract;
-  depth = soil_con->depth;
-  dz = soil_con->dz_node;
 #if SPATIAL_FROST
   frost_fract = soil_con->frost_fract;
   frost_slope = soil_con->frost_slope;
@@ -223,7 +215,7 @@ int  put_data(dist_prcp_struct  *prcp,
 
   // Compute treeline adjustment factors
   for ( band = 0; band < options.SNOW_BAND; band++ ) {
-    if ( AboveTreeLine[band] ) {
+    if ( soil_con->AboveTreeLine[band] ) {
       Cv = 0;
       for ( veg = 0 ; veg < veg_con[0].vegetat_type_num ; veg++ ) {
 	if ( veg_lib[veg_con[veg].veg_class].overstory ) {
@@ -306,7 +298,7 @@ int  put_data(dist_prcp_struct  *prcp,
       *********************************/
       for(band=0;band<Nbands;band++) {
 
-        ThisAreaFract = AreaFract[band];
+        ThisAreaFract = soil_con->AreaFract[band];
         ThisTreeAdjust = TreeAdjustFactor[band];
         if (IsWet) {
           ThisAreaFract = 1;
@@ -314,7 +306,7 @@ int  put_data(dist_prcp_struct  *prcp,
         }
 
         if(ThisAreaFract > 0. && ( veg == veg_con[0].vegetat_type_num
-           || ( !AboveTreeLine[band] || (AboveTreeLine[band] && !overstory)))) {
+           || ( !soil_con->AboveTreeLine[band] || (soil_con->AboveTreeLine[band] && !overstory)))) {
 
           /*******************************************************
             Store Output for Wet and Dry Fractions
@@ -350,7 +342,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              0,
                              (1-Clake),
                              overstory,
-                             depth,
+                             soil_con->depth,
 #if SPATIAL_FROST
                              frost_fract,
 #endif // SPATIAL_FROST
@@ -377,8 +369,8 @@ int  put_data(dist_prcp_struct  *prcp,
                            (1-Clake),
                            overstory,
                            band,
-                           depth,
-                           dz,
+                           soil_con->depth,
+                           soil_con->dz_node,
 #if SPATIAL_FROST
                            frost_fract,
                            frost_slope,
@@ -436,7 +428,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              1,
                              Clake,
                              overstory,
-                             depth,
+                             soil_con->depth,
 #if SPATIAL_FROST
                              frost_fract,
 #endif // SPATIAL_FROST
@@ -461,8 +453,8 @@ int  put_data(dist_prcp_struct  *prcp,
                              Clake,
                              overstory,
                              band,
-                             depth,
-                             dz,
+                             soil_con->depth,
+                             soil_con->dz_node,
 #if SPATIAL_FROST
                              frost_fract,
                              frost_slope,
@@ -636,7 +628,7 @@ int  put_data(dist_prcp_struct  *prcp,
   for(index=0;index<options.Nlayer;index++)
     if(options.MOISTFRACT)
       storage += (out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index]) 
-	* depth[index] * 1000;
+	* soil_con->depth[index] * 1000;
     else
       storage += out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index];
   storage += out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0] + out_data[OUT_WDEW].data[0] + out_data[OUT_SURFSTOR].data[0];

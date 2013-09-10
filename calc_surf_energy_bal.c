@@ -204,21 +204,9 @@ double calc_surf_energy_bal(double             Le,
   double   refrozen_water;
 
   double   Wdew[2];
-  double  *T_node;
   double   Tnew_node[MAX_NODES];
   char     Tnew_fbflag[MAX_NODES];
   int      Tnew_fbcount[MAX_NODES];
-  double  *Zsum_node;
-  double  *kappa_node;
-  double  *Cs_node;
-  double  *moist_node;
-  double  *bubble_node;
-  double  *expt_node;
-  double  *max_moist_node;
-  double  *ice_node;
-  double  *alpha;
-  double  *beta;
-  double  *gamma;
   layer_data_struct layer[MAX_LAYERS];
 
   double   T_lower, T_upper;
@@ -287,23 +275,6 @@ double calc_surf_energy_bal(double             Le,
     LongSnowIn      = 0.;
   }
 
-  /*************************************************************
-    Prepare soil node variables for finite difference solution
-  *************************************************************/
-
-  bubble_node    = soil_con->bubble_node; 
-  expt_node      = soil_con->expt_node; 
-  max_moist_node = soil_con->max_moist_node;  
-  alpha          = soil_con->alpha; 
-  beta           = soil_con->beta; 
-  gamma          = soil_con->gamma; 
-  moist_node     = energy->moist;
-  kappa_node     = energy->kappa_node;
-  Cs_node        = energy->Cs_node;
-  T_node         = energy->T;
-  Zsum_node      = soil_con->Zsum_node;   
-  ice_node       = energy->ice;
-
   /**************************************************
     Find Surface Temperature Using Root Brent Method
   **************************************************/
@@ -323,9 +294,9 @@ double calc_surf_energy_bal(double             Le,
       // Set iterative Nnodes using the depth of the thaw layer
       tmpNnodes = 0;
       for ( nidx = Nnodes-5; nidx >= 0; nidx-- ) 
-	if ( T_node[nidx] >= 0 && T_node[nidx+1] < 0 ) tmpNnodes = nidx+1;
+	if ( energy->T[nidx] >= 0 && energy->T[nidx+1] < 0 ) tmpNnodes = nidx+1;
       if ( tmpNnodes == 0 ) { 
-	if ( T_node[0] <= 0 && T_node[1] >= 0 ) tmpNnodes = Nnodes;
+	if ( energy->T[0] <= 0 && energy->T[1] >= 0 ) tmpNnodes = Nnodes;
 	else tmpNnodes = 3;
       }
       else tmpNnodes += 4;
@@ -369,9 +340,9 @@ double calc_surf_energy_bal(double             Le,
 		       snow->density, snow->swq, snow->surf_water,
 		       &energy->deltaCC, &energy->refreeze_energy, 
 		       &snow->vapor_flux, &snow->blowing_flux, &snow->surface_flux,
-		       tmpNnodes, Cs_node, T_node, Tnew_node, Tnew_fbflag, Tnew_fbcount,
-		       alpha, beta, bubble_node, Zsum_node, expt_node, gamma, 
-		       ice_node, kappa_node, max_moist_node, moist_node, 
+		       tmpNnodes, energy->Cs_node, energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount,
+		       soil_con->alpha, soil_con->beta, soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node, soil_con->gamma,
+		       energy->ice, energy->kappa_node, soil_con->max_moist_node, energy->moist,
 		       soil_con, layer_wet, layer_dry, veg_var_wet, veg_var_dry, 
 		       INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow, 
 		       FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, 
@@ -412,11 +383,11 @@ double calc_surf_energy_bal(double             Le,
 					   snow->swq, snow->surf_water, 
 					   &energy->deltaCC, 
 					   &energy->refreeze_energy, 
-					   &snow->vapor_flux, Nnodes, Cs_node, 
-					   T_node, Tnew_node, alpha, beta, 
-					   bubble_node, Zsum_node, expt_node, 
-					   gamma, ice_node, kappa_node, 
-					   max_moist_node, moist_node, 
+					   &snow->vapor_flux, Nnodes, energy->Cs_node, 
+					   energy->T, Tnew_node, soil_con->alpha, soil_con->beta,
+					   soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
+					   soil_con->gamma, energy->ice, energy->kappa_node,
+					   soil_con->max_moist_node, energy->moist,
 #if SPATIAL_FROST
 					   soil_con->frost_fract, 
 #endif // SPATIAL_FROST
@@ -465,9 +436,9 @@ double calc_surf_energy_bal(double             Le,
 			 snow->density, snow->swq, snow->surf_water,
 			 &energy->deltaCC, &energy->refreeze_energy, 
 			 &snow->vapor_flux, &snow->blowing_flux, &snow->surface_flux,
-			 tmpNnodes, Cs_node, T_node, Tnew_node, Tnew_fbflag, Tnew_fbcount,
-			 alpha, beta, bubble_node, Zsum_node, expt_node, gamma, 
-			 ice_node, kappa_node, max_moist_node, moist_node, 
+			 tmpNnodes, energy->Cs_node, energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount,
+			 soil_con->alpha, soil_con->beta, soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node, soil_con->gamma,
+			 energy->ice, energy->kappa_node, soil_con->max_moist_node, energy->moist,
 			 soil_con, layer_wet, layer_dry, veg_var_wet, veg_var_dry, 
 			 INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow, 
 			 FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, 
@@ -509,11 +480,11 @@ double calc_surf_energy_bal(double             Le,
 					     snow->swq, snow->surf_water, 
 					     &energy->deltaCC, 
 					     &energy->refreeze_energy, 
-					     &snow->vapor_flux, Nnodes, Cs_node, 
-					     T_node, Tnew_node, alpha, beta, 
-					     bubble_node, Zsum_node, expt_node, 
-					     gamma, ice_node, kappa_node, 
-					     max_moist_node, moist_node, 
+					     &snow->vapor_flux, Nnodes, energy->Cs_node, 
+					     energy->T, Tnew_node, soil_con->alpha, soil_con->beta,
+					     soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
+					     soil_con->gamma, energy->ice, energy->kappa_node,
+					     soil_con->max_moist_node, energy->moist,
 #if SPATIAL_FROST
 					     soil_con->frost_fract, 
 #endif // SPTAIL_FROST
@@ -567,9 +538,9 @@ double calc_surf_energy_bal(double             Le,
 				snow->density, snow->swq, snow->surf_water,
 				&energy->deltaCC, &energy->refreeze_energy, 
 				&snow->vapor_flux, &snow->blowing_flux, &snow->surface_flux,
-				Nnodes, Cs_node, T_node, Tnew_node, Tnew_fbflag, Tnew_fbcount,
-				alpha, beta, bubble_node, Zsum_node, expt_node, gamma, 
-				ice_node, kappa_node, max_moist_node, moist_node, 
+				Nnodes, energy->Cs_node, energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount,
+				soil_con->alpha, soil_con->beta, soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node, soil_con->gamma,
+				energy->ice, energy->kappa_node, soil_con->max_moist_node, energy->moist,
 				soil_con, layer_wet, layer_dry, veg_var_wet, veg_var_dry, 
 				INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow, 
 				FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, 

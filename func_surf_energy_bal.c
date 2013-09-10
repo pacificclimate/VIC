@@ -136,27 +136,14 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double T1_old;
   double T2;
   double Ts_old;
-  double b_infilt;
   double bubble;
   double dp;
   double expt;
   double ice0;
   double kappa1;
   double kappa2;
-  double max_infil;
   double max_moist;
   double moist;
-
-  double *Wcr;
-  double *Wpwp;
-  double *depth;
-  double *resid_moist;
-  double *bulk_dens_min;
-  double *soil_dens_min;
-  double *quartz;
-  double *bulk_density;
-  double *soil_density;
-  double *organic;
 
   float *root;
 
@@ -170,7 +157,6 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double Tair;          // temperature of canopy air or atmosphere
   double atmos_density;
   double atmos_pressure;
-  double elevation;
   double emissivity;
   double LongBareIn; // incoming LW to snow-free surface
   double LongSnowIn; // incoming LW to snow surface - if INCLUDE_SNOW
@@ -420,14 +406,6 @@ double func_surf_energy_bal(double Ts, va_list ap)
   snow_flux               = (double *) va_arg(ap, double *);
   store_error             = (double *) va_arg(ap, double *);
 
-  /* take additional variables from soil_con structure */
-  b_infilt = soil_con->b_infilt;
-  max_infil = soil_con->max_infil;
-  Wcr = soil_con->Wcr;
-  Wpwp = soil_con->Wpwp;
-  depth = soil_con->depth;
-  resid_moist = soil_con->resid_moist;
-  elevation = (double)soil_con->elevation;
 #if SPATIAL_FROST    
   frost_fract = soil_con->frost_fract;
 #endif // SPATIAL_FROST
@@ -442,14 +420,6 @@ double func_surf_energy_bal(double Ts, va_list ap)
   effective_porosity_node = soil_con->effective_porosity_node;
 #endif
   FS_ACTIVE = soil_con->FS_ACTIVE;
-  /* more soil layer terms for IMPLICIT option*/
-  bulk_dens_min = soil_con->bulk_dens_min;
-  soil_dens_min = soil_con->soil_dens_min;
-  quartz = soil_con->quartz;
-  bulk_density = soil_con->bulk_density;
-  soil_density = soil_con->soil_density;
-  organic = soil_con->organic;
-
 
   /***************
     MAIN ROUTINE
@@ -521,7 +491,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
 #endif
 				       ice_node, alpha, beta, gamma, dp, Nnodes, 
 				       FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class,
-				       bulk_dens_min, soil_dens_min, quartz, bulk_density, soil_density, organic, depth);
+				       soil_con->bulk_dens_min, soil_con->soil_dens_min, soil_con->quartz, soil_con->bulk_density, soil_con->soil_density, soil_con->organic, soil_con->depth);
       
       /* print out error information for IMPLICIT solution */
       if(Error==0)
@@ -545,12 +515,12 @@ double func_surf_energy_bal(double Ts, va_list ap)
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
 			      moist_node, delta_t, max_moist_node, bubble_node, 
 			      expt_node, ice_node, alpha, beta, gamma, dp,
-			      depth, ufwc_table_node, Nnodes, FIRST_SOLN, FS_ACTIVE, 
+			      soil_con->depth, ufwc_table_node, Nnodes, FIRST_SOLN, FS_ACTIVE, 
 			      NOFLUX, EXP_TRANS, veg_class);
 #else
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
 			      moist_node, delta_t, max_moist_node, bubble_node, 
-			      expt_node, ice_node, alpha, beta, gamma, dp, depth, 
+			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, 
 #if EXCESS_ICE
 			      porosity_node, effective_porosity_node,
 #endif
@@ -662,7 +632,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
 		       veg_class, month, mu, Wdew, delta_t, NetBareRad, vpd, 
 		       NetShortBare, Tair, Ra_used[1], 
 		       displacement[1], roughness[1], ref_height[1], 
-		       elevation, rainfall, depth, Wcr, Wpwp, 
+		       (double)soil_con->elevation, rainfall, soil_con->depth, soil_con->Wcr, soil_con->Wpwp,
 #if SPATIAL_FROST
 		       frost_fract,
 #endif // SPATIAL_FROST
@@ -670,12 +640,12 @@ double func_surf_energy_bal(double Ts, va_list ap)
   }
   else if(!SNOWING) {
     Evap = arno_evap(layer_wet, layer_dry, NetBareRad, Tair, vpd, 
-		     depth[0], max_moist * depth[0] * 1000., 
-		     elevation, b_infilt, Ra_used[0], delta_t, mu, 
+		     soil_con->depth[0], max_moist * soil_con->depth[0] * 1000., 
+		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, mu,
 #if SPATIAL_FROST
-		     resid_moist[0], frost_fract);
+		     soil_con->resid_moist[0], frost_fract);
 #else
-                     resid_moist[0]);
+                     soil_con->resid_moist[0]);
 #endif // SPATIAL_FROST
   }
   else Evap = 0.;
