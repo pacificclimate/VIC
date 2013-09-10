@@ -864,10 +864,10 @@ typedef struct {
   double  *Pfactor;                   /* Change in Precipitation due to elevation (fract) in each snow elevation band */
   double  *Tfactor;                   /* Change in temperature due to elevation (C) in each snow elevation band */
   char    *AboveTreeLine;             /* Flag to indicate if band is above the treeline */
-#if QUICK_FS
+
   double **ufwc_table_layer[MAX_LAYERS];
   double **ufwc_table_node[MAX_NODES]; 
-#endif
+
   float    elevation;                 /* grid cell elevation (m) */
   float    lat;                       /* grid cell central latitude */
   float    lng;                       /* grid cell central longitude */

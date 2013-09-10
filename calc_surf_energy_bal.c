@@ -389,10 +389,8 @@ double calc_surf_energy_bal(double             Le,
 					   soil_con->gamma, energy->ice, energy->kappa_node,
 					   soil_con->max_moist_node, energy->moist,
 					   soil_con->frost_fract, 
-#if QUICK_FS
 					   soil_con->ufwc_table_layer[0], 
 					   soil_con->ufwc_table_node, 
-#endif // QUICK_FS
 					   layer_wet, layer_dry, veg_var_wet, 
 					   veg_var_dry, 
 					   INCLUDE_SNOW, soil_con->FS_ACTIVE, 
@@ -484,10 +482,8 @@ double calc_surf_energy_bal(double             Le,
 					     soil_con->gamma, energy->ice, energy->kappa_node,
 					     soil_con->max_moist_node, energy->moist,
 					     soil_con->frost_fract, 
-#if QUICK_FS
 					     soil_con->ufwc_table_layer[0], 
 					     soil_con->ufwc_table_node, 
-#endif // QUICK_FS
 					     layer_wet, layer_dry, veg_var_wet, 
 					     veg_var_dry, INCLUDE_SNOW, 
 					     soil_con->FS_ACTIVE, NOFLUX, EXP_TRANS,
@@ -868,10 +864,8 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   double *frost_fract;
 
   /* quick solution frozen soils terms */
-#if QUICK_FS
   double **ufwc_table_layer;
   double ***ufwc_table_node;
-#endif
 
   /* model structures */
   layer_data_struct *layer_wet;

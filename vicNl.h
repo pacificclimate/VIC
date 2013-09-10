@@ -137,21 +137,16 @@ double calc_snow_ground_flux(int, int, int, int, double, double, double,
 			     double *, energy_bal_struct *, 
 			     snow_data_struct *, layer_data_struct *,
                              layer_data_struct *, soil_con_struct *, char *);
-#if QUICK_FS
+
 int    calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *, double *, 
 				double *, double *, double *,double *, 
 				double *, double *, double *, 
-				double *, double *, double *, double ***, int, int, int, int);
-#else
-int    calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *, double *, 
-				double *, double *, double *,double *, 
-				double *, double *, double *, 
-				double *, double *, double *, 
+				double *, double *, double *, double ***,
 #if EXCESS_ICE
-				double *, double *,
+        double *, double *,
 #endif // EXCESS_ICE
-				int, int, int, int);
-#endif // QUICK_FS
+        int, int, int, int);
+
 double CalcSnowPackEnergyBalance(double Tsurf, ...);
 double CalcBlowingSnow(double, double, int, double, double, double, double, 
                        double, double, double, double, double, float, 
@@ -220,26 +215,17 @@ int    dist_prec(atmos_data_struct *,dist_prcp_struct *,soil_con_struct *,
 		 filep_struct *, out_data_file_struct *,
 		 out_data_struct *, save_data_struct *,
 		 int, int, char, char, char *, int *);
-#if QUICK_FS
-int  distribute_node_moisture_properties(double *, double *, double *, double *,
-					 double *, double *, double *, double ***, 
-					 double *, double *, double *, double *, double *,
-					 double *, double *, double *, int, int, char);
-#else
+
+int distribute_node_moisture_properties(double *, double *, double *, double *,
+    double *, double *, double *, double ***, double *, double *,
 #if EXCESS_ICE
-int  distribute_node_moisture_properties(double *, double *, double *, double *,
-					 double *, double *, double *, double *, 
-					 double *, double *, double *,
-					 double *, double *, double *, double *, double *,
-					 double *, double *, double *, int, int, char);
-#else
-int  distribute_node_moisture_properties(double *, double *, double *, 
-					 double *, double *, double *,
-					 double *, double *, double *,
-					 double *, double *, double *, double *, double *,
-					 double *, double *, double *, int, int, char);
+    double *,
+    double *,
 #endif
-#endif
+    double *, double *, double *, double *, double *, double *, double *,
+    double *, int, int, char);
+
+
 void   distribute_soil_property(double *,double,double,
 				double **l_param,
 				int, int, double *, double *);
@@ -259,30 +245,24 @@ double error_print_solve_T_profile(double, va_list);
 double error_print_surf_energy_bal(double, va_list);
 double error_solve_T_profile(double Tsurf, ...);
 double estimate_dew_point(double, double, double, double, double);
-#if QUICK_FS
+
 int estimate_layer_ice_content(layer_data_struct *, double *, double *,
-			       double *, double ***, double *,
-			       double *, double ***, 
-			       double *, double,
-			       int, int, char);
-#else
-int estimate_layer_ice_content(layer_data_struct *, double *, double *,
-			       double *, double *, double *, double *,
-			       double *, double *, double *, 
-			       double *, double, 
+    double *, double ***, double *, double *, double *, double *, double ***,
+    double *, double *, double *, double,
 #if EXCESS_ICE
-			       double *, double *,
+    double *,
+    double *,
 #endif // EXCESS_ICE
-			       int, int, char);
-#endif
+    int, int, char);
+
+
+
+
 int estimate_layer_ice_content_quick_flux(layer_data_struct *, double *,
 					  double, double, double, double,
 					  double *,
-#if QUICK_FS
 					  double ***,
-#else
 					  double *, double *,
-#endif // QUICK_FS
 					  double *, double,
 #if EXCESS_ICE
 					  double *, double *,
@@ -372,9 +352,7 @@ double maximum_unfrozen_water(double, double, double, double, double, double);
 #else
 double maximum_unfrozen_water(double, double, double, double);
 #endif
-#if QUICK_FS
 double maximum_unfrozen_water_quick(double, double, double **);
-#endif
 double modify_Ksat(double);
 void mtclim_wrapper(int, int, double, double, double, double,
                       double, double, double, double,
@@ -434,9 +412,7 @@ void set_max_min_hour(double *, int, int *, int *);
 void set_node_parameters(double *, double *, double *, double *, double *, double *,
 			 double *, double *, double *, double *, double *,
 			 double *, double *,
-#if QUICK_FS
 			 double ***,
-#endif
 #if EXCESS_ICE
 			 double *, double *, double *, double *,
 #endif
@@ -485,21 +461,18 @@ double solve_atmos_moist_bal(double , ...);
 double solve_canopy_energy_bal(double Tfoliage, ...);
 double solve_snow_ground_flux(double Tsurf, ...);
 double solve_surf_energy_bal(double Tsurf, ...);
-#if QUICK_FS
-int    solve_T_profile(double *, double *, char *, int *, double *, double *,double *, 
-		       double *, double, double *, double *, double *,
-		       double *, double *, double *, double *, double, double *, double ***,
-		       int, int *, int, int, int, int);
-#else
-int    solve_T_profile(double *, double *, char *, int *, double *, double *,double *, 
-		       double *, double, double *, double *, double *,
-		       double *, double *, double *, double *, double, double *,
-#if EXCESS_ICE
-		       double *, double *,
-#endif
-		       int, int *, int, int, int, int);
 
+int solve_T_profile(double *, double *, char *, int *, double *, double *,
+    double *, double *, double, double *, double *, double *, double *,
+    double *, double *, double *, double, double *, double ***,
+#if EXCESS_ICE
+    double *,
+    double *,
 #endif
+    int, int *, int, int, int, int);
+
+
+
 int   solve_T_profile_implicit(double *, double *, double *, double *, double *,
 			       double *, double, double *, double *, double *,
 #if EXCESS_ICE

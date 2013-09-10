@@ -29,12 +29,9 @@ double soil_thermal_eqn(double T, va_list ap) {
   double T0;
   double moist;
   double max_moist;
-#if QUICK_FS
   double **ufwc_table;
-#else
   double bubble;
   double expt;
-#endif
 #if EXCESS_ICE
   double porosity;
   double effective_porosity;

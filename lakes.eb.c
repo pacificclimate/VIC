@@ -2306,12 +2306,9 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
                                                     prcp->energy[iveg][band].kappa_node, prcp->energy[iveg][band].Cs_node,
                                                     soil_con.Zsum_node, prcp->energy[iveg][band].T,
                                                     soil_con.max_moist_node,
-#if QUICK_FS
                                                     soil_con.ufwc_table_node,
-#else
                                                     soil_con.expt_node,
                                                     soil_con.bubble_node,
-#endif // QUICK_FS
 #if EXCESS_ICE
                                                     soil_con.porosity_node,
                                                     soil_con.effective_porosity_node,

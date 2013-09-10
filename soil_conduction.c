@@ -152,9 +152,7 @@ void set_node_parameters(double   *dz_node,
 			 double   *expt,
 			 double   *bubble,
 			 double   *quartz,
-#if QUICK_FS
 			 double ***ufwc_table_node,
-#endif
 #if EXCESS_ICE
 			 double    *porosity,
 			 double    *effective_porosity,
@@ -222,11 +220,9 @@ void set_node_parameters(double   *dz_node,
   double Lsum; /* cumulative depth of moisture layer */
   double Zsum; /* upper boundary of node thermal layer */
   double deltaL[MAX_LAYERS+1];
-#if QUICK_FS
   int    ii;
   double Aufwc;
   double Bufwc;
-#endif
 
   PAST_BOTTOM = FALSE;
   lidx = 0;
@@ -314,12 +310,9 @@ int distribute_node_moisture_properties(double *moist_node,
 					double *Zsum_node,
 					double *T_node,
 					double *max_moist_node,
-#if QUICK_FS
 					double ***ufwc_table_node,
-#else
 					double *expt_node,
 					double *bubble_node,
-#endif
 #if EXCESS_ICE
 					double *porosity_node,
 					double *effective_porosity_node,
@@ -484,20 +477,14 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 			       double            *Zsum_node,
 			       double            *T,
 			       double            *max_moist_node,
-#if QUICK_FS
 			       double          ***ufwc_table_node,
-#else
 			       double            *expt_node,
 			       double            *bubble_node,
-#endif // QUICK_FS
 			       double            *depth,
 			       double            *max_moist,
-#if QUICK_FS
 			       double          ***ufwc_table_layer,
-#else
 			       double            *expt,
 			       double            *bubble,
-#endif // QUICK_FS
 			       double            *frost_fract,
 			       double             frost_slope,
 #if EXCESS_ICE
@@ -690,12 +677,9 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 			       double             T1,
 			       double             Tp,
 			       double            *max_moist,
-#if QUICK_FS
 			       double          ***ufwc_table_layer,
-#else
 			       double            *expt,
 			       double            *bubble,
-#endif // QUICK_FS
 			       double            *frost_fract,
 			       double             frost_slope,
 #if EXCESS_ICE

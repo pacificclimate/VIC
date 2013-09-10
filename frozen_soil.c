@@ -77,11 +77,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
     ErrorFlag = estimate_layer_ice_content_quick_flux(layer_wet, soil_con->depth, soil_con->dp,
 					   energy->T[0], energy->T[1], soil_con->avg_temp,
 					   soil_con->max_moist, 
-#if QUICK_FS
 					   soil_con->ufwc_table_layer,
-#else
 					   soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					   soil_con->frost_fract, soil_con->frost_slope, 
 
 #if EXCESS_ICE
@@ -94,11 +91,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
       ErrorFlag = estimate_layer_ice_content_quick_flux(layer_dry, soil_con->depth, soil_con->dp,
 					     energy->T[0], energy->T[1], soil_con->avg_temp,
 					     soil_con->max_moist, 
-#if QUICK_FS
 					     soil_con->ufwc_table_layer,
-#else
 					     soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					     soil_con->frost_fract, soil_con->frost_slope, 
 #if EXCESS_ICE
 					     soil_con->porosity,
@@ -111,17 +105,11 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
   else {
     ErrorFlag = estimate_layer_ice_content(layer_wet, soil_con->Zsum_node, energy->T,
 					   soil_con->max_moist_node, 
-#if QUICK_FS
 					   soil_con->ufwc_table_node,
-#else
 					   soil_con->expt_node, soil_con->bubble_node, 
-#endif // QUICK_FS
 					   soil_con->depth, soil_con->max_moist, 
-#if QUICK_FS
 					   soil_con->ufwc_table_layer,
-#else
 					   soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					   soil_con->frost_fract, soil_con->frost_slope, 
 #if EXCESS_ICE
 					   soil_con->porosity,
@@ -132,17 +120,11 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
     if(options.DIST_PRCP) {
       ErrorFlag = estimate_layer_ice_content(layer_dry, soil_con->Zsum_node, energy->T,
 					     soil_con->max_moist_node, 
-#if QUICK_FS
 					     soil_con->ufwc_table_node,
-#else
 					     soil_con->expt_node, soil_con->bubble_node, 
-#endif // QUICK_FS
 					     soil_con->depth, soil_con->max_moist, 
-#if QUICK_FS
 					     soil_con->ufwc_table_layer,
-#else
 					     soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					     soil_con->frost_fract, soil_con->frost_slope, 
 #if EXCESS_ICE
 					     soil_con->porosity, soil_con->effective_porosity,
@@ -185,9 +167,7 @@ int  solve_T_profile(double *T,
 		     double *gamma,
 		     double Dp,
 		     double *depth,
-#if QUICK_FS
 		     double ***ufwc_table_node,
-#endif
 #if EXCESS_ICE
 		     double *porosity,
 		     double *effective_porosity,
@@ -303,20 +283,14 @@ int  solve_T_profile(double *T,
   
   for(j=0;j<Nnodes;j++) T[j]=T0[j];
 
-#if QUICK_FS
+
   Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist, max_moist, ice, 
 				   bubble, expt, alpha, gamma, aa, bb, cc, 
-				   dd, ee, ufwc_table_node, FS_ACTIVE, 
-				   NOFLUX, EXP_TRANS, veg_class);
-#else
-  Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist, max_moist, ice, 
-				   bubble, expt, alpha, gamma, aa, bb, cc, 
-				   dd, ee, 
+				   dd, ee, ufwc_table_node,
 #if EXCESS_ICE
 				   porosity, effective_porosity,
 #endif				   
 				   FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
-#endif 
 
   return ( Error );
   
@@ -440,9 +414,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			     double *C, 
 			     double *D, 
 			     double *E,
-#if QUICK_FS
 			     double ***ufwc_table_node,
-#endif
 #if EXCESS_ICE
 			     double *porosity,
 			     double *effective_porosity,
@@ -522,15 +494,15 @@ int calc_soil_thermal_fluxes(int     Nnodes,
       else {
 #if QUICK_FS
 	T[j] = root_brent(T0[j]-(SOIL_DT), T0[j]+(SOIL_DT),
-			  ErrorString, soil_thermal_eqn, 
-			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j], 
-			  ufwc_table_node[j], ice[j], gamma[j-1], 
+			  ErrorString, soil_thermal_eqn,
+			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j],
+			  ufwc_table_node[j], ice[j], gamma[j-1],
 			  A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
 #else
 	T[j] = root_brent(T0[j]-(SOIL_DT), T0[j]+(SOIL_DT),
 			  ErrorString, soil_thermal_eqn, 
 			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j], 
-			  bubble[j], expt[j], 
+			  bubble[j], expt[j],
 #if EXCESS_ICE
 			  porosity[j], effective_porosity[j],
 #endif

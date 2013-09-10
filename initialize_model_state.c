@@ -145,9 +145,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 #else
   double   ice[MAX_VEG][MAX_BANDS][MAX_LAYERS];
 #endif // SPATIAL_FROST
-#if QUICK_FS
   double   Aufwc, Bufwc;
-#endif
   double   Clake;
   double   mu;
   double   surf_swq;
@@ -652,9 +650,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 				soil_con->gamma, soil_con->depth,
 				soil_con->max_moist, soil_con->expt, 
 				soil_con->bubble, soil_con->quartz, 
-#if QUICK_FS
 				soil_con->ufwc_table_node,
-#endif // QUICK_FS
 #if EXCESS_ICE
 				soil_con->porosity, soil_con->effective_porosity,
 				soil_con->porosity_node, soil_con->effective_porosity_node,
@@ -670,12 +666,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						soil_con->Zsum_node,
 						prcp->energy[veg][band].T,
 						soil_con->max_moist_node,
-#if QUICK_FS
 						soil_con->ufwc_table_node,
-#else
 						soil_con->expt_node,
 						soil_con->bubble_node,
-#endif // QUICK_FS
 #if EXCESS_ICE
 						soil_con->porosity_node,
 						soil_con->effective_porosity_node,
@@ -709,11 +702,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 					   soil_con->depth, soil_con->dp,
 					   prcp->energy[veg][band].T[0], prcp->energy[veg][band].T[1],
 					   soil_con->avg_temp, soil_con->max_moist, 
-#if QUICK_FS
 					   soil_con->ufwc_table_layer,
-#else
 					   soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					   soil_con->frost_fract, soil_con->frost_slope, 
 #if EXCESS_ICE
 					   soil_con->porosity,
@@ -726,20 +716,14 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						       soil_con->Zsum_node,
 						       prcp->energy[veg][band].T,
 						       soil_con->max_moist_node,
-#if QUICK_FS
 						       soil_con->ufwc_table_node,
-#else
 						       soil_con->expt_node,
 						       soil_con->bubble_node,
-#endif // QUICK_FS
 						       soil_con->depth,
 						       soil_con->max_moist,
-#if QUICK_FS
 						       soil_con->ufwc_table_layer,
-#else
 						       soil_con->expt,
 						       soil_con->bubble,
-#endif // QUICK_FS
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
 #if EXCESS_ICE
@@ -991,9 +975,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 				  soil_con->gamma, soil_con->depth,
 				  soil_con->max_moist, soil_con->expt, 
 				  soil_con->bubble, soil_con->quartz, 
-#if QUICK_FS
 				  soil_con->ufwc_table_node,
-#endif // QUICK_FS
 #if EXCESS_ICE
 				  soil_con->porosity, soil_con->effective_porosity,
 				  soil_con->porosity_node, soil_con->effective_porosity_node,
@@ -1013,12 +995,9 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						  soil_con->Zsum_node,
 						  prcp->energy[veg][band].T,
 						  soil_con->max_moist_node,
-#if QUICK_FS
 						  soil_con->ufwc_table_node,
-#else
 						  soil_con->expt_node,
 						  soil_con->bubble_node,
-#endif // QUICK_FS
 #if EXCESS_ICE
 						  soil_con->porosity_node,
 						  soil_con->effective_porosity_node,
@@ -1044,11 +1023,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 					   soil_con->depth, soil_con->dp,
 					   prcp->energy[veg][band].T[0], prcp->energy[veg][band].T[1],
 					   soil_con->avg_temp, soil_con->max_moist, 
-#if QUICK_FS
 					   soil_con->ufwc_table_layer,
-#else
 					   soil_con->expt, soil_con->bubble, 
-#endif // QUICK_FS
 					   soil_con->frost_fract, soil_con->frost_slope, 
 #if EXCESS_ICE
 					   soil_con->porosity,
@@ -1061,20 +1037,14 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						       soil_con->Zsum_node,
 						       prcp->energy[veg][band].T,
 						       soil_con->max_moist_node,
-#if QUICK_FS
 						       soil_con->ufwc_table_node,
-#else
 						       soil_con->expt_node,
 						       soil_con->bubble_node,
-#endif // QUICK_FS
 						       soil_con->depth,
 						       soil_con->max_moist,
-#if QUICK_FS
 						       soil_con->ufwc_table_layer,
-#else
 						       soil_con->expt,
 						       soil_con->bubble,
-#endif // QUICK_FS
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
 #if EXCESS_ICE

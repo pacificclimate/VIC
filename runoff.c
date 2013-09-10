@@ -799,12 +799,9 @@ int  runoff(cell_data_struct  *cell_wet,
 						      energy->kappa_node, energy->Cs_node,
 						      soil_con->Zsum_node, energy->T,
 						      soil_con->max_moist_node,
-#if QUICK_FS
 						      soil_con->ufwc_table_node,
-#else
 						      soil_con->expt_node,
 						      soil_con->bubble_node, 
-#endif // QUICK_FS
 #if EXCESS_ICE
 						      soil_con->porosity_node,
 						      soil_con->effective_porosity_node,

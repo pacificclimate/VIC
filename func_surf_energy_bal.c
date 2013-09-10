@@ -219,10 +219,8 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double *frost_fract;
 
   /* quick solution frozen soils terms */
-#if QUICK_FS
   double ***ufwc_table_layer;
   double ***ufwc_table_node;
-#endif
 
   /* excess ice terms */
 #if EXCESS_ICE
@@ -406,10 +404,8 @@ double func_surf_energy_bal(double Ts, va_list ap)
 
   frost_fract = soil_con->frost_fract;
 
-#if QUICK_FS
   ufwc_table_layer = soil_con->ufwc_table_layer;
   ufwc_table_node = soil_con->ufwc_table_node;
-#endif // QUICK_FS
 #if EXCESS_ICE
   porosity = soil_con->porosity[0];
   effective_porosity = soil_con->effective_porosity[0];
@@ -508,21 +504,14 @@ double func_surf_energy_bal(double Ts, va_list ap)
     if(!options.IMPLICIT || Error == 1) {
       if(options.IMPLICIT)
         FIRST_SOLN[0] = TRUE;
-#if QUICK_FS
+
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
 			      moist_node, delta_t, max_moist_node, bubble_node, 
-			      expt_node, ice_node, alpha, beta, gamma, dp,
-			      soil_con->depth, ufwc_table_node, Nnodes, FIRST_SOLN, FS_ACTIVE, 
-			      NOFLUX, EXP_TRANS, veg_class);
-#else
-      Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
-			      moist_node, delta_t, max_moist_node, bubble_node, 
-			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, 
+			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, ufwc_table_node,
 #if EXCESS_ICE
 			      porosity_node, effective_porosity_node,
 #endif
 			      Nnodes, FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
-#endif
     }
       
     if ( (int)Error == ERROR ) {
