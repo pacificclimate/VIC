@@ -165,12 +165,6 @@ int  full_energy(char                 NEWCELL,
   double                 oldsnow;
   double                 snowprec;
   double                 rainprec;
-  energy_bal_struct     *ptr_energy;
-  snow_data_struct      *tmp_snow;
-  veg_var_struct        *tmp_veg[2];
-  veg_var_struct        *wet_veg_var;
-  veg_var_struct        *dry_veg_var;
-  veg_var_struct         empty_veg_var;
 #if EXCESS_ICE
   int                    SubsidenceUpdate = 0;
   int                    index;
@@ -312,8 +306,7 @@ int  full_energy(char                 NEWCELL,
               * veg_lib[veg_class].LAI[dmy[rec].month - 1]);
 
       /* Initialize soil thermal properties for the top two layers */
-      prepare_full_energy(iveg, Nveg, options.Nnode, prcp, soil_con, moist0,
-          ice0);
+      prepare_full_energy(iveg, Nveg, options.Nnode, prcp, soil_con, moist0, ice0);
 
       /** Compute Bare (free of snow) Albedo **/
       bare_albedo = veg_lib[veg_class].albedo[dmy[rec].month - 1];
@@ -405,8 +398,6 @@ int  full_energy(char                 NEWCELL,
       for (band = 0; band < Nbands; band++) {
         if (soil_con->AreaFract[band] > 0) {
 
-          wet_veg_var = &(prcp->veg_var[WET][iveg][band]);
-          dry_veg_var = &(prcp->veg_var[DRY][iveg][band]);
           lag_one = veg_con[iveg].lag_one;
           sigma_slope = veg_con[iveg].sigma_slope;
           fetch = veg_con[iveg].fetch;
@@ -415,8 +406,7 @@ int  full_energy(char                 NEWCELL,
           for (p = 0; p < N_PET_TYPES; p++)
             prcp->cell[WET][iveg][band].pot_evap[p] = 0;
 
-          ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[band],
-              moist0[band],
+          ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[band], moist0[band],
 #if EXCESS_ICE
               SubsidenceUpdate, evap_prior[DRY][iveg][band],
               evap_prior[WET][iveg][band],
@@ -428,7 +418,7 @@ int  full_energy(char                 NEWCELL,
               options.Nlayer, Nveg, band, dp, iveg, rec, veg_class, atmos, dmy,
               &(prcp->energy[iveg][band]), gp, &(prcp->cell[DRY][iveg][band]),
               &(prcp->cell[WET][iveg][band]), &(prcp->snow[iveg][band]), soil_con,
-              dry_veg_var, wet_veg_var, lag_one, sigma_slope, fetch);
+              &(prcp->veg_var[DRY][iveg][band]), &(prcp->veg_var[WET][iveg][band]), lag_one, sigma_slope, fetch);
 
           if (ErrorFlag == ERROR)
             return (ERROR);

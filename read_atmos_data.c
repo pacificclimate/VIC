@@ -76,7 +76,6 @@ void read_atmos_data(FILE                 *infile,
   int fields;
   int Nfields;
   int day = 0;
-  int *field_index;
   unsigned short ustmp;
   signed short stmp;
   char str[MAXSTRING + 1];
@@ -85,7 +84,6 @@ void read_atmos_data(FILE                 *infile,
   int Nbytes;
 
   Nfields = param_set.N_TYPES[file_num];
-  field_index = param_set.FORCE_INDEX[file_num];
 
   /** locate starting record **/
   /* if ascii then the following refers to the number of lines to skip,
@@ -252,11 +250,11 @@ void read_atmos_data(FILE                 *infile,
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
                   / inverse_scale_factor;
           else
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec]
+              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
                   * scale_factor;
           free(data);
           break;
@@ -279,10 +277,10 @@ void read_atmos_data(FILE                 *infile,
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec] / inverse_scale_factor;
+              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] / inverse_scale_factor;
           else
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[field_index[varidx]][rec] = (double) data[rec] * scale_factor;
+              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] * scale_factor;
           free(data);
           break;
         }
@@ -361,18 +359,18 @@ void read_atmos_data(FILE                 *infile,
             < global_param.nrecs * global_param.dt)) {
 
       for (i = 0; i < Nfields; i++) {
-        if (param_set.TYPE[field_index[i]].SIGNED) {
+        if (param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].SIGNED) {
           fread(&stmp, sizeof(short int), 1, infile);
           if (endian != param_set.FORCE_ENDIAN[file_num]) {
             stmp = ((stmp & 0xFF) << 8) | ((stmp >> 8) & 0xFF);
           }
-          forcing_data[field_index[i]][rec] = (double) stmp / param_set.TYPE[field_index[i]].multiplier;
+          forcing_data[param_set.FORCE_INDEX[file_num][i]][rec] = (double) stmp / param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].multiplier;
         } else {
           fread(&ustmp, sizeof(unsigned short int), 1, infile);
           if (endian != param_set.FORCE_ENDIAN[file_num]) {
             ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
           }
-          forcing_data[field_index[i]][rec] = (double) ustmp / param_set.TYPE[field_index[i]].multiplier;
+          forcing_data[param_set.FORCE_INDEX[file_num][i]][rec] = (double) ustmp / param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].multiplier;
         }
       }
 
@@ -408,7 +406,7 @@ void read_atmos_data(FILE                 *infile,
         && (rec * param_set.FORCE_DT[file_num]
             < global_param.nrecs * global_param.dt)) {
       for (i = 0; i < Nfields; i++)
-        fscanf(infile, "%lf", &forcing_data[field_index[i]][rec]);
+        fscanf(infile, "%lf", &forcing_data[param_set.FORCE_INDEX[file_num][i]][rec]);
       fgets(str, MAXSTRING, infile);
       rec++;
     }

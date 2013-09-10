@@ -203,9 +203,6 @@ int  runoff(cell_data_struct  *cell_wet,
   double             max_infil;
   double             Ksat[MAX_LAYERS];
   double             Q12[MAX_LAYERS-1];
-  double            *kappa;
-  double            *Cs;
-  double            *M;
   double             Dsmax;
   double             top_moist;     // total moisture (liquid and frozen) in topmost soil layers (mm)
   double             top_max_moist; // maximum storable moisture (liquid and frozen) in topmost soil layers (mm)
@@ -243,8 +240,6 @@ int  runoff(cell_data_struct  *cell_wet,
   double             liq_prior;
   double             total_evap;
 #endif //EXCESS_ICE
-  layer_data_struct *layer;
-  layer_data_struct  tmp_layer;
   cell_data_struct  *cell;
 
   /** Set Residual Moisture **/
@@ -268,7 +263,6 @@ int  runoff(cell_data_struct  *cell_wet,
     else {
       cell         = cell_wet;
     }
-    layer = cell->layer;
 
     cell->runoff = 0;
     cell->baseflow = 0;
@@ -281,14 +275,14 @@ int  runoff(cell_data_struct  *cell_wet,
 	
 #if SPATIAL_FROST
       for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
-	evap[lindex][0] = layer[lindex].evap/(double)dt;
-	org_moist[lindex] = layer[lindex].moist;
-	layer[lindex].moist = 0;
+	evap[lindex][0] = cell->layer[lindex].evap/(double)dt;
+	org_moist[lindex] = cell->layer[lindex].moist;
+	cell->layer[lindex].moist = 0;
         if ( evap[lindex][0] != 0 ) { // if there is evaporation
           sum_liq = 0;
           // compute available soil moisture for each frost sub area.
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-            avail_liq[lindex][frost_area] = (org_moist[lindex] - layer[lindex].ice[frost_area] - resid_moist[lindex]);
+            avail_liq[lindex][frost_area] = (org_moist[lindex] - cell->layer[lindex].ice[frost_area] - resid_moist[lindex]);
             if (avail_liq[lindex][frost_area] < 0) avail_liq[lindex][frost_area] = 0;
             sum_liq += avail_liq[lindex][frost_area]*frost_fract[frost_area];
           }
@@ -312,7 +306,7 @@ int  runoff(cell_data_struct  *cell_wet,
 
       // compute temperatures of frost subareas
       for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
-        min_temp = layer[lindex].T - soil_con->frost_slope / 2.;
+        min_temp = cell->layer[lindex].T - soil_con->frost_slope / 2.;
         max_temp = min_temp + soil_con->frost_slope;
         for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           if ( FROST_SUBAREAS > 1 ) {
@@ -320,7 +314,7 @@ int  runoff(cell_data_struct  *cell_wet,
             else tmp_fract += (frost_fract[frost_area-1] + frost_fract[frost_area]) / 2.;
             Tlayer_spatial[lindex][frost_area] = linear_interp(tmp_fract, 0, 1, min_temp, max_temp);
           }
-          else Tlayer_spatial[lindex][frost_area] = layer[lindex].T;
+          else Tlayer_spatial[lindex][frost_area] = cell->layer[lindex].T;
         }
       }
 
@@ -328,7 +322,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #else
       // store current evaporation
       for ( lindex = 0; lindex < options.Nlayer; lindex++ )
-        evap[lindex][0] = layer[lindex].evap/(double)dt;
+        evap[lindex][0] = cell->layer[lindex].evap/(double)dt;
 
       frost_area = 0;
 
@@ -348,16 +342,16 @@ int  runoff(cell_data_struct  *cell_wet,
 	  
 	  /** Set Layer Liquid Moisture Content **/
 #if SPATIAL_FROST
-	  liq[lindex] = org_moist[lindex] - layer[lindex].ice[frost_area];
+	  liq[lindex] = org_moist[lindex] - cell->layer[lindex].ice[frost_area];
 #else
-	  liq[lindex] = layer[lindex].moist - layer[lindex].ice;
+	  liq[lindex] = cell->layer[lindex].moist - cell->layer[lindex].ice;
 #endif // SPATIAL_FROST
 	  
 	  /** Set Layer Frozen Moisture Content **/
 #if SPATIAL_FROST
-	  ice[lindex]       = layer[lindex].ice[frost_area];
+	  ice[lindex]       = cell->layer[lindex].ice[frost_area];
 #else
-	  ice[lindex]       = layer[lindex].ice;
+	  ice[lindex]       = cell->layer[lindex].ice;
 #endif // SPATIAL_FROST
 	  
 	  /** Set Layer Maximum Moisture Content **/
@@ -367,7 +361,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #if SPATIAL_FROST
           Tlayer = Tlayer_spatial[lindex][frost_area];
 #else
-	  Tlayer = layer[lindex].T;
+	  Tlayer = cell->layer[lindex].T;
 #endif // SPATIAL_FROST
 
 	} // initialize variables for each layer
@@ -748,7 +742,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	
 	/** If negative baseflow, reduce evap accordingly **/
 	if ( baseflow[frost_area] < 0 ) {
-	  layer[lindex].evap   += baseflow[frost_area];
+	  cell->layer[lindex].evap   += baseflow[frost_area];
 	  baseflow[frost_area]  = 0;
 	}
 
@@ -761,13 +755,13 @@ int  runoff(cell_data_struct  *cell_wet,
         /** Store tile-wide values **/
 #if SPATIAL_FROST
 	for ( lindex = 0; lindex < options.Nlayer; lindex++ ) 
-	  layer[lindex].moist += ((liq[lindex] + ice[lindex]) * frost_fract[frost_area]); 
+	  cell->layer[lindex].moist += ((liq[lindex] + ice[lindex]) * frost_fract[frost_area]); 
         cell->asat     += A * frost_fract[frost_area];
         cell->runoff   += runoff[frost_area] * frost_fract[frost_area];
         cell->baseflow += baseflow[frost_area] * frost_fract[frost_area];
 #else
 	for ( lindex = 0; lindex < options.Nlayer; lindex++ ) 
-	  layer[lindex].moist = liq[lindex] + ice[lindex];      
+	  cell->layer[lindex].moist = liq[lindex] + ice[lindex];      
         cell->asat     += A;
         cell->runoff   += runoff[frost_area];
         cell->baseflow += baseflow[frost_area];
@@ -792,9 +786,9 @@ int  runoff(cell_data_struct  *cell_wet,
 
   /** Recompute Thermal Parameters Based on New Moisture Distribution **/
   if(options.FULL_ENERGY || options.FROZEN_SOIL) {
-    
+    layer_data_struct tmp_layer;
     for(lindex=0;lindex<options.Nlayer;lindex++) {
-      tmp_layer = find_average_layer(&(cell_wet->layer[lindex]), 
+      tmp_layer = find_average_layer(&(cell_wet->layer[lindex]),
 				     &(cell_dry->layer[lindex]), 
 				     soil_con->depth[lindex], tmp_mu);
       moist[lindex] = tmp_layer.moist;
