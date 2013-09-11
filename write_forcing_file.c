@@ -4,7 +4,6 @@
 
 static char vcid[] = "$Id$";
 
-#if OUTPUT_FORCE
 void write_forcing_file(atmos_data_struct *atmos,
 			int                nrecs,
 			out_data_file_struct *out_data_files, 
@@ -33,12 +32,12 @@ void write_forcing_file(atmos_data_struct *atmos,
   extern global_param_struct global_param;
   extern option_struct options;
 
-  int                 rec, i, j, v;
-  short int          *tmp_siptr;
-  unsigned short int *tmp_usiptr;
-  dmy_struct         *dummy_dmy;
-  int                 dummy_dt;
-  int                 dt_sec;
+  int                 rec = 0, i = 0, j = 0, v = 0;
+  short int          *tmp_siptr = NULL;
+  unsigned short int *tmp_usiptr = NULL;
+  dmy_struct         *dummy_dmy = NULL;
+  int                 dummy_dt = 0;
+  int                 dt_sec = 0;
 
   dt_sec = global_param.dt*SECPHOUR;
 
@@ -98,4 +97,3 @@ void write_forcing_file(atmos_data_struct *atmos,
   }
 
 }
-#endif /* OUTPUT_FORCE */

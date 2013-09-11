@@ -6,15 +6,12 @@ static char vcid[] = "$Id$";
 
 void initialize_atmos(atmos_data_struct        *atmos,
                       const dmy_struct               *dmy,
-		      FILE                    **infile,
+                      FILE                    **infile,
                       int                      *ncids,
-#if OUTPUT_FORCE
-		      soil_con_struct          *soil_con,
+                      soil_con_struct          *soil_con,
                       out_data_file_struct     *out_data_files,
                       out_data_struct          *out_data)
-#else /* OUTPUT_FORCE */
-		      soil_con_struct          *soil_con)
-#endif /* OUTPUT_FORCE */
+
 /**********************************************************************
   initialize_atmos	Keith Cherkauer		February 3, 1997
 

@@ -292,11 +292,8 @@ void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids,
-#if OUTPUT_FORCE
 			soil_con_struct *, out_data_file_struct *, out_data_struct *);
-#else
-			soil_con_struct *);
-#endif
+
 void   initialize_global();
 int   initialize_model_state(dist_prcp_struct *, const dmy_struct,
 			      global_param_struct *, filep_struct, 
@@ -478,9 +475,7 @@ void write_debug(atmos_data_struct *, soil_con_struct *, cell_data_struct *,
                  const dmy_struct *, global_param_struct *,
                  double, double, int, int, int, int, int, char);
 void write_dist_prcp(dist_prcp_struct *);
-#if OUTPUT_FORCE
 void write_forcing_file(atmos_data_struct *, int, out_data_file_struct *, out_data_struct *);
-#endif
 void write_header(out_data_file_struct *, out_data_struct *, const dmy_struct *, global_param_struct);
 void write_layer(layer_data_struct *, int, int, double *, double *);
 void write_model_state(dist_prcp_struct *, global_param_struct *, int, 

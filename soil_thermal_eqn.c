@@ -52,12 +52,9 @@ double soil_thermal_eqn(double T, va_list ap) {
   T0         = (double) va_arg(ap, double);
   moist      = (double) va_arg(ap, double);
   max_moist  = (double) va_arg(ap, double);
-#if QUICK_FS
   ufwc_table = (double **) va_arg(ap, double **);
-#else
   bubble     = (double) va_arg(ap, double);
   expt       = (double) va_arg(ap, double);
-#endif
   porosity   = (double) va_arg(ap, double);
   effective_porosity   = (double) va_arg(ap, double);
   ice0       = (double) va_arg(ap, double);

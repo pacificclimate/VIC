@@ -282,11 +282,8 @@ int main(int argc, char *argv[])
 #endif /* VERBOSE */
 
       initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid,
-#if OUTPUT_FORCE
           &soil_con, out_data_files, out_data);
-#else /* OUTPUT_FORCE */
-          &soil_con);
-#endif /* OUTPUT_FORCE */
+
 
 #if !OUTPUT_FORCE
 #if LINK_DEBUG

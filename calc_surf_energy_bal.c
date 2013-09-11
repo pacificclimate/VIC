@@ -1008,10 +1008,8 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
 
   frost_fract             = (double *) va_arg(ap, double *);
 
-#if QUICK_FS
   ufwc_table_layer        = (double **) va_arg(ap, double **);
   ufwc_table_node         = (double ***) va_arg(ap, double ***);
-#endif
 
   /* model structures */
   layer_wet               = (layer_data_struct *) va_arg(ap, layer_data_struct *);

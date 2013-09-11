@@ -473,21 +473,14 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 	  T[j] = (A[j]*T0[j]+B[j]*(T[j+1]-T[j-1])+C[j]*(T[j+1]+T[j-1])-D[j]*(T[j+1]-T[j-1])+E[j]*(0.-ice[j]))/(A[j]+2.*C[j]);
       }
       else {
-#if QUICK_FS
-	T[j] = root_brent(T0[j]-(SOIL_DT), T0[j]+(SOIL_DT),
-			  ErrorString, soil_thermal_eqn,
-			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j],
-			  ufwc_table_node[j], ice[j], gamma[j-1],
-			  A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
-#else
+
 	T[j] = root_brent(T0[j]-(SOIL_DT), T0[j]+(SOIL_DT),
 			  ErrorString, soil_thermal_eqn, 
 			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j], 
-			  bubble[j], expt[j],
+			  ufwc_table_node[j], bubble[j], expt[j],
 			  porosity[j], effective_porosity[j],
 			  ice[j], gamma[j-1], 
 			  A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
-#endif
 	
 	if(T[j] <= -998 ) {
           if (options.TFALLBACK) {
@@ -521,26 +514,16 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 	  T[j] = (A[j]*T0[j]+B[j]*(T[j]-T[j-1])+C[j]*(T[j]+T[j-1])-D[j]*(T[j]-T[j-1])+E[j]*(0.-ice[j]))/(A[j]+2.*C[j]);
       }
       else {
-#if QUICK_FS
+
 	T[Nnodes-1] = root_brent(T0[Nnodes-1]-SOIL_DT, T0[Nnodes-1]+SOIL_DT,
 				 ErrorString, soil_thermal_eqn, T[Nnodes-1],
 				 T[Nnodes-2], T0[Nnodes-1], 
 				 moist[Nnodes-1], max_moist[Nnodes-1], 
-				 ufwc_table_node[Nnodes-1], 
-				 ice[Nnodes-1], 
-				 gamma[Nnodes-2], 
-				 A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
-#else
-	T[Nnodes-1] = root_brent(T0[Nnodes-1]-SOIL_DT, T0[Nnodes-1]+SOIL_DT,
-				 ErrorString, soil_thermal_eqn, T[Nnodes-1],
-				 T[Nnodes-2], T0[Nnodes-1], 
-				 moist[Nnodes-1], max_moist[Nnodes-1], 
-				 bubble[j], expt[Nnodes-1], 
+				 ufwc_table_node[Nnodes-1], bubble[j], expt[Nnodes-1],
 				 porosity[Nnodes-1], effective_porosity[Nnodes-1],
-				 ice[Nnodes-1], 
-				 gamma[Nnodes-2], 
+				 ice[Nnodes-1], gamma[Nnodes-2],
 				 A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
-#endif
+
 	
 	if(T[j] <= -998 ) {
           if (options.TFALLBACK) {
