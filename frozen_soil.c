@@ -214,7 +214,7 @@ int  solve_T_profile(double *T,
     //fprintf(stderr,"*************EXPLICIT SOLUTION***********\n");
     
     if(EXP_TRANS)
-      Bexp = logf(Dp+1.)/(double)(Nnodes-1); 
+      Bexp = log(Dp+1.)/(double)(Nnodes-1);
 
     FIRST_SOLN[0] = FALSE;
     if(!EXP_TRANS) {
@@ -771,9 +771,9 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
     
     if(EXP_TRANS){
       if(!NOFLUX)
-	Bexp = logf(Dp+1.)/(double)(n+1); 
+	Bexp = log(Dp+1.)/(double)(n+1);
       else
-	Bexp = logf(Dp+1.)/(double)(n);
+	Bexp = log(Dp+1.)/(double)(n);
     }    
 
     Ts = T0[0];

@@ -550,9 +550,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 	    
 	    /*calculate exponential function parameter */
 	    if ( FIRST_VEG ) {
-	      Bexp = logf(dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
+	      Bexp = log(dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
 	      for ( index = 0; index <= Nnodes-1; index++ )
-		soil_con->Zsum_node[index] = expf(Bexp*index)-1.;
+		soil_con->Zsum_node[index] = exp(Bexp*index)-1.;
 	      if(soil_con->Zsum_node[0] > soil_con->depth[0]) {
 		sprintf(ErrStr,"Depth of first thermal node (%f) in initialize_model_state is greater than depth of first soil layer (%f); increase the number of nodes or decrease the thermal damping depth dp (%f)",soil_con->Zsum_node[0],soil_con->depth[0],dp);
 		nrerror(ErrStr);
@@ -906,9 +906,9 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
   else{ /* exponential grid transformation, EXP_TRANS = TRUE*/
     
     /*calculate exponential function parameter */
-    Bexp = logf(soil_con->dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
+    Bexp = log(soil_con->dp+1.)/(double)(Nnodes-1); //to force Zsum=dp at bottom node
     for ( index = 0; index <= Nnodes-1; index++ )
-      soil_con->Zsum_node[index] = expf(Bexp*index)-1.;
+      soil_con->Zsum_node[index] = exp(Bexp*index)-1.;
     
     //top node	  
     index=0;
