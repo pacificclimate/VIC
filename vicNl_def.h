@@ -881,7 +881,7 @@ typedef struct {
   double   aspect;
   double   ehoriz;
   double   whoriz;
-#if EXCESS_ICE
+  //Excess ice variables
   double   min_depth[MAX_LAYERS];     /* soil layer depth as given in the soil file (m).  The effective depth will always be >= this value. */
   double   porosity_node[MAX_NODES];  /* porosity for each thermal node */
   double   effective_porosity[MAX_LAYERS]; /* effective soil porosity (fraction) when soil pores are expanded due to excess ground ice */
@@ -889,7 +889,6 @@ typedef struct {
   double   Wcr_FRACT[MAX_LAYERS];
   double   Wpwp_FRACT[MAX_LAYERS];
   double   subsidence[MAX_LAYERS];      /* subsidence of soil layer, mm*/
-#endif // EXCESS_ICE
 } soil_con_struct;
 
 /*****************************************************************

@@ -1866,10 +1866,8 @@ void energycalc (double *finaltemp, double *sumjoule, int numnod, double dz, dou
 
 int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist_prcp_struct *prcp,
 		    int rec, int iveg,int band, double lakefrac, soil_con_struct soil_con,
-#if EXCESS_ICE
 		    veg_con_struct veg_con, int SubsidenceUpdate, double total_meltwater)
-#endif
-		    veg_con_struct veg_con)
+
 /**********************************************************************
  * This routine calculates the water balance of the lake
  
@@ -2309,10 +2307,8 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
                                                     soil_con.ufwc_table_node,
                                                     soil_con.expt_node,
                                                     soil_con.bubble_node,
-#if EXCESS_ICE
                                                     soil_con.porosity_node,
                                                     soil_con.effective_porosity_node,
-#endif // EXCESS_ICE
                                                     moist, soil_con.depth,
                                                     soil_con.soil_dens_min,
                                                     soil_con.bulk_dens_min,

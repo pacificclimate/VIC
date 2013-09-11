@@ -142,10 +142,7 @@ int    calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *
 				double *, double *, double *,double *, 
 				double *, double *, double *, 
 				double *, double *, double *, double ***,
-#if EXCESS_ICE
-        double *, double *,
-#endif // EXCESS_ICE
-        int, int, int, int);
+        double *, double *, int, int, int, int);
 
 double CalcSnowPackEnergyBalance(double Tsurf, ...);
 double CalcBlowingSnow(double, double, int, double, double, double, double, 
@@ -217,13 +214,9 @@ int    dist_prec(atmos_data_struct *,dist_prcp_struct *,soil_con_struct *,
 		 int, int, char, char, char *, int *);
 
 int distribute_node_moisture_properties(double *, double *, double *, double *,
-    double *, double *, double *, double ***, double *, double *,
-#if EXCESS_ICE
-    double *,
-    double *,
-#endif
+    double *, double *, double *, double ***, double *, double *, double *,
     double *, double *, double *, double *, double *, double *, double *,
-    double *, int, int, char);
+    double *, double *, int, int, char);
 
 
 void   distribute_soil_property(double *,double,double,
@@ -248,26 +241,12 @@ double estimate_dew_point(double, double, double, double, double);
 
 int estimate_layer_ice_content(layer_data_struct *, double *, double *,
     double *, double ***, double *, double *, double *, double *, double ***,
-    double *, double *, double *, double,
-#if EXCESS_ICE
-    double *,
-    double *,
-#endif // EXCESS_ICE
-    int, int, char);
+    double *, double *, double *, double, double *, double *, int, int, char);
 
+int estimate_layer_ice_content_quick_flux(layer_data_struct *, double *, double,
+    double, double, double, double *, double ***, double *, double *, double *,
+    double, double *, double *, char);
 
-
-
-int estimate_layer_ice_content_quick_flux(layer_data_struct *, double *,
-					  double, double, double, double,
-					  double *,
-					  double ***,
-					  double *, double *,
-					  double *, double,
-#if EXCESS_ICE
-					  double *, double *,
-#endif // EXCESS_ICE
-					  char);
 double estimate_T1(double, double, double, double, double, double, double, 
 		   double, double, double, double);
 double exp_interp(double,double,double,double,double);
@@ -347,11 +326,7 @@ out_data_struct *make_out_data(int);
 snow_data_struct **make_snow_data(int);
 veg_var_struct **make_veg_var(int);
 void   MassRelease(double *,double *,double *,double *);
-#if EXCESS_ICE
 double maximum_unfrozen_water(double, double, double, double, double, double);
-#else
-double maximum_unfrozen_water(double, double, double, double);
-#endif
 double maximum_unfrozen_water_quick(double, double, double **);
 double modify_Ksat(double);
 void mtclim_wrapper(int, int, double, double, double, double,
@@ -403,20 +378,13 @@ unsigned char redistribute_moisture_for_storm(double *, double *, double,
 double root_brent(double, double, char *, double (*Function)(double, va_list), ...);
 int    runoff(cell_data_struct *, cell_data_struct *,
               energy_bal_struct *, soil_con_struct *, double *,
-#if EXCESS_ICE
-	      int,
-#endif
-              double *, double, int, int, int, int, int);
+              int, double *, double, int, int, int, int, int);
 
 void set_max_min_hour(double *, int, int *, int *);
-void set_node_parameters(double *, double *, double *, double *, double *, double *,
-			 double *, double *, double *, double *, double *,
-			 double *, double *,
-			 double ***,
-#if EXCESS_ICE
-			 double *, double *, double *, double *,
-#endif
-			 int, int, char);
+void set_node_parameters(double *, double *, double *, double *, double *,
+    double *, double *, double *, double *, double *, double *, double *,
+    double *, double ***, double *, double *, double *, double *, int, int,
+    char);
 out_data_file_struct *set_output_defaults(out_data_struct *);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char);
@@ -464,35 +432,24 @@ double solve_surf_energy_bal(double Tsurf, ...);
 
 int solve_T_profile(double *, double *, char *, int *, double *, double *,
     double *, double *, double, double *, double *, double *, double *,
-    double *, double *, double *, double, double *, double ***,
-#if EXCESS_ICE
-    double *,
-    double *,
-#endif
-    int, int *, int, int, int, int);
+    double *, double *, double *, double, double *, double ***, double *,
+    double *, int, int *, int, int, int, int);
 
+int solve_T_profile_implicit(double *, double *, double *, double *, double *,
+          double *, double, double *, double *, double *, double *, double *,
+          double *, double *, double *, double *, double, int, int *, int, int, int,
+          int, double *, double *, double *, double *, double *, double *, double *);
 
-
-int   solve_T_profile_implicit(double *, double *, double *, double *, double *,
-			       double *, double, double *, double *, double *,
-#if EXCESS_ICE
-			       double *, double *,
-#endif
-			       double *, double *, double *, double *, double, int, int *,
-			       int, int, int, int, 
-			       double *, double *, double *, double *, double *, double *, double *);
 double StabilityCorrection(double, double, double, double, double, double);
 void   store_moisture_for_debug(int,int,double *,cell_data_struct ***,
 				veg_var_struct ***,snow_data_struct **,
 				soil_con_struct *);
 int    surface_fluxes(char, double, double, double, double, 
-#if EXCESS_ICE
-		      int, double *, double *,
-#endif
-		      double, double, double *, double *, double **,
+		                  int, double *, double *,
+		                  double, double, double *, double *, double **,
                       double *, double *, double *, double *, 
                       double *, double *, double *, double *, double *,
-		      float *, int, int, int, int, int, 
+                      float *, int, int, int, int, int,
                       int, int, int, int, atmos_data_struct *, const dmy_struct *, 
                       energy_bal_struct *, global_param_struct *, 
                       cell_data_struct *, cell_data_struct *, 

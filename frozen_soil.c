@@ -80,11 +80,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->ufwc_table_layer,
 					   soil_con->expt, soil_con->bubble, 
 					   soil_con->frost_fract, soil_con->frost_slope, 
-
-#if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					   soil_con->FS_ACTIVE);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(options.DIST_PRCP) {
@@ -94,10 +91,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					     soil_con->ufwc_table_layer,
 					     soil_con->expt, soil_con->bubble, 
 					     soil_con->frost_fract, soil_con->frost_slope, 
-#if EXCESS_ICE
 					     soil_con->porosity,
 					     soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					     soil_con->FS_ACTIVE);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
@@ -111,10 +106,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->ufwc_table_layer,
 					   soil_con->expt, soil_con->bubble, 
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					   Nnodes, options.Nlayer, soil_con->FS_ACTIVE);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(options.DIST_PRCP) {
@@ -126,9 +119,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					     soil_con->ufwc_table_layer,
 					     soil_con->expt, soil_con->bubble, 
 					     soil_con->frost_fract, soil_con->frost_slope, 
-#if EXCESS_ICE
 					     soil_con->porosity, soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					     Nnodes, options.Nlayer, soil_con->FS_ACTIVE);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
@@ -168,10 +159,8 @@ int  solve_T_profile(double *T,
 		     double Dp,
 		     double *depth,
 		     double ***ufwc_table_node,
-#if EXCESS_ICE
 		     double *porosity,
 		     double *effective_porosity,
-#endif		     
 		     int     Nnodes,
 		     int    *FIRST_SOLN,
 		     int     FS_ACTIVE,
@@ -287,9 +276,7 @@ int  solve_T_profile(double *T,
   Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist, max_moist, ice, 
 				   bubble, expt, alpha, gamma, aa, bb, cc, 
 				   dd, ee, ufwc_table_node,
-#if EXCESS_ICE
 				   porosity, effective_porosity,
-#endif				   
 				   FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
 
   return ( Error );
@@ -308,10 +295,8 @@ int solve_T_profile_implicit(double *T,                           // update
 			     double *max_moist,             // soil parameter
 			     double *bubble,                // soil parameter
 			     double *expt,                  // soil parameter
-#if EXCESS_ICE
 			     double *porosity,              // soil parameter
 			     double *effective_porosity,     // soil parameter
-#endif			     
 			     double *ice,                   // update if necessary
 			     double *alpha,                 // soil parameter
 			     double *beta,                  // soil parameter
@@ -375,9 +360,7 @@ int solve_T_profile_implicit(double *T,                           // update
     n = Nnodes-1;
   
   fda_heat_eqn(&T[1], res, n, 1, deltat, FS_ACTIVE, NOFLUX, EXP_TRANS, T0, moist, ice, kappa, Cs, max_moist, bubble, expt, 
-#if EXCESS_ICE
 	       porosity, effective_porosity,
-#endif
 	       alpha, beta, gamma, Zsum, Dp, bulk_dens_min, soil_dens_min, quartz, bulk_density, soil_density, organic, depth, options.Nlayer);
   
   // modified Newton-Raphson to solve for new T
@@ -415,10 +398,8 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			     double *D, 
 			     double *E,
 			     double ***ufwc_table_node,
-#if EXCESS_ICE
 			     double *porosity,
 			     double *effective_porosity,
-#endif
 			     int    FS_ACTIVE, 
 			     int    NOFLUX,
 			     int EXP_TRANS,
@@ -503,10 +484,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			  ErrorString, soil_thermal_eqn, 
 			  T[j+1], T[j-1], T0[j], moist[j], max_moist[j], 
 			  bubble[j], expt[j],
-#if EXCESS_ICE
 			  porosity[j], effective_porosity[j],
-#endif
-
 			  ice[j], gamma[j-1], 
 			  A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
 #endif
@@ -558,9 +536,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 				 T[Nnodes-2], T0[Nnodes-1], 
 				 moist[Nnodes-1], max_moist[Nnodes-1], 
 				 bubble[j], expt[Nnodes-1], 
-#if EXCESS_ICE
 				 porosity[Nnodes-1], effective_porosity[Nnodes-1],
-#endif
 				 ice[Nnodes-1], 
 				 gamma[Nnodes-2], 
 				 A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
@@ -744,10 +720,8 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
   static double *max_moist;
   static double *bubble;
   static double *expt;
-#if EXCESS_ICE
   static double *porosity;
   static double *effective_porosity;
-#endif
   static double *alpha;
   static double *beta;
   static double *gamma;
@@ -796,10 +770,8 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
     max_moist  = va_arg(arg_addr, double *);
     bubble     = va_arg(arg_addr, double *);
     expt       = va_arg(arg_addr, double *);
-#if EXCESS_ICE
     porosity   = va_arg(arg_addr, double *);
     effective_porosity = va_arg(arg_addr, double *);
-#endif
     alpha      = va_arg(arg_addr, double *);
     beta       = va_arg(arg_addr, double *);
     gamma      = va_arg(arg_addr, double *);
@@ -849,9 +821,7 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
 	  // update ice contents
 	  if (T_2[i-1]<0) {
 	    ice_new[i] = moist[i] - maximum_unfrozen_water(T_2[i-1], 
-#if EXCESS_ICE
 							   porosity[i], effective_porosity[i],
-#endif							   
 							   max_moist[i], bubble[i], expt[i]);
 	    if (ice_new[i]<0) ice_new[i]=0;
 	  }
@@ -948,9 +918,7 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
       for (i=left; i<=right; i++) {
 	if (T_2[i]<0) {
 	  ice_new[i+1] = moist[i+1] - maximum_unfrozen_water(T_2[i], 
-#if EXCESS_ICE
 							     porosity[i+1], effective_porosity[i+1],
-#endif							     
 							     max_moist[i+1], bubble[i+1], expt[i+1]);
 	  if (ice_new[i+1]<0) ice_new[i+1]=0;
 	}

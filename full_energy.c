@@ -163,23 +163,23 @@ int  full_energy(char                 NEWCELL,
   double                 oldsnow;
   double                 snowprec;
   double                 rainprec;
-#if EXCESS_ICE
+
+  //Excess ice variables
   int                    SubsidenceUpdate = 0;
-  int                    index;
+  int                    index = 0;
   char                   ErrStr[MAXSTRING];
-  double                 max_ice_layer; //mm/mm
-  double                 ave_ice_fract; //mm/mm
-  double                 ave_ice, tmp_ice; //mm
-  double                 ice_layer; //mm
+  double                 max_ice_layer = 0; //mm/mm
+  double                 ave_ice_fract = 0; //mm/mm
+  double                 ave_ice = 0, tmp_ice = 0; //mm
+  double                 ice_layer = 0; //mm
   double                 subsidence[MAX_LAYERS]; //mm
-  double                 total_subsidence; //m
-  double                 tmp_subsidence; //mm
-  double                 total_meltwater; //mm
-  double                 tmp_depth, tmp_depth_prior; //m
+  double                 total_subsidence = 0; //m
+  double                 tmp_subsidence = 0; //mm
+  double                 total_meltwater = 0; //mm
+  double                 tmp_depth = 0, tmp_depth_prior = 0; //m
   double                 ppt[2]; 
   double                 moist_prior[2][MAX_VEG][MAX_BANDS][MAX_LAYERS]; //mm
   double                 evap_prior[2][MAX_VEG][MAX_BANDS][MAX_LAYERS]; //mm
-#endif //EXCESS_ICE
 
   /* Allocate aero_resist array */
   aero_resist = (double**) calloc(N_PET_TYPES + 1, sizeof(double*));
@@ -405,10 +405,8 @@ int  full_energy(char                 NEWCELL,
             prcp->cell[WET][iveg][band].pot_evap[p] = 0;
 
           ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[band], moist0[band],
-#if EXCESS_ICE
               SubsidenceUpdate, evap_prior[DRY][iveg][band],
               evap_prior[WET][iveg][band],
-#endif
               prcp->mu[iveg], surf_atten, &(Melt[band * 2]), &Le, aero_resist,
               displacement, gauge_correction, &out_prec[band * 2],
               &out_rain[band * 2], &out_snow[band * 2], ref_height, roughness,
@@ -583,7 +581,7 @@ int  full_energy(char                 NEWCELL,
           fprintf(stderr,"\t\tBulk density increased from %.2f kg/m^3 to %.2f kg/m^3.\n",soil_con->bulk_density[lidx],(1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]);
 #endif
           soil_con->bulk_dens_min[lidx] *= (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]/soil_con->bulk_density[lidx];
-          if (soil_con->organic[layer] > 0)
+          if (soil_con->organic[lidx] > 0)
           soil_con->bulk_dens_org[lidx] *= (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]/soil_con->bulk_density[lidx];
           soil_con->bulk_density[lidx] = (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]; //adjust bulk density
           total_meltwater += soil_con->max_moist[lidx] - soil_con->depth[lidx] * soil_con->effective_porosity[lidx] * 1000.;//for lake model (uses prior max_moist,
@@ -682,9 +680,7 @@ int  full_energy(char                 NEWCELL,
             ErrorFlag = runoff(&(prcp->cell[WET][iveg][band]), &(prcp->cell[DRY][iveg][band]), &(prcp->energy[iveg][band]),
                 soil_con, ppt,
                 SubsidenceUpdate,
-#if SPATIAL_FROST
                 soil_con->frost_fract,
-#endif // SPATIAL_FROST
                 prcp->mu[iveg], gp->dt, options.Nnode, band, rec, iveg);
             if ( ErrorFlag == ERROR ) return ( ERROR );
 
@@ -799,11 +795,7 @@ int  full_energy(char                 NEWCELL,
      **********************************************************************/
 
     ErrorFlag = water_balance(&(prcp->lake_var), *lake_con, gp->dt, prcp, rec, iveg, band, lakefrac, *soil_con,
-#if EXCESS_ICE
         *veg_con, SubsidenceUpdate, total_meltwater);
-#else
-        *veg_con);
-#endif
     if (ErrorFlag == ERROR)
       return (ERROR);
 

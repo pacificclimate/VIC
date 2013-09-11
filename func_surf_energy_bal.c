@@ -223,12 +223,10 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double ***ufwc_table_node;
 
   /* excess ice terms */
-#if EXCESS_ICE
-  double porosity; //top layer
-  double effective_porosity; //top layer
-  double *porosity_node;
-  double *effective_porosity_node;
-#endif
+  double porosity = 0; //top layer
+  double effective_porosity = 0; //top layer
+  double *porosity_node = NULL;
+  double *effective_porosity_node = NULL;
 
   /* model structures */
   soil_con_struct *soil_con;
@@ -479,9 +477,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     if(options.IMPLICIT) {
       Error = solve_T_profile_implicit(Tnew_node, T_node, Zsum_node, kappa_node, Cs_node, 
 				       moist_node, delta_t, max_moist_node, bubble_node, expt_node, 
-#if EXCESS_ICE
 				       porosity_node, effective_porosity_node,
-#endif
 				       ice_node, alpha, beta, gamma, dp, Nnodes, 
 				       FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class,
 				       soil_con->bulk_dens_min, soil_con->soil_dens_min, soil_con->quartz, soil_con->bulk_density, soil_con->soil_density, soil_con->organic, soil_con->depth);
@@ -508,9 +504,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
 			      moist_node, delta_t, max_moist_node, bubble_node, 
 			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, ufwc_table_node,
-#if EXCESS_ICE
 			      porosity_node, effective_porosity_node,
-#endif
 			      Nnodes, FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
     }
       
@@ -554,9 +548,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
 
     if((TMean+ *T1)/2.<0.) {
       ice = moist - maximum_unfrozen_water((TMean+ *T1)/2.,
-#if EXCESS_ICE
 					   porosity,effective_porosity,
-#endif
 					   max_moist,bubble,expt);
       if(ice<0.) ice=0.;
     }

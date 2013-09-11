@@ -18,11 +18,9 @@ int surface_fluxes(char                 overstory,
 		   double               height,
 		   double               ice0,
 		   double               moist0,
-#if EXCESS_ICE
 		   int                  SubsidenceUpdate,
 		   double              *evap_prior_dry,
 		   double              *evap_prior_wet,
-#endif
 		   double               mu,
 		   double               surf_atten,
 		   double              *Melt,
@@ -985,9 +983,7 @@ int surface_fluxes(char                 overstory,
   cell_dry->inflow = ppt[DRY];
 
   ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
-#if EXCESS_ICE
       SubsidenceUpdate,
-#endif
       soil_con->frost_fract,
       mu, gp->dt, options.Nnode, band, rec, iveg);
 

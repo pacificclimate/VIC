@@ -151,9 +151,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
   double   surf_swq;
   double   pack_swq;
   double   TreeAdjustFactor[MAX_BANDS];
-#if EXCESS_ICE
-  double   sum_mindepth, sum_depth_pre, sum_depth_post, tmp_mindepth;
-#endif
+  double   sum_mindepth = 0, sum_depth_pre = 0, sum_depth_post = 0, tmp_mindepth = 0; //Excess Ice option variables
 
 
   // Initialize soil depths
@@ -285,7 +283,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
       /*update soil_con properties*/
       for( lidx = 0; lidx < options.Nlayer; lidx++ ) {
         soil_con->bulk_dens_min[lidx] *= (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]/soil_con->bulk_density[lidx];
-        if (soil_con->organic[layer] > 0)
+        if (soil_con->organic[lidx] > 0)
           soil_con->bulk_dens_org[lidx] *= (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]/soil_con->bulk_density[lidx];
 	soil_con->bulk_density[lidx] = (1.0-soil_con->effective_porosity[lidx])*soil_con->soil_density[lidx]; 
 	soil_con->max_moist[lidx] = soil_con->depth[lidx] * soil_con->effective_porosity[lidx] * 1000.;	
@@ -651,10 +649,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 				soil_con->max_moist, soil_con->expt, 
 				soil_con->bubble, soil_con->quartz, 
 				soil_con->ufwc_table_node,
-#if EXCESS_ICE
 				soil_con->porosity, soil_con->effective_porosity,
 				soil_con->porosity_node, soil_con->effective_porosity_node,
-#endif // EXCESS_ICE
 				Nnodes, options.Nlayer, soil_con->FS_ACTIVE);	  
 	  }
 	
@@ -669,10 +665,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						soil_con->ufwc_table_node,
 						soil_con->expt_node,
 						soil_con->bubble_node,
-#if EXCESS_ICE
 						soil_con->porosity_node,
 						soil_con->effective_porosity_node,
-#endif // EXCESS_ICE
 						moist[veg][band], 
 						soil_con->depth,
 						soil_con->soil_dens_min,
@@ -705,10 +699,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 					   soil_con->ufwc_table_layer,
 					   soil_con->expt, soil_con->bubble, 
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					   soil_con->FS_ACTIVE);
             }
             else {
@@ -726,10 +718,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						       soil_con->bubble,
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
-#if EXCESS_ICE
 						       soil_con->porosity,
 						       soil_con->effective_porosity,
-#endif // EXCESS_ICE
 						       Nnodes, options.Nlayer, 
 						       soil_con->FS_ACTIVE);
 		
@@ -827,7 +817,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 			  int                  Nnodes,
 			  int                  Ndist,
 			  soil_con_struct     *soil_con,
-			  const veg_con_struct*veg_con)
+			  veg_con_struct*veg_con)
 /**********************************************************************
   update_thermal_nodes           Jennifer Adam        August 16, 2007
 
@@ -976,10 +966,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 				  soil_con->max_moist, soil_con->expt, 
 				  soil_con->bubble, soil_con->quartz, 
 				  soil_con->ufwc_table_node,
-#if EXCESS_ICE
 				  soil_con->porosity, soil_con->effective_porosity,
 				  soil_con->porosity_node, soil_con->effective_porosity_node,
-#endif // EXCESS_ICE
 				  Nnodes, options.Nlayer, soil_con->FS_ACTIVE);	  
 	  }
 
@@ -998,10 +986,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						  soil_con->ufwc_table_node,
 						  soil_con->expt_node,
 						  soil_con->bubble_node,
-#if EXCESS_ICE
 						  soil_con->porosity_node,
 						  soil_con->effective_porosity_node,
-#endif // EXCESS_ICE
 						  moist[veg][band],
 						  soil_con->depth,
 						  soil_con->soil_dens_min,
@@ -1026,10 +1012,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 					   soil_con->ufwc_table_layer,
 					   soil_con->expt, soil_con->bubble, 
 					   soil_con->frost_fract, soil_con->frost_slope, 
-#if EXCESS_ICE
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-#endif // EXCESS_ICE
 					   soil_con->FS_ACTIVE);
               }
               else {
@@ -1047,10 +1031,8 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						       soil_con->bubble,
 						       soil_con->frost_fract, 
 						       soil_con->frost_slope, 
-#if EXCESS_ICE
 						       soil_con->porosity,
 						       soil_con->effective_porosity,
-#endif // EXCESS_ICE
 						       Nnodes, options.Nlayer, 
 						       soil_con->FS_ACTIVE);	      
 	      }

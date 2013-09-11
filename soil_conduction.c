@@ -153,12 +153,10 @@ void set_node_parameters(double   *dz_node,
 			 double   *bubble,
 			 double   *quartz,
 			 double ***ufwc_table_node,
-#if EXCESS_ICE
 			 double    *porosity,
 			 double    *effective_porosity,
 			 double    *porosity_node,
 			 double    *effective_porosity_node,
-#endif
 			 int       Nnodes,
 			 int       Nlayers,
 			 char      FS_ACTIVE) {
@@ -313,10 +311,8 @@ int distribute_node_moisture_properties(double *moist_node,
 					double ***ufwc_table_node,
 					double *expt_node,
 					double *bubble_node,
-#if EXCESS_ICE
 					double *porosity_node,
 					double *effective_porosity_node,
-#endif
 					double *moist,
 					double *depth,
 					double *soil_dens_min,
@@ -428,10 +424,8 @@ int distribute_node_moisture_properties(double *moist_node,
 #else
       ice_node[nidx] 
 	= moist_node[nidx] - maximum_unfrozen_water(T_node[nidx],
-#if EXCESS_ICE
 						    porosity_node[nidx],
 						    effective_porosity_node[nidx],
-#endif
 						    max_moist_node[nidx], 
 						    bubble_node[nidx],
 						    expt_node[nidx]);
@@ -487,10 +481,8 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 			       double            *bubble,
 			       double            *frost_fract,
 			       double             frost_slope,
-#if EXCESS_ICE
 			       double            *porosity,
 			       double            *effective_porosity,
-#endif // EXCESS_ICE
 			       int                Nnodes, 
 			       int                Nlayers,
 			       char               FS_ACTIVE) {
@@ -622,14 +614,9 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 	    - maximum_unfrozen_water_quick(tmpT[nidx][frost_area], max_moist[lidx], 
 					   ufwc_table_layer[lidx]);
 #else
-#if EXCESS_ICE
             - maximum_unfrozen_water(tmpT[nidx][frost_area], porosity[lidx], 
 				     effective_porosity[lidx], max_moist[lidx], 
 				     bubble[lidx], expt[lidx]);
-#else
-	    - maximum_unfrozen_water(tmpT[nidx][frost_area], max_moist[lidx], bubble[lidx], 
-				     expt[lidx]);
-#endif
 #endif
 	  if ( tmp_ice[nidx][frost_area] < 0 ) tmp_ice[nidx][frost_area] = 0.;
         }
@@ -682,10 +669,8 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 			       double            *bubble,
 			       double            *frost_fract,
 			       double             frost_slope,
-#if EXCESS_ICE
 			       double            *porosity,
 			       double            *effective_porosity,
-#endif // EXCESS_ICE
 			       char               FS_ACTIVE) {
 /**************************************************************
   This subroutine estimates the temperature and ice content of all soil 
@@ -771,11 +756,7 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 #if QUICK_FS
 	    - maximum_unfrozen_water_quick(layer[lidx].T, max_moist[lidx], ufwc_table_layer[lidx]);
 #else
-#if EXCESS_ICE
-            - maximum_unfrozen_water(layer[lidx].T, porosity[lidx], effective_porosity[lidx], max_moist[lidx], bubble[lidx], expt[lidx]);
-#else
-	    - maximum_unfrozen_water(layer[lidx].T, max_moist[lidx], bubble[lidx], expt[lidx]);
-#endif
+      - maximum_unfrozen_water(layer[lidx].T, porosity[lidx], effective_porosity[lidx], max_moist[lidx], bubble[lidx], expt[lidx]);
 #endif
 
       if (layer[lidx].ice < 0) {
@@ -911,10 +892,8 @@ void find_0_degree_fronts(energy_bal_struct *energy,
 }
 
 double maximum_unfrozen_water(double T,
-#if EXCESS_ICE
-			      double porosity,
-			      double effective_porosity,
-#endif //EXCESS_ICE
+                              double porosity,
+                              double effective_porosity,
                               double max_moist,
                               double bubble,
                               double expt) {

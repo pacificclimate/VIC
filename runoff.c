@@ -9,13 +9,11 @@ int  runoff(cell_data_struct  *cell_wet,
             energy_bal_struct *energy,
             soil_con_struct   *soil_con,
 	    double            *ppt, 
-#if EXCESS_ICE
 	    int                SubsidenceUpdate,
-#endif // EXCESS_ICE
 	    double            *frost_fract,
 	    double             mu,
 	    int                dt,
-            int                Nnodes,
+      int                Nnodes,
 	    int                band,
 	    int                rec,
 	    int                iveg)
@@ -232,12 +230,10 @@ int  runoff(cell_data_struct  *cell_wet,
   double             avg_matric;
   double             spatial_fract;
 #endif // LOW_RES_MOIST
-#if EXCESS_ICE
   double             excess_water;
   double             net_excess_water;
   double             liq_prior;
   double             total_evap;
-#endif //EXCESS_ICE
   cell_data_struct  *cell;
 
   /** Set Residual Moisture **/
@@ -802,10 +798,8 @@ int  runoff(cell_data_struct  *cell_wet,
 						      soil_con->ufwc_table_node,
 						      soil_con->expt_node,
 						      soil_con->bubble_node, 
-#if EXCESS_ICE
 						      soil_con->porosity_node,
 						      soil_con->effective_porosity_node,
-#endif // EXCESS_ICE
 						      moist, soil_con->depth, 
 						      soil_con->soil_dens_min,
 						      soil_con->bulk_dens_min,
