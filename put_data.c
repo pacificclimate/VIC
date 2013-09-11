@@ -394,7 +394,7 @@ int  put_data(dist_prcp_struct  *prcp,
               prcp->lake_var.energy.tdepth[i]      = prcp->energy[veg][band].fdepth[i];
             }
             for (i=0; i<options.Nnode; i++) {
-              prcp->lake_var.energy.ice[i]         = prcp->energy[veg][band].ice[i];
+              prcp->lake_var.energy.ice_content[i]         = prcp->energy[veg][band].ice_content[i];
               prcp->lake_var.energy.T[i]           = prcp->energy[veg][band].T[i];
             }
             for (i=0; i<N_PET_TYPES; i++) {

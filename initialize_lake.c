@@ -249,7 +249,7 @@ int initialize_lake (lake_var_struct   *lake,
   }
   for (i=0; i<MAX_NODES; i++) {
     lake->energy.Cs_node[i]     = 0.0;
-    lake->energy.ice[i]         = 0.0;
+    lake->energy.ice_content[i]         = 0.0;
     lake->energy.kappa_node[i]  = 0.0;
     lake->energy.moist[i]       = 0.0;
     lake->energy.T[i]           = lake->temp[0];

@@ -1066,7 +1066,7 @@ typedef struct {
   double  Cs_node[MAX_NODES];    /* heat capacity of the soil thermal nodes (J/m^3/K) */
   double  fdepth[MAX_FRONTS];    /* all simulated freezing front depths */
   char    frozen;                /* TRUE = frozen soil present */
-  double  ice[MAX_NODES];        /* thermal node ice content */
+  double  ice_content[MAX_NODES];/* thermal node ice content */
   double  kappa[2];              /* soil thermal conductivity for top two layers (W/m/K) */
   double  kappa_node[MAX_NODES]; /* thermal conductivity of the soil thermal nodes (W/m/K) */
   double  moist[MAX_NODES];      /* thermal node moisture content */

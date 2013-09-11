@@ -656,7 +656,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 	
 	  /* set soil moisture properties for all soil thermal nodes */
 	  ErrorFlag = distribute_node_moisture_properties(prcp->energy[veg][band].moist,
-						prcp->energy[veg][band].ice,
+						prcp->energy[veg][band].ice_content,
 						prcp->energy[veg][band].kappa_node,
 						prcp->energy[veg][band].Cs_node,
 						soil_con->Zsum_node,
@@ -977,7 +977,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 	  /* set soil moisture properties for all soil thermal nodes */
 	  if ( !( options.LAKES && veg_con->LAKE != 0 ) ) {
 	    ErrorFlag = distribute_node_moisture_properties(prcp->energy[veg][band].moist,
-						  prcp->energy[veg][band].ice,
+						  prcp->energy[veg][band].ice_content,
 						  prcp->energy[veg][band].kappa_node,
 						  prcp->energy[veg][band].Cs_node,
 						  soil_con->Zsum_node,

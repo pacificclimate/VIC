@@ -2300,7 +2300,7 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     advect_snow_storage(lakefrac, max_newfraction, newfraction, &(prcp->snow[iveg][band]));
     rescale_snow_energy_fluxes((1-lakefrac), (1-newfraction), &(prcp->snow[iveg][band]), &(prcp->energy[iveg][band]));
     for (j=0; j<options.Nlayer; j++) moist[j] = prcp->cell[0][iveg][band].layer[j].moist;
-    ErrorFlag = distribute_node_moisture_properties(prcp->energy[iveg][band].moist, prcp->energy[iveg][band].ice,
+    ErrorFlag = distribute_node_moisture_properties(prcp->energy[iveg][band].moist, prcp->energy[iveg][band].ice_content,
                                                     prcp->energy[iveg][band].kappa_node, prcp->energy[iveg][band].Cs_node,
                                                     soil_con.Zsum_node, prcp->energy[iveg][band].T,
                                                     soil_con.max_moist_node,

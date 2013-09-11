@@ -791,7 +791,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #if EXCESS_ICE     
     if(SubsidenceUpdate == 0 ){
 #endif
-      ErrorFlag = distribute_node_moisture_properties(energy->moist, energy->ice,
+      ErrorFlag = distribute_node_moisture_properties(energy->moist, energy->ice_content,
 						      energy->kappa_node, energy->Cs_node,
 						      soil_con->Zsum_node, energy->T,
 						      soil_con->max_moist_node,
