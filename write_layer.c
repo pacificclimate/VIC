@@ -46,11 +46,11 @@ void write_layer(layer_data_struct *layer,
   for(index=0;index<Nlayer;index++) {
     avg_ice = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      avg_ice += layer[index].ice[frost_area] * frost_fract[frost_area];
+      avg_ice += layer[index].soil_ice[frost_area] * frost_fract[frost_area];
     printf("\t%f",avg_ice);
   }
 #else
-  for(index=0;index<Nlayer;index++) printf("\t%f",layer[index].ice);
+  for(index=0;index<Nlayer;index++) printf("\t%f",layer[index].soil_ice);
 #endif
   printf("\n---------------------------------------------------------------------------\nLayer Moist:\t");
   sum_moist = 0.;

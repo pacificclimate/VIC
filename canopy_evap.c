@@ -292,10 +292,10 @@ void transpiration(layer_data_struct *layer,
 #if SPATIAL_FROST
     ice[i] = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-      ice[i] += layer[i].ice[frost_area] * frost_fract[frost_area];
+      ice[i] += layer[i].soil_ice[frost_area] * frost_fract[frost_area];
     }
 #else
-    ice[i]         = layer[i].ice;
+    ice[i]         = layer[i].soil_ice;
 #endif
   }
 
@@ -309,11 +309,11 @@ void transpiration(layer_data_struct *layer,
 #if SPATIAL_FROST
       avail_moist[i] = 0;
       for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	avail_moist[i] += ((layer[i].moist - layer[i].ice[frost_area]) 
+	avail_moist[i] += ((layer[i].moist - layer[i].soil_ice[frost_area]) 
 			   * frost_fract[frost_area]);
       }
 #else
-      avail_moist[i] = layer[i].moist - layer[i].ice;
+      avail_moist[i] = layer[i].moist - layer[i].soil_ice;
 #endif
       moist1+=avail_moist[i];
       Wcr1 += Wcr[i];
@@ -328,10 +328,10 @@ void transpiration(layer_data_struct *layer,
 #if SPATIAL_FROST
   moist2 = 0;
   for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-    moist2 += ((layer[i].moist - layer[i].ice[frost_area]) 
+    moist2 += ((layer[i].moist - layer[i].soil_ice[frost_area]) 
 	       * frost_fract[frost_area]);
 #else
-  moist2 = layer[i].moist - layer[i].ice;
+  moist2 = layer[i].moist - layer[i].soil_ice;
 #endif
 
   avail_moist[i]=moist2;

@@ -276,7 +276,7 @@ int  runoff(cell_data_struct  *cell_wet,
           sum_liq = 0;
           // compute available soil moisture for each frost sub area.
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-            avail_liq[lindex][frost_area] = (org_moist[lindex] - cell->layer[lindex].ice[frost_area] - resid_moist[lindex]);
+            avail_liq[lindex][frost_area] = (org_moist[lindex] - cell->layer[lindex].soil_ice[frost_area] - resid_moist[lindex]);
             if (avail_liq[lindex][frost_area] < 0) avail_liq[lindex][frost_area] = 0;
             sum_liq += avail_liq[lindex][frost_area]*frost_fract[frost_area];
           }
@@ -336,16 +336,16 @@ int  runoff(cell_data_struct  *cell_wet,
 	  
 	  /** Set Layer Liquid Moisture Content **/
 #if SPATIAL_FROST
-	  liq[lindex] = org_moist[lindex] - cell->layer[lindex].ice[frost_area];
+	  liq[lindex] = org_moist[lindex] - cell->layer[lindex].soil_ice[frost_area];
 #else
-	  liq[lindex] = cell->layer[lindex].moist - cell->layer[lindex].ice;
+	  liq[lindex] = cell->layer[lindex].moist - cell->layer[lindex].soil_ice;
 #endif // SPATIAL_FROST
 	  
 	  /** Set Layer Frozen Moisture Content **/
 #if SPATIAL_FROST
-	  ice[lindex]       = cell->layer[lindex].ice[frost_area];
+	  ice[lindex]       = cell->layer[lindex].soil_ice[frost_area];
 #else
-	  ice[lindex]       = cell->layer[lindex].ice;
+	  ice[lindex]       = cell->layer[lindex].soil_ice;
 #endif // SPATIAL_FROST
 	  
 	  /** Set Layer Maximum Moisture Content **/

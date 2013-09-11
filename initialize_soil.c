@@ -45,10 +45,10 @@ void initialize_soil (cell_data_struct **cell,
         tmp_moist[lindex] = cell[veg][band].layer[lindex].moist;
 #if SPATIAL_FROST
         for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
-          cell[veg][band].layer[lindex].ice[frost_area] = 0;
+          cell[veg][band].layer[lindex].soil_ice[frost_area] = 0;
         }
 #else
-        cell[veg][band].layer[lindex].ice = 0;
+        cell[veg][band].layer[lindex].soil_ice = 0;
 #endif
       }
       compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cell[veg][band].asat), &tmp_runoff);

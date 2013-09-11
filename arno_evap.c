@@ -112,11 +112,11 @@ double arno_evap(layer_data_struct *layer_wet,
 #if SPATIAL_FROST
     moist = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-      moist += (layer[0].moist - layer[0].ice[frost_area])
+      moist += (layer[0].moist - layer[0].soil_ice[frost_area])
 	* frost_fract[frost_area];
     }
 #else
-    moist = layer[0].moist - layer[0].ice;
+    moist = layer[0].moist - layer[0].soil_ice;
 #endif
     if ( moist > max_moist ) moist = max_moist;
 

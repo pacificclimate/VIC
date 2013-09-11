@@ -554,10 +554,10 @@ int estimate_layer_ice_content(layer_data_struct *layer,
     layer[lidx].T = 0.;
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-      layer[lidx].ice[frost_area] = 0.;
+      layer[lidx].soil_ice[frost_area] = 0.;
     }
 #else
-    layer[lidx].ice = 0.;
+    layer[lidx].soil_ice = 0.;
 #endif
 
     // Bracket current layer between nodes
@@ -634,18 +634,18 @@ int estimate_layer_ice_content(layer_data_struct *layer,
     for ( nidx = min_nidx; nidx < max_nidx; nidx++ ) {
 #if SPATIAL_FROST
       for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) {
-	layer[lidx].ice[frost_area] += (tmpZ[nidx+1]-tmpZ[nidx])*(tmp_ice[nidx+1][frost_area]+tmp_ice[nidx][frost_area])/2.;
+	layer[lidx].soil_ice[frost_area] += (tmpZ[nidx+1]-tmpZ[nidx])*(tmp_ice[nidx+1][frost_area]+tmp_ice[nidx][frost_area])/2.;
       }
 #else
-      layer[lidx].ice += (tmpZ[nidx+1]-tmpZ[nidx])*(tmp_ice[nidx+1][0]+tmp_ice[nidx][0])/2.;
+      layer[lidx].soil_ice += (tmpZ[nidx+1]-tmpZ[nidx])*(tmp_ice[nidx+1][0]+tmp_ice[nidx][0])/2.;
 #endif  // SPATIAL_FROST
       layer[lidx].T += (tmpZ[nidx+1]-tmpZ[nidx])*(tmpT[nidx+1][Nfrost]+tmpT[nidx][Nfrost])/2.;
     }
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < Nfrost; frost_area++ )
-      layer[lidx].ice[frost_area] /= depth[lidx];
+      layer[lidx].soil_ice[frost_area] /= depth[lidx];
 #else
-    layer[lidx].ice /= depth[lidx];
+    layer[lidx].soil_ice /= depth[lidx];
 #endif  // SPATIAL_FROST
     layer[lidx].T /= depth[lidx];
 
@@ -715,9 +715,9 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
   for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 
 #if SPATIAL_FROST
-    for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) layer[lidx].ice[frost_area] = 0;
+    for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) layer[lidx].soil_ice[frost_area] = 0;
 #else
-    layer[lidx].ice = 0;
+    layer[lidx].soil_ice = 0;
 #endif
 
     if (options.FROZEN_SOIL && FS_ACTIVE) {
@@ -740,30 +740,30 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 	    - maximum_unfrozen_water(tmpT, max_moist[lidx], bubble[lidx], expt[lidx]);
 #endif
 #endif
-        layer[lidx].ice[frost_area] = frost_fract[frost_area] * tmp_ice;
-        if (layer[lidx].ice[frost_area] < 0) {
-          layer[lidx].ice[frost_area] = 0;
+        layer[lidx].soil_ice[frost_area] = frost_fract[frost_area] * tmp_ice;
+        if (layer[lidx].soil_ice[frost_area] < 0) {
+          layer[lidx].soil_ice[frost_area] = 0;
         }
-        if (layer[lidx].ice[frost_area] > layer[lidx].moist) {
-          layer[lidx].ice[frost_area] = layer[lidx].moist;
+        if (layer[lidx].soil_ice[frost_area] > layer[lidx].moist) {
+          layer[lidx].soil_ice[frost_area] = layer[lidx].moist;
         }
 
       }
 
 #else
 
-      layer[lidx].ice = layer[lidx].moist
+      layer[lidx].soil_ice = layer[lidx].moist
 #if QUICK_FS
 	    - maximum_unfrozen_water_quick(layer[lidx].T, max_moist[lidx], ufwc_table_layer[lidx]);
 #else
       - maximum_unfrozen_water(layer[lidx].T, porosity[lidx], effective_porosity[lidx], max_moist[lidx], bubble[lidx], expt[lidx]);
 #endif
 
-      if (layer[lidx].ice < 0) {
-        layer[lidx].ice = 0;
+      if (layer[lidx].soil_ice < 0) {
+        layer[lidx].soil_ice = 0;
       }
-      if (layer[lidx].ice > layer[lidx].moist) {
-        layer[lidx].ice = layer[lidx].moist;
+      if (layer[lidx].soil_ice > layer[lidx].moist) {
+        layer[lidx].soil_ice = layer[lidx].moist;
       }
 
 #endif
@@ -822,10 +822,10 @@ void compute_soil_layer_thermal_properties(layer_data_struct *layer,
 #if SPATIAL_FROST
     ice = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      ice += layer[lidx].ice[frost_area] / depth[lidx] / 1000 
+      ice += layer[lidx].soil_ice[frost_area] / depth[lidx] / 1000 
 	* frost_fract[frost_area];
 #else
-    ice = layer[lidx].ice / depth[lidx] / 1000;
+    ice = layer[lidx].soil_ice / depth[lidx] / 1000;
 #endif
     layer[lidx].kappa 
       = soil_conductivity(moist, moist - ice, 
@@ -979,10 +979,10 @@ layer_data_struct find_average_layer(layer_data_struct *wet,
 
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      layer.ice[frost_area] = ((wet->ice[frost_area] * mu) 
-			       + (dry->ice[frost_area] * (1. - mu)));
+      layer.soil_ice[frost_area] = ((wet->soil_ice[frost_area] * mu) 
+			       + (dry->soil_ice[frost_area] * (1. - mu)));
 #else
-    layer.ice = ((wet->ice * mu) + (dry->ice * (1. - mu)));
+    layer.soil_ice = ((wet->soil_ice * mu) + (dry->soil_ice * (1. - mu)));
 #endif
     layer.moist = ((wet->moist * mu) + (dry->moist * (1. - mu)));
 

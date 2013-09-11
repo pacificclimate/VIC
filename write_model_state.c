@@ -268,7 +268,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 #if SPATIAL_FROST
 #error
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    tmpval = prcp->cell[dist][veg][band].layer[lidx].ice[frost_area];
+	    tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area];
 	    if ( options.BINARY_STATE_FILE ) {
 	      fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	    }
@@ -277,7 +277,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 	    }
 	  }
 #else
-	  tmpval = prcp->cell[dist][veg][band].layer[lidx].ice;
+	  tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice;
 	  if ( options.BINARY_STATE_FILE ) {
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  }
@@ -348,10 +348,10 @@ void write_model_state(dist_prcp_struct    *prcp,
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    fwrite( &prcp->lake_var.soil.layer[lidx].ice[frost_area], sizeof(double), 1, filep->statefile );
+	    fwrite( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, filep->statefile );
 	  }
 #else
-	  fwrite( &prcp->lake_var.soil.layer[lidx].ice, sizeof(double), 1, filep->statefile );
+	  fwrite( &prcp->lake_var.soil.layer[lidx].soil_ice, sizeof(double), 1, filep->statefile );
 #endif // SPATIAL_FROST
         }
       }
@@ -413,10 +413,10 @@ void write_model_state(dist_prcp_struct    *prcp,
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].ice[frost_area] );
+	    fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].soil_ice[frost_area] );
 	  }
 #else
-	  fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].ice );
+	  fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].soil_ice );
 #endif // SPATIAL_FROST
         }
       }

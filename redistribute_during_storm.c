@@ -64,11 +64,11 @@ int  redistribute_during_storm(cell_data_struct ***cell,
       
 #if SPATIAL_FROST
       for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	temp_wet = cell[WET][veg][band].layer[layer].ice[frost_area];
-	temp_dry = cell[DRY][veg][band].layer[layer].ice[frost_area];
+	temp_wet = cell[WET][veg][band].layer[layer].soil_ice[frost_area];
+	temp_dry = cell[DRY][veg][band].layer[layer].soil_ice[frost_area];
 #else
-	temp_wet = cell[WET][veg][band].layer[layer].ice;
-	temp_dry = cell[DRY][veg][band].layer[layer].ice;
+	temp_wet = cell[WET][veg][band].layer[layer].soil_ice;
+	temp_dry = cell[DRY][veg][band].layer[layer].soil_ice;
 #endif
 	error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, 
 						max_moist[layer], old_mu, 
@@ -76,24 +76,24 @@ int  redistribute_during_storm(cell_data_struct ***cell,
 	if(error) {
 #if SPATIAL_FROST
 	  fprintf(stderr,"%s: Error in ice accounting %f -> %f record %i\n",
-		  __FILE__,cell[WET][veg][band].layer[layer].ice[frost_area]
-		  *old_mu + cell[DRY][veg][band].layer[layer].ice[frost_area]
+		  __FILE__,cell[WET][veg][band].layer[layer].soil_ice[frost_area]
+		  *old_mu + cell[DRY][veg][band].layer[layer].soil_ice[frost_area]
 		  *(1.-old_mu), temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
 #else
 	  fprintf(stderr,"%s: Error in ice accounting %f -> %f record %i\n",
-		  __FILE__,cell[WET][veg][band].layer[layer].ice*old_mu
-		  + cell[DRY][veg][band].layer[layer].ice*(1.-old_mu),
+		  __FILE__,cell[WET][veg][band].layer[layer].soil_ice*old_mu
+		  + cell[DRY][veg][band].layer[layer].soil_ice*(1.-old_mu),
 		  temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
 #endif
 	  return( ERROR );
 	}
 #if SPATIAL_FROST
-	cell[WET][veg][band].layer[layer].ice[frost_area] = temp_wet;
-	cell[DRY][veg][band].layer[layer].ice[frost_area] = temp_dry; 
+	cell[WET][veg][band].layer[layer].soil_ice[frost_area] = temp_wet;
+	cell[DRY][veg][band].layer[layer].soil_ice[frost_area] = temp_dry; 
       }
 #else
-      cell[WET][veg][band].layer[layer].ice = temp_wet;
-      cell[DRY][veg][band].layer[layer].ice = temp_dry; 
+      cell[WET][veg][band].layer[layer].soil_ice = temp_wet;
+      cell[DRY][veg][band].layer[layer].soil_ice = temp_dry; 
 #endif
     }
   }

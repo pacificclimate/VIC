@@ -2104,10 +2104,10 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
 #if SPATIAL_FROST
   liq = 0;
   for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
-    liq += (soil_con.max_moist[lindex] - prcp->cell[WET][iveg][band].layer[lindex].ice[frost_area])*frost_fract[frost_area];
+    liq += (soil_con.max_moist[lindex] - prcp->cell[WET][iveg][band].layer[lindex].soil_ice[frost_area])*frost_fract[frost_area];
   }
 #else
-  liq = soil_con.max_moist[lindex] - prcp->cell[WET][iveg][band].layer[lindex].ice;
+  liq = soil_con.max_moist[lindex] - prcp->cell[WET][iveg][band].layer[lindex].soil_ice;
 #endif
   resid_moist = soil_con.resid_moist[lindex] * soil_con.depth[lindex] * 1000.;
 
@@ -2473,10 +2473,10 @@ void advect_soil_veg_storage(double lakefrac,
       cell->layer[lidx].moist = soil_con->max_moist[lidx];
 #if SPATIAL_FROST
       for (k=0; k<FROST_SUBAREAS; k++) {
-        cell->layer[lidx].ice[k]     = 0.0;
+        cell->layer[lidx].soil_ice[k]     = 0.0;
       }
 #else
-      cell->layer[lidx].ice      = 0.0;
+      cell->layer[lidx].soil_ice      = 0.0;
 #endif
     }
     cell->asat = 1.0;

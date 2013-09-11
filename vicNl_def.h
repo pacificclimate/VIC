@@ -1000,9 +1000,9 @@ typedef struct {
   double T;                 /* temperature of the unfrozen sublayer (C) */
   double evap;              /* evapotranspiration from soil layer (mm) */
 #if SPATIAL_FROST
-  double ice[FROST_SUBAREAS]; /* ice content of the frozen sublayer (mm) */
+  double soil_ice[FROST_SUBAREAS]; /* ice content of the frozen sublayer (mm) */
 #else
-  double ice;               /* ice content of the frozen sublayer (mm) */
+  double soil_ice;               /* ice content of the frozen sublayer (mm) */
 #endif
   double kappa;             /* average thermal conductivity of the current 
 			       layer (W/m/K) */

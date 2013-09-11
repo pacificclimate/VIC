@@ -316,10 +316,10 @@ int initialize_lake (lake_var_struct   *lake,
     lake->soil.layer[i].phi      = cell->layer[i].phi;
 #if SPATIAL_FROST
     for (k=0; k<FROST_SUBAREAS; k++) {
-      lake->soil.layer[i].ice[k]     = 0.0;
+      lake->soil.layer[i].soil_ice[k]     = 0.0;
     }
 #else
-    lake->soil.layer[i].ice      = 0.0;
+    lake->soil.layer[i].soil_ice      = 0.0;
 #endif
   }
   lake->soil.zwt = 0.0;

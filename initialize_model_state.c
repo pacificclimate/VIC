@@ -354,9 +354,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
               fprintf( stderr, "WARNING: Initial soil moisture (%f mm) exceeds maximum (%f mm) in layer %d for veg tile %d and snow band%d.  Resetting to maximum.\n", prcp->cell[dist][veg][band].layer[lidx].moist, soil_con->max_moist[lidx], lidx, veg, band );
 #if SPATIAL_FROST
               for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++)
-                prcp->cell[dist][veg][band].layer[lidx].ice[frost_area] *= soil_con->max_moist[lidx]/prcp->cell[dist][veg][band].layer[lidx].moist;
+                prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area] *= soil_con->max_moist[lidx]/prcp->cell[dist][veg][band].layer[lidx].moist;
 #else
-              prcp->cell[dist][veg][band].layer[lidx].ice *= soil_con->max_moist[lidx]/prcp->cell[dist][veg][band].layer[lidx].moist;
+              prcp->cell[dist][veg][band].layer[lidx].soil_ice *= soil_con->max_moist[lidx]/prcp->cell[dist][veg][band].layer[lidx].moist;
 #endif
               prcp->cell[dist][veg][band].layer[lidx].moist = soil_con->max_moist[lidx];
               tmp_moist[lidx] = prcp->cell[dist][veg][band].layer[lidx].moist;
@@ -364,12 +364,12 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 
 #if SPATIAL_FROST
             for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++) {
-              if (prcp->cell[dist][veg][band].layer[lidx].ice[frost_area] > prcp->cell[dist][veg][band].layer[lidx].moist)
-                prcp->cell[dist][veg][band].layer[lidx].ice[frost_area] = prcp->cell[dist][veg][band].layer[lidx].moist;
+              if (prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area] > prcp->cell[dist][veg][band].layer[lidx].moist)
+                prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area] = prcp->cell[dist][veg][band].layer[lidx].moist;
             }
 #else
-            if (prcp->cell[dist][veg][band].layer[lidx].ice > prcp->cell[dist][veg][band].layer[lidx].moist)
-              prcp->cell[dist][veg][band].layer[lidx].ice = prcp->cell[dist][veg][band].layer[lidx].moist;
+            if (prcp->cell[dist][veg][band].layer[lidx].soil_ice > prcp->cell[dist][veg][band].layer[lidx].moist)
+              prcp->cell[dist][veg][band].layer[lidx].soil_ice = prcp->cell[dist][veg][band].layer[lidx].moist;
 #endif
 
 	  }
@@ -383,12 +383,12 @@ int initialize_model_state(dist_prcp_struct    *prcp,
             prcp->lake_var.soil.layer[lidx].moist = soil_con->max_moist[lidx];
 #if SPATIAL_FROST
             for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++) {
-              if (prcp->lake_var->soil.layer[lidx].ice[frost_area] > prcp->lake_var->soil.layer[lidx].moist)
-                prcp->lake_var->soil.layer[lidx].ice[frost_area] = prcp->lake_var->soil.layer[lidx].moist;
+              if (prcp->lake_var->soil.layer[lidx].soil_ice[frost_area] > prcp->lake_var->soil.layer[lidx].moist)
+                prcp->lake_var->soil.layer[lidx].soil_ice[frost_area] = prcp->lake_var->soil.layer[lidx].moist;
             }
 #else
-            if (prcp->lake_var.soil.layer[lidx].ice > prcp->lake_var.soil.layer[lidx].moist)
-              prcp->lake_var.soil.layer[lidx].ice = prcp->lake_var.soil.layer[lidx].moist;
+            if (prcp->lake_var.soil.layer[lidx].soil_ice > prcp->lake_var.soil.layer[lidx].moist)
+              prcp->lake_var.soil.layer[lidx].soil_ice = prcp->lake_var.soil.layer[lidx].moist;
 #endif
           }
 	}
@@ -408,9 +408,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 
 #if SPATIAL_FROST
 	    for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-	      ice[veg][band][lidx][frost_area] = prcp->cell[0][veg][band].layer[lidx].ice[frost_area];
+	      ice[veg][band][lidx][frost_area] = prcp->cell[0][veg][band].layer[lidx].soil_ice[frost_area];
 #else
-	    ice[veg][band][lidx] = prcp->cell[0][veg][band].layer[lidx].ice;
+	    ice[veg][band][lidx] = prcp->cell[0][veg][band].layer[lidx].soil_ice;
 #endif
 	  }
 	}
@@ -686,9 +686,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 #if SPATIAL_FROST
 	      for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
 
-		prcp->cell[dry][veg][band].layer[lidx].ice[frost_area] = ice[veg][band][lidx][frost_area];
+		prcp->cell[dry][veg][band].layer[lidx].soil_ice[frost_area] = ice[veg][band][lidx][frost_area];
 #else
-	      prcp->cell[dry][veg][band].layer[lidx].ice = ice[veg][band][lidx];
+	      prcp->cell[dry][veg][band].layer[lidx].soil_ice = ice[veg][band][lidx];
 #endif
 	    }
             if (options.QUICK_FLUX) {

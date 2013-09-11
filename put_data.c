@@ -885,9 +885,9 @@ void collect_wb_terms(cell_data_struct  cell,
 #if SPATIAL_FROST
     tmp_ice = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      tmp_ice  += (cell.layer[index].ice[frost_area] * frost_fract[frost_area]);
+      tmp_ice  += (cell.layer[index].soil_ice[frost_area] * frost_fract[frost_area]);
 #else
-    tmp_ice   = cell.layer[index].ice;
+    tmp_ice   = cell.layer[index].soil_ice;
 #endif
     tmp_moist -= tmp_ice;
     if(options.MOISTFRACT) {
@@ -992,10 +992,10 @@ void collect_eb_terms(energy_bal_struct energy,
   tmp_fract = 0;
 #if SPATIAL_FROST
   for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-    if ( cell_wet.layer[0].ice[frost_area] )
+    if ( cell_wet.layer[0].soil_ice[frost_area] )
       tmp_fract  += frost_fract[frost_area];
 #else
-  if ( cell_wet.layer[0].ice > 0 )
+  if ( cell_wet.layer[0].soil_ice > 0 )
     tmp_fract   = 1.;
 #endif
   out_data[OUT_SURF_FROST_FRAC].data[0] += tmp_fract * AreaFactor;

@@ -277,25 +277,25 @@ void read_initial_model_state(FILE    *init_state,
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    if ( options.BINARY_STATE_FILE ) {
-	      if ( fread( &prcp->cell[dist][veg][band].layer[lidx].ice[frost_area],
+	      if ( fread( &prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area],
 			  sizeof(double), 1, init_state ) != 1 )
 		nrerror("End of model state file found unexpectedly");
 	    }
 	    else {
 	      if ( fscanf(init_state," %lf", 
-			  &prcp->cell[dist][veg][band].layer[lidx].ice[frost_area]) == EOF ) 
+			  &prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area]) == EOF ) 
 	        nrerror("End of model state file found unexpectedly");
 	    }
 	  }
 #else
 	  if ( options.BINARY_STATE_FILE ) {
-	    if ( fread( &prcp->cell[dist][veg][band].layer[lidx].ice, 
+	    if ( fread( &prcp->cell[dist][veg][band].layer[lidx].soil_ice, 
 			sizeof(double), 1, init_state ) != 1 )
 	      nrerror("End of model state file found unexpectedly");
 	  }
 	  else {
 	    if ( fscanf(init_state," %lf", 
-			&prcp->cell[dist][veg][band].layer[lidx].ice) == EOF ) 
+			&prcp->cell[dist][veg][band].layer[lidx].soil_ice) == EOF ) 
 	      nrerror("End of model state file found unexpectedly");
 	  }
 #endif // SPATIAL_FROST
@@ -396,11 +396,11 @@ void read_initial_model_state(FILE    *init_state,
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    if ( fread( &prcp->lake_var.soil.layer[lidx].ice[frost_area], sizeof(double), 1, init_state ) != 1 )
+	    if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, init_state ) != 1 )
 		nrerror("End of model state file found unexpectedly");
 	  }
 #else
-	  if ( fread( &prcp->lake_var.soil.layer[lidx].ice, sizeof(double), 1, init_state ) != 1 )
+	  if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice, sizeof(double), 1, init_state ) != 1 )
 	    nrerror("End of model state file found unexpectedly");
 #endif // SPATIAL_FROST
 	}
@@ -504,11 +504,11 @@ void read_initial_model_state(FILE    *init_state,
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].ice[frost_area]) == EOF )
+	    if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area]) == EOF )
 	      nrerror("End of model state file found unexpectedly");
 	  }
 #else
-	  if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].ice) == EOF )
+	  if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].soil_ice) == EOF )
 	    nrerror("End of model state file found unexpectedly");
 #endif // SPATIAL_FROST
 	}
