@@ -163,7 +163,7 @@ int  put_data(dist_prcp_struct  *prcp,
   double                  Cv;
   double                  Clake;
   double                  Cv_save;
-  double                  mu;
+  double                  precipitation_mu;
   double                  cv_baresoil;
   double                  cv_veg;
   double                  cv_overstory;
@@ -310,19 +310,19 @@ int  put_data(dist_prcp_struct  *prcp,
           *******************************************************/
           for ( dist = 0; dist < Ndist; dist++ ) {
             if(dist==0) 
-              mu = prcp->mu[veg];
+              precipitation_mu = prcp->mu[veg];
             else 
-              mu = 1. - prcp->mu[veg];
+              precipitation_mu = 1. - prcp->mu[veg];
 
             /** compute running totals of various landcovers **/
             if (HasVeg)
-              cv_veg += Cv * mu * ThisAreaFract * ThisTreeAdjust;
+              cv_veg += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
             else
-              cv_baresoil += Cv * mu * ThisAreaFract * ThisTreeAdjust;
+              cv_baresoil += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
             if (overstory)
-              cv_overstory += Cv * mu * ThisAreaFract * ThisTreeAdjust;
+              cv_overstory += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
             if (prcp->snow[veg][band].swq> 0.0)
-              cv_snow += Cv * mu * ThisAreaFract * ThisTreeAdjust;
+              cv_snow += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
 
 	    /*********************************
               Record Water Balance Terms 
@@ -331,7 +331,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              prcp->veg_var[dist][veg][band],
                              prcp->snow[veg][band],
                              prcp->lake_var,
-                             mu,
+                             precipitation_mu,
                              Cv,
                              ThisAreaFract,
                              ThisTreeAdjust,
@@ -784,7 +784,7 @@ void collect_wb_terms(cell_data_struct  cell,
                       veg_var_struct    veg_var,
                       snow_data_struct  snow,
                       lake_var_struct   lake_var,
-                      double            mu,
+                      double            precipitation_mu,
                       double            Cv,
                       double            AreaFract,
                       double            TreeAdjustFactor,
@@ -807,7 +807,7 @@ void collect_wb_terms(cell_data_struct  cell,
   int index;
   int                     frost_area;
 
-  AreaFactor = Cv * mu * AreaFract * TreeAdjustFactor * lakefactor;
+  AreaFactor = Cv * precipitation_mu * AreaFract * TreeAdjustFactor * lakefactor;
 
   /** record evaporation components **/
   tmp_evap = 0.0;

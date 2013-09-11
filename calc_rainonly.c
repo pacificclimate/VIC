@@ -13,7 +13,7 @@ double calc_rainonly(double air_temp,
 		     double prec,
 		     double MAX_SNOW_TEMP,
 		     double MIN_RAIN_TEMP,
-		     double mu) {
+		     double precipitation_mu) {
 /**********************************************************************
   calc_rainonly.c	Keith Cherkauer		March 7, 1998
 
@@ -57,7 +57,7 @@ double calc_rainonly(double air_temp,
     rainonly = prec;
   }
 
-  if(mu < 1) rainonly = prec;
+  if(precipitation_mu < 1) rainonly = prec;
 
   return(rainonly);
 

@@ -47,27 +47,27 @@ double canopy_evap(layer_data_struct *layer_wet,
                    layer_data_struct *layer_dry,
                    veg_var_struct    *veg_var_wet, 
                    veg_var_struct    *veg_var_dry, 
-		   char               CALC_EVAP,
+                   char               CALC_EVAP,
                    int                veg_class, 
                    int                month, 
-                   double             mu,
-		   double            *Wdew,
+                   double             precipitation_mu,
+                   double            *Wdew,
                    double             delta_t,
                    double             rad,
-		   double             vpd,
-		   double             net_short,
-		   double             air_temp,
+                   double             vpd,
+                   double             net_short,
+                   double             air_temp,
                    double             ra,
                    double             displacement,
                    double             roughness,
                    double             ref_height,
-		   double             elevation,
+                   double             elevation,
                    double            *prec,
-		   double            *depth,
-		   double            *Wcr,
-		   double            *Wpwp,
-		   double            *frost_fract,
-		   float             *root)
+                   double            *depth,
+                   double            *Wcr,
+                   double            *Wpwp,
+                   double            *frost_fract,
+                   float             *root)
 /********************************************************************** 
   CANOPY EVAPORATION
 
@@ -146,11 +146,11 @@ double canopy_evap(layer_data_struct *layer_wet,
       tmp_layer   = layer_dry;
       tmp_veg_var = veg_var_dry;
       ppt         = prec[DRY];
-      mu          = (1. - mu);
+      precipitation_mu          = (1. - precipitation_mu);
       tmp_Wdew    = Wdew[DRY];
     }      
 
-    if(mu > 0) {
+    if(precipitation_mu > 0) {
 
       /****************************************************
         Compute Evaporation from Canopy Intercepted Water
@@ -210,7 +210,7 @@ double canopy_evap(layer_data_struct *layer_wet,
       tmp_Evap          += layerevap[i];
     }
     
-    Evap += tmp_Evap * mu / (1000. * delta_t);
+    Evap += tmp_Evap * precipitation_mu / (1000. * delta_t);
 
   }
 

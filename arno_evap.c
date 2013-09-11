@@ -69,7 +69,7 @@ double arno_evap(layer_data_struct *layer_wet,
 		 double             b_infilt,
 		 double             ra,
 		 double             delta_t,
-		 double             mu,
+		 double             precipitation_mu,
 		 double             moist_resid,
 		 double            *frost_fract)
 {
@@ -101,7 +101,7 @@ double arno_evap(layer_data_struct *layer_wet,
   for(dist=0;dist<Ndist;dist++) {
 
     if(dist>0) {
-      mu = (1. - mu);
+      precipitation_mu = (1. - precipitation_mu);
       layer = layer_dry;
     }
     else {
@@ -223,7 +223,7 @@ double arno_evap(layer_data_struct *layer_wet,
     }
 
     layer[0].evap = evap;
-    Evap += evap / 1000. / delta_t * mu;
+    Evap += evap / 1000. / delta_t * precipitation_mu;
 
   }
   

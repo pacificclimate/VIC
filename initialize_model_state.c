@@ -147,7 +147,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 #endif // SPATIAL_FROST
   double   Aufwc, Bufwc;
   double   Clake;
-  double   mu;
+  double   precipitation_mu;
   double   surf_swq;
   double   pack_swq;
   double   TreeAdjustFactor[MAX_BANDS];

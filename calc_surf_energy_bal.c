@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-double calc_surf_energy_bal(double             Le,
+double calc_surf_energy_bal(double             latent_heat_Le,
 			    double             LongUnderIn,
 			    double             NetLongSnow, // net LW at snow surface
 			    double             NetShortGrnd, // net SW transmitted thru snow
@@ -25,7 +25,7 @@ double calc_surf_energy_bal(double             Le,
 			    double             ice0,
 			    double             melt_energy,
 			    double             moist,
-			    double             mu,
+			    double             precipitation_mu,
 			    double             snow_coverage,
 			    double             snow_depth,
 			    double             BareAlbedo,
@@ -330,10 +330,10 @@ double calc_surf_energy_bal(double             Le,
 		       UnderStory, overstory, NetShortBare, NetShortGrnd, 
 		       TmpNetShortSnow, Tair, atmos_density, 
 		       atmos_pressure,
-		       emissivity, LongBareIn, LongSnowIn, mu, surf_atten, 
+		       emissivity, LongBareIn, LongSnowIn, precipitation_mu, surf_atten, 
 		       VPcanopy, VPDcanopy, 
 		       Wdew, displacement, aero_resist, aero_resist_used, 
-		       rainfall, ref_height, roughness, wind, Le, 
+		       rainfall, ref_height, roughness, wind, latent_heat_Le, 
 		       energy->advection, OldTSurf, snow->pack_temp, 
 		       Tsnow_surf, kappa_snow, melt_energy, 
 		       snow_coverage, 
@@ -372,10 +372,10 @@ double calc_surf_energy_bal(double             Le,
 					   atmos_density, atmos_pressure, 
 					   (double)soil_con->elevation, 
 					   emissivity, LongBareIn, LongSnowIn, 
-					   mu, surf_atten, VPcanopy, VPDcanopy, 
+					   precipitation_mu, surf_atten, VPcanopy, VPDcanopy, 
 					   Wdew, displacement, aero_resist, aero_resist_used, 
 					   rainfall, ref_height, roughness, 
-					   wind, Le, energy->advection, 
+					   wind, latent_heat_Le, energy->advection, 
 					   OldTSurf, snow->pack_temp, 
 					   Tsnow_surf, 
 					   kappa_snow, melt_energy, 
@@ -422,10 +422,10 @@ double calc_surf_energy_bal(double             Le,
 			 max_moist, moist, root, 
 			 UnderStory, overstory, NetShortBare, NetShortGrnd, 
 			 TmpNetShortSnow, Tair, atmos_density, atmos_pressure, 
-			 emissivity, LongBareIn, LongSnowIn, mu, surf_atten, 
+			 emissivity, LongBareIn, LongSnowIn, precipitation_mu, surf_atten, 
 			 VPcanopy, VPDcanopy, 
 			 Wdew, displacement, aero_resist, aero_resist_used, 
-			 rainfall, ref_height, roughness, wind, Le, 
+			 rainfall, ref_height, roughness, wind, latent_heat_Le, 
 			 energy->advection, OldTSurf, snow->pack_temp, 
 			 Tsnow_surf, kappa_snow, melt_energy, 
 			 snow_coverage, 
@@ -464,10 +464,10 @@ double calc_surf_energy_bal(double             Le,
 					     atmos_density, atmos_pressure, 
 					     (double)soil_con->elevation, 
 					     emissivity, LongBareIn, LongSnowIn, 
-					     mu, surf_atten, VPcanopy, 
+					     precipitation_mu, surf_atten, VPcanopy, 
 					     VPDcanopy, Wdew, displacement, 
 					     aero_resist, aero_resist_used, rainfall, ref_height, 
-					     roughness, wind, Le, 
+					     roughness, wind, latent_heat_Le, 
 					     energy->advection, 
 					     OldTSurf, snow->pack_temp, 
 					     Tsnow_surf, 
@@ -520,10 +520,10 @@ double calc_surf_energy_bal(double             Le,
 				max_moist, moist, root, 
 				UnderStory, overstory, NetShortBare, NetShortGrnd, 
 				TmpNetShortSnow, Tair, atmos_density, atmos_pressure,
-				emissivity, LongBareIn, LongSnowIn, mu, surf_atten, 
+				emissivity, LongBareIn, LongSnowIn, precipitation_mu, surf_atten, 
 				VPcanopy, VPDcanopy, 
 				Wdew, displacement, aero_resist, aero_resist_used, 
-				rainfall, ref_height, roughness, wind, Le, 
+				rainfall, ref_height, roughness, wind, latent_heat_Le, 
 				energy->advection, OldTSurf, snow->pack_temp, 
 				Tsnow_surf, kappa_snow, melt_energy, 
 				snow_coverage, 
@@ -810,7 +810,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   double emissivity;
   double LongBareIn; 
   double LongSnowIn; 
-  double mu;
+  double precipitation_mu;
   double surf_atten;
   double vp;
   double vpd;
@@ -956,7 +956,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   emissivity              = (double) va_arg(ap, double);
   LongBareIn              = (double) va_arg(ap, double);
   LongSnowIn              = (double) va_arg(ap, double);
-  mu                      = (double) va_arg(ap, double);
+  precipitation_mu                      = (double) va_arg(ap, double);
   surf_atten              = (double) va_arg(ap, double);
   vp                      = (double) va_arg(ap, double);
   vpd                     = (double) va_arg(ap, double);
@@ -1099,7 +1099,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   fprintf(stderr, "emissivity = %f\n",  emissivity);
   fprintf(stderr, "LongBareIn = %f\n",  LongBareIn); 
   fprintf(stderr, "LongSnowIn = %f\n",  LongSnowIn); 
-  fprintf(stderr, "mu = %f\n",  mu);
+  fprintf(stderr, "mu = %f\n",  precipitation_mu);
   fprintf(stderr, "surf_atten = %f\n",  surf_atten);
   fprintf(stderr, "vp = %f\n",  vp);
   fprintf(stderr, "vpd = %f\n",  vpd);

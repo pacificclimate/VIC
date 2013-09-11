@@ -160,7 +160,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double emissivity;
   double LongBareIn; // incoming LW to snow-free surface
   double LongSnowIn; // incoming LW to snow surface - if INCLUDE_SNOW
-  double mu;
+  double precipitation_mu;
   double surf_atten;
   double vp;
   double vpd;
@@ -175,7 +175,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   double *wind;
  
   /* latent heat terms */
-  double  Le;
+  double  latent_heat_Le;
 
   /* snowpack terms */
   double Advection;
@@ -318,7 +318,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   emissivity              = (double) va_arg(ap, double);
   LongBareIn              = (double) va_arg(ap, double);
   LongSnowIn              = (double) va_arg(ap, double);
-  mu                      = (double) va_arg(ap, double);
+  precipitation_mu                      = (double) va_arg(ap, double);
   surf_atten              = (double) va_arg(ap, double);
   vp                      = (double) va_arg(ap, double);
   vpd                     = (double) va_arg(ap, double);
@@ -333,7 +333,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   wind                    = (double *) va_arg(ap, double *);
 
   /* latent heat terms */
-  Le                      = (double) va_arg(ap, double);
+  latent_heat_Le                      = (double) va_arg(ap, double);
 
   /* snowpack terms */
   Advection               = (double) va_arg(ap, double);
@@ -607,7 +607,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   *************************************************/
   if ( VEG && !SNOWING && veg_lib[veg_class].LAI[month-1] > 0 ) {
     Evap = canopy_evap(layer_wet, layer_dry, veg_var_wet, veg_var_dry, TRUE, 
-		       veg_class, month, mu, Wdew, delta_t, NetBareRad, vpd, 
+		       veg_class, month, precipitation_mu, Wdew, delta_t, NetBareRad, vpd, 
 		       NetShortBare, Tair, Ra_used[1], 
 		       displacement[1], roughness[1], ref_height[1], 
 		       (double)soil_con->elevation, rainfall, soil_con->depth, soil_con->Wcr, soil_con->Wpwp,
@@ -616,7 +616,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   else if(!SNOWING) {
     Evap = arno_evap(layer_wet, layer_dry, NetBareRad, Tair, vpd, 
 		     soil_con->depth[0], max_moist * soil_con->depth[0] * 1000., 
-		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, mu,
+		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, precipitation_mu,
 		     soil_con->resid_moist[0], frost_fract);
 
   }
@@ -625,7 +625,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   /**********************************************************************
     Compute the Latent Heat Flux from the Surface and Covering Vegetation
   **********************************************************************/
-  *latent_heat  = -RHO_W * Le * Evap;
+  *latent_heat  = -RHO_W * latent_heat_Le * Evap;
   *latent_heat_sub = 0.;
 
   /** Compute the latent heat flux from a thin snowpack if present **/
@@ -636,7 +636,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     BlowingMassFlux = *blowing_flux * ice_density / delta_t;
     SurfaceMassFlux = *surface_flux * ice_density / delta_t;
 
-    latent_heat_from_snow(atmos_density, vp, Le, atmos_pressure, 
+    latent_heat_from_snow(atmos_density, vp, latent_heat_Le, atmos_pressure, 
 			  Ra_used[0], TMean, vpd, &temp_latent_heat, 
 			  &temp_latent_heat_sub, &VaporMassFlux,
                           &BlowingMassFlux, &SurfaceMassFlux);

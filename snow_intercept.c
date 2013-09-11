@@ -81,7 +81,7 @@ static char vcid[] = "$Id$";
 int snow_intercept(double  Dt,
 		   double  F,  
 		   double  LAI, 
-		   double  Le, 
+		   double  latent_heat_Le, 
 		   double  LongOverIn, // incominf LW from sky
 		   double  LongUnderOut, // incoming LW from understroy
 		   double  MaxInt, // maximum interception capacity
@@ -89,7 +89,7 @@ int snow_intercept(double  Dt,
 		   double  ShortUnderIn,  // incoming SW to understory
 		   double  Tcanopy, // canopy air temperature
 		   double  bare_albedo, // albedo of snow-free ground
-		   double  mu, // fraction of precipitation area
+		   double  precipitation_mu, // fraction of precipitation area
 		   double *AdvectedEnergy,
 		   double *AlbedoOver, // overstory albedo
 		   double *IntRain, // intercepted rain
@@ -336,8 +336,8 @@ int snow_intercept(double  Dt,
 				   soil_con->Wcr, soil_con->Wpwp, 
 				   soil_con->depth, 
 				   soil_con->frost_fract, 
-				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
-				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
+				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
+				   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
 				   veg_class, displacement, ref_height, 
 				   roughness, root, IntRainOrg, *IntSnow, 
@@ -376,8 +376,8 @@ int snow_intercept(double  Dt,
 			   month, rec, Dt, soil_con->elevation, 
 			   soil_con->Wcr, soil_con->Wpwp, soil_con->depth, 
 			   soil_con->frost_fract, 
-			   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
-			   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
+			   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
+			   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
 			   RainFall, Wind, UnderStory, iveg, 
 			   veg_class, displacement, ref_height, 
 			   roughness, root, IntRainOrg, *IntSnow, 
@@ -402,8 +402,8 @@ int snow_intercept(double  Dt,
 					    soil_con->Wcr, soil_con->Wpwp, 
 					    soil_con->depth, 
 					    soil_con->frost_fract, 
-					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
-					    Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
+					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
+					    Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
 					    RainFall, Wind, UnderStory, iveg, 
 					    veg_class, displacement, ref_height, 
 					    roughness, root, IntRainOrg, *IntSnow, 
@@ -423,8 +423,8 @@ int snow_intercept(double  Dt,
 				   soil_con->elevation, soil_con->Wcr, 
 				   soil_con->Wpwp, soil_con->depth, 
 				   soil_con->frost_fract, 
-				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], Le,
-				   Tcanopy, atmos.vpd[hidx], mu, &Evap, Ra, Ra_used,
+				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
+				   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
 				   RainFall, Wind, UnderStory, iveg, 
 				   veg_class, displacement, ref_height, 
 				   roughness, root, IntRainOrg, *IntSnow, 
@@ -648,7 +648,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   double  AirDens;
   double  EactAir;
   double  Press;
-  double  Le;
+  double  latent_heat_Le;
   double  Tcanopy;
   double  Vpd;
   double  mu;
@@ -717,7 +717,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   AirDens = (double) va_arg(ap, double);
   EactAir = (double) va_arg(ap, double);
   Press   = (double) va_arg(ap, double);
-  Le      = (double) va_arg(ap, double);
+  latent_heat_Le = (double) va_arg(ap, double);
   Tcanopy = (double) va_arg(ap, double);
   Vpd     = (double) va_arg(ap, double);
   mu      = (double) va_arg(ap, double);
@@ -789,7 +789,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   printf("AirDens = %f\n",  AirDens);
   printf("EactAir = %f\n",  EactAir);
   printf("Press = %f\n",  Press);
-  printf("Le = %f\n",  Le);
+  printf("latent_heat_Le = %f\n",  latent_heat_Le);
   printf("Ra = [%f, %f]\n",  Ra[1], Ra[UnderStory]);
   printf("Ra_used = %f\n",  *Ra_used);
   printf("Tcanopy = %f\n",  Tcanopy);

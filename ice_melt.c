@@ -37,7 +37,7 @@ static char vcid[] = "$Id$";
                                    stability) (s/m)
     double atmos->density        - Density of air (kg/m3)
     double atmos->vp             - Actual vapor pressure of air (Pa) 
-    double Le           - Latent heat of vaporization (J/kg3)
+    double latent_heat_Le        - Latent heat of vaporization (J/kg3)
     double atmos->net_short      - Net exchange of shortwave radiation (W/m2)
     double atmos->longwave       - Incoming long wave radiation (W/m2)
     double atmos->pressure       - Air pressure (Pa)
@@ -116,7 +116,7 @@ static char vcid[] = "$Id$";
 int ice_melt(double            z2,
 	      double            aero_resist,
 	      double            *aero_resist_used,
-	      double            Le,
+	      double            latent_heat_Le,
 	      snow_data_struct *snow,
 	      lake_var_struct  *lake,
 	      int               delta_t,
@@ -296,7 +296,7 @@ int ice_melt(double            z2,
 
   Qnet = CalcIcePackEnergyBalance((double)0.0, (double)delta_t, aero_resist,
 				  aero_resist_used, z2, displacement, Z0, wind, net_short, 
-				  longwave, density, Le, air_temp,
+				  longwave, density, latent_heat_Le, air_temp,
 				  pressure * 1000., vpd * 1000., vp * 1000.,
 				  RainFall, SurfaceSwq, 
 				  snow->surf_water, OldTSurf, &RefreezeEnergy,
@@ -418,7 +418,7 @@ int ice_melt(double            z2,
 				   IceEnergyBalance, (double)delta_t, 
 				   aero_resist, aero_resist_used, z2, 
 				   displacement, Z0, wind, net_short, longwave,
-				   density, Le, air_temp, pressure * 1000.,
+				   density, latent_heat_Le, air_temp, pressure * 1000.,
 				   vpd * 1000., vp * 1000., RainFall, 
 				   SurfaceSwq,
 				   snow->surf_water, OldTSurf, &RefreezeEnergy, 
@@ -438,7 +438,7 @@ int ice_melt(double            z2,
         else {
           ErrorIcePackEnergyBalance(snow->surf_temp, (double)delta_t, aero_resist,
 				    aero_resist_used, z2, displacement, Z0, wind, net_short,
-				    longwave, density, Le, air_temp,
+				    longwave, density, latent_heat_Le, air_temp,
 				    pressure * 1000., vpd * 1000., vp * 1000.,
 				    RainFall, SurfaceSwq, 
 				    snow->surf_water, OldTSurf, &RefreezeEnergy,
@@ -459,7 +459,7 @@ int ice_melt(double            z2,
     if (snow->surf_temp > -998 && snow->surf_temp < 999) {
       Qnet = CalcIcePackEnergyBalance(snow->surf_temp, (double)delta_t, aero_resist,
 				      aero_resist_used, z2, displacement, Z0, wind, net_short,
-				      longwave, density, Le, air_temp,
+				      longwave, density, latent_heat_Le, air_temp,
 				      pressure * 1000., vpd * 1000., 
 				      vp * 1000.,RainFall, SurfaceSwq, 
 				      snow->surf_water, OldTSurf, &RefreezeEnergy, 

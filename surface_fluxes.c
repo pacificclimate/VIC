@@ -21,10 +21,10 @@ int surface_fluxes(char                 overstory,
 		   int                  SubsidenceUpdate,
 		   double              *evap_prior_dry,
 		   double              *evap_prior_wet,
-		   double               mu,
+		   double               current_prcp_mu,
 		   double               surf_atten,
 		   double              *Melt,
-		   double              *Le,
+		   double              *latent_heat_Le,
 		   double             **aero_resist,
 		   double              *displacement,
 		   double              *gauge_correction,
@@ -442,7 +442,7 @@ int surface_fluxes(char                 overstory,
 
     /* set air temperature and precipitation for this snow band */
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[band];
-    step_prec[WET] = atmos->prec[hidx] / mu * soil_con->Pfactor[band];
+    step_prec[WET] = atmos->prec[hidx] / current_prcp_mu * soil_con->Pfactor[band];
 
     // initialize ground surface temperaure
     Tgrnd = energy->T[0];
@@ -567,9 +567,9 @@ int surface_fluxes(char                 overstory,
 
         /** Solve snow accumulation, ablation and interception **/
         step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
-            gp->MIN_RAIN_TEMP, gp->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, mu,
+            gp->MIN_RAIN_TEMP, gp->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
             step_prec[WET], snow_grnd_flux, gp->wind_h, &energy->AlbedoUnder,
-            &step_Evap, Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
+            &step_Evap, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
             &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,
             iter_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
             displacement, gauge_correction, &step_melt_energy, &step_out_prec,
@@ -601,13 +601,13 @@ int surface_fluxes(char                 overstory,
          Solve Energy Balance Components at Soil Surface
          **************************************************/
 
-        Tsurf = calc_surf_energy_bal((*Le), LongUnderIn, NetLongSnow,
+        Tsurf = calc_surf_energy_bal((*latent_heat_Le), LongUnderIn, NetLongSnow,
             NetShortGrnd, NetShortSnow, OldTSurf, ShortUnderIn,
             iter_snow.albedo, iter_snow_energy.latent,
             iter_snow_energy.latent_sub, iter_snow_energy.sensible, Tcanopy,
             VPDcanopy, VPcanopy, iter_snow_energy.advection,
             step_snow.coldcontent, delta_coverage, dp, ice0, step_melt_energy,
-            moist0, mu, iter_snow.coverage,
+            moist0, current_prcp_mu, iter_snow.coverage,
             (step_snow.depth + iter_snow.depth) / 2., BareAlbedo, surf_atten,
             iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
             displacement, &step_melt, step_ppt, rainfall, ref_height, roughness,
@@ -635,7 +635,7 @@ int surface_fluxes(char                 overstory,
           Tcanopy = calc_atmos_energy_bal(iter_snow_energy.canopy_sensible,
               iter_soil_energy.sensible, iter_snow_energy.canopy_latent,
               iter_soil_energy.latent, iter_snow_energy.canopy_latent_sub,
-              iter_soil_energy.latent_sub, (*Le), iter_snow_energy.NetLongOver,
+              iter_soil_energy.latent_sub, (*latent_heat_Le), iter_snow_energy.NetLongOver,
               iter_soil_energy.NetLongUnder, iter_snow_energy.NetShortOver,
               iter_soil_energy.NetShortUnder, iter_aero_resist_used[1], Tair,
               atmos->density[hidx], atmos->vp[hidx], atmos->vpd[hidx],
@@ -784,9 +784,9 @@ int surface_fluxes(char                 overstory,
     store_surface_flux += step_snow.surface_flux;
     store_blowing_flux += step_snow.blowing_flux;
 
-    out_prec[0] += step_out_prec * mu;
-    out_rain[0] += step_out_rain * mu;
-    out_snow[0] += step_out_snow * mu;
+    out_prec[0] += step_out_prec * current_prcp_mu;
+    out_rain[0] += step_out_rain * current_prcp_mu;
+    out_snow[0] += step_out_snow * current_prcp_mu;
 
     if (INCLUDE_SNOW) {
       /* copy needed flux terms to the snowpack */
@@ -985,7 +985,7 @@ int surface_fluxes(char                 overstory,
   ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
       SubsidenceUpdate,
       soil_con->frost_fract,
-      mu, gp->dt, options.Nnode, band, rec, iveg);
+      current_prcp_mu, gp->dt, options.Nnode, band, rec, iveg);
 
   return (ErrorFlag);
 #if EXCESS_ICE

@@ -13,13 +13,13 @@ double solve_snow(char                 overstory,
 		  double               Tgrnd, // soil surface temperature
 		  double               air_temp, // air temperature
 		  double               dp,
-		  double               mu,
+		  double               precipitation_mu,
 		  double               prec,
 		  double               snow_grnd_flux,
 		  double               wind_h,
 		  double              *AlbedoUnder,
 		  double              *Evap,
-		  double              *Le,
+		  double              *latent_heat_Le,
 		  double              *LongUnderIn, // surface incomgin LW
 		  double              *NetLongSnow, // net LW at snow surface
 		  double              *NetShortGrnd, // net SW reaching ground
@@ -170,7 +170,7 @@ double solve_snow(char                 overstory,
 
   /** Calculate Fraction of Precipitation that falls as Rain **/
   rainonly      = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, 
-				MIN_RAIN_TEMP, mu); 
+				MIN_RAIN_TEMP, precipitation_mu); 
   snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly);
   rainfall[WET] = gauge_correction[RAIN] * rainonly;
   snowfall[DRY] = 0.;
@@ -182,20 +182,20 @@ double solve_snow(char                 overstory,
   store_snowfall = snowfall[WET];
 
   /** Compute latent heats **/
-  (*Le) = (2.501e6 - 0.002361e6 * air_temp);
+  (*latent_heat_Le) = (2.501e6 - 0.002361e6 * air_temp);
 
   /** verify that distributed precipitation fraction equals 1 if
       snow is present or falling **/
   if ( ( snow->swq > 0 || snowfall[WET] > 0.
 	 || (snow->snow_canopy>0. && overstory) ) ) {
-    if ( mu != 1 && options.FULL_ENERGY ) {
+    if ( precipitation_mu != 1 && options.FULL_ENERGY ) {
       fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i,\t vegetation type = %i",
-	      mu, rec, iveg);
+	      precipitation_mu, rec, iveg);
       return( ERROR );
     }
-    else if ( mu != 1 ) {
+    else if ( precipitation_mu != 1 ) {
       fprintf(stderr,"WARNING: Snow is falling, but mu not equal to 1 (%f)\n",
-	      mu);
+	      precipitation_mu);
       fprintf(stderr,"\trec = %i, veg = %i, hour = %i\n",rec,iveg,hour);
     }
   }
@@ -211,7 +211,7 @@ double solve_snow(char                 overstory,
   (*LongUnderIn)  = atmos.longwave[hidx];
 
   if ( (snow->swq > 0 || snowfall[WET] > 0.
-      || (snow->snow_canopy > 0. && overstory)) && mu==1 ) {
+      || (snow->snow_canopy > 0. && overstory)) && precipitation_mu==1 ) {
     
     /*****************************
       Snow is Present or Falling 
@@ -241,10 +241,10 @@ double solve_snow(char                 overstory,
 	ShortOverIn      = (1. - (*surf_atten)) * atmos.shortwave[hidx]; // canopy incident SW
 	ErrorFlag = snow_intercept((double)dt * SECPHOUR, 1., 
 		       veg_lib[veg_class].LAI[month-1], 
-		       (*Le), atmos.longwave[hidx], LongUnderOut,
+		       (*latent_heat_Le), atmos.longwave[hidx], LongUnderOut,
 		       veg_lib[veg_class].Wdmax[month-1], 
 		       ShortOverIn, *ShortUnderIn, Tcanopy,
-		       BareAlbedo, mu, &energy->canopy_advection, 
+		       BareAlbedo, precipitation_mu, &energy->canopy_advection, 
 		       &energy->AlbedoOver, 
 		       &veg_var_wet->Wdew, &snow->snow_canopy, 
 		       &energy->canopy_latent, 
@@ -347,7 +347,7 @@ double solve_snow(char                 overstory,
       (*NetShortSnow) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
       /** Call snow pack accumulation and ablation algorithm **/
-      ErrorFlag = snow_melt((*Le), (*NetShortSnow), Tcanopy, Tgrnd, 
+      ErrorFlag = snow_melt((*latent_heat_Le), (*NetShortSnow), Tcanopy, Tgrnd, 
 		roughness, aero_resist[*UnderStory], aero_resist_used,
 		air_temp, *coverage, (double)dt * SECPHOUR, atmos.density[hidx],
 		displacement[*UnderStory], snow_grnd_flux, 

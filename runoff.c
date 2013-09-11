@@ -11,7 +11,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	    double            *ppt, 
 	    int                SubsidenceUpdate,
 	    double            *frost_fract,
-	    double             mu,
+	    double             precipitation_mu,
 	    int                dt,
       int                Nnodes,
 	    int                band,
@@ -243,7 +243,7 @@ int  runoff(cell_data_struct  *cell_wet,
   /** Initialize Other Parameters **/
   if ( options.DIST_PRCP ) Ndist = 2;
   else Ndist = 1;
-  tmp_mu = mu;
+  tmp_mu = precipitation_mu;
 
   /** Allocate and Set Values for Soil Sublayers **/
   for ( dist = 0; dist < Ndist; dist++ ) {
@@ -252,7 +252,7 @@ int  runoff(cell_data_struct  *cell_wet,
 
     if(dist>0) {
       cell         = cell_dry;
-      mu           = (1. - mu);
+      precipitation_mu           = (1. - precipitation_mu);
     }
     else {
       cell         = cell_wet;
@@ -265,7 +265,7 @@ int  runoff(cell_data_struct  *cell_wet,
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
       baseflow[frost_area] = 0;
       
-    if(mu>0.) {
+    if(precipitation_mu>0.) {
 	
 #if SPATIAL_FROST
       for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {

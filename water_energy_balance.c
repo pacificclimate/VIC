@@ -87,7 +87,7 @@ int water_energy_balance(int     numnod,
   
   double Tmean;
   int iterations;
-  double Le;
+  double latent_heat_Le;
   double jouleold;
   double joulenew;
   double error;
@@ -135,9 +135,9 @@ int water_energy_balance(int     numnod,
       Compute the Latent Heat Flux 
     **********************************************************************/
  
-    Le = (2.501 - 0.002361 * Tair) * 1.0e6;   /*J/kg  */
+    latent_heat_Le = (2.501 - 0.002361 * Tair) * 1.0e6;   /*J/kg  */
  
-    *Qle = -1.*(*evapw)*Le;                          /* W/m^2 */
+    *Qle = -1.*(*evapw)*latent_heat_Le;                          /* W/m^2 */
 
     /* --------------------------------------------------------------------
      * Calculate the outgoing long wave fluxes, positive downwards.
@@ -199,8 +199,8 @@ int water_energy_balance(int     numnod,
     latsens (Tskin, Tcutk, 0.0, Tair, wind, pressure, vp, air_density,
              evapw, Qh, wind_h);
 
-    Le = (2.501 - 0.002361 * Tair) * 1.0e6;     /*J/kg  */
-    *Qle = -1.*(*evapw)*Le;                          /* W/m^2 */
+    latent_heat_Le = (2.501 - 0.002361 * Tair) * 1.0e6;     /*J/kg  */
+    *Qle = -1.*(*evapw)*latent_heat_Le;                          /* W/m^2 */
 
     *LWnet = longwave -EMH2O*STEFAN_B*Tskin*Tskin*Tskin*Tskin;
 

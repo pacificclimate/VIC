@@ -44,10 +44,10 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
   double  AirDens;
   double  EactAir;
   double  Press;
-  double  Le;
+  double  latent_heat_Le;
   double  Tcanopy;
   double  Vpd;
-  double  mu;
+  double  precipitation_mu;
 
   double *Evap;
   double *Ra;
@@ -120,10 +120,10 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
   AirDens  = (double) va_arg(ap, double);
   EactAir  = (double) va_arg(ap, double);
   Press    = (double) va_arg(ap, double);
-  Le       = (double) va_arg(ap, double);
+  latent_heat_Le       = (double) va_arg(ap, double);
   Tcanopy     = (double) va_arg(ap, double);
   Vpd      = (double) va_arg(ap, double);
-  mu       = (double) va_arg(ap, double);
+  precipitation_mu       = (double) va_arg(ap, double);
 
   Evap     = (double *) va_arg(ap, double *);
   Ra       = (double *) va_arg(ap, double *);
@@ -236,13 +236,13 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
     prec[WET] = *Rainfall * 1000;
     prec[DRY] = 0;
     *Evap = canopy_evap(layer_wet, layer_dry, veg_var_wet, veg_var_dry, FALSE, 
-			veg_class, month, mu, Wdew, delta_t, *NetRadiation, 
+			veg_class, month, precipitation_mu, Wdew, delta_t, *NetRadiation, 
 			Vpd, NetShortOver, Tcanopy, Ra_used[1], displacement[1], 
 			roughness[1], ref_height[1], elevation, prec, 
 			depth, Wcr, Wpwp, frost_fract, root);
     Wdew[WET] /= 1000.;
 
-    *LatentHeat = Le * *Evap * RHO_W;
+    *LatentHeat = latent_heat_Le * *Evap * RHO_W;
     *LatentHeatSub = 0;
 
   }

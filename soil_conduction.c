@@ -955,7 +955,7 @@ double maximum_unfrozen_water_quick(double   T,
 layer_data_struct find_average_layer(layer_data_struct *wet,
 				     layer_data_struct *dry,
 				     double             depth,
-				     double             mu) {
+				     double             precipitation_mu) {
 /*************************************************************
   This subroutine computes the average soil layer moistures
   between the wet and dry fraction for use in computing 
@@ -979,12 +979,12 @@ layer_data_struct find_average_layer(layer_data_struct *wet,
 
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      layer.soil_ice[frost_area] = ((wet->soil_ice[frost_area] * mu) 
-			       + (dry->soil_ice[frost_area] * (1. - mu)));
+      layer.soil_ice[frost_area] = ((wet->soil_ice[frost_area] * precipitation_mu) 
+			       + (dry->soil_ice[frost_area] * (1. - precipitation_mu)));
 #else
-    layer.soil_ice = ((wet->soil_ice * mu) + (dry->soil_ice * (1. - mu)));
+    layer.soil_ice = ((wet->soil_ice * precipitation_mu) + (dry->soil_ice * (1. - precipitation_mu)));
 #endif
-    layer.moist = ((wet->moist * mu) + (dry->moist * (1. - mu)));
+    layer.moist = ((wet->moist * precipitation_mu) + (dry->moist * (1. - precipitation_mu)));
 
   }
 

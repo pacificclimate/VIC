@@ -15,7 +15,7 @@ void write_debug(atmos_data_struct    *atmos,
                  const dmy_struct     *dmy,
                  global_param_struct  *gp,
                  double                out_short,
-                 double                mu,
+                 double                precipitation_mu,
                  int                   Nveg,
                  int                   veg,
                  int                   rec,
@@ -144,34 +144,34 @@ void write_debug(atmos_data_struct    *atmos,
       advection = energy[band].advection;
       deltaH    = energy[band].deltaH;
       
-      ENERGY_ERROR[veg] += energy[band].error * mu;
+      ENERGY_ERROR[veg] += energy[band].error * precipitation_mu;
       ENERGY_ERROR_CALC[veg] 
 	+= ((1.-energy[band].AlbedoOver)*energy[band].shortwave
 	    + energy[band].longwave + energy[band].grnd_flux
 	    + energy[band].latent + energy[band].sensible 
 	    + energy[band].deltaH - energy[band].deltaCC 
 	    - energy[band].snow_flux + energy[band].refreeze_energy 
-	    + energy[band].advection) * mu / soil_con->AreaFract[band];
+	    + energy[band].advection) * precipitation_mu / soil_con->AreaFract[band];
       
       INSHORT[veg]        += (1.-energy[band].AlbedoOver)*atmos->shortwave[NR] 
-	* mu / soil_con->AreaFract[band];
-      INLONG[veg]         += atmos->longwave[NR] * mu 
+	* precipitation_mu / soil_con->AreaFract[band];
+      INLONG[veg]         += atmos->longwave[NR] * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      SENSIBLE[veg]       += energy[band].sensible * mu 
+      SENSIBLE[veg]       += energy[band].sensible * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      LATENT[veg]         += energy[band].latent * mu 
+      LATENT[veg]         += energy[band].latent * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      GRND_FLUX[veg]      += energy[band].grnd_flux * mu 
+      GRND_FLUX[veg]      += energy[band].grnd_flux * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      ADVECTION[veg]      += energy[band].advection * mu 
+      ADVECTION[veg]      += energy[band].advection * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      DELTA_H[veg]        += energy[band].deltaH * mu 
+      DELTA_H[veg]        += energy[band].deltaH * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      DELTA_CC[veg]       += energy[band].deltaCC * mu 
+      DELTA_CC[veg]       += energy[band].deltaCC * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      SNOW_FLUX[veg]      += energy[band].snow_flux * mu 
+      SNOW_FLUX[veg]      += energy[band].snow_flux * precipitation_mu 
 	/ soil_con->AreaFract[band];
-      REFREEZEENERGY[veg] += energy[band].refreeze_energy * mu 
+      REFREEZEENERGY[veg] += energy[band].refreeze_energy * precipitation_mu 
 	/ soil_con->AreaFract[band];
     }
 
@@ -255,9 +255,9 @@ void write_debug(atmos_data_struct    *atmos,
     }
     if(rec==0 && dist==0) {
       for(band = 0; band < Nbands; band++) {
-	INIT_MOIST[veg] = debug.store_moist[WET][band][options.Nlayer+2] * mu;
+	INIT_MOIST[veg] = debug.store_moist[WET][band][options.Nlayer+2] * precipitation_mu;
 	INIT_MOIST[veg] += debug.store_moist[DRY][band][options.Nlayer+2] 
-	  * (1. - mu);
+	  * (1. - precipitation_mu);
       }
       for(i=0;i<options.Nlayer+3;i++) MOIST_ERROR[veg][i] = 0.;
     }
@@ -309,7 +309,7 @@ void write_debug(atmos_data_struct    *atmos,
 	    += (debug.inflow[dist][band][i] 
 		- (debug.outflow[dist][band][i] + Evap[i]) 
 		- (curr_moist[i] - debug.store_moist[dist][band][i])) 
-	    * mu * soil_con->AreaFract[band];
+	    * precipitation_mu * soil_con->AreaFract[band];
 	  if(fabs(MOIST_ERROR[veg][i]) > 1.e-4) {
 	    fprintf(stderr,"WARNING: Debug Layer %i has a Moisture Balance Error of %f in rec %i, veg %i, band %i, precip dist %i\n",i,MOIST_ERROR[veg][i],rec,veg,band,dist);
 	  }
@@ -318,9 +318,9 @@ void write_debug(atmos_data_struct    *atmos,
 	/** Store Variables **/
 	INFLOW[veg]   += atmos->prec[NR] * soil_con->Pfactor[band] 
 	  / soil_con->AreaFract[band];
-	BASEFLOW[veg] += cell[band].baseflow * mu / soil_con->AreaFract[band];
-	RUNOFF[veg]   += cell[band].runoff * mu / soil_con->AreaFract[band];
-	EVAP[veg]     += Evap[options.Nlayer+2] * mu / soil_con->AreaFract[band];
+	BASEFLOW[veg] += cell[band].baseflow * precipitation_mu / soil_con->AreaFract[band];
+	RUNOFF[veg]   += cell[band].runoff * precipitation_mu / soil_con->AreaFract[band];
+	EVAP[veg]     += Evap[options.Nlayer+2] * precipitation_mu / soil_con->AreaFract[band];
       }
     }
 

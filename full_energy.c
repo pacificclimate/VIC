@@ -7,11 +7,11 @@ static char vcid[] = "$Id$";
 
 int  full_energy(char                 NEWCELL,
 		             const int            gridcell,
-                 int                  rec,
+                 int                  time_step_record,
                  atmos_data_struct   *atmos,
                  dist_prcp_struct    *prcp,
                  const dmy_struct    *dmy,
-                 global_param_struct *gp,
+                 global_param_struct *global_params,
                  lake_con_struct     *lake_con,
                  soil_con_struct     *soil_con,
                  veg_con_struct      *veg_con)
@@ -141,7 +141,7 @@ int  full_energy(char                 NEWCELL,
   double                 ref_height[3];
   double               **aero_resist;
   double                 Cv;
-  double                 Le;
+  double                 latent_heat_Le;
   double                 Melt[2*MAX_BANDS];
   double                 bare_albedo;
   double                 snow_inflow[MAX_BANDS];
@@ -204,7 +204,7 @@ int  full_energy(char                 NEWCELL,
    - this assumes that the gauge is free of vegetation effects, so gauge
    correction is constant for the entire grid cell */
   if (options.CORRPREC && atmos->prec[NR] > 0)
-    correct_precip(gauge_correction, atmos->wind[NR], gp->wind_h,
+    correct_precip(gauge_correction, atmos->wind[NR], global_params->wind_h,
         soil_con->rough, soil_con->snow_rough);
   else {
     gauge_correction[0] = 1;
@@ -301,13 +301,13 @@ int  full_energy(char                 NEWCELL,
       /** Compute Surface Attenuation due to Vegetation Coverage **/
       surf_atten = exp(
           -veg_lib[veg_class].rad_atten
-              * veg_lib[veg_class].LAI[dmy[rec].month - 1]);
+              * veg_lib[veg_class].LAI[dmy[time_step_record].month - 1]);
 
       /* Initialize soil thermal properties for the top two layers */
       prepare_full_energy(iveg, Nveg, options.Nnode, prcp, soil_con, moist0, ice0);
 
       /** Compute Bare (free of snow) Albedo **/
-      bare_albedo = veg_lib[veg_class].albedo[dmy[rec].month - 1];
+      bare_albedo = veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
 
       /*************************************
        Compute the aerodynamic resistance
@@ -331,8 +331,8 @@ int  full_energy(char                 NEWCELL,
           pet_veg_class = veg_class;
         }
         displacement[0] =
-            veg_lib[pet_veg_class].displacement[dmy[rec].month - 1];
-        roughness[0] = veg_lib[pet_veg_class].roughness[dmy[rec].month - 1];
+            veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
+        roughness[0] = veg_lib[pet_veg_class].roughness[dmy[time_step_record].month - 1];
         overstory = veg_lib[pet_veg_class].overstory;
         if (p >= N_PET_TYPES_NON_NAT)
           if (roughness[0] == 0)
@@ -407,12 +407,12 @@ int  full_energy(char                 NEWCELL,
           ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[band], moist0[band],
               SubsidenceUpdate, evap_prior[DRY][iveg][band],
               evap_prior[WET][iveg][band],
-              prcp->mu[iveg], surf_atten, &(Melt[band * 2]), &Le, aero_resist,
+              prcp->mu[iveg], surf_atten, &(Melt[band * 2]), &latent_heat_Le, aero_resist,
               displacement, gauge_correction, &out_prec[band * 2],
               &out_rain[band * 2], &out_snow[band * 2], ref_height, roughness,
               &snow_inflow[band], tmp_wind, veg_con[iveg].root, Nbands, Ndist,
-              options.Nlayer, Nveg, band, dp, iveg, rec, veg_class, atmos, dmy,
-              &(prcp->energy[iveg][band]), gp, &(prcp->cell[DRY][iveg][band]),
+              options.Nlayer, Nveg, band, dp, iveg, time_step_record, veg_class, atmos, dmy,
+              &(prcp->energy[iveg][band]), global_params, &(prcp->cell[DRY][iveg][band]),
               &(prcp->cell[WET][iveg][band]), &(prcp->snow[iveg][band]), soil_con,
               &(prcp->veg_var[DRY][iveg][band]), &(prcp->veg_var[WET][iveg][band]), lag_one, sigma_slope, fetch);
 
@@ -478,8 +478,8 @@ int  full_energy(char                 NEWCELL,
         }
 
         write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
-            prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[rec]), gp, out_short,
-            tmp_mu, Nveg, iveg, rec, gridcell, j, NEWCELL);
+            prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[time_step_record]), global_params, out_short,
+            tmp_mu, Nveg, iveg, time_step_record, gridcell, j, NEWCELL);
       }
 #endif // LINK_DEBUG
     } /** end current vegetation type **/
@@ -561,7 +561,7 @@ int  full_energy(char                 NEWCELL,
         if(subsidence[lidx] > 0 ) {
 #if VERBOSE
           fprintf(stderr,"Subsidence of %.3f m in layer %d:\n",subsidence[lidx]/1000.,lidx+1);
-          fprintf(stderr,"\t\tOccurred for record=%d: year=%d, month=%d, day=%d, hour=%d\n",rec,dmy[rec].year,dmy[rec].month,dmy[rec].day, dmy[rec].hour);
+          fprintf(stderr,"\t\tOccurred for record=%d: year=%d, month=%d, day=%d, hour=%d\n",rec,dmy[time_step_record].year,dmy[time_step_record].month,dmy[time_step_record].day, dmy[time_step_record].hour);
           fprintf(stderr,"\t\tDepth of soil layer decreased from %.3f m to %.3f m.\n",tmp_depth_prior,soil_con->depth[lidx]);
 #endif	  
 
@@ -676,7 +676,7 @@ int  full_energy(char                 NEWCELL,
                 soil_con, ppt,
                 SubsidenceUpdate,
                 soil_con->frost_fract,
-                prcp->mu[iveg], gp->dt, options.Nnode, band, rec, iveg);
+                prcp->mu[iveg], global_params->dt, options.Nnode, band, time_step_record, iveg);
             if ( ErrorFlag == ERROR ) return ( ERROR );
 
           }
@@ -763,7 +763,7 @@ int  full_energy(char                 NEWCELL,
         + wetland_baseflow) * soil_con->cell_area * 0.001; // m3
     prcp->lake_var.channel_in = atmos->channel_in[NR] * soil_con->cell_area * 0.001; // m3
     prcp->lake_var.prec = atmos->prec[NR] * prcp->lake_var.sarea * 0.001; // m3
-    rainonly = calc_rainonly(atmos->air_temp[NR], atmos->prec[NR], gp->MAX_SNOW_TEMP, gp->MIN_RAIN_TEMP, 1);
+    rainonly = calc_rainonly(atmos->air_temp[NR], atmos->prec[NR], global_params->MAX_SNOW_TEMP, global_params->MIN_RAIN_TEMP, 1);
     if ((int) rainonly == ERROR) {
       return (ERROR);
     }
@@ -781,7 +781,7 @@ int  full_energy(char                 NEWCELL,
         atmos->wind[NR], atmos->vp[NR] / 1000., atmos->shortwave[NR],
         atmos->longwave[NR], atmos->vpd[NR] / 1000.,
         atmos->pressure[NR] / 1000., atmos->density[NR], &(prcp->lake_var), *lake_con,
-        *soil_con, gp->dt, rec, gp->wind_h, dmy[rec], fraci);
+        *soil_con, global_params->dt, time_step_record, global_params->wind_h, dmy[time_step_record], fraci);
     if (ErrorFlag == ERROR)
       return (ERROR);
 
@@ -789,14 +789,14 @@ int  full_energy(char                 NEWCELL,
        Solve the water budget for the lake.
      **********************************************************************/
 
-    ErrorFlag = water_balance(&(prcp->lake_var), *lake_con, gp->dt, prcp, rec, iveg, band, lakefrac, *soil_con,
+    ErrorFlag = water_balance(&(prcp->lake_var), *lake_con, global_params->dt, prcp, time_step_record, iveg, band, lakefrac, *soil_con,
         *veg_con, SubsidenceUpdate, total_meltwater);
     if (ErrorFlag == ERROR)
       return (ERROR);
 
 #if LINK_DEBUG
     if ( debug.PRT_LAKE ) {
-      if ( rec == 0 ) {
+      if ( time_step_record == 0 ) {
         // print file header
         fprintf(debug.fg_lake,"Date,Rec,AeroResist,BasinflowIn,BaseflowOut");
         for ( i = 0; i < MAX_LAKE_NODES; i++ )
@@ -814,7 +814,7 @@ int  full_energy(char                 NEWCELL,
       }
 
       // print lake variables
-      fprintf(debug.fg_lake, "%i/%i/%i %i:00:00,%i", dmy[rec].month, dmy[rec].day, dmy[rec].year, dmy[rec].hour, rec);
+      fprintf(debug.fg_lake, "%i/%i/%i %i:00:00,%i", dmy[time_step_record].month, dmy[time_step_record].day, dmy[time_step_record].year, dmy[time_step_record].hour, time_step_record);
       fprintf(debug.fg_lake, ",%i", prcp->lake_var.activenod);
       fprintf(debug.fg_lake, ",%f", prcp->lake_var.ldepth);
       fprintf(debug.fg_lake, ",%f", prcp->lake_var.sarea);
