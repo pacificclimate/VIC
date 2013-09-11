@@ -374,7 +374,7 @@ int  full_energy(char                 NEWCELL,
       if(debug.DEBUG || debug.PRT_MOIST || debug.PRT_BALANCE) {
         /** Compute current total moisture for water balance check **/
         store_moisture_for_debug(iveg, Nveg, prcp->mu, prcp->cell,
-            prcp->veg_var, snow, soil_con);
+            prcp->veg_var, prcp->snow, soil_con);
         if(debug.PRT_BALANCE) {
           for(j=0; j<Ndist; j++) {
             for(band=0; band<Nbands; band++) {
@@ -454,11 +454,6 @@ int  full_energy(char                 NEWCELL,
 #if LINK_DEBUG
 
       for(j = 0; j < Ndist; j++) {
-        tmp_veg[j] = veg_var[j][iveg];
-      }
-      ptr_energy = prcp->energy[iveg];
-      tmp_snow = prcp->snow[iveg];
-      for(j = 0; j < Ndist; j++) {
         if(j == 0)
         tmp_mu = prcp->mu[iveg];
         else
@@ -482,8 +477,8 @@ int  full_energy(char                 NEWCELL,
           } /** End loop through elevation bands **/
         }
 
-        write_debug(atmos, soil_con, prcp->cell[j][iveg], ptr_energy,
-            tmp_snow, tmp_veg[j], &(dmy[rec]), gp, out_short,
+        write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
+            prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[rec]), gp, out_short,
             tmp_mu, Nveg, iveg, rec, gridcell, j, NEWCELL);
       }
 #endif // LINK_DEBUG
@@ -533,8 +528,8 @@ int  full_energy(char                 NEWCELL,
                   max_ice_layer = ice_layer;
                 } // frost area
 #else //SPATIAL_FROST
-                tmp_ice = prcp->cell[dist][iveg][band].layer[lidx].ice;
-                ice_layer = prcp->cell[dist][iveg][band].layer[lidx].ice;
+                tmp_ice = prcp->cell[dist][iveg][band].layer[lidx].soil_ice;
+                ice_layer = prcp->cell[dist][iveg][band].layer[lidx].soil_ice;
                 if(ice_layer>=max_ice_layer)
                 max_ice_layer = ice_layer;
 #endif //SPATIAL_FROST
@@ -848,7 +843,7 @@ int  full_energy(char                 NEWCELL,
       fprintf(debug.fg_lake, ",%f", prcp->lake_var.aero_resist);
 
       // print lake prcp->energy variables
-      fprintf(debug.fg_lake, ",%f", energy[lake_con->lake_idx][0].AlbedoLake);
+      fprintf(debug.fg_lake, ",%f", prcp->energy[lake_con->lake_idx][0].AlbedoLake);
       fprintf(debug.fg_lake, ",%f", prcp->energy[lake_con->lake_idx][0].AlbedoOver);
       fprintf(debug.fg_lake, ",%f", prcp->energy[lake_con->lake_idx][0].AlbedoUnder);
       fprintf(debug.fg_lake, ",%f", prcp->energy[lake_con->lake_idx][0].AtmosError);
@@ -900,7 +895,7 @@ int  full_energy(char                 NEWCELL,
       fprintf(debug.fg_lake, ",%f", prcp->snow[lake_con->lake_idx][0].surf_water);
       fprintf(debug.fg_lake, ",%f", prcp->snow[lake_con->lake_idx][0].swq);
       fprintf(debug.fg_lake, ",%f", prcp->snow[lake_con->lake_idx][0].swq_slope);
-      fprintf(debug.fg_lake, ",%f", snow[lake_con->lake_idx][0].vapor_flux);
+      fprintf(debug.fg_lake, ",%f", prcp->snow[lake_con->lake_idx][0].vapor_flux);
       fprintf(debug.fg_lake, ",%i", prcp->snow[lake_con->lake_idx][0].last_snow);
       fprintf(debug.fg_lake, ",%i\n", prcp->snow[lake_con->lake_idx][0].store_snow);
 

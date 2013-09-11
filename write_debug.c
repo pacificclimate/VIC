@@ -385,7 +385,7 @@ void write_debug(atmos_data_struct    *atmos,
 	  fprintf(debug.fg_temp,"\t%6.4f", energy->moist[i]);
 	/* print node ice contents */
 	for(i = 0; i < options.Nnode; i++) 
-	  fprintf(debug.fg_temp,"\t%6.4f", energy->ice[i]);
+	  fprintf(debug.fg_temp,"\t%6.4f", energy->ice_content[i]);
 	/* print node thermal conductivities */
 	for(i = 0; i < options.Nnode; i++) 
 	  fprintf(debug.fg_temp,"\t%6.2f", energy->kappa_node[i]);

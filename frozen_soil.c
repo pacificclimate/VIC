@@ -128,11 +128,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #if LINK_DEBUG
   if(debug.PRT_BALANCE && debug.DEBUG) {
     printf("After Moisture Redistribution\n");
-#if SPATIAL_FROST
     write_layer(layer, veg, options.Nlayer, soil_con->frost_fract, soil_con->depth);
-#else
-    write_layer(layer, veg, options.Nlayer, soil_con->depth);
-#endif
   } 
 #endif
 

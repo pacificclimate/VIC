@@ -36,7 +36,7 @@
        have to be activated to get extra output.  When set to FALSE
        all debugging if-then statements are removed from the compiled 
        code *****/
-#define LINK_DEBUG FALSE
+#define LINK_DEBUG TRUE
 
 /***** If TRUE VIC uses a system of linear equations defined in global.h
        to estimate the maximum unfrozen water content equation.  This 

@@ -1134,8 +1134,7 @@ typedef struct {
   ***********************************************************************/
 typedef struct {
   double canopyevap;		/* evaporation from canopy (mm/TS) */
-  double throughfall;		/* water that reaches the ground through 
-                                   the canopy (mm/TS) */
+  double throughfall;		/* water that reaches the ground through the canopy (mm/TS) */
   double Wdew;			/* dew trapped on vegetation (mm) */
 } veg_var_struct;
 
@@ -1268,15 +1267,12 @@ typedef struct {
   cell (for use with the distributed precipitation model).
 *****************************************************************/
 typedef struct {
-  cell_data_struct  **cell[2];    /* Stores soil layer variables (wet and 
-				     dry) */
-  double             *mu;         /* fraction of grid cell that receives 
-				     precipitation */
+  cell_data_struct  **cell[2];    /* Stores soil layer variables (wet and dry) */
+  double             *mu;         /* fraction of grid cell that receives precipitation */
   energy_bal_struct **energy;     /* Stores energy balance variables */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
   snow_data_struct  **snow;       /* Stores snow variables */
-  veg_var_struct    **veg_var[2]; /* Stores vegetation variables (wet and 
-				     dry) */
+  veg_var_struct    **veg_var[2]; /* Stores vegetation variables (wet and dry) */
 } dist_prcp_struct;
 
 /*******************************************************
