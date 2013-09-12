@@ -1336,6 +1336,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
   free((char *)dmy_local);
 
 #if OUTPUT_FORCE_STATS
+#error // OUTPUT_FORCE_STATS is an untested code path. Continue at your own risk!
   calc_forcing_stats(global_param.nrecs, atmos);
 #endif // OUTPUT_FORCE_STATS
 

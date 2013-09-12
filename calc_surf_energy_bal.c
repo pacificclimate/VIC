@@ -674,6 +674,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       /** Check for Thin Snowpack which only Partially Covers Grid Cell
 	  exists only if not snowing and snowpack has started to melt **/
 #if SPATIAL_SNOW
+#error // SPATIAL_SNOW is an untested code path. Continue at your own risk!
       snow->coverage = calc_snow_coverage(&snow->store_snow, 
 					  soil_con->depth_full_snow_cover, 
 					  snow_coverage, snow->swq,

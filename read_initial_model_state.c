@@ -118,6 +118,8 @@ void read_initial_model_state(FILE    *init_state,
     fgets(tmpstr, MAXSTRING, init_state);
     fgets(tmpstr, MAXSTRING, init_state);
   }
+#else
+#error // NO_REWIND is an untested code path. Continue at your own risk!
 #endif
   
   /* read cell information */
@@ -275,6 +277,7 @@ void read_initial_model_state(FILE    *init_state,
         /* Read average ice content */
         for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
+#error // SPATIAL_FROST is an untested code path. Continue at your own risk!
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    if ( options.BINARY_STATE_FILE ) {
 	      if ( fread( &prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area],

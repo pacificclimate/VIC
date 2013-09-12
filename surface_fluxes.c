@@ -6,6 +6,7 @@
 static char vcid[] = "$Id$";
 
 #if CLOSE_ENERGY
+#error // CLOSE_ENERGY is an untested code path. Continue at your own risk!
 #define MAX_ITER 250 /* Max number of iterations for total energy balance */
 #else
 #define MAX_ITER 0   /* No iterations */

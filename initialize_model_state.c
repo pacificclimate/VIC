@@ -225,6 +225,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
   ********************************************************/
 
 #if QUICK_FS
+#error // QUICK_FS is an untested code path. Continue at your own risk!
   if(options.FROZEN_SOIL) {
 
     /***********************************************************
@@ -259,6 +260,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
   if(options.INIT_STATE) {
 
 #if EXCESS_ICE
+#error // EXCESS_ICE is an untested code path. Continue at your own risk!
     sum_mindepth = 0;
     sum_depth_pre = 0;
     for( lidx = 0; lidx < options.Nlayer; lidx++ ){

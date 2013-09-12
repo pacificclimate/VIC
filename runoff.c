@@ -480,6 +480,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	    last_cnt = 0;
 	    
 #if LOW_RES_MOIST
+#error // LOW_RES_MOIST is an untested code path. Continue at your own risk!
 	    for( lindex = 0; lindex < options.Nlayer; lindex++ ) {
 	      if( (tmp_liq = liq[lindex] - evap[lindex][frost_area]) 
 		  < resid_moist[lindex] )

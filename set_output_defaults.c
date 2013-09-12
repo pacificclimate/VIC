@@ -39,7 +39,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data) {
   int varnum;
 
 #if OUTPUT_FORCE
-
+#error // OUTPUT_FORCE is an untested code path. Continue at your own risk!
   // Output files
   options.Noutfiles = 1;
   out_data_files = (out_data_file_struct *)calloc(options.Noutfiles,sizeof(out_data_file_struct));
