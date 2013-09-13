@@ -8,7 +8,6 @@ static char vcid[] = "$Id$";
 
 soil_con_struct read_soilparam(FILE *soilparam,
 			       char *soilparamdir,
-			       int  *cell_cnt,
 			       char *RUN_MODEL,
 			       char *MODEL_DONE)
 /**********************************************************************
@@ -147,7 +146,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
   double          dist;
   size_t          length;
   int             Nbands,band;
-  int             Ncells;
   int             flag;
   double          tmp_depth;
   double          tmp_depth2, tmp_depth2_save;
@@ -163,16 +161,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
   double          init_ice_fract[MAX_LAYERS];
 #endif
   soil_con_struct temp;
-
-  if(options.ARC_SOIL) {
-    assert(0); /* presently unsupported; maybe support vector functionality later? */
-    /** Read Arc/INFO-style soil parameter files **/
-    temp = read_soilparam_arc(soilparam, soilparamdir, &Ncells, RUN_MODEL, *cell_cnt);
-    *cell_cnt++;
-    if(*cell_cnt==Ncells) *MODEL_DONE = TRUE;
-
-  }
-  else {
 
     /** Read plain ASCII soil parameter file **/
     if((fscanf(soilparam, "%d", &flag))!=EOF) {
@@ -1060,8 +1048,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.ehoriz = 0;
 
     } // end if(!(*MODEL_DONE) && (*RUN_MODEL))
-
-  } // end if (options.ARC_SOIL)
 
   return temp;
 

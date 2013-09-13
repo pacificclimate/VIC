@@ -19,7 +19,7 @@ void write_debug(atmos_data_struct    *atmos,
                  int                   Nveg,
                  int                   veg,
                  int                   rec,
-                 const int                   gridcell,
+                 const int             gridcell,
                  int                   dist,
                  char                  NEWCELL) {
 /**********************************************************************

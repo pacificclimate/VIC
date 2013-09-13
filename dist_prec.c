@@ -17,9 +17,8 @@ int  dist_prec(atmos_data_struct   *atmos,
                out_data_struct     *out_data,
                save_data_struct    *save_data,
                int                  time_step_record,
-               const int                  cellnum,
+               const int            cellnum,
                char                 NEWCELL,
-               char                 LASTREC,
                char                *init_STILL_STORM,
                int                 *init_DRY_TIME) {
 /**********************************************************************

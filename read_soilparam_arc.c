@@ -186,7 +186,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     strcpy(namestr,soilparamdir);
     strcat(namestr,"/");
     strcat(namestr,tmpstr);
-    Ncells[0] = read_arcinfo_info(namestr,&lat,&lng,&cellnum);
+    (*Ncells) = read_arcinfo_info(namestr,&lat,&lng,&cellnum);
   }
   else {
     rewind(soilparam);

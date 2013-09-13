@@ -211,7 +211,7 @@ int    dist_prec(atmos_data_struct *,dist_prcp_struct *,soil_con_struct *,
 		 const dmy_struct *,global_param_struct *,
 		 filep_struct *, out_data_file_struct *,
 		 out_data_struct *, save_data_struct *,
-		 int, int, char, char, char *, int *);
+		 int, int, char, char *, int *);
 
 int distribute_node_moisture_properties(double *, double *, double *, double *,
     double *, double *, double *, double ***, double *, double *, double *,
@@ -361,7 +361,7 @@ void   read_initial_model_state(FILE *, dist_prcp_struct *,
 				int *, lake_con_struct);
 void   read_snowband(FILE *, soil_con_struct *);
 void   read_snowmodel(atmos_data_struct *, FILE *, int, int, int, int);
-soil_con_struct read_soilparam(FILE *, char *, int *, char *, char *);
+soil_con_struct read_soilparam(FILE *, char *, char *, char *);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int);
 veg_lib_struct *read_veglib(FILE *, int *);
 veg_con_struct *read_vegparam(FILE *, int, int);
