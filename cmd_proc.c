@@ -6,7 +6,7 @@
 
 static char vcid[] = "$Id$";
 
-filenames_struct cmd_proc(int argc, char *argv[]) 
+void cmd_proc(int argc, char *argv[], char* global_file_name)
 /**********************************************************************
   cmd_proc                  Keith Cherkauer                1997
 
@@ -31,16 +31,15 @@ filenames_struct cmd_proc(int argc, char *argv[])
   extern char *optarg;
   extern char *optstring;
 
-  filenames_struct names;
   int              optchar;
-  char             GLOBAL_SET;
+  bool             GLOBAL_SET;
   
   if(argc==1) {
     usage(argv[0]);
     exit(1);
   }
   
-  GLOBAL_SET = FALSE;
+  GLOBAL_SET = false;
 
   while((optchar = getopt(argc, argv, optstring)) != EOF) {
     switch((char)optchar) {
@@ -56,8 +55,8 @@ filenames_struct cmd_proc(int argc, char *argv[])
       break;
     case 'g':
       /** Global Parameters File **/
-      strcpy(names.global, optarg);
-      GLOBAL_SET = TRUE;
+      strcpy(global_file_name, optarg);
+      GLOBAL_SET = true;
       break;
     default:
       /** Print Usage if Invalid Command Line Arguments **/
@@ -72,8 +71,6 @@ filenames_struct cmd_proc(int argc, char *argv[])
     usage(argv[0]);
     exit(1);
   }
-
-  return names;
 }
 
 

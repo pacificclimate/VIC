@@ -21,7 +21,7 @@ static char vcid[] = "$Id$";
 /****************************************************************************/
 /*			       alloc_atmos()                                */
 /****************************************************************************/
-void alloc_atmos(int nrecs, atmos_data_struct **atmos)
+atmos_data_struct * alloc_atmos(int nrecs)
 /*******************************************************************
   alloc_atmos    
 
@@ -39,51 +39,49 @@ void alloc_atmos(int nrecs, atmos_data_struct **atmos)
 {
   extern param_set_struct param_set;
 
-  int i;
-
-  *atmos = (atmos_data_struct *) calloc(nrecs, sizeof(atmos_data_struct)); 
-  if (*atmos == NULL)
+  atmos_data_struct *atmos = (atmos_data_struct *) calloc(nrecs, sizeof(atmos_data_struct));
+  if (atmos == NULL)
     vicerror("Memory allocation error in alloc_atmos().");
 
-  for (i = 0; i < nrecs; i++) {
-    (*atmos)[i].air_temp = (double *) calloc(NR+1, sizeof(double));
-    if ((*atmos)[i].air_temp == NULL)
+  for (int i = 0; i < nrecs; i++) {
+    atmos[i].air_temp = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].air_temp == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].channel_in = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].channel_in == NULL)
+    atmos[i].channel_in = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].channel_in == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].density = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].density == NULL)
+    atmos[i].density = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].density == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].longwave = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].longwave == NULL)
+    atmos[i].longwave = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].longwave == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].prec = (double *) calloc(NR+1, sizeof(double));
-    if ((*atmos)[i].prec == NULL)
+    atmos[i].prec = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].prec == NULL)
       vicerror("Memory allocation error in alloc_atmos().");      
-    (*atmos)[i].pressure = (double *) calloc(NR+1, sizeof(double));
-    if ((*atmos)[i].pressure == NULL)
+    atmos[i].pressure = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].pressure == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].shortwave = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].shortwave == NULL)
+    atmos[i].shortwave = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].shortwave == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].snowflag = (char *) calloc(NR+1, sizeof(char));	
-    if ((*atmos)[i].snowflag == NULL)
+    atmos[i].snowflag = (char *) calloc(NR+1, sizeof(char));
+    if (atmos[i].snowflag == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].tskc = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].tskc == NULL)
+    atmos[i].tskc = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].tskc == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].vp = (double *) calloc(NR+1, sizeof(double));	
-    if ((*atmos)[i].vp == NULL)
+    atmos[i].vp = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].vp == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].vpd = (double *) calloc(NR+1, sizeof(double));
-    if ((*atmos)[i].vpd == NULL)
+    atmos[i].vpd = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].vpd == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
-    (*atmos)[i].wind = (double *) calloc(NR+1, sizeof(double));
-    if ((*atmos)[i].wind == NULL)
+    atmos[i].wind = (double *) calloc(NR+1, sizeof(double));
+    if (atmos[i].wind == NULL)
       vicerror("Memory allocation error in alloc_atmos().");
   }    			
-
+  return atmos;
 }
 
 /****************************************************************************/

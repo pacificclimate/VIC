@@ -111,7 +111,7 @@
 /*** SubRoutine Prototypes ***/
 
 double advected_sensible_heat(double, double, double, double, double);
-void alloc_atmos(int, atmos_data_struct **);
+atmos_data_struct * alloc_atmos(int);
 double arno_evap(layer_data_struct *, layer_data_struct *, double, double, 
 		 double, double, double, double, double, double, double, double, double, double *);
 
@@ -180,11 +180,10 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, double *,
     double *, double *, double *, float *);
 
-void   check_files(filep_struct *, filenames_struct *);
-FILE  *check_state_file(char *, const dmy_struct *, global_param_struct *, int, int, 
-                        int *);
+filep_struct   get_files(const filenames_struct *);
+FILE  *check_state_file(char *, global_param_struct *, int, int);
 void   close_files(filep_struct *, out_data_file_struct *, filenames_struct *);
-filenames_struct cmd_proc(int argc, char *argv[]);
+void   cmd_proc(int argc, char *argv[], char* global_file_name);
 void   collect_eb_terms(energy_bal_struct, snow_data_struct, cell_data_struct,
                         int *, int *, int *, int *, int *, double, double, double,
                         int, int, double, int, int, double *, double *,
@@ -283,7 +282,7 @@ double func_surf_energy_bal(double, va_list);
 double get_avg_temp(double, double, double *, double *, int);
 double get_dist(double, double, double, double);
 void   get_force_type(char *, int, int *);
-global_param_struct get_global_param(filenames_struct *, FILE *);
+global_param_struct get_global_param(filenames_struct *, const char* global_file_name);
 void   get_next_time_step(int *, int *, int *, int *, int *, int);
 
 double hermint(double, int, double *, double *, double *, double *, double *);
@@ -340,7 +339,7 @@ void   open_debug();
 FILE  *open_file(const char *string, const char *type);
 FILE  *open_state_file(global_param_struct *, filenames_struct, int, int);
 
-void parse_output_info(filenames_struct *, FILE *, out_data_file_struct **, out_data_struct *);
+void parse_output_info(const char*, out_data_file_struct **, out_data_struct *);
 double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(int, int, int, dist_prcp_struct *, 
 			   soil_con_struct *, double *, double *); 

@@ -4,8 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void check_files(filep_struct     *filep, 
-		 filenames_struct *fnames)
+filep_struct get_files(const filenames_struct *fnames)
 /**********************************************************************
 	check_files		Dag Lohmann		January 1996
 
@@ -20,18 +19,20 @@ void check_files(filep_struct     *filep,
 **********************************************************************/
 {
   extern option_struct  options;
-  /*  extern FILE          *open_file(char string[], char type[]);   No.  Not here, either. */
 
-  filep->soilparam   = open_file(fnames->soil, "r");
+  filep_struct file_pointers;
+
+  file_pointers.soilparam   = open_file(fnames->soil, "r");
 #if !OUTPUT_FORCE
-  filep->veglib      = open_file(fnames->veglib, "r");
-  filep->vegparam    = open_file(fnames->veg, "r");
+  file_pointers.veglib      = open_file(fnames->veglib, "r");
+  file_pointers.vegparam    = open_file(fnames->veg, "r");
   if(options.SNOW_BAND>1)
-    filep->snowband    = open_file(fnames->snowband, "r");
+    file_pointers.snowband    = open_file(fnames->snowband, "r");
   if ( options.LAKES )
-    filep->lakeparam = open_file(fnames->lakeparam,"r");
+    file_pointers.lakeparam = open_file(fnames->lakeparam,"r");
 #endif /* !OUTPUT_FORCE */
 
+  return file_pointers;
 }
 
 

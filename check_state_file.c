@@ -6,11 +6,9 @@
 static char vcid[] = "$Id$";
 
 FILE *check_state_file(char                *init_state_name,
-		       const dmy_struct          *dmy, /* MPN: unused !*/
 		       global_param_struct *global,
 		       int                  Nlayer,
-		       int                  Nnodes,
-		       int                 *startrec) 
+		       int                  Nnodes)
 /*********************************************************************
   check_state_file      Keith Cherkauer           April 17, 2000
 
@@ -49,9 +47,6 @@ FILE *check_state_file(char                *init_state_name,
     init_state = open_file(init_state_name,"rb");
   else 
     init_state = open_file(init_state_name,"r");
-
-  /* Initialize startrec */
-  *startrec = 0;
 
   /* Check state date information */
   if ( options.BINARY_STATE_FILE ) {

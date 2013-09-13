@@ -74,7 +74,6 @@ void advect_soil_veg_storage(double, double, double, double *, soil_con_struct *
 void advect_snow_storage(double, double, double, snow_data_struct *);
 void alblake(double, double, double *, double *, float *, float *, double, double, 
 	     int, int *, double, double, char *, int, double);
-void alloc_atmos(int, atmos_data_struct **);
 double calc_density(double);
 double CalcIcePackEnergyBalance(double Tsurf, ...);
 void colavg (double *, double *, double *, float, double *, int, double, double);

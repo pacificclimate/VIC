@@ -5,8 +5,7 @@
  
 static char vcid[] = "$Id$";
 
-void parse_output_info(filenames_struct      *names,
-                       FILE                  *gp,
+void parse_output_info(const char*           input_file_name,
                        out_data_file_struct  **out_data_files,
                        out_data_struct       *out_data)
 /**********************************************************************
@@ -49,6 +48,7 @@ void parse_output_info(filenames_struct      *names,
 
   strcpy(format,"*");
 
+  FILE* gp = open_file(input_file_name, "r");
   /** Read through global control file to find output info **/
 
   fgets(cmdstr,MAXSTRING,gp);

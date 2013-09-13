@@ -91,78 +91,51 @@ int main(int argc, char *argv[])
 	      read_soilparam().						TJB
 **********************************************************************/
 {
-  /* MPN: FIXME: Fix linkage here; this is horrific */
-
-  extern veg_lib_struct *veg_lib;
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif // LINK_DEBUG
-  extern Error_struct Error;
-  extern global_param_struct global_param;
-
-  /** Variable Declarations **/
-
-  int Nveg_type; /* MPN: LEAVING THIS ALONE: init by pass-by-ref below, then unmodified */
-  int startrec; /* MPN: LEAVING THIS ALONE: init by pass-by-ref below, then unmodified */
-  atmos_data_struct *atmos; /* FIXME: not dealt with yet */
-  veg_con_struct *veg_con; /* FIXME: not dealt with yet */
-
-  /* MPN: FIXME: none of these are dealt with yet */
-  filep_struct filep;
-  out_data_file_struct *out_data_files;
-  out_data_struct *out_data;
-  save_data_struct save_data;
 
   /** Read Model Options **/
-  initialize_global(); /* MPN: This needs to be distinguished from whatever on earth get_global_param() below does */
-  filenames_struct filenames = cmd_proc(argc, argv);  //TODO: make const
+  initialize_global();
+  filenames_struct filenames;
+  cmd_proc(argc, argv, filenames.global);
 
 #if VERBOSE
-  display_current_settings(DISP_VERSION, (filenames_struct*) NULL,
-      (global_param_struct*) NULL);
+  display_current_settings(DISP_VERSION, (filenames_struct*) NULL, (global_param_struct*) NULL);
 #endif
 
   /** Read Global Control File **/
-  filep.globalparam = open_file(filenames.global, "r"); /* This shit should not be 3 calls. */
-  global_param = get_global_param(&filenames, filep.globalparam);
+  global_param = get_global_param(&filenames, filenames.global);
 
   /** Set up output data structures **/
-  out_data = create_output_list();
-  out_data_files = set_output_defaults(out_data);
-  fclose(filep.globalparam);
-  filep.globalparam = open_file(filenames.global, "r");
-  parse_output_info(&filenames, filep.globalparam, &out_data_files, out_data);
+  out_data_struct *out_data = create_output_list();
+  out_data_file_struct *out_data_files = set_output_defaults(out_data);
+  parse_output_info(filenames.global, &out_data_files, out_data);
 
   /** Check and Open Files **/
-  check_files(&filep, &filenames);
+  filep_struct filep = get_files(&filenames);
 
 #if !OUTPUT_FORCE
-
-  /** Check and Open Debugging Files **/
 #if LINK_DEBUG
   open_debug();
 #endif
 
   /** Read Vegetation Library File **/
-  veg_lib = read_veglib(filep.veglib, &Nveg_type);
+  int num_veg_types = 0;
+  veg_lib = read_veglib(filep.veglib, &num_veg_types);
 
 #endif // !OUTPUT_FORCE
   /** Initialize Parameters **/
   const int Ndist = options.DIST_PRCP ? 2 : 1;
 
   /** Make Date Data Structure **/
-  dmy_struct* dmy = make_dmy(&global_param);  //TODO: make this const, possibly make a vector
+  dmy_struct* dmy = make_dmy(&global_param);
 
   /** allocate memory for the atmos_data_struct **/
-  alloc_atmos(global_param.nrecs, &atmos);
+  atmos_data_struct *atmos = alloc_atmos(global_param.nrecs);
 
   /** Initial state **/
-  startrec = 0;
 #if !OUTPUT_FORCE
   if (options.INIT_STATE)
-    filep.init_state = check_state_file(filenames.init_state, dmy,
-        &global_param, options.Nlayer, options.Nnode, &startrec);
+    filep.init_state = check_state_file(filenames.init_state,
+        &global_param, options.Nlayer, options.Nnode);
 
   /** open state file if model state is to be saved **/
   if (options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
@@ -213,12 +186,6 @@ int main(int argc, char *argv[])
    ************************************/
   for (int cellidx = 0; cellidx < ncells; cellidx++) {
 
-    /* relocated from top of function for reentrancy - TODO check that ALL of these are clobbered below and thus do not need to be persistent between cells or after cells are run */
-    lake_con_struct lake_con;
-    char NEWCELL;
-    int ErrorFlag;
-    dist_prcp_struct prcp; /* stores information about distributed precipitation */
-
     /* referencing in from persistent shared data struct for things that need to persiste beyond end of cell run */
     soil_con_struct soil_con = cell_data_structs[cellidx].soil_con;
     char *ErrStr = cell_data_structs[cellidx].ErrStr; /* MPN: get rid of this and use proper varargs error handling */
@@ -244,17 +211,18 @@ int main(int argc, char *argv[])
       }
     }
 #endif /* QUICK_FS */
-    NEWCELL = TRUE;
+    char NEWCELL = TRUE;
 
 #if !OUTPUT_FORCE
     /** Read Grid Cell Vegetation Parameters **/
-    veg_con = read_vegparam(filep.vegparam, soil_con.gridcel, Nveg_type);
+    veg_con_struct *veg_con = read_vegparam(filep.vegparam, soil_con.gridcel, num_veg_types);
     calc_root_fractions(veg_con, &soil_con);
 #if LINK_DEBUG
     if (debug.PRT_VEGE)
       write_vegparam(veg_con);
 #endif /* LINK_DEBUG*/
 
+    lake_con_struct lake_con;
     if (options.LAKES)
       lake_con = read_lakeparam(filep.lakeparam, soil_con, veg_con);
 
@@ -273,7 +241,7 @@ int main(int argc, char *argv[])
     read_snowband(filep.snowband, &soil_con);
 
     /** Make Precipitation Distribution Control Structure **/
-    prcp = make_dist_prcp(veg_con[0].vegetat_type_num);
+    dist_prcp_struct prcp = make_dist_prcp(veg_con[0].vegetat_type_num);
 
 #endif // !OUTPUT_FORCE
     /**************************************************
@@ -301,7 +269,7 @@ int main(int argc, char *argv[])
 #if VERBOSE
     fprintf(stderr, "Model State Initialization\n");
 #endif /* VERBOSE */
-    ErrorFlag = initialize_model_state(&prcp, dmy[0], &global_param, filep,
+    int ErrorFlag = initialize_model_state(&prcp, dmy[0], &global_param, filep,
         soil_con.gridcel, veg_con[0].vegetat_type_num, options.Nnode, Ndist,
         atmos[0].air_temp[NR], &soil_con, veg_con, lake_con,
         &cell_data_structs[cellidx].init_STILL_STORM,
@@ -330,6 +298,8 @@ int main(int argc, char *argv[])
     Error.filep = filep;
     Error.out_data_files = out_data_files;
 
+    save_data_struct save_data;
+
     /** Initialize the storage terms in the water and energy balances **/
     /** Sending a negative record number (-global_param.nrecs) to dist_prec() will accomplish this **/
     ErrorFlag = dist_prec(&atmos[0], &prcp, &soil_con, veg_con, &lake_con, dmy,
@@ -342,7 +312,7 @@ int main(int argc, char *argv[])
      Run Model in Grid Cell for all Time Steps
      ******************************************/
 
-    for (int rec = startrec; rec < global_param.nrecs; rec++) {
+    for (int rec = 0; rec < global_param.nrecs; rec++) {
 
       ErrorFlag = dist_prec(&atmos[rec], &prcp, &soil_con, veg_con, &lake_con,
           dmy, &global_param, &filep, out_data_files, out_data, &save_data, rec,

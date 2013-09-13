@@ -14,7 +14,7 @@ int NF;		      /* array index loop counter limit for atmos
 			 struct that indicates the SNOW_STEP values */
  
 global_param_struct get_global_param(filenames_struct *names,
-                                     FILE             *gp)
+                                     const char* global_file_name)
 /**********************************************************************
   get_global_param	Keith Cherkauer	            March 1998
 
@@ -104,7 +104,6 @@ global_param_struct get_global_param(filenames_struct *names,
 #if LINK_DEBUG
   extern debug_struct     debug;
 #endif
-/*  extern int              NF, NR; MPN:  Derp, no, this doesn't do anything, and don't write crap code with 'extern' in block scope.*/
 
   char cmdstr[MAXSTRING];
   char optstr[MAXSTRING];
@@ -172,8 +171,10 @@ global_param_struct get_global_param(filenames_struct *names,
   global.out_dt        = MISSING;
 
 
-  /** Read through global control file to find parameters **/
+  // Open the file
+  FILE* gp = open_file(global_file_name, "r");
 
+/** Read through global control file to find parameters **/
   fgets(cmdstr,MAXSTRING,gp);
 
   while(!feof(gp)) {
@@ -718,6 +719,7 @@ global_param_struct get_global_param(filenames_struct *names,
     }
     fgets(cmdstr,MAXSTRING,gp);
   }
+  fclose(gp);
 
   /******************************************
     Check for undefined required parameters

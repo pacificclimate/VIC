@@ -521,9 +521,6 @@ extern char ref_veg_ref_crop[];
 #define DISP_ALL 3
 
 
-/***** VIC model version *****/
-/* extern const char *version;  This is not defined here so don't be stupid and declare it. */
-
 /* global variables */
 extern int NR;			/* array index for atmos struct that indicates
 				   the model step avarage or sum */
