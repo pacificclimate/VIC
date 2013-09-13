@@ -7,6 +7,11 @@
 
 static char vcid[] = "$Id$";
 
+void runModel(const int ncells, cell_info_struct * cell_data_structs,
+    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    out_data_file_struct *out_data_files, out_data_struct *out_data,
+    dmy_struct* dmy, atmos_data_struct *atmos);
+
 int main(int argc, char *argv[])
 /**********************************************************************
 	vicNl.c		Dag Lohmann		January 1996
@@ -123,7 +128,6 @@ int main(int argc, char *argv[])
 
 #endif // !OUTPUT_FORCE
   /** Initialize Parameters **/
-  const int Ndist = options.DIST_PRCP ? 2 : 1;
 
   /** Make Date Data Structure **/
   dmy_struct* dmy = make_dmy(&global_param);
@@ -181,197 +185,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  /************************************
-   Run Model for all Active Grid Cells
-   ************************************/
-  for (int cellidx = 0; cellidx < ncells; cellidx++) {
-
-    /* referencing in from persistent shared data struct for things that need to persiste beyond end of cell run */
-    soil_con_struct soil_con = cell_data_structs[cellidx].soil_con;
-    char *ErrStr = cell_data_structs[cellidx].ErrStr; /* MPN: get rid of this and use proper varargs error handling */
-
-#if LINK_DEBUG
-    if (debug.PRT_SOIL)
-      write_soilparam(&soil_con);
-#endif
-
-#if QUICK_FS
-    /** Allocate Unfrozen Water Content Table **/
-    if(options.FROZEN_SOIL) {
-      for(int i=0;i<MAX_LAYERS;i++) {
-        soil_con.ufwc_table_layer[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
-        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
-        soil_con.ufwc_table_layer[i][j] = (double *)malloc(2*sizeof(double));
-      }
-      for(int i=0;i<MAX_NODES;i++) {
-        soil_con.ufwc_table_node[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
-
-        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
-        soil_con.ufwc_table_node[i][j] = (double *)malloc(2*sizeof(double));
-      }
-    }
-#endif /* QUICK_FS */
-    char NEWCELL = TRUE;
-
-#if !OUTPUT_FORCE
-    /** Read Grid Cell Vegetation Parameters **/
-    veg_con_struct *veg_con = read_vegparam(filep.vegparam, soil_con.gridcel, num_veg_types);
-    calc_root_fractions(veg_con, &soil_con);
-#if LINK_DEBUG
-    if (debug.PRT_VEGE)
-      write_vegparam(veg_con);
-#endif /* LINK_DEBUG*/
-
-    lake_con_struct lake_con;
-    if (options.LAKES)
-      lake_con = read_lakeparam(filep.lakeparam, soil_con, veg_con);
-
-#endif // !OUTPUT_FORCE
-    /** Build Gridded Filenames, and Open **/
-    make_in_and_outfiles(&filep, &filenames, &soil_con, out_data_files);
-
-    if (options.PRT_HEADER) {
-      /** Write output file headers **/
-      write_header(out_data_files, out_data, dmy, global_param);
-    }
-
-#if !OUTPUT_FORCE
-
-    /** Read Elevation Band Data if Used **/
-    read_snowband(filep.snowband, &soil_con);
-
-    /** Make Precipitation Distribution Control Structure **/
-    dist_prcp_struct prcp = make_dist_prcp(veg_con[0].vegetat_type_num);
-
-#endif // !OUTPUT_FORCE
-    /**************************************************
-     Initialize Meteological Forcing Values That
-     Have not Been Specifically Set
-     **************************************************/
-
-#if VERBOSE
-    fprintf(stderr, "Initializing Forcing Data\n");
-#endif /* VERBOSE */
-
-    initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid, &soil_con,
-        out_data_files, out_data);
-
-#if !OUTPUT_FORCE
-#if LINK_DEBUG
-    if (debug.PRT_ATMOS)
-      write_atmosdata(atmos, global_param.nrecs);
-#endif
-
-    /**************************************************
-     Initialize Energy Balance and Snow Variables
-     **************************************************/
-
-#if VERBOSE
-    fprintf(stderr, "Model State Initialization\n");
-#endif /* VERBOSE */
-    int ErrorFlag = initialize_model_state(&prcp, dmy[0], &global_param, filep,
-        soil_con.gridcel, veg_con[0].vegetat_type_num, options.Nnode, Ndist,
-        atmos[0].air_temp[NR], &soil_con, veg_con, lake_con,
-        &cell_data_structs[cellidx].init_STILL_STORM,
-        &cell_data_structs[cellidx].init_DRY_TIME);
-    if (ErrorFlag == ERROR) {
-      if (options.CONTINUEONERROR == TRUE) {
-        // Handle grid cell solution error
-        fprintf(stderr,
-            "ERROR: Grid cell %i failed in record %%i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
-            soil_con.gridcel/*, rec*/); /* MPN: This is massively stupid; rec is ininitialized here; fixing for now by bodging format string and the one right below here.  Obviously this was copied from within the loop below. -ECOPYPASTA */
-        break;
-      } else {
-        // Else exit program on cell solution error as in previous versions
-        sprintf(ErrStr,
-            "ERROR: Grid cell %i failed in record %%i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
-            soil_con.gridcel/*, rec*/);
-        vicerror(ErrStr);
-      }
-    }
-
-#if VERBOSE
-    fprintf(stderr, "Running Model\n");
-#endif /* VERBOSE */
-
-    /** Update Error Handling Structure **/
-    Error.filep = filep;
-    Error.out_data_files = out_data_files;
-
-    save_data_struct save_data;
-
-    /** Initialize the storage terms in the water and energy balances **/
-    /** Sending a negative record number (-global_param.nrecs) to dist_prec() will accomplish this **/
-    ErrorFlag = dist_prec(&atmos[0], &prcp, &soil_con, veg_con, &lake_con, dmy,
-        &global_param, &filep, out_data_files, out_data, &save_data,
-        -global_param.nrecs, cellidx, NEWCELL,
-        cell_data_structs[cellidx].init_STILL_STORM,
-        cell_data_structs[cellidx].init_DRY_TIME);
-
-    /******************************************
-     Run Model in Grid Cell for all Time Steps
-     ******************************************/
-
-    for (int rec = 0; rec < global_param.nrecs; rec++) {
-
-      ErrorFlag = dist_prec(&atmos[rec], &prcp, &soil_con, veg_con, &lake_con,
-          dmy, &global_param, &filep, out_data_files, out_data, &save_data, rec,
-          cellidx, NEWCELL, cell_data_structs[cellidx].init_STILL_STORM,
-          cell_data_structs[cellidx].init_DRY_TIME);
-
-      if (ErrorFlag == ERROR) {
-        if (options.CONTINUEONERROR == TRUE) {
-          // Handle grid cell solution error
-          fprintf(stderr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
-              soil_con.gridcel, rec);
-          break;
-        } else {
-          // Else exit program on cell solution error as in previous versions
-          sprintf(ErrStr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
-              soil_con.gridcel, rec);
-          vicerror(ErrStr);
-        }
-      }
-
-      NEWCELL = FALSE;
-      for (int veg = 0; veg <= veg_con[0].vegetat_type_num; veg++)
-        cell_data_structs[cellidx].init_DRY_TIME[veg] = -999;
-
-    } /* End Rec Loop */
-
-#endif /* !OUTPUT_FORCE */
-
-    close_files(&filep, out_data_files, &filenames);
-
-#if !OUTPUT_FORCE
-
-#if QUICK_FS
-    if(options.FROZEN_SOIL) {
-      for(int i=0;i<MAX_LAYERS;i++) {
-        for(int j=0;j<6;j++)
-        free((char *)soil_con.ufwc_table_layer[i][j]);
-        free((char *)soil_con.ufwc_table_layer[i]);
-      }
-      for(int i=0;i<MAX_NODES;i++) {
-        for(int j=0;j<6;j++)
-        free((char *)soil_con.ufwc_table_node[i][j]);
-        free((char *)soil_con.ufwc_table_node[i]);
-      }
-    }
-#endif /* QUICK_FS */
-    free_dist_prcp(&prcp, veg_con[0].vegetat_type_num);
-    free_vegcon(&veg_con);
-    free((char *) soil_con.AreaFract);
-    free((char *) soil_con.BandElev);
-    free((char *) soil_con.Tfactor);
-    free((char *) soil_con.Pfactor);
-    free((char *) soil_con.AboveTreeLine);
-    /*      free((char*)init_STILL_STORM);
-     free((char*)init_DRY_TIME); */
-#endif /* !OUTPUT_FORCE */
-  } /* End Grid Loop */
+  runModel(ncells, cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, atmos);
 
   /** cleanup **/
   free_atmos(global_param.nrecs, &atmos);
@@ -398,3 +212,209 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 } /* End Main Program */
+
+/************************************
+ Run Model for all Active Grid Cells
+ ************************************/
+void runModel(const int ncells, cell_info_struct * cell_data_structs,
+    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    out_data_file_struct *out_data_files, out_data_struct *out_data,
+    dmy_struct* dmy, atmos_data_struct *atmos) {
+
+  const int Ndist = options.DIST_PRCP ? 2 : 1;
+
+  for (int cellidx = 0; cellidx < ncells; cellidx++) {
+
+#if LINK_DEBUG
+    if (debug.PRT_SOIL)
+      write_soilparam(&cell_data_structs[cellidx].soil_con);
+#endif
+
+#if QUICK_FS
+    /** Allocate Unfrozen Water Content Table **/
+    if(options.FROZEN_SOIL) {
+      for(int i=0;i<MAX_LAYERS;i++) {
+        cell_data_structs[cellidx].soil_con.ufwc_table_layer[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
+        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
+        cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j] = (double *)malloc(2*sizeof(double));
+      }
+      for(int i=0;i<MAX_NODES;i++) {
+        cell_data_structs[cellidx].soil_con.ufwc_table_node[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
+
+        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
+        cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j] = (double *)malloc(2*sizeof(double));
+      }
+    }
+#endif /* QUICK_FS */
+    char NEWCELL = TRUE;
+
+#if !OUTPUT_FORCE
+    /** Read Grid Cell Vegetation Parameters **/
+    veg_con_struct *veg_con = read_vegparam(filep.vegparam,
+        cell_data_structs[cellidx].soil_con.gridcel, num_veg_types);
+    calc_root_fractions(veg_con, &cell_data_structs[cellidx].soil_con);
+#if LINK_DEBUG
+    if (debug.PRT_VEGE)
+      write_vegparam(veg_con);
+#endif /* LINK_DEBUG*/
+
+    lake_con_struct lake_con;
+    if (options.LAKES)
+      lake_con = read_lakeparam(filep.lakeparam,
+          cell_data_structs[cellidx].soil_con, veg_con);
+
+#endif // !OUTPUT_FORCE
+    /** Build Gridded Filenames, and Open **/
+    make_in_and_outfiles(&filep, &filenames,
+        &cell_data_structs[cellidx].soil_con, out_data_files);
+
+    if (options.PRT_HEADER) {
+      /** Write output file headers **/
+      write_header(out_data_files, out_data, dmy, global_param);
+    }
+
+#if !OUTPUT_FORCE
+
+    /** Read Elevation Band Data if Used **/
+    read_snowband(filep.snowband, &cell_data_structs[cellidx].soil_con);
+
+    /** Make Precipitation Distribution Control Structure **/
+    dist_prcp_struct prcp = make_dist_prcp(veg_con[0].vegetat_type_num);
+
+#endif // !OUTPUT_FORCE
+    /**************************************************
+     Initialize Meteological Forcing Values That
+     Have not Been Specifically Set
+     **************************************************/
+
+#if VERBOSE
+    fprintf(stderr, "Initializing Forcing Data\n");
+#endif /* VERBOSE */
+
+    initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid,
+        &cell_data_structs[cellidx].soil_con, out_data_files, out_data);
+
+#if !OUTPUT_FORCE
+#if LINK_DEBUG
+    if (debug.PRT_ATMOS)
+      write_atmosdata(atmos, global_param.nrecs);
+#endif
+
+    /**************************************************
+     Initialize Energy Balance and Snow Variables
+     **************************************************/
+
+#if VERBOSE
+    fprintf(stderr, "Model State Initialization\n");
+#endif /* VERBOSE */
+    int ErrorFlag = initialize_model_state(&prcp, dmy[0], &global_param, filep,
+        cell_data_structs[cellidx].soil_con.gridcel,
+        veg_con[0].vegetat_type_num, options.Nnode, Ndist,
+        atmos[0].air_temp[NR], &cell_data_structs[cellidx].soil_con, veg_con,
+        lake_con, &cell_data_structs[cellidx].init_STILL_STORM,
+        &cell_data_structs[cellidx].init_DRY_TIME);
+    if (ErrorFlag == ERROR) {
+      if (options.CONTINUEONERROR == TRUE) {
+        // Handle grid cell solution error
+        fprintf(stderr,
+            "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
+            cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+        break;
+      } else {
+        // Else exit program on cell solution error as in previous versions
+        sprintf(cell_data_structs[cellidx].ErrStr,
+            "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
+            cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+        vicerror(cell_data_structs[cellidx].ErrStr);
+      }
+    }
+
+#if VERBOSE
+    fprintf(stderr, "Running Model\n");
+#endif /* VERBOSE */
+
+    /** Update Error Handling Structure **/
+    Error.filep = filep;
+    Error.out_data_files = out_data_files;
+
+    save_data_struct save_data;
+
+    /** Initialize the storage terms in the water and energy balances **/
+    /** Sending a negative record number (-global_param.nrecs) to dist_prec() will accomplish this **/
+    ErrorFlag = dist_prec(&atmos[0], &prcp,
+        &cell_data_structs[cellidx].soil_con, veg_con, &lake_con, dmy,
+        &global_param, &filep, out_data_files, out_data, &save_data,
+        -global_param.nrecs, cellidx, NEWCELL,
+        cell_data_structs[cellidx].init_STILL_STORM,
+        cell_data_structs[cellidx].init_DRY_TIME);
+
+    /******************************************
+     Run Model in Grid Cell for all Time Steps
+     ******************************************/
+
+    for (int rec = 0; rec < global_param.nrecs; rec++) {
+
+      ErrorFlag = dist_prec(&atmos[rec], &prcp,
+          &cell_data_structs[cellidx].soil_con, veg_con, &lake_con, dmy,
+          &global_param, &filep, out_data_files, out_data, &save_data, rec,
+          cellidx, NEWCELL, cell_data_structs[cellidx].init_STILL_STORM,
+          cell_data_structs[cellidx].init_DRY_TIME);
+
+      if (ErrorFlag == ERROR) {
+        if (options.CONTINUEONERROR == TRUE) {
+          // Handle grid cell solution error
+          fprintf(stderr,
+              "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
+              cell_data_structs[cellidx].soil_con.gridcel, rec);
+          break;
+        } else {
+          // Else exit program on cell solution error as in previous versions
+          sprintf(cell_data_structs[cellidx].ErrStr,
+              "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
+              cell_data_structs[cellidx].soil_con.gridcel, rec);
+          vicerror(cell_data_structs[cellidx].ErrStr);
+        }
+      }
+
+      NEWCELL = FALSE;
+      for (int veg = 0; veg <= veg_con[0].vegetat_type_num; veg++)
+        cell_data_structs[cellidx].init_DRY_TIME[veg] = -999;
+
+    } /* End Rec Loop */
+
+#endif /* !OUTPUT_FORCE */
+
+    close_files(&filep, out_data_files, &filenames);
+
+#if !OUTPUT_FORCE
+
+#if QUICK_FS
+    if(options.FROZEN_SOIL) {
+      for(int i=0;i<MAX_LAYERS;i++) {
+        for(int j=0;j<6;j++)
+        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j]);
+        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i]);
+      }
+      for(int i=0;i<MAX_NODES;i++) {
+        for(int j=0;j<6;j++)
+        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j]);
+        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i]);
+      }
+    }
+#endif /* QUICK_FS */
+    free_dist_prcp(&prcp, veg_con[0].vegetat_type_num);
+    free_vegcon(&veg_con);
+    free((char *) cell_data_structs[cellidx].soil_con.AreaFract);
+    free((char *) cell_data_structs[cellidx].soil_con.BandElev);
+    free((char *) cell_data_structs[cellidx].soil_con.Tfactor);
+    free((char *) cell_data_structs[cellidx].soil_con.Pfactor);
+    free((char *) cell_data_structs[cellidx].soil_con.AboveTreeLine);
+    /*      free((char*)init_STILL_STORM);
+     free((char*)init_DRY_TIME); */
+#endif /* !OUTPUT_FORCE */
+  } /* End Grid Loop */
+
+}
+
+
+
