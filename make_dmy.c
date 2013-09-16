@@ -8,7 +8,7 @@
 
 static char vcid[] = "$Id$";
 
-dmy_struct *make_dmy(global_param_struct *global)
+dmy_struct *make_dmy(global_param_struct *global, const ProgramState* state)
 /**********************************************************************
 	make_dmy	Dag Lohmann		January 1996
 

@@ -27,17 +27,6 @@ const char *optstring = "g:vo";
 double   temps[] = { -1.e-5, -0.075, -0.20, -0.50, -1.00, -2.50, -5, -10 };
 #endif
 
-int flag;
-
-global_param_struct global_param;
-veg_lib_struct *veg_lib;
-option_struct options;
-#if LINK_DEBUG
-debug_struct debug;
-#endif
-Error_struct Error;
-param_set_struct param_set;
-
   /**************************************************************************
     Define some reference landcover types that always exist regardless
     of the contents of the library (mainly for potential evap calculations):
@@ -55,19 +44,30 @@ param_set_struct param_set;
 	   be overwritten by the value specified in the global param file.
   **************************************************************************/
 
+//TODO: remove these globals
+global_param_struct global_param;
+veg_lib_struct *veg_lib;
+option_struct options;
+#if LINK_DEBUG
+debug_struct debug;
+#endif
+Error_struct Error;
+param_set_struct param_set;
+
+
   /* One element for each non-natural PET type */
-  char   ref_veg_over[]        = { 0, 0, 0, 0 };
-  double ref_veg_rarc[]        = { 0.0, 0.0, 25, 25 };
-  double ref_veg_rmin[]        = { 0.0, 0.0, 100, 100 };
-  double ref_veg_lai[]         = { 1.0, 1.0, 2.88, 4.45 };
-  double ref_veg_albedo[]      = { BARE_SOIL_ALBEDO, H2O_SURF_ALBEDO, 0.23, 0.23 };
-  double ref_veg_rough[]       = { 0.001, 0.001, 0.0148, 0.0615 };
-  double ref_veg_displ[]       = { 0.0054, 0.0054, 0.08, 0.3333 };
-  double ref_veg_wind_h[]      = { 10.0, 10.0, 10.0, 10.0 };
-  double ref_veg_RGL[]         = { 0.0, 0.0, 100, 100 };
-  double ref_veg_rad_atten[]   = { 0.0, 0.0, 0.0, 0.0 };
-  double ref_veg_wind_atten[]  = { 0.0, 0.0, 0.0, 0.0 };
-  double ref_veg_trunk_ratio[] = { 0.0, 0.0, 0.0, 0.0 };
+  const char   ref_veg_over[]        = { 0, 0, 0, 0 };
+  const double ref_veg_rarc[]        = { 0.0, 0.0, 25, 25 };
+  const double ref_veg_rmin[]        = { 0.0, 0.0, 100, 100 };
+  const double ref_veg_lai[]         = { 1.0, 1.0, 2.88, 4.45 };
+  const double ref_veg_albedo[]      = { BARE_SOIL_ALBEDO, H2O_SURF_ALBEDO, 0.23, 0.23 };
+  const double ref_veg_rough[]       = { 0.001, 0.001, 0.0148, 0.0615 };
+  const double ref_veg_displ[]       = { 0.0054, 0.0054, 0.08, 0.3333 };
+  const double ref_veg_wind_h[]      = { 10.0, 10.0, 10.0, 10.0 };
+  const double ref_veg_RGL[]         = { 0.0, 0.0, 100, 100 };
+  const double ref_veg_rad_atten[]   = { 0.0, 0.0, 0.0, 0.0 };
+  const double ref_veg_wind_atten[]  = { 0.0, 0.0, 0.0, 0.0 };
+  const double ref_veg_trunk_ratio[] = { 0.0, 0.0, 0.0, 0.0 };
   /* One element for each PET type (non-natural or natural) */
-  char ref_veg_ref_crop[] = { FALSE, FALSE, TRUE, TRUE, FALSE, FALSE };
+  const char ref_veg_ref_crop[] = { FALSE, FALSE, TRUE, TRUE, FALSE, FALSE };
 

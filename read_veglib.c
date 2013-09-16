@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-veg_lib_struct *read_veglib(FILE *veglib, int *Ntype)
+veg_lib_struct *read_veglib(FILE *veglib, int *Ntype, char LAI_SRC)
 /**********************************************************************
   read_veglib.c               Keith Cherkauer                 1997
 
@@ -23,10 +23,6 @@ veg_lib_struct *read_veglib(FILE *veglib, int *Ntype)
   2010-Apr-28 Replaced GLOBAL_LAI with VEGPARAM_LAI and LAI_SRC.	TJB
 **********************************************************************/
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
 
   veg_lib_struct *temp;
   int    i, j;
@@ -60,7 +56,7 @@ veg_lib_struct *read_veglib(FILE *veglib, int *Ntype)
       fscanf(veglib, "%lf", &temp[i].rmin);
       for (j = 0; j < 12; j++) {
         fscanf(veglib, "%lf", &temp[i].LAI[j]);
-        if (options.LAI_SRC == LAI_FROM_VEGLIB && temp[i].overstory && temp[i].LAI[j] == 0) {
+        if (LAI_SRC == LAI_FROM_VEGLIB && temp[i].overstory && temp[i].LAI[j] == 0) {
           sprintf(ErrStr,"ERROR: veg library: the specified veg class (%d) is listed as an overstory class, but the LAI given for this class for month %d is 0\n", temp[i].veg_class, j);
           nrerror(ErrStr);
         }

@@ -4,9 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void display_current_settings(int                 mode,
-                              filenames_struct    *names,
-                              global_param_struct *global) 
+void ProgramState::display_current_settings(int mode,filenames_struct *names)
 /**********************************************************************
   display_current_settings	Ted Bohn			2003
 
@@ -52,8 +50,6 @@ void display_current_settings(int                 mode,
 {
 
   extern char *version;
-  extern option_struct options;
-  extern param_set_struct param_set;
 
   int file_num;
 
@@ -176,19 +172,19 @@ void display_current_settings(int                 mode,
   else {
     fprintf(stderr,"EQUAL_AREA\t\tFALSE\n");
   }
-  fprintf(stderr,"RESOLUTION\t\t%f\n",global->resolution);
-  fprintf(stderr,"TIME_STEP\t\t%d\n",global->dt);
+  fprintf(stderr,"RESOLUTION\t\t%f\n",global_param.resolution);
+  fprintf(stderr,"TIME_STEP\t\t%d\n",global_param.dt);
   fprintf(stderr,"SNOW_STEP\t\t%d\n",options.SNOW_STEP);
-  fprintf(stderr,"STARTYEAR\t\t%d\n",global->startyear);
-  fprintf(stderr,"STARTMONTH\t\t%d\n",global->startmonth);
-  fprintf(stderr,"STARTDAY\t\t%d\n",global->startday);
-  fprintf(stderr,"STARTHOUR\t\t%d\n",global->starthour);
-  if ( global->nrecs > 0 )
-    fprintf(stderr,"NRECS\t\t%d\n",global->nrecs);
+  fprintf(stderr,"STARTYEAR\t\t%d\n",global_param.startyear);
+  fprintf(stderr,"STARTMONTH\t\t%d\n",global_param.startmonth);
+  fprintf(stderr,"STARTDAY\t\t%d\n",global_param.startday);
+  fprintf(stderr,"STARTHOUR\t\t%d\n",global_param.starthour);
+  if ( global_param.nrecs > 0 )
+    fprintf(stderr,"NRECS\t\t%d\n",global_param.nrecs);
   else {
-    fprintf(stderr,"ENDYEAR\t\t\t%d\n",global->endyear);
-    fprintf(stderr,"ENDMONTH\t\t%d\n",global->endmonth);
-    fprintf(stderr,"ENDDAY\t\t\t%d\n",global->endday);
+    fprintf(stderr,"ENDYEAR\t\t\t%d\n",global_param.endyear);
+    fprintf(stderr,"ENDMONTH\t\t%d\n",global_param.endmonth);
+    fprintf(stderr,"ENDDAY\t\t\t%d\n",global_param.endday);
   }
 
   fprintf(stderr,"\n");
@@ -307,22 +303,22 @@ void display_current_settings(int                 mode,
   else if (options.VP_ITER == VP_ITER_CONVERGE)
     fprintf(stderr,"VP_ITER\t\tVP_ITER_CONVERGE\n");
   fprintf(stderr,"PREC_EXPT\t\t%f\n",options.PREC_EXPT);
-  fprintf(stderr,"WIND_H\t\t\t%f\n",global->wind_h);
-  fprintf(stderr,"MEASURE_H\t\t%f\n",global->measure_h);
+  fprintf(stderr,"WIND_H\t\t\t%f\n",global_param.wind_h);
+  fprintf(stderr,"MEASURE_H\t\t%f\n",global_param.measure_h);
   fprintf(stderr,"NODES\t\t\t%d\n",options.Nnode);
-  fprintf(stderr,"MIN_RAIN_TEMP\t\t%f\n",global->MIN_RAIN_TEMP);
-  fprintf(stderr,"MAX_SNOW_TEMP\t\t%f\n",global->MAX_SNOW_TEMP);
+  fprintf(stderr,"MIN_RAIN_TEMP\t\t%f\n",global_param.MIN_RAIN_TEMP);
+  fprintf(stderr,"MAX_SNOW_TEMP\t\t%f\n",global_param.MAX_SNOW_TEMP);
   fprintf(stderr,"MIN_WIND_SPEED\t\t%f\n",options.MIN_WIND_SPEED);
 
   fprintf(stderr,"\n");
   fprintf(stderr,"Input Forcing Data:\n");
   for (file_num=0; file_num<2; file_num++) {
-    if (global->forceyear[file_num] > 0) {
+    if (global_param.forceyear[file_num] > 0) {
       fprintf(stderr,"Forcing File %d:\t\t%s*\n",file_num+1,names->f_path_pfx[file_num]);
-      fprintf(stderr,"FORCEYEAR\t\t%d\n",global->forceyear[file_num]);
-      fprintf(stderr,"FORCEMONTH\t\t%d\n",global->forcemonth[file_num]);
-      fprintf(stderr,"FORCEDAY\t\t%d\n",global->forceday[file_num]);
-      fprintf(stderr,"FORCEHOUR\t\t%d\n",global->forcehour[file_num]);
+      fprintf(stderr,"FORCEYEAR\t\t%d\n",global_param.forceyear[file_num]);
+      fprintf(stderr,"FORCEMONTH\t\t%d\n",global_param.forcemonth[file_num]);
+      fprintf(stderr,"FORCEDAY\t\t%d\n",global_param.forceday[file_num]);
+      fprintf(stderr,"FORCEHOUR\t\t%d\n",global_param.forcehour[file_num]);
       fprintf(stderr,"N_TYPES\t\t\t%d\n",param_set.N_TYPES[file_num]);
       fprintf(stderr,"FORCE_DT\t\t%d\n",param_set.FORCE_DT[file_num]);
       if (param_set.FORCE_ENDIAN[file_num] == LITTLE)
@@ -416,9 +412,9 @@ void display_current_settings(int                 mode,
   if (options.SAVE_STATE) {
     fprintf(stderr,"SAVE_STATE\t\tTRUE\n");
     fprintf(stderr,"STATENAME\t\t%s\n",names->statefile);
-    fprintf(stderr,"STATEYEAR\t\t%d\n",global->stateyear);
-    fprintf(stderr,"STATEMONTH\t\t%d\n",global->statemonth);
-    fprintf(stderr,"STATEDAY\t\t%d\n",global->stateday);
+    fprintf(stderr,"STATEYEAR\t\t%d\n",global_param.stateyear);
+    fprintf(stderr,"STATEMONTH\t\t%d\n",global_param.statemonth);
+    fprintf(stderr,"STATEDAY\t\t%d\n",global_param.stateday);
     if (options.BINARY_STATE_FILE)
       fprintf(stderr,"BINARY_STATE_FILE\tTRUE\n");
     else
@@ -431,7 +427,7 @@ void display_current_settings(int                 mode,
   fprintf(stderr,"\n");
   fprintf(stderr,"Output Data:\n");
   fprintf(stderr,"Result dir:\t\t%s\n",names->result_dir);
-  fprintf(stderr,"OUT_STEP\t\t%d\n",global->out_dt);
+  fprintf(stderr,"OUT_STEP\t\t%d\n",global_param.out_dt);
   if (options.ALMA_OUTPUT)
     fprintf(stderr,"ALMA_OUTPUT\t\tTRUE\n");
   else
@@ -456,7 +452,7 @@ void display_current_settings(int                 mode,
     fprintf(stderr,"PRT_SNOW_BAND\t\tTRUE\n");
   else
     fprintf(stderr,"PRT_SNOW_BAND\t\tFALSE\n");
-  fprintf(stderr,"SKIPYEAR\t\t%d\n",global->skipyear);
+  fprintf(stderr,"SKIPYEAR\t\t%d\n",global_param.skipyear);
   fprintf(stderr,"\n");
 
 }

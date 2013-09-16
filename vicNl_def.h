@@ -199,19 +199,19 @@
 /***** Hard-coded veg class parameters (mainly for pot_evap) *****/
 #define BARE_SOIL_ALBEDO 0.2	    /* albedo for bare soil */
 #define H2O_SURF_ALBEDO 0.08	    /* albedo for deep water surface */
-extern char   ref_veg_over[];
-extern double ref_veg_rarc[];
-extern double ref_veg_rmin[];
-extern double ref_veg_lai[];
-extern double ref_veg_albedo[];
-extern double ref_veg_rough[];
-extern double ref_veg_displ[];
-extern double ref_veg_wind_h[];
-extern double ref_veg_RGL[];
-extern double ref_veg_rad_atten[];
-extern double ref_veg_wind_atten[];
-extern double ref_veg_trunk_ratio[];
-extern char ref_veg_ref_crop[];
+extern const char   ref_veg_over[];
+extern const double ref_veg_rarc[];
+extern const double ref_veg_rmin[];
+extern const double ref_veg_lai[];
+extern const double ref_veg_albedo[];
+extern const double ref_veg_rough[];
+extern const double ref_veg_displ[];
+extern const double ref_veg_wind_h[];
+extern const double ref_veg_RGL[];
+extern const double ref_veg_rad_atten[];
+extern const double ref_veg_wind_atten[];
+extern const double ref_veg_trunk_ratio[];
+extern const char ref_veg_ref_crop[];
 
 /***** Time Constants *****/
 #define DAYS_PER_YEAR 365.
@@ -1037,19 +1037,6 @@ typedef struct {
   double zwt3;                         /* average water table position [cm] - method 3 */
 } cell_data_struct;
 
-/***********************************************************
-  This structure stores the per-cell data that must exist
-  before or after running the model for that cell; also
-  eventually must contain state to be affected by glacier
-  dynamics model. Previously "cell_data_struct" in vicNL.c
-  ***********************************************************/
-typedef struct {
-  soil_con_struct  soil_con;
-  char            *init_STILL_STORM;
-  int             *init_DRY_TIME;
-  char             ErrStr[MAXSTRING];
-} cell_info_struct;
-
 /***********************************************************************
   This structure stores energy balance components, and variables used to
   solve the thermal fluxes through the soil column.
@@ -1312,8 +1299,9 @@ typedef struct {
 /*******************************************************
   This structure stores output information for one output file.
   *******************************************************/
+#define OUT_DATA_FILE_STRUCT_PREFIX_LENGTH 20
 typedef struct {
-  char		prefix[20];  /* prefix of the file name, e.g. "fluxes" */
+  char		prefix[OUT_DATA_FILE_STRUCT_PREFIX_LENGTH];  /* prefix of the file name, e.g. "fluxes" */
   char		filename[MAXSTRING]; /* complete file name */
   FILE		*fh;         /* filehandle */
   int		nvars;       /* number of variables to store in the file */
@@ -1340,4 +1328,42 @@ typedef struct {
   veg_con_struct    *veg_con;
   veg_var_struct    *veg_var;
 } Error_struct;
+
+/***********************************************************
+  This structure stores the per-cell data that must exist
+  before or after running the model for that cell; also
+  eventually must contain state to be affected by glacier
+  dynamics model. Previously "cell_data_struct" in vicNL.c
+  ***********************************************************/
+typedef struct {
+  soil_con_struct  soil_con;
+  char            *init_STILL_STORM;
+  int             *init_DRY_TIME;
+  char             ErrStr[MAXSTRING];
+  dist_prcp_struct prcp;
+  veg_con_struct  *veg_con;
+  lake_con_struct  lake_con;
+  save_data_struct save_data;
+  atmos_data_struct *atmos;
+} cell_info_struct;
+
+/********************************************************
+  This structure holds all the meta state of the program.
+  This is a cleaner alternative to using global variables.
+  ********************************************************/
+class ProgramState {
+public:
+  global_param_struct global_param;
+  veg_lib_struct *veg_lib;
+  option_struct options;
+#if LINK_DEBUG
+  debug_struct debug;
+#endif
+  Error_struct Error;
+  param_set_struct param_set;
+  void initialize_global();
+  void init_global_param(filenames_struct *, const char* global_file_name);
+  void display_current_settings(int, filenames_struct *);
+  void open_debug();
+};
 

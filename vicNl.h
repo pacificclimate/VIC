@@ -180,10 +180,10 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, double *,
     double *, double *, double *, float *);
 
-filep_struct   get_files(const filenames_struct *);
-FILE  *check_state_file(char *, global_param_struct *, int, int);
+filep_struct   get_files(const filenames_struct *, ProgramState*);
+FILE  *check_state_file(char *, ProgramState*);
 void   close_files(filep_struct *, out_data_file_struct *, filenames_struct *);
-void   cmd_proc(int argc, char *argv[], char* global_file_name);
+void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);
 void   collect_eb_terms(energy_bal_struct, snow_data_struct, cell_data_struct,
                         int *, int *, int *, int *, int *, double, double, double,
                         int, int, double, int, int, double *, double *,
@@ -204,7 +204,6 @@ void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double 
 double compute_zwt(soil_con_struct *, int, double);
 out_data_struct *create_output_list();
 
-void   display_current_settings(int, filenames_struct *, global_param_struct *);
 int    dist_prec(atmos_data_struct *,dist_prcp_struct *,soil_con_struct *,
 		 veg_con_struct *, lake_con_struct *,
 		 const dmy_struct *,global_param_struct *,
@@ -281,19 +280,17 @@ double func_surf_energy_bal(double, va_list);
 
 double get_avg_temp(double, double, double *, double *, int);
 double get_dist(double, double, double, double);
-void   get_force_type(char *, int, int *);
-global_param_struct get_global_param(filenames_struct *, const char* global_file_name);
+void   get_force_type(char *, int, int *, ProgramState*);
 void   get_next_time_step(int *, int *, int *, int *, int *, int);
 
 double hermint(double, int, double *, double *, double *, double *, double *);
 void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
+out_data_file_struct* copy_data_file_format(const out_data_file_struct* out_template, const ProgramState* state);
 void   init_output_list(out_data_struct *, int, const char *, int, float);
-void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids,
-			soil_con_struct *, out_data_file_struct *, out_data_struct *);
+void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *);
 
-void   initialize_global();
 int   initialize_model_state(dist_prcp_struct *, const dmy_struct,
 			      global_param_struct *, filep_struct, 
 			      int, int, int, int, 
@@ -314,10 +311,10 @@ double linear_interp(double,double,double,double,double);
 
 cell_data_struct **make_cell_data(int, int);
 dist_prcp_struct make_dist_prcp(int);
-dmy_struct *make_dmy(global_param_struct *);
+dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
 energy_bal_struct **make_energy_bal(int);
-void make_in_and_outfiles(filep_struct *, filenames_struct *, 
-			  soil_con_struct *, out_data_file_struct *);
+void make_in_files(filep_struct *, filenames_struct *, soil_con_struct *);
+void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, out_data_file_struct *);
 out_data_struct *make_out_data(int);
 snow_data_struct **make_snow_data(int);
 veg_var_struct **make_veg_var(int);
@@ -335,11 +332,10 @@ int    newt_raph(void (*vecfunc)(double *, double *, int, int, ...),
                double *, int);
 void   nrerror(const char *);
 
-void   open_debug();
 FILE  *open_file(const char *string, const char *type);
-FILE  *open_state_file(global_param_struct *, filenames_struct, int, int);
+FILE  *open_state_file(global_param_struct *, filenames_struct, int, int, char);
 
-void parse_output_info(const char*, out_data_file_struct **, out_data_struct *);
+void parse_output_info(const char*, out_data_file_struct **, out_data_struct *, ProgramState*);
 double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(int, int, int, dist_prcp_struct *, 
 			   soil_con_struct *, double *, double *); 
@@ -362,7 +358,7 @@ void   read_snowband(FILE *, soil_con_struct *);
 void   read_snowmodel(atmos_data_struct *, FILE *, int, int, int, int);
 soil_con_struct read_soilparam(FILE *, char *, char *, char *);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int);
-veg_lib_struct *read_veglib(FILE *, int *);
+veg_lib_struct *read_veglib(FILE *, int *, char);
 veg_con_struct *read_vegparam(FILE *, int, int);
 int    redistribute_during_storm(cell_data_struct ***, veg_var_struct ***,
 				 int, int, int, double, double, double, 
@@ -381,7 +377,7 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double *, double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char);
-out_data_file_struct *set_output_defaults(out_data_struct *);
+out_data_file_struct *set_output_defaults(out_data_struct *, ProgramState* state);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char);
 double snow_density(snow_data_struct *, double, double, double, double, double);

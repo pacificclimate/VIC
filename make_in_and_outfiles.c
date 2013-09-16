@@ -7,10 +7,12 @@
 
 static char vcid[] = "$Id$";
 
-void make_in_and_outfiles(filep_struct         *filep, 
+/********************************
+  Input Forcing Files
+********************************/
+void make_in_files(filep_struct         *filep,
 			  filenames_struct     *filenames,
-			  soil_con_struct      *soil,
-			  out_data_file_struct *out_data_files)
+			  soil_con_struct      *soil)
 /**********************************************************************
 	make_in_and_outfile	Dag Lohman	January 1996
 
@@ -40,7 +42,6 @@ void make_in_and_outfiles(filep_struct         *filep,
 {
   extern option_struct    options;
   extern param_set_struct param_set;
-  /*   extern FILE *open_file(char string[], char type[]); Seriously stop doing this. */
 
   char   latchar[20], lngchar[20], junk[6];
   int filenum;
@@ -49,9 +50,7 @@ void make_in_and_outfiles(filep_struct         *filep,
   sprintf(latchar, junk, soil->lat);
   sprintf(lngchar, junk, soil->lng);
  
-  /********************************
-  Input Forcing Files
-  ********************************/
+
 
   strcpy(filenames->forcing[0], filenames->f_path_pfx[0]);
   /* Append lat/lon for non-NetCDF files */
@@ -84,11 +83,26 @@ void make_in_and_outfiles(filep_struct         *filep,
       filep->forcing[1] = open_file(filenames->forcing[1], "r");
   }
 
-  /********************************
-  Output Files
-  ********************************/
+}
 
-  for (filenum=0; filenum<options.Noutfiles; filenum++) {
+/********************************
+Output Files
+********************************/
+void make_out_files(filep_struct         *filep,
+    filenames_struct     *filenames,
+    soil_con_struct      *soil,
+    out_data_file_struct *out_data_files) {
+
+  extern option_struct    options;
+  extern param_set_struct param_set;
+
+  char   latchar[20], lngchar[20], junk[6];
+
+  sprintf(junk, "%%.%if", options.GRID_DECIMAL);
+  sprintf(latchar, junk, soil->lat);
+  sprintf(lngchar, junk, soil->lng);
+
+  for (int filenum=0; filenum<options.Noutfiles; filenum++) {
     strcpy(out_data_files[filenum].filename, filenames->result_dir);
     strcat(out_data_files[filenum].filename, "/");
     strcat(out_data_files[filenum].filename, out_data_files[filenum].prefix);
@@ -100,5 +114,4 @@ void make_in_and_outfiles(filep_struct         *filep,
       out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "wb");
     else out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "w");
   }
-
-} 
+}

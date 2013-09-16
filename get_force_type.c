@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 
 void get_force_type(char   *cmdstr, 
 		    int     file_num,
-		    int    *field) {
+		    int    *field,
+		    ProgramState* state) {
 /*************************************************************
   get_force_type.c      Keith Cherkauer     January 20, 2000
 
@@ -39,8 +40,6 @@ void get_force_type(char   *cmdstr,
 
 *************************************************************/
 
-  extern param_set_struct param_set;
-
   char optstr[50];
   char flgstr[10];
   char ErrStr[MAXSTRING];
@@ -49,7 +48,7 @@ void get_force_type(char   *cmdstr,
   /** Initialize flgstr **/
   strcpy(flgstr,"NULL");
 
-  if((*field) >= param_set.N_TYPES[file_num]) {
+  if((*field) >= state->param_set.N_TYPES[file_num]) {
     sprintf(ErrStr,"Too many variables defined for forcing file %i.",file_num);
     nrerror(ErrStr);
   }
@@ -187,16 +186,16 @@ void get_force_type(char   *cmdstr,
     nrerror(ErrStr);
   }
 
-  param_set.TYPE[type].SUPPLIED=file_num+1;
-  param_set.FORCE_INDEX[file_num][(*field)] = type;
+  state->param_set.TYPE[type].SUPPLIED=file_num+1;
+  state->param_set.FORCE_INDEX[file_num][(*field)] = type;
   if (type == SKIP) {
-    param_set.TYPE[type].multiplier = 1;
-    param_set.TYPE[type].SIGNED=FALSE;
+    state->param_set.TYPE[type].multiplier = 1;
+    state->param_set.TYPE[type].SIGNED=FALSE;
   }
   else {
-    sscanf(cmdstr,"%*s %*s %s %lf",flgstr, &param_set.TYPE[type].multiplier);
-    if(strcasecmp("SIGNED",flgstr)==0) param_set.TYPE[type].SIGNED=TRUE;
-    else param_set.TYPE[type].SIGNED=FALSE;
+    sscanf(cmdstr,"%*s %*s %s %lf",flgstr, &state->param_set.TYPE[type].multiplier);
+    if(strcasecmp("SIGNED",flgstr)==0) state->param_set.TYPE[type].SIGNED=TRUE;
+    else state->param_set.TYPE[type].SIGNED=FALSE;
   }
 
   (*field)++;

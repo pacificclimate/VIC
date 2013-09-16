@@ -6,8 +6,9 @@
 static char vcid[] = "$Id$";
 
 void parse_output_info(const char*           input_file_name,
-                       out_data_file_struct  **out_data_files,
-                       out_data_struct       *out_data)
+                       out_data_file_struct  **out_data_files,  //TODO: make a single pointer
+                       out_data_struct       *out_data,
+                       ProgramState          *state)
 /**********************************************************************
   parse_output_info	Ted Bohn	            September 10 2006
 
@@ -29,7 +30,6 @@ void parse_output_info(const char*           input_file_name,
 	      param file.					TJB
 **********************************************************************/
 {
-  extern option_struct    options;
 
   char cmdstr[MAXSTRING];
   char optstr[MAXSTRING];
@@ -63,20 +63,20 @@ void parse_output_info(const char*           input_file_name,
       if(strcasecmp("N_OUTFILES",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&tmp_noutfiles);
         free_out_data_files(out_data_files);
-        options.Noutfiles = tmp_noutfiles;
-        *out_data_files = (out_data_file_struct *)calloc(options.Noutfiles, sizeof(out_data_file_struct));
+        state->options.Noutfiles = tmp_noutfiles;
+        *out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
         outfilenum = -1;
         init_output_list(out_data, FALSE, "%.4f", OUT_TYPE_FLOAT, 1);
         // PRT_SNOW_BAND is ignored if N_OUTFILES has been specified
-        options.PRT_SNOW_BAND = FALSE;
+        state->options.PRT_SNOW_BAND = FALSE;
       }
       else if(strcasecmp("OUTFILE",optstr)==0) {
         outfilenum++;
-        if (!options.Noutfiles) {
+        if (!state->options.Noutfiles) {
           nrerror("Error in global param file: \"N_OUTFILES\" must be specified before you can specify \"OUTFILE\".");
         }
-        if (outfilenum >= options.Noutfiles) {
-          sprintf(ErrStr, "Error in global param file: number of output files specified in N_OUTFILES (%d) is less than actual number of output files defined in the global param file.",options.Noutfiles);
+        if (outfilenum >= state->options.Noutfiles) {
+          sprintf(ErrStr, "Error in global param file: number of output files specified in N_OUTFILES (%d) is less than actual number of output files defined in the global param file.",state->options.Noutfiles);
           nrerror(ErrStr);
         }
         sscanf(cmdstr,"%*s %s %d",(*out_data_files)[outfilenum].prefix,&((*out_data_files)[outfilenum].nvars));

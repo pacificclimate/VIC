@@ -28,7 +28,6 @@ void compute_pot_evap(int veg_class,
 ****************************************************************************/
 {
   extern veg_lib_struct *veg_lib;
-  extern char ref_veg_ref_crop[];
 
   int NVegLibTypes;
   int i;

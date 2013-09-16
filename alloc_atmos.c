@@ -37,8 +37,6 @@ atmos_data_struct * alloc_atmos(int nrecs)
 
 *******************************************************************/
 {
-  extern param_set_struct param_set;
-
   atmos_data_struct *atmos = (atmos_data_struct *) calloc(nrecs, sizeof(atmos_data_struct));
   if (atmos == NULL)
     vicerror("Memory allocation error in alloc_atmos().");

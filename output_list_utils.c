@@ -397,6 +397,20 @@ out_data_struct *create_output_list() {
 
 }
 
+out_data_file_struct* copy_data_file_format(const out_data_file_struct* out_template, const ProgramState* state) {
+  out_data_file_struct* data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
+  for (int i = 0; i < state->options.Noutfiles; i++) {
+    data_files[i].fh = NULL;
+    strncpy(data_files[i].filename, out_template[i].filename, MAXSTRING);
+    strncpy(data_files[i].prefix, out_template[i].prefix, OUT_DATA_FILE_STRUCT_PREFIX_LENGTH);
+    data_files[i].nvars = out_template[i].nvars;
+    data_files[i].varid = (int *)calloc(data_files[i].nvars, sizeof(int));
+    for (int curVar = 0; curVar < data_files[i].nvars; curVar++) {
+      data_files[i].varid[curVar] = out_template[i].varid[curVar];
+    }
+  }
+  return data_files;
+}
 
 void init_output_list(out_data_struct *out_data, int write, const char *format, int type, float mult) {
 /*************************************************************

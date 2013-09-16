@@ -7,10 +7,25 @@
 
 static char vcid[] = "$Id$";
 
+cell_info_struct* initializeCells(int &ncells,
+    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    dmy_struct* dmy, ProgramState& state);
+
 void runModel(const int ncells, cell_info_struct * cell_data_structs,
     filep_struct filep, int num_veg_types, filenames_struct filenames,
-    out_data_file_struct *out_data_files, out_data_struct *out_data,
-    dmy_struct* dmy, atmos_data_struct *atmos);
+    out_data_file_struct* out_data_files_template, out_data_struct* out_data,
+    dmy_struct* dmy, ProgramState* state);
+
+
+void syncGlobals(ProgramState* state) {
+  //TODO: remove these globals
+  global_param = state->global_param;
+  veg_lib = state->veg_lib;
+  options = state->options;
+  debug = state->debug;
+  Error = state->Error;
+  param_set = state->param_set;
+}
 
 int main(int argc, char *argv[])
 /**********************************************************************
@@ -98,67 +113,108 @@ int main(int argc, char *argv[])
 {
 
   /** Read Model Options **/
-  initialize_global();
+  ProgramState state;
+  state.initialize_global();
+  syncGlobals(&state);
+
   filenames_struct filenames;
-  cmd_proc(argc, argv, filenames.global);
+  cmd_proc(argc, argv, filenames.global, &state);
+  syncGlobals(&state);
+
 
 #if VERBOSE
-  display_current_settings(DISP_VERSION, (filenames_struct*) NULL, (global_param_struct*) NULL);
+  state.display_current_settings(DISP_VERSION, (filenames_struct*) NULL);
 #endif
-
+  syncGlobals(&state);
   /** Read Global Control File **/
-  global_param = get_global_param(&filenames, filenames.global);
-
+  state.init_global_param(&filenames, filenames.global);
+  syncGlobals(&state);
   /** Set up output data structures **/
   out_data_struct *out_data = create_output_list();
-  out_data_file_struct *out_data_files = set_output_defaults(out_data);
-  parse_output_info(filenames.global, &out_data_files, out_data);
+  syncGlobals(&state);
+  out_data_file_struct *out_data_files = set_output_defaults(out_data, &state);
+  syncGlobals(&state);
+  parse_output_info(filenames.global, &out_data_files, out_data, &state);
+  syncGlobals(&state);
 
   /** Check and Open Files **/
-  filep_struct filep = get_files(&filenames);
+  filep_struct filep = get_files(&filenames, &state);
+  syncGlobals(&state);
 
 #if !OUTPUT_FORCE
 #if LINK_DEBUG
-  open_debug();
+  state.open_debug();
 #endif
-
+  syncGlobals(&state);
   /** Read Vegetation Library File **/
   int num_veg_types = 0;
-  veg_lib = read_veglib(filep.veglib, &num_veg_types);
-
+  state.veg_lib = read_veglib(filep.veglib, &num_veg_types, state.options.LAI_SRC);
+  syncGlobals(&state);
 #endif // !OUTPUT_FORCE
   /** Initialize Parameters **/
 
   /** Make Date Data Structure **/
-  dmy_struct* dmy = make_dmy(&global_param);
-
-  /** allocate memory for the atmos_data_struct **/
-  atmos_data_struct *atmos = alloc_atmos(global_param.nrecs);
-
+  dmy_struct* dmy = make_dmy(&state.global_param, &state);
+  syncGlobals(&state);
   /** Initial state **/
 #if !OUTPUT_FORCE
-  if (options.INIT_STATE)
-    filep.init_state = check_state_file(filenames.init_state,
-        &global_param, options.Nlayer, options.Nnode);
-
+  if (state.options.INIT_STATE)
+    filep.init_state = check_state_file(filenames.init_state, &state);
+  syncGlobals(&state);
   /** open state file if model state is to be saved **/
-  if (options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
-    filep.statefile = open_state_file(&global_param, filenames, options.Nlayer,
-        options.Nnode);
+  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
+    filep.statefile = open_state_file(&state.global_param, filenames, state.options.Nlayer,
+        state.options.Nnode, state.options.BINARY_STATE_FILE);
   else
     filep.statefile = NULL;
-
+  syncGlobals(&state);
 #endif // !OUTPUT_FORCE
 
+  int ncells = 0;
+  cell_info_struct *cell_data_structs = initializeCells(ncells, filep, num_veg_types, filenames, dmy, state);
+  syncGlobals(&state);
+
+  runModel(ncells, cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, &state);
+
+  /** cleanup **/
+  free_dmy(&dmy);
+  free_out_data_files(&out_data_files);
+  free_out_data(&out_data);
+#if !OUTPUT_FORCE
+  free_veglib(&state.veg_lib);
+#endif /* !OUTPUT_FORCE */
+  fclose(filep.soilparam);
+#if !OUTPUT_FORCE
+  fclose(filep.vegparam);
+  fclose(filep.veglib);
+  if (state.options.SNOW_BAND > 1)
+    fclose(filep.snowband);
+  if (state.options.LAKES)
+    fclose(filep.lakeparam);
+  if (state.options.INIT_STATE)
+    fclose(filep.init_state);
+  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
+    fclose(filep.statefile);
+
+#endif /* !OUTPUT_FORCE */
+
+  return EXIT_SUCCESS;
+} /* End Main Program */
+
+cell_info_struct* initializeCells(int &ncells,
+    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    dmy_struct* dmy, ProgramState& state) {
+
   /*****************************************
-   * Read soil for all "active" grid cells *  TODO: set up all cells' complete state here.
+   * Read soil for all "active" grid cells *
    *****************************************/
   char done_reading_forcings = FALSE, is_valid_soil_cell;
-  int ncells = 0 /* zero-based */, nallocatedcells = 10 /* arbitrary */;
+  ncells = 0; /* zero-based */
+  int nallocatedcells = 10; /* arbitrary */
   int current_cell = 0;
   cell_info_struct *cell_data_structs = (cell_info_struct *) malloc(nallocatedcells * sizeof(cell_info_struct));
   assert(cell_data_structs != NULL);
-  /* TODO move to top somewhere */
+
   while (!done_reading_forcings) {
     if (ncells >= (nallocatedcells - 1)) {
       // grows number of allocated cells by 1.4 if out of space
@@ -168,7 +224,7 @@ int main(int argc, char *argv[])
       assert(cell_data_structs != NULL);
     }
 
-    if (options.ARC_SOIL) {
+    if (state.options.ARC_SOIL) {
       assert(0); // presently unsupported; maybe support vector functionality later?
       int  Ncells = 0;  // This will be initialized in read_soilparam_arc
       cell_data_structs[ncells++].soil_con = read_soilparam_arc(filep.soilparam, filenames.soil_dir, &Ncells, &is_valid_soil_cell, current_cell);
@@ -184,184 +240,174 @@ int main(int argc, char *argv[])
       continue;
     }
   }
+  const int Ndist = state.options.DIST_PRCP ? 2 : 1;
 
-  runModel(ncells, cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, atmos);
+  for (int cellidx = 0; cellidx < ncells; cellidx++) {
 
-  /** cleanup **/
-  free_atmos(global_param.nrecs, &atmos);
-  free_dmy(&dmy);
-  free_out_data_files(&out_data_files);
-  free_out_data(&out_data);
-#if !OUTPUT_FORCE
-  free_veglib(&veg_lib);
-#endif /* !OUTPUT_FORCE */
-  fclose(filep.soilparam);
-#if !OUTPUT_FORCE
-  fclose(filep.vegparam);
-  fclose(filep.veglib);
-  if (options.SNOW_BAND > 1)
-    fclose(filep.snowband);
-  if (options.LAKES)
-    fclose(filep.lakeparam);
-  if (options.INIT_STATE)
-    fclose(filep.init_state);
-  if (options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
-    fclose(filep.statefile);
+  #if LINK_DEBUG
+      if (state.debug.PRT_SOIL)
+        write_soilparam(&cell_data_structs[cellidx].soil_con);
+  #endif
 
-#endif /* !OUTPUT_FORCE */
+  #if QUICK_FS
+      /** Allocate Unfrozen Water Content Table **/
+      if(state->options.FROZEN_SOIL) {
+        for(int i=0;i<MAX_LAYERS;i++) {
+          cell_data_structs[cellidx].soil_con.ufwc_table_layer[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
+          for(int j=0;j<QUICK_FS_TEMPS+1;j++)
+          cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j] = (double *)malloc(2*sizeof(double));
+        }
+        for(int i=0;i<MAX_NODES;i++) {
+          cell_data_structs[cellidx].soil_con.ufwc_table_node[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
 
-  return EXIT_SUCCESS;
-} /* End Main Program */
+          for(int j=0;j<QUICK_FS_TEMPS+1;j++)
+          cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j] = (double *)malloc(2*sizeof(double));
+        }
+      }
+  #endif /* QUICK_FS */
+
+  #if !OUTPUT_FORCE
+      make_in_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con);
+      /** Read Grid Cell Vegetation Parameters **/
+      cell_data_structs[cellidx].veg_con = read_vegparam(filep.vegparam,
+          cell_data_structs[cellidx].soil_con.gridcel, num_veg_types);
+      calc_root_fractions(cell_data_structs[cellidx].veg_con, &cell_data_structs[cellidx].soil_con);
+  #if LINK_DEBUG
+      if (state.debug.PRT_VEGE)
+        write_vegparam(cell_data_structs[cellidx].veg_con);
+  #endif /* LINK_DEBUG*/
+
+      if (state.options.LAKES)
+        cell_data_structs[cellidx].lake_con = read_lakeparam(filep.lakeparam,
+            cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con);
+
+  #endif // !OUTPUT_FORCE
+
+  #if !OUTPUT_FORCE
+
+      /** Read Elevation Band Data if Used **/
+      read_snowband(filep.snowband, &cell_data_structs[cellidx].soil_con);
+
+      /** Make Precipitation Distribution Control Structure **/
+      cell_data_structs[cellidx].prcp = make_dist_prcp(cell_data_structs[cellidx].veg_con[0].vegetat_type_num);
+
+  #endif // !OUTPUT_FORCE
+      /**************************************************
+       Initialize Meteological Forcing Values That
+       Have not Been Specifically Set
+       **************************************************/
+
+  #if VERBOSE
+      fprintf(stderr, "Initializing Forcing Data\n");
+  #endif /* VERBOSE */
+
+      /** allocate memory for the atmos_data_struct **/
+      cell_data_structs[cellidx].atmos = alloc_atmos(state.global_param.nrecs);
+      initialize_atmos(cell_data_structs[cellidx].atmos, dmy, filep.forcing, filep.forcing_ncid,
+          &cell_data_structs[cellidx].soil_con);
+
+  #if LINK_DEBUG
+      if (state.debug.PRT_ATMOS)
+        write_atmosdata(cell_data_structs[cellidx].atmos, state.global_param.nrecs);
+  #endif
+
+      /**************************************************
+       Initialize Energy Balance and Snow Variables
+       **************************************************/
+
+  #if VERBOSE
+      fprintf(stderr, "Model State Initialization\n");
+  #endif /* VERBOSE */
+      //TODO: fix the global NR variable and friends
+      int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx].prcp, dmy[0], &state.global_param, filep,
+          cell_data_structs[cellidx].soil_con.gridcel,
+          cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state.options.Nnode, Ndist,
+          cell_data_structs[cellidx].atmos[0].air_temp[NR], &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con,
+          cell_data_structs[cellidx].lake_con, &cell_data_structs[cellidx].init_STILL_STORM,
+          &cell_data_structs[cellidx].init_DRY_TIME);
+      if (ErrorFlag == ERROR) {
+        if (state.options.CONTINUEONERROR == TRUE) {
+          // Handle grid cell solution error
+          fprintf(stderr,
+              "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
+              cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+          break;
+        } else {
+          // Else exit program on cell solution error as in previous versions
+          sprintf(cell_data_structs[cellidx].ErrStr,
+              "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
+              cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+          vicerror(cell_data_structs[cellidx].ErrStr);
+        }
+      }
+
+  #if VERBOSE
+      fprintf(stderr, "Running Model\n");
+  #endif /* VERBOSE */
+
+  }
+
+  return cell_data_structs;
+}
 
 /************************************
  Run Model for all Active Grid Cells
  ************************************/
 void runModel(const int ncells, cell_info_struct * cell_data_structs,
     filep_struct filep, int num_veg_types, filenames_struct filenames,
-    out_data_file_struct *out_data_files, out_data_struct *out_data,
-    dmy_struct* dmy, atmos_data_struct *atmos) {
+    out_data_file_struct* out_data_files_template, out_data_struct* out_data,
+    dmy_struct* dmy, ProgramState* state) {
 
-  const int Ndist = options.DIST_PRCP ? 2 : 1;
+  syncGlobals(state);
 
   for (int cellidx = 0; cellidx < ncells; cellidx++) {
 
-#if LINK_DEBUG
-    if (debug.PRT_SOIL)
-      write_soilparam(&cell_data_structs[cellidx].soil_con);
-#endif
-
-#if QUICK_FS
-    /** Allocate Unfrozen Water Content Table **/
-    if(options.FROZEN_SOIL) {
-      for(int i=0;i<MAX_LAYERS;i++) {
-        cell_data_structs[cellidx].soil_con.ufwc_table_layer[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
-        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
-        cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j] = (double *)malloc(2*sizeof(double));
-      }
-      for(int i=0;i<MAX_NODES;i++) {
-        cell_data_structs[cellidx].soil_con.ufwc_table_node[i] = (double **)malloc((QUICK_FS_TEMPS+1)*sizeof(double *));
-
-        for(int j=0;j<QUICK_FS_TEMPS+1;j++)
-        cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j] = (double *)malloc(2*sizeof(double));
-      }
-    }
-#endif /* QUICK_FS */
-    char NEWCELL = TRUE;
-
-#if !OUTPUT_FORCE
-    /** Read Grid Cell Vegetation Parameters **/
-    veg_con_struct *veg_con = read_vegparam(filep.vegparam,
-        cell_data_structs[cellidx].soil_con.gridcel, num_veg_types);
-    calc_root_fractions(veg_con, &cell_data_structs[cellidx].soil_con);
-#if LINK_DEBUG
-    if (debug.PRT_VEGE)
-      write_vegparam(veg_con);
-#endif /* LINK_DEBUG*/
-
-    lake_con_struct lake_con;
-    if (options.LAKES)
-      lake_con = read_lakeparam(filep.lakeparam,
-          cell_data_structs[cellidx].soil_con, veg_con);
-
-#endif // !OUTPUT_FORCE
+    out_data_file_struct* out_data_files = copy_data_file_format(out_data_files_template, state);
     /** Build Gridded Filenames, and Open **/
-    make_in_and_outfiles(&filep, &filenames,
-        &cell_data_structs[cellidx].soil_con, out_data_files);
+    make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, out_data_files);
 
-    if (options.PRT_HEADER) {
+    if (state->options.PRT_HEADER) {
       /** Write output file headers **/
-      write_header(out_data_files, out_data, dmy, global_param);
+      write_header(out_data_files, out_data, dmy, state->global_param);
     }
 
-#if !OUTPUT_FORCE
-
-    /** Read Elevation Band Data if Used **/
-    read_snowband(filep.snowband, &cell_data_structs[cellidx].soil_con);
-
-    /** Make Precipitation Distribution Control Structure **/
-    dist_prcp_struct prcp = make_dist_prcp(veg_con[0].vegetat_type_num);
-
-#endif // !OUTPUT_FORCE
-    /**************************************************
-     Initialize Meteological Forcing Values That
-     Have not Been Specifically Set
-     **************************************************/
-
-#if VERBOSE
-    fprintf(stderr, "Initializing Forcing Data\n");
-#endif /* VERBOSE */
-
-    initialize_atmos(atmos, dmy, filep.forcing, filep.forcing_ncid,
-        &cell_data_structs[cellidx].soil_con, out_data_files, out_data);
-
-#if !OUTPUT_FORCE
-#if LINK_DEBUG
-    if (debug.PRT_ATMOS)
-      write_atmosdata(atmos, global_param.nrecs);
-#endif
-
-    /**************************************************
-     Initialize Energy Balance and Snow Variables
-     **************************************************/
-
-#if VERBOSE
-    fprintf(stderr, "Model State Initialization\n");
-#endif /* VERBOSE */
-    int ErrorFlag = initialize_model_state(&prcp, dmy[0], &global_param, filep,
-        cell_data_structs[cellidx].soil_con.gridcel,
-        veg_con[0].vegetat_type_num, options.Nnode, Ndist,
-        atmos[0].air_temp[NR], &cell_data_structs[cellidx].soil_con, veg_con,
-        lake_con, &cell_data_structs[cellidx].init_STILL_STORM,
-        &cell_data_structs[cellidx].init_DRY_TIME);
-    if (ErrorFlag == ERROR) {
-      if (options.CONTINUEONERROR == TRUE) {
-        // Handle grid cell solution error
-        fprintf(stderr,
-            "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
-            cell_data_structs[cellidx].soil_con.gridcel, cellidx);
-        break;
-      } else {
-        // Else exit program on cell solution error as in previous versions
-        sprintf(cell_data_structs[cellidx].ErrStr,
-            "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
-            cell_data_structs[cellidx].soil_con.gridcel, cellidx);
-        vicerror(cell_data_structs[cellidx].ErrStr);
-      }
-    }
-
-#if VERBOSE
-    fprintf(stderr, "Running Model\n");
-#endif /* VERBOSE */
-
+    //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
-    Error.filep = filep;
-    Error.out_data_files = out_data_files;
+    state->Error.filep = filep;
+    state->Error.out_data_files = out_data_files;
+    syncGlobals(state);
 
-    save_data_struct save_data;
+#if OUTPUT_FORCE
+    // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
+    // forcing data array is dumped into a new set of files.
+    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, out_data_files, out_data);
+    continue;
+#endif
 
     /** Initialize the storage terms in the water and energy balances **/
-    /** Sending a negative record number (-global_param.nrecs) to dist_prec() will accomplish this **/
-    ErrorFlag = dist_prec(&atmos[0], &prcp,
-        &cell_data_structs[cellidx].soil_con, veg_con, &lake_con, dmy,
-        &global_param, &filep, out_data_files, out_data, &save_data,
-        -global_param.nrecs, cellidx, NEWCELL,
-        cell_data_structs[cellidx].init_STILL_STORM,
-        cell_data_structs[cellidx].init_DRY_TIME);
+    //TODO: check error flag here
+    put_data(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].atmos,
+        &cell_data_structs[cellidx].soil_con,
+        cell_data_structs[cellidx].veg_con,
+        &cell_data_structs[cellidx].lake_con, out_data_files, out_data,
+        &cell_data_structs[cellidx].save_data, &dmy[0],
+        -state->global_param.nrecs);
 
     /******************************************
      Run Model in Grid Cell for all Time Steps
      ******************************************/
+    char NEWCELL = TRUE;
 
-    for (int rec = 0; rec < global_param.nrecs; rec++) {
+    for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-      ErrorFlag = dist_prec(&atmos[rec], &prcp,
-          &cell_data_structs[cellidx].soil_con, veg_con, &lake_con, dmy,
-          &global_param, &filep, out_data_files, out_data, &save_data, rec,
+      int ErrorFlag = dist_prec(&cell_data_structs[cellidx].atmos[rec], &cell_data_structs[cellidx].prcp,
+          &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con, &cell_data_structs[cellidx].lake_con, dmy,
+          &state->global_param, &filep, out_data_files, out_data, &cell_data_structs[cellidx].save_data, rec,
           cellidx, NEWCELL, cell_data_structs[cellidx].init_STILL_STORM,
           cell_data_structs[cellidx].init_DRY_TIME);
 
       if (ErrorFlag == ERROR) {
-        if (options.CONTINUEONERROR == TRUE) {
+        if (state->options.CONTINUEONERROR == TRUE) {
           // Handle grid cell solution error
           fprintf(stderr,
               "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
@@ -377,16 +423,11 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
       }
 
       NEWCELL = FALSE;
-      for (int veg = 0; veg <= veg_con[0].vegetat_type_num; veg++)
+      for (int veg = 0; veg <= cell_data_structs[cellidx].veg_con[0].vegetat_type_num; veg++)
         cell_data_structs[cellidx].init_DRY_TIME[veg] = -999;
 
     } /* End Rec Loop */
 
-#endif /* !OUTPUT_FORCE */
-
-    close_files(&filep, out_data_files, &filenames);
-
-#if !OUTPUT_FORCE
 
 #if QUICK_FS
     if(options.FROZEN_SOIL) {
@@ -402,8 +443,13 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
       }
     }
 #endif /* QUICK_FS */
-    free_dist_prcp(&prcp, veg_con[0].vegetat_type_num);
-    free_vegcon(&veg_con);
+
+    close_files(&filep, out_data_files, &filenames);
+    free_out_data_files(&out_data_files);
+
+    free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
+    free_dist_prcp(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].veg_con[0].vegetat_type_num);
+    free_vegcon(&cell_data_structs[cellidx].veg_con);
     free((char *) cell_data_structs[cellidx].soil_con.AreaFract);
     free((char *) cell_data_structs[cellidx].soil_con.BandElev);
     free((char *) cell_data_structs[cellidx].soil_con.Tfactor);
@@ -411,7 +457,6 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
     free((char *) cell_data_structs[cellidx].soil_con.AboveTreeLine);
     /*      free((char*)init_STILL_STORM);
      free((char*)init_DRY_TIME); */
-#endif /* !OUTPUT_FORCE */
   } /* End Grid Loop */
 
 }

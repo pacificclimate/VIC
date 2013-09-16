@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_global() {
+void ProgramState::initialize_global() {
 /*********************************************************************
   initialize_global              Keith Cherkauer       March 1998
 
@@ -120,11 +120,6 @@ void initialize_global() {
 
 *********************************************************************/
 
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-  extern param_set_struct param_set;
 
   /** Initialize model option flags **/
 

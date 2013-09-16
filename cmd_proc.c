@@ -6,7 +6,7 @@
 
 static char vcid[] = "$Id$";
 
-void cmd_proc(int argc, char *argv[], char* global_file_name)
+void cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState* state)
 /**********************************************************************
   cmd_proc                  Keith Cherkauer                1997
 
@@ -23,10 +23,6 @@ void cmd_proc(int argc, char *argv[], char* global_file_name)
 
 **********************************************************************/
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
   /*  extern int getopt(); */
   extern char *optarg;
   extern char *optstring;
@@ -45,12 +41,12 @@ void cmd_proc(int argc, char *argv[], char* global_file_name)
     switch((char)optchar) {
     case 'v':
       /** Version information **/
-      display_current_settings(DISP_VERSION,(filenames_struct*)NULL,(global_param_struct*)NULL);
+      state->display_current_settings(DISP_VERSION,(filenames_struct*)NULL);
       exit(0);
       break;
     case 'o':
       /** Compile-time options information **/
-      display_current_settings(DISP_COMPILE_TIME,(filenames_struct*)NULL,(global_param_struct*)NULL);
+      state->display_current_settings(DISP_COMPILE_TIME,(filenames_struct*)NULL);
       exit(0);
       break;
     case 'g':

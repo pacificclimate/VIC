@@ -5,12 +5,10 @@
 static char vcid[] = "$Id$";
 
 void initialize_atmos(atmos_data_struct        *atmos,
-                      const dmy_struct               *dmy,
+                      const dmy_struct         *dmy,
                       FILE                    **infile,
                       int                      *ncids,
-                      soil_con_struct          *soil_con,
-                      out_data_file_struct     *out_data_files,
-                      out_data_struct          *out_data)
+                      soil_con_struct          *soil_con)
 
 /**********************************************************************
   initialize_atmos	Keith Cherkauer		February 3, 1997
@@ -1351,13 +1349,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
       compute_treeline( atmos, dmy, soil_con->avgJulyAirTemp, soil_con->Tfactor, soil_con->AboveTreeLine );
     }
   }
-
-#else
-
-  // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
-  // forcing data array is dumped into a new set of files.
-  write_forcing_file(atmos, global_param.nrecs, out_data_files, out_data);
-
 #endif // OUTPUT_FORCE 
 
 }

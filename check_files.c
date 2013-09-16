@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-filep_struct get_files(const filenames_struct *fnames)
+filep_struct get_files(const filenames_struct *fnames, ProgramState* state)
 /**********************************************************************
 	check_files		Dag Lohmann		January 1996
 
@@ -18,17 +18,15 @@ filep_struct get_files(const filenames_struct *fnames)
 
 **********************************************************************/
 {
-  extern option_struct  options;
-
   filep_struct file_pointers;
 
   file_pointers.soilparam   = open_file(fnames->soil, "r");
 #if !OUTPUT_FORCE
   file_pointers.veglib      = open_file(fnames->veglib, "r");
   file_pointers.vegparam    = open_file(fnames->veg, "r");
-  if(options.SNOW_BAND>1)
+  if(state->options.SNOW_BAND>1)
     file_pointers.snowband    = open_file(fnames->snowband, "r");
-  if ( options.LAKES )
+  if ( state->options.LAKES )
     file_pointers.lakeparam = open_file(fnames->lakeparam,"r");
 #endif /* !OUTPUT_FORCE */
 

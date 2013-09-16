@@ -94,17 +94,6 @@ int  dist_prec(atmos_data_struct   *atmos,
   double NEW_MU;
 
   /**************************************************
-   If rec < 0, initialize the storage terms for water and energy balances
-   **************************************************/
-  if (time_step_record < 0) {
-    ErrorFlag2 = put_data(prcp, atmos, soil_con, veg_con, lake_con,
-        out_data_files, out_data, save_data, &dmy[0], time_step_record);
-    if (ErrorFlag2 == ERROR)
-      ErrorFlag = ERROR;
-    return (0);
-  }
-
-  /**************************************************
    If rec >= 0, proceed with simulation
    **************************************************/
   // check if state file has been used to initialize storm tracking

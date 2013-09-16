@@ -6,7 +6,7 @@
 static char vcid[] = "$Id$";
 
 #if LINK_DEBUG
-void open_debug() {
+void ProgramState::open_debug() {
 /**********************************************************************
   open_debug		Keith Cherkauer		October 10, 1997
 
@@ -19,9 +19,6 @@ void open_debug() {
 	    conditions).					TJB
 
 **********************************************************************/
-
-  extern debug_struct debug;
-  extern option_struct options;
 
   char tempname[MAXSTRING];
   int  i, j;

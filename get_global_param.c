@@ -13,8 +13,7 @@ int NR;		      /* array index for atmos struct that indicates
 int NF;		      /* array index loop counter limit for atmos
 			 struct that indicates the SNOW_STEP values */
  
-global_param_struct get_global_param(filenames_struct *names,
-                                     const char* global_file_name)
+void ProgramState::init_global_param(filenames_struct *names, const char* global_file_name)
 /**********************************************************************
   get_global_param	Keith Cherkauer	            March 1998
 
@@ -49,7 +48,7 @@ global_param_struct get_global_param(filenames_struct *names,
   2005-12-06 Moved setting of statename from open_state_file to here.		GCT
   2005-12-07 Added checks for range of STATEMONTH and STATEDAY			GCT
   2005-12-07 Allow user to use NO_FLUX in addition to NOFLUX for NOFLUX in
-             global.param.file							GCT
+             global_param.param.file							GCT
   2006-09-13 Replaced NIJSSEN2001_BASEFLOW with BASEFLOW option.		TJB/GCT
   2006-Sep-23 Implemented flexible output configuration; removed the
               OPTIMIZE and LDAS_OUTPUT options; implemented aggregation of
@@ -69,7 +68,7 @@ global_param_struct get_global_param(filenames_struct *names,
   2007-Sep-14 Added initialization of names->soil_dir.				TJB
   2007-Oct-10 Added validation of dt, start date, end date, and nrecs.		TJB
   2007-Oct-31 Added validation of input/output files.				TJB
-  2008-Jan-25 Removed setting of SNOW_STEP = global.dt for
+  2008-Jan-25 Removed setting of SNOW_STEP = global_param.dt for
 	      OUTPUT_FORCE == TRUE.						TJB
   2008-Jan-28 Added check that end date falls AFTER start date.			TJB
   2008-Mar-12 Relocated code validating IMPLICIT and EXCESS_ICE options.	TJB
@@ -99,11 +98,6 @@ global_param_struct get_global_param(filenames_struct *names,
   2011-Nov-04 Added options to access new forcing estimation features.		TJB
 **********************************************************************/
 {
-  extern option_struct    options;
-  extern param_set_struct param_set;
-#if LINK_DEBUG
-  extern debug_struct     debug;
-#endif
 
   char cmdstr[MAXSTRING];
   char optstr[MAXSTRING];
@@ -129,37 +123,36 @@ global_param_struct get_global_param(filenames_struct *names,
             30, /* NOVEMBER */
             31, /* DECEMBER */
         } ;
-  global_param_struct global;
 
   /** Initialize global parameters (that aren't part of the options struct) **/
-  global.dt            = MISSING;
-  global.nrecs         = MISSING;
-  global.startyear     = MISSING;
-  global.startmonth    = MISSING;
-  global.startday      = MISSING;
-  global.starthour     = MISSING;
-  global.endyear       = MISSING;
-  global.endmonth      = MISSING;
-  global.endday        = MISSING;
-  global.resolution    = MISSING;
-  global.MAX_SNOW_TEMP = 0;
-  global.MIN_RAIN_TEMP = 0;
-  global.measure_h     = 2.0;
-  global.wind_h        = 10.0;
+  global_param.dt            = MISSING;
+  global_param.nrecs         = MISSING;
+  global_param.startyear     = MISSING;
+  global_param.startmonth    = MISSING;
+  global_param.startday      = MISSING;
+  global_param.starthour     = MISSING;
+  global_param.endyear       = MISSING;
+  global_param.endmonth      = MISSING;
+  global_param.endday        = MISSING;
+  global_param.resolution    = MISSING;
+  global_param.MAX_SNOW_TEMP = 0;
+  global_param.MIN_RAIN_TEMP = 0;
+  global_param.measure_h     = 2.0;
+  global_param.wind_h        = 10.0;
   for(i = 0; i < 2; i++) {
-    global.forceyear[i]  = MISSING;
-    global.forcemonth[i] = 1;
-    global.forceday[i]   = 1;
-    global.forcehour[i]  = 0;
-    global.forceskip[i]  = 0;
+    global_param.forceyear[i]  = MISSING;
+    global_param.forcemonth[i] = 1;
+    global_param.forceday[i]   = 1;
+    global_param.forcehour[i]  = 0;
+    global_param.forceskip[i]  = 0;
     strcpy(names->f_path_pfx[i],"MISSING");
   }
   file_num             = 0;
-  global.skipyear      = 0;
+  global_param.skipyear      = 0;
   strcpy(names->init_state,   "MISSING");
-  global.stateyear     = MISSING;
-  global.statemonth    = MISSING;
-  global.stateday      = MISSING;
+  global_param.stateyear     = MISSING;
+  global_param.statemonth    = MISSING;
+  global_param.stateday      = MISSING;
   strcpy(names->statefile,    "MISSING");
   strcpy(names->soil,         "MISSING");
   strcpy(names->soil_dir,     "MISSING");
@@ -168,7 +161,7 @@ global_param_struct get_global_param(filenames_struct *names,
   strcpy(names->snowband,     "MISSING");
   strcpy(names->lakeparam,    "MISSING");
   strcpy(names->result_dir,   "MISSING");
-  global.out_dt        = MISSING;
+  global_param.out_dt        = MISSING;
 
 
   // Open the file
@@ -198,34 +191,34 @@ global_param_struct get_global_param(filenames_struct *names,
         sscanf(cmdstr,"%*s %d",&options.Nnode);
       }
       else if(strcasecmp("TIME_STEP",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.dt);
+        sscanf(cmdstr,"%*s %d",&global_param.dt);
       }
       else if(strcasecmp("SNOW_STEP",optstr)==0) {
 	sscanf(cmdstr,"%*s %d",&options.SNOW_STEP);
       }
       else if(strcasecmp("STARTYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.startyear);
+        sscanf(cmdstr,"%*s %d",&global_param.startyear);
       }
       else if(strcasecmp("STARTMONTH",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.startmonth);
+        sscanf(cmdstr,"%*s %d",&global_param.startmonth);
       }
       else if(strcasecmp("STARTDAY",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.startday);
+        sscanf(cmdstr,"%*s %d",&global_param.startday);
       }
       else if(strcasecmp("STARTHOUR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.starthour);
+        sscanf(cmdstr,"%*s %d",&global_param.starthour);
       }
       else if(strcasecmp("NRECS",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.nrecs);
+        sscanf(cmdstr,"%*s %d",&global_param.nrecs);
       }
       else if(strcasecmp("ENDYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.endyear);
+        sscanf(cmdstr,"%*s %d",&global_param.endyear);
       }
       else if(strcasecmp("ENDMONTH",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.endmonth);
+        sscanf(cmdstr,"%*s %d",&global_param.endmonth);
       }
       else if(strcasecmp("ENDDAY",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.endday);
+        sscanf(cmdstr,"%*s %d",&global_param.endday);
       }
       else if(strcasecmp("FULL_ENERGY",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -299,10 +292,10 @@ global_param_struct get_global_param(filenames_struct *names,
 	sscanf(cmdstr,"%*s %f",&options.MIN_WIND_SPEED);
       }
       else if(strcasecmp("MIN_RAIN_TEMP",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global.MIN_RAIN_TEMP);
+        sscanf(cmdstr,"%*s %lf",&global_param.MIN_RAIN_TEMP);
       }
       else if(strcasecmp("MAX_SNOW_TEMP",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global.MAX_SNOW_TEMP);
+        sscanf(cmdstr,"%*s %lf",&global_param.MAX_SNOW_TEMP);
       }
       else if(strcasecmp("CONTINUEONERROR",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -323,7 +316,7 @@ global_param_struct get_global_param(filenames_struct *names,
         else options.EQUAL_AREA = FALSE;
       }
       else if(strcasecmp("RESOLUTION",optstr)==0) {
-        sscanf(cmdstr,"%*s %f",&global.resolution);
+        sscanf(cmdstr,"%*s %f",&global_param.resolution);
       }
       else if (strcasecmp("AERO_RESIST_CANSNOW", optstr)==0) {
         sscanf(cmdstr, "%*s %s", flgstr);
@@ -404,13 +397,13 @@ global_param_struct get_global_param(filenames_struct *names,
         options.SAVE_STATE = TRUE;
       }
       else if(strcasecmp("STATEYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.stateyear);
+        sscanf(cmdstr,"%*s %d",&global_param.stateyear);
       }
       else if(strcasecmp("STATEMONTH",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.statemonth);
+        sscanf(cmdstr,"%*s %d",&global_param.statemonth);
       }
       else if(strcasecmp("STATEDAY",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.stateday);
+        sscanf(cmdstr,"%*s %d",&global_param.stateday);
       }
       else if(strcasecmp("BINARY_STATE_FILE",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -459,31 +452,31 @@ global_param_struct get_global_param(filenames_struct *names,
         sscanf(cmdstr,"%*s %d",&param_set.N_TYPES[file_num]);
       }
       else if(strcasecmp("FORCE_TYPE",optstr)==0) {
-	get_force_type(cmdstr,file_num,&field);
+        get_force_type(cmdstr,file_num,&field, this);
       }
       else if(strcasecmp("FORCE_DT",optstr)==0) {
-	sscanf(cmdstr,"%*s %d ", &param_set.FORCE_DT[file_num]);
+        sscanf(cmdstr,"%*s %d ", &param_set.FORCE_DT[file_num]);
       }
       else if(strcasecmp("FORCEYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.forceyear[file_num]);
+        sscanf(cmdstr,"%*s %d",&global_param.forceyear[file_num]);
       }
       else if(strcasecmp("FORCEMONTH",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.forcemonth[file_num]);
+        sscanf(cmdstr,"%*s %d",&global_param.forcemonth[file_num]);
       }
       else if(strcasecmp("FORCEDAY",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.forceday[file_num]);
+        sscanf(cmdstr,"%*s %d",&global_param.forceday[file_num]);
       }
       else if(strcasecmp("FORCEHOUR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.forcehour[file_num]);
+        sscanf(cmdstr,"%*s %d",&global_param.forcehour[file_num]);
       }
       else if(strcasecmp("GRID_DECIMAL",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&options.GRID_DECIMAL);
       }
       else if(strcasecmp("WIND_H",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global.wind_h);
+        sscanf(cmdstr,"%*s %lf",&global_param.wind_h);
       }
       else if(strcasecmp("MEASURE_H",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global.measure_h);
+        sscanf(cmdstr,"%*s %lf",&global_param.measure_h);
       }
       else if(strcasecmp("ALMA_INPUT",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -601,10 +594,10 @@ global_param_struct get_global_param(filenames_struct *names,
         sscanf(cmdstr,"%*s %s",names->result_dir);
       }
       else if(strcasecmp("OUT_STEP",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.out_dt);
+        sscanf(cmdstr,"%*s %d",&global_param.out_dt);
       }
       else if(strcasecmp("SKIPYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global.skipyear);
+        sscanf(cmdstr,"%*s %d",&global_param.skipyear);
       }
       else if(strcasecmp("COMPRESS",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -726,93 +719,93 @@ global_param_struct get_global_param(filenames_struct *names,
   ******************************************/
 
   // Validate model time step
-  if (global.dt == MISSING)
+  if (global_param.dt == MISSING)
     nrerror("Model time step has not been defined.  Make sure that the global file defines TIME_STEP.");
-  else if (global.dt < 1) {
-    sprintf(ErrStr,"The specified model time step (%d) < 1 hour.  Make sure that the global file defines a positive number of hours for TIME_STEP.",global.dt);
+  else if (global_param.dt < 1) {
+    sprintf(ErrStr,"The specified model time step (%d) < 1 hour.  Make sure that the global file defines a positive number of hours for TIME_STEP.",global_param.dt);
     nrerror(ErrStr);
   }
 
   // Validate the output step
-  if (global.out_dt == 0 || global.out_dt == MISSING) {
-    global.out_dt = global.dt;
+  if (global_param.out_dt == 0 || global_param.out_dt == MISSING) {
+    global_param.out_dt = global_param.dt;
   }
-  else if (global.out_dt < global.dt || global.out_dt > 24 || (float)global.out_dt/(float)global.dt != (float)(global.out_dt/global.dt)){
+  else if (global_param.out_dt < global_param.dt || global_param.out_dt > 24 || (float)global_param.out_dt/(float)global_param.dt != (float)(global_param.out_dt/global_param.dt)){
     nrerror("Invalid output step specified.  Output step must be an integer multiple of the model time step; >= model time step and <= 24");
   }
 
   // Validate SNOW_STEP and set NR and NF
-  if (global.dt < 24 && global.dt != options.SNOW_STEP)
+  if (global_param.dt < 24 && global_param.dt != options.SNOW_STEP)
     nrerror("If the model step is smaller than daily, the snow model should run\nat the same time step as the rest of the model.");
-  if (global.dt % options.SNOW_STEP != 0 || options.SNOW_STEP > global.dt)
+  if (global_param.dt % options.SNOW_STEP != 0 || options.SNOW_STEP > global_param.dt)
     nrerror("SNOW_STEP should be <= TIME_STEP and divide TIME_STEP evenly ");
-  NF = global.dt/options.SNOW_STEP;
+  NF = global_param.dt/options.SNOW_STEP;
   if (NF == 1)
     NR = 0;
   else
     NR = NF;
 
   // Validate simulation start date
-  if (global.startyear == MISSING)
+  if (global_param.startyear == MISSING)
     nrerror("Simulation start year has not been defined.  Make sure that the global file defines STARTYEAR.");
-  else if (global.startyear < 0) {
-    sprintf(ErrStr,"The specified simulation start year (%d) < 0.  Make sure that the global file defines a positive integer for STARTYEAR.",global.startyear);
+  else if (global_param.startyear < 0) {
+    sprintf(ErrStr,"The specified simulation start year (%d) < 0.  Make sure that the global file defines a positive integer for STARTYEAR.",global_param.startyear);
     nrerror(ErrStr);
   }
-  if (global.startmonth == MISSING)
+  if (global_param.startmonth == MISSING)
     nrerror("Simulation start month has not been defined.  Make sure that the global file defines STARTMONTH.");
-  else if (global.startmonth < 0) {
-    sprintf(ErrStr,"The specified simulation start month (%d) < 0.  Make sure that the global file defines a positive integer for STARTMONTH.",global.startmonth);
+  else if (global_param.startmonth < 0) {
+    sprintf(ErrStr,"The specified simulation start month (%d) < 0.  Make sure that the global file defines a positive integer for STARTMONTH.",global_param.startmonth);
     nrerror(ErrStr);
   }
-  if (global.startday == MISSING)
+  if (global_param.startday == MISSING)
     nrerror("Simulation start day has not been defined.  Make sure that the global file defines STARTDAY.");
-  else if (global.startday < 0) {
-    sprintf(ErrStr,"The specified simulation start day (%d) < 0.  Make sure that the global file defines a positive integer for STARTDAY.",global.startday);
+  else if (global_param.startday < 0) {
+    sprintf(ErrStr,"The specified simulation start day (%d) < 0.  Make sure that the global file defines a positive integer for STARTDAY.",global_param.startday);
     nrerror(ErrStr);
   }
-  if (global.starthour == MISSING) {
-    if (global.dt == 24)
-      global.starthour = 0;
+  if (global_param.starthour == MISSING) {
+    if (global_param.dt == 24)
+      global_param.starthour = 0;
     else
       nrerror("Simulation start hour has not been defined, yet model time step is less than 24 hours.  Make sure that the global file defines STARTHOUR.");
   }
-  else if (global.starthour < 0) {
-    sprintf(ErrStr,"The specified simulation start hour (%d) < 0.  Make sure that the global file defines a positive integer for STARTHOUR.",global.starthour);
+  else if (global_param.starthour < 0) {
+    sprintf(ErrStr,"The specified simulation start hour (%d) < 0.  Make sure that the global file defines a positive integer for STARTHOUR.",global_param.starthour);
     nrerror(ErrStr);
   }
 
   // Validate simulation end date and/or number of timesteps
-  if (global.nrecs == MISSING && global.endyear == MISSING && global.endmonth == MISSING && global.endday == MISSING)
+  if (global_param.nrecs == MISSING && global_param.endyear == MISSING && global_param.endmonth == MISSING && global_param.endday == MISSING)
     nrerror("The model global file MUST define EITHER the number of records to simulate (NRECS), or the year (ENDYEAR), month (ENDMONTH), and day (ENDDAY) of the last full simulation day");
-  else if (global.nrecs == MISSING) {
-    if (global.endyear == MISSING)
+  else if (global_param.nrecs == MISSING) {
+    if (global_param.endyear == MISSING)
       nrerror("Simulation end year has not been defined.  Make sure that the global file defines ENDYEAR.");
-    else if (global.endyear < 0) {
-      sprintf(ErrStr,"The specified simulation end year (%d) < 0.  Make sure that the global file defines a positive integer for ENDYEAR.",global.endyear);
+    else if (global_param.endyear < 0) {
+      sprintf(ErrStr,"The specified simulation end year (%d) < 0.  Make sure that the global file defines a positive integer for ENDYEAR.",global_param.endyear);
       nrerror(ErrStr);
     }
-    if (global.endmonth == MISSING)
+    if (global_param.endmonth == MISSING)
       nrerror("Simulation end month has not been defined.  Make sure that the global file defines ENDMONTH.");
-    else if (global.endmonth < 0) {
-      sprintf(ErrStr,"The specified simulation end month (%d) < 0.  Make sure that the global file defines a positive integer for ENDMONTH.",global.endmonth);
+    else if (global_param.endmonth < 0) {
+      sprintf(ErrStr,"The specified simulation end month (%d) < 0.  Make sure that the global file defines a positive integer for ENDMONTH.",global_param.endmonth);
       nrerror(ErrStr);
     }
-    if (global.endday == MISSING)
+    if (global_param.endday == MISSING)
       nrerror("Simulation end day has not been defined.  Make sure that the global file defines ENDDAY.");
-    else if (global.endday < 0) {
-      sprintf(ErrStr,"The specified simulation end day (%d) < 0.  Make sure that the global file defines a positive integer for ENDDAY.",global.endday);
+    else if (global_param.endday < 0) {
+      sprintf(ErrStr,"The specified simulation end day (%d) < 0.  Make sure that the global file defines a positive integer for ENDDAY.",global_param.endday);
       nrerror(ErrStr);
     }
-    tmpstartdate = global.startyear*10000 + global.startmonth*100 + global.startday;
-    tmpenddate = global.endyear*10000 + global.endmonth*100 + global.endday;
+    tmpstartdate = global_param.startyear*10000 + global_param.startmonth*100 + global_param.startday;
+    tmpenddate = global_param.endyear*10000 + global_param.endmonth*100 + global_param.endday;
     if (tmpenddate < tmpstartdate) {
-      sprintf(ErrStr,"The specified simulation end date (%04d-%02d-%02d) is EARLIER than the specified start date (%04d-%02d-%02d).",global.endyear,global.endmonth,global.endday,global.startyear,global.startmonth,global.startday);
+      sprintf(ErrStr,"The specified simulation end date (%04d-%02d-%02d) is EARLIER than the specified start date (%04d-%02d-%02d).",global_param.endyear,global_param.endmonth,global_param.endday,global_param.startyear,global_param.startmonth,global_param.startday);
       nrerror(ErrStr);
     }
   }
-  else if (global.nrecs < 1) {
-    sprintf(ErrStr,"The specified duration of simulation (%d) < 1 time step.  Make sure that the global file defines a positive integer for NRECS.",global.nrecs);
+  else if (global_param.nrecs < 1) {
+    sprintf(ErrStr,"The specified duration of simulation (%d) < 1 time step.  Make sure that the global file defines a positive integer for NRECS.",global_param.nrecs);
     nrerror(ErrStr);
   }
 
@@ -839,12 +832,12 @@ global_param_struct get_global_param(filenames_struct *names,
       }
     }
   }
-  if(param_set.N_TYPES[1] != MISSING && global.forceyear[1] == MISSING) {
-    global.forceyear[1] = global.forceyear[0];
-    global.forcemonth[1] = global.forcemonth[0];
-    global.forceday[1] = global.forceday[0];
-    global.forcehour[1] = global.forcehour[0];
-    global.forceskip[1] = 0;
+  if(param_set.N_TYPES[1] != MISSING && global_param.forceyear[1] == MISSING) {
+    global_param.forceyear[1] = global_param.forceyear[0];
+    global_param.forcemonth[1] = global_param.forcemonth[0];
+    global_param.forceday[1] = global_param.forceday[0];
+    global_param.forcehour[1] = global_param.forcehour[0];
+    global_param.forceskip[1] = 0;
   }
 
   // Validate result directory
@@ -901,26 +894,26 @@ global_param_struct get_global_param(filenames_struct *names,
   if( options.SAVE_STATE ) {
     if ( strcmp ( names->statefile, "MISSING" ) == 0)
       nrerror("\"SAVE_STATE\" was specified, but no output state file has been defined.  Make sure that the global file defines the output state file on the line that begins with \"SAVE_STATE\".");
-    if ( global.stateyear == MISSING || global.statemonth == MISSING || global.stateday == MISSING )  {
-      sprintf(ErrStr,"Incomplete specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global.stateyear, global.statemonth, global.stateday);
+    if ( global_param.stateyear == MISSING || global_param.statemonth == MISSING || global_param.stateday == MISSING )  {
+      sprintf(ErrStr,"Incomplete specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
       nrerror(ErrStr);
     }
     // Check for month, day in range
-    lastvalidday = lastday[global.statemonth - 1];
-    if ( global.statemonth == 2 ) {
-      if ( (global.stateyear % 4) == 0 && ( (global.stateyear % 100) != 0 || (global.stateyear % 400) == 0 ) ){
+    lastvalidday = lastday[global_param.statemonth - 1];
+    if ( global_param.statemonth == 2 ) {
+      if ( (global_param.stateyear % 4) == 0 && ( (global_param.stateyear % 100) != 0 || (global_param.stateyear % 400) == 0 ) ){
         lastvalidday = 29;
       }
     }
-    if ( global.stateday > lastvalidday || global.statemonth > 12 || global.statemonth < 1 || global.stateday > 31 || global.stateday < 1 ){
-      sprintf(ErrStr,"Unusual specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global.stateyear, global.statemonth, global.stateday);
+    if ( global_param.stateday > lastvalidday || global_param.statemonth > 12 || global_param.statemonth < 1 || global_param.stateday > 31 || global_param.stateday < 1 ){
+      sprintf(ErrStr,"Unusual specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
       nrerror(ErrStr);
     }
   }
   // Set the statename here to be able to compare with INIT_STATE name
   if( options.SAVE_STATE ) {
     sprintf(names->statefile,"%s_%04i%02i%02i", names->statefile,
-          global.stateyear, global.statemonth, global.stateday);
+          global_param.stateyear, global_param.statemonth, global_param.stateday);
   }
   if( options.INIT_STATE && options.SAVE_STATE && (strcmp( names->init_state, names->statefile ) == 0))  {
       sprintf(ErrStr,"The save state file (%s) has the same name as the initialize state file (%s).  The initialize state file will be destroyed when the save state file is opened.", names->statefile, names->init_state);
@@ -983,11 +976,11 @@ global_param_struct get_global_param(filenames_struct *names,
     }
     if ( strcmp ( names->lakeparam, "MISSING" ) == 0 )
       nrerror("\"LAKES\" was specified, but no lake parameter file has been defined.  Make sure that the global file defines the lake parameter file on the line that begins with \"LAKES\".");
-    if (global.resolution == 0) {
+    if (global_param.resolution == 0) {
       sprintf(ErrStr, "The model grid cell resolution (RESOLUTION) must be defined in the global control file when the lake model is active.");
       nrerror(ErrStr);
     }
-    if (global.resolution > 360 && !options.EQUAL_AREA) {
+    if (global_param.resolution > 360 && !options.EQUAL_AREA) {
       sprintf(ErrStr, "For EQUAL_AREA=FALSE, the model grid cell resolution (RESOLUTION) must be set to the number of lat or lon degrees per grid cell.  This cannot exceed 360.");
       nrerror(ErrStr);
     }
@@ -1001,20 +994,20 @@ global_param_struct get_global_param(filenames_struct *names,
     Output major options to stderr
   *********************************/
 #if VERBOSE
-  display_current_settings(DISP_ALL,names,&global);
+  this->display_current_settings(DISP_ALL,names);
 #else
-  display_current_settings(DISP_VERSION,names,&global);
+  this->display_current_settings(DISP_VERSION,names);
 #endif
 
 #if VERBOSE
-  fprintf(stderr,"Time Step = %d hour(s)\n",global.dt);
+  fprintf(stderr,"Time Step = %d hour(s)\n",global_param.dt);
   fprintf(stderr,"Simulation start date = %02i/%02i/%04i\n",
-	  global.startday, global.startmonth, global.startyear);
-  if ( global.nrecs > 0 )
-    fprintf(stderr,"Number of Records = %d\n\n",global.nrecs);
+	  global_param.startday, global_param.startmonth, global_param.startyear);
+  if ( global_param.nrecs > 0 )
+    fprintf(stderr,"Number of Records = %d\n\n",global_param.nrecs);
   else 
     fprintf(stderr,"Simulation end date = %02i/%02i/%04i\n\n",
-	    global.endday, global.endmonth, global.endyear);
+	    global_param.endday, global_param.endmonth, global_param.endyear);
   fprintf(stderr,"Full Energy...................(%d)\n",options.FULL_ENERGY);
   fprintf(stderr,"Use Distributed Precipitation.(%d)\n",options.DIST_PRCP);
   if(options.DIST_PRCP)
@@ -1047,7 +1040,7 @@ global_param_struct get_global_param(filenames_struct *names,
   fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
   if ( options.SAVE_STATE )
     fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
-	    global.stateday, global.statemonth, global.stateyear);
+	    global_param.stateday, global_param.statemonth, global_param.stateyear);
   if ( options.BINARY_OUTPUT ) 
     fprintf(stderr,"Model output is in standard BINARY format.\n");
   else 
@@ -1059,7 +1052,5 @@ global_param_struct get_global_param(filenames_struct *names,
 #endif
 
 #endif // !OUTPUT_FORCE
-
-  return global;
 
 }
