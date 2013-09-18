@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-cell_data_struct **make_cell_data(int veg_type_num, int Nlayer)
+cell_data_struct **make_cell_data(int veg_type_num, int Nlayer, const int NUM_SNOW_BAND)
 /**********************************************************************
 	make_cell_data	Keith Cherkauer		July 9, 1997
 
@@ -13,15 +13,13 @@ cell_data_struct **make_cell_data(int veg_type_num, int Nlayer)
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int i;
   cell_data_struct **temp;
 
   temp = (cell_data_struct**) calloc(veg_type_num, 
                                   sizeof(cell_data_struct*));
   for(i=0;i<veg_type_num;i++) {
-    temp[i] = (cell_data_struct*) calloc(options.SNOW_BAND, 
+    temp[i] = (cell_data_struct*) calloc(NUM_SNOW_BAND,
 					 sizeof(cell_data_struct));
 /*     for(j=0;j<options.SNOW_BAND;j++) { */
 /*       temp[i][j].layer  */

@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-energy_bal_struct **make_energy_bal(int nveg)
+energy_bal_struct **make_energy_bal(int nveg, const int NUM_SNOW_BAND)
 /**********************************************************************
 	make_energy_bal	Keith Cherkauer		May 26, 1996
 
@@ -18,8 +18,6 @@ energy_bal_struct **make_energy_bal(int nveg)
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int i, j;
   energy_bal_struct **temp;
 
@@ -28,9 +26,9 @@ energy_bal_struct **make_energy_bal(int nveg)
 
   /** Initialize all records to unfrozen conditions */
   for(i = 0; i < nveg; i++) {
-    temp[i] = (energy_bal_struct*) calloc(options.SNOW_BAND, 
+    temp[i] = (energy_bal_struct*) calloc(NUM_SNOW_BAND,
 					  sizeof(energy_bal_struct));
-    for(j = 0; j < options.SNOW_BAND; j++) {
+    for(j = 0; j < NUM_SNOW_BAND; j++) {
       temp[i][j].frozen = FALSE;
     }
   }

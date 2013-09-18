@@ -4,12 +4,15 @@
 #include <string.h>
 #include <assert.h>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: read_soilparam.c,v 5.19.2.19 2011/12/23 06:57:56 vicadmin Exp $";
+void ttrim( char *string ); // Utility function defined at the bottom of the file
+
 
 soil_con_struct read_soilparam(FILE *soilparam,
 			       char *soilparamdir,
 			       char *RUN_MODEL,
-			       char *MODEL_DONE)
+			       char *MODEL_DONE,
+			       ProgramState* state)
 /**********************************************************************
 	read_soilparam		Dag Lohmann		January 1996
 
@@ -118,14 +121,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
   2011-Nov-04 Added hard-coding of slope, aspect, and horizons to 0.	TJB
 **********************************************************************/
 {
-  void ttrim( char *string );
-  extern option_struct options;
-  extern global_param_struct global_param;
-  extern veg_lib_struct *veg_lib;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
   char            ErrStr[MAXSTRING];
   char            line[MAXSTRING];
   char            tmpline[MAXSTRING];
@@ -256,7 +251,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%lf", &temp.c);
 
       /* read expt for each layer */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -273,7 +268,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer saturated hydraulic conductivity */
-      for(layer = 0; layer < options.Nlayer; layer++){
+      for(layer = 0; layer < state->options.Nlayer; layer++){
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -284,7 +279,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer phi_s */
-      for(layer = 0; layer < options.Nlayer; layer++){
+      for(layer = 0; layer < state->options.Nlayer; layer++){
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -295,7 +290,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer initial moisture */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -321,7 +316,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%f", &temp.elevation);
 
       /* soil layer thicknesses */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -334,7 +329,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /* final soil layer thicknesses for !EXCESS_ICE option */
 #if !EXCESS_ICE
 #if !OUTPUT_FORCE
-      for(layer = 0; layer < options.Nlayer; layer++)
+      for(layer = 0; layer < state->options.Nlayer; layer++)
         temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
 #endif
 #endif /* !EXCESS_ICE */
@@ -348,7 +343,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
       sscanf(token, "%lf", &temp.avg_temp);
 #if !OUTPUT_FORCE
-      if(options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
+      if(state->options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
         fprintf(stderr,"Need valid average soil temperature in degrees C to run");
         fprintf(stderr," Full Energy model, %f is not acceptable.\n",
           temp.avg_temp);
@@ -366,7 +361,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%lf", &temp.dp);
 
       /* read layer bubbling pressure */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -375,7 +370,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         }
         sscanf(token, "%lf", &temp.bubble[layer]);
 #if !OUTPUT_FORCE
-        if((options.FULL_ENERGY || options.FROZEN_SOIL) && temp.bubble[layer] < 0) {
+        if((state->options.FULL_ENERGY || state->options.FROZEN_SOIL) && temp.bubble[layer] < 0) {
           fprintf(stderr,"ERROR: Bubbling pressure in layer %d is %f < 0; This must be positive for FULL_ENERGY = TRUE or FROZEN_SOIL = TRUE\n", layer, temp.bubble[layer]);
           exit(0);
         }
@@ -383,7 +378,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer quartz content */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -392,7 +387,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         }
         sscanf(token, "%lf", &temp.quartz[layer]);
 #if !OUTPUT_FORCE
-        if(options.FULL_ENERGY && (temp.quartz[layer] > 1. || temp.quartz[layer] < 0)) {
+        if(state->options.FULL_ENERGY && (temp.quartz[layer] > 1. || temp.quartz[layer] < 0)) {
           fprintf(stderr,"Need valid quartz content as a fraction to run");
           fprintf(stderr," Full Energy model, %f is not acceptable.\n", temp.quartz[layer]);
           exit(0);
@@ -401,7 +396,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer bulk density */
-      for(layer = 0; layer < options.Nlayer; layer++){
+      for(layer = 0; layer < state->options.Nlayer; layer++){
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -418,7 +413,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer soil density */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -438,9 +433,9 @@ soil_con_struct read_soilparam(FILE *soilparam,
 #endif /* !OUTPUT_FORCE */
       }
 
-      if (options.ORGANIC_FRACT) {
+      if (state->options.ORGANIC_FRACT) {
         /* read layer organic content */
-        for(layer = 0; layer < options.Nlayer; layer++){
+        for(layer = 0; layer < state->options.Nlayer; layer++){
           token = strtok (NULL, delimiters);
           while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
           if( token == NULL ) {
@@ -457,7 +452,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         }
 
         /* read layer bulk density */
-        for(layer = 0; layer < options.Nlayer; layer++){
+        for(layer = 0; layer < state->options.Nlayer; layer++){
           token = strtok (NULL, delimiters);
           while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
           if( token == NULL ) {
@@ -474,7 +469,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         }
 
         /* read layer soil density */
-        for(layer = 0; layer < options.Nlayer; layer++) {
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
           token = strtok (NULL, delimiters);
           while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
           if( token == NULL ) {
@@ -496,7 +491,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
 
       }
       else {
-        for(layer = 0; layer < options.Nlayer; layer++){
+        for(layer = 0; layer < state->options.Nlayer; layer++){
           temp.organic[layer] = 0.0;
           temp.bulk_dens_org[layer] = -9999;
           temp.soil_dens_org[layer] = -9999;
@@ -513,7 +508,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%lf", &off_gmt);
 
       /* read layer critical point */
-      for(layer=0;layer<options.Nlayer;layer++){
+      for(layer=0;layer<state->options.Nlayer;layer++){
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -524,7 +519,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* read layer wilting point */
-      for(layer=0;layer<options.Nlayer;layer++){
+      for(layer=0;layer<state->options.Nlayer;layer++){
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -546,8 +541,8 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /* Overwrite default bare soil aerodynamic resistance parameters
          with the values taken from the soil parameter file */
       for (j=0; j<12; j++) {
-        veg_lib[veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
-        veg_lib[veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
+        state->veg_lib[state->veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
+        state->veg_lib[state->veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
       }
 #endif // !OUTPUT_FORCE
 
@@ -570,7 +565,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%lf", &temp.annual_prec);
 
       /* read layer residual moisture content */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -616,7 +611,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
 
       /*read volumetric ice fraction for each soil layer */
 #if EXCESS_ICE
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -629,7 +624,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
 
       /* If specified, read cell average July air temperature in the final
          column of the soil parameter file */
-      if (options.JULY_TAVG_SUPPLIED) {
+      if (state->options.JULY_TAVG_SUPPLIED) {
         token = strtok (NULL, delimiters);
         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
         if( token == NULL ) {
@@ -648,7 +643,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /*******************************************
         Compute Soil Layer Properties
       *******************************************/
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         temp.bulk_density[layer] = (1-temp.organic[layer])*temp.bulk_dens_min[layer] + temp.organic[layer]*temp.bulk_dens_org[layer];
         temp.soil_density[layer] = (1-temp.organic[layer])*temp.soil_dens_min[layer] + temp.organic[layer]*temp.soil_dens_org[layer];
         if (temp.resid_moist[layer] == MISSING)
@@ -663,8 +658,8 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /*******************************************
         Validate Initial Soil Layer Moisture Content for !EXCESS_ICE option.
       *******************************************/
-      if (!options.INIT_STATE) { // only do this if we're not getting initial moisture from model state file
-        for(layer = 0; layer < options.Nlayer; layer++) {
+      if (!state->options.INIT_STATE) { // only do this if we're not getting initial moisture from model state file
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
             if(temp.init_moist[layer] > temp.max_moist[layer]) {
             fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
             temp.init_moist[layer], temp.max_moist[layer], layer);
@@ -684,7 +679,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         Compute Soil Layer Properties for EXCESS_ICE option
       *******************************************/
       extra_depth=0;
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         temp.min_depth[layer]=temp.depth[layer];
         if(init_ice_fract[layer]>MAX_ICE_INIT){ // validate amount based on physical constraints
             fprintf(stderr,"Initial ice fraction (%f) is greater than maximum ice content for layer %d.\n\tResetting to maximum of %f\n",init_ice_fract[layer],layer,MAX_ICE_INIT);
@@ -713,11 +708,11 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 
       /* final soil layer thicknesses for EXCESS_ICE option */
-      for(layer = 0; layer < options.Nlayer; layer++)
+      for(layer = 0; layer < state->options.Nlayer; layer++)
         temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
 
       /* Calculate and Validate Maximum Initial Soil Layer Moisture Content for EXCESS_ICE option */
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         temp.max_moist[layer] = temp.depth[layer] * temp.effective_porosity[layer] * 1000.;
         if(temp.effective_porosity[layer]>temp.porosity[layer])//excess ground ice present
           temp.init_moist[layer] = temp.max_moist[layer];
@@ -726,7 +721,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
           temp.init_moist[layer] = temp.depth[layer] * init_ice_fract[layer] * 1000.;
         }
       }
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         if(temp.init_moist[layer] > temp.max_moist[layer]) {
           fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
           temp.init_moist[layer], temp.max_moist[layer], layer);
@@ -744,7 +739,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         Validate Soil Layer Thicknesses
       **********************************************/
 #if !OUTPUT_FORCE
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         if(temp.depth[layer] < MINSOILDEPTH) {
           sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
           layer,temp.depth[layer],MINSOILDEPTH);
@@ -757,7 +752,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
 #if EXCESS_ICE
-      for(layer = 0; layer < options.Nlayer; layer++) {
+      for(layer = 0; layer < state->options.Nlayer; layer++) {
         if(temp.min_depth[layer] < MINSOILDEPTH) {
           sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
           layer,temp.min_depth[layer],MINSOILDEPTH);
@@ -775,7 +770,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /**********************************************
         Compute Maximum Infiltration for Upper Layers
       **********************************************/
-      if(options.Nlayer==2)
+      if(state->options.Nlayer==2)
         temp.max_infil = (1.0+temp.b_infilt)*temp.max_moist[0];
       else
         temp.max_infil = (1.0+temp.b_infilt)*(temp.max_moist[0]+temp.max_moist[1]);
@@ -783,7 +778,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /****************************************************************
         Compute Soil Layer Critical and Wilting Point Moisture Contents
       ****************************************************************/
-      for(layer=0;layer<options.Nlayer;layer++) {
+      for(layer=0;layer<state->options.Nlayer;layer++) {
         temp.Wcr[layer]  = Wcr_FRACT[layer] * temp.max_moist[layer];
         temp.Wpwp[layer] = Wpwp_FRACT[layer] * temp.max_moist[layer];
 #if EXCESS_ICE
@@ -830,8 +825,8 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.Ds_orig = temp.Ds;
       temp.Ws_orig = temp.Ws;
 #endif
-      if(options.BASEFLOW == NIJSSEN2001) {
-        layer = options.Nlayer-1;
+      if(state->options.BASEFLOW == NIJSSEN2001) {
+        layer = state->options.Nlayer-1;
         temp.Dsmax = temp.Dsmax *
           pow((double)(1./(temp.max_moist[layer]-temp.Ws)), -temp.c) +
           temp.Ds * temp.max_moist[layer];
@@ -843,9 +838,9 @@ soil_con_struct read_soilparam(FILE *soilparam,
         Calculate grid cell area.
       ******************************************************************/
 
-      if (options.EQUAL_AREA) {
+      if (state->options.EQUAL_AREA) {
 
-        temp.cell_area = global_param.resolution * 1000. * 1000.; /* Grid cell area in m^2. */
+        temp.cell_area = state->global_param.resolution * 1000. * 1000.; /* Grid cell area in m^2. */
 
       }
       else {
@@ -853,17 +848,17 @@ soil_con_struct read_soilparam(FILE *soilparam,
         lat = fabs(temp.lat);
         lng = fabs(temp.lng);
 
-        start_lat = lat - global_param.resolution / 2;
-        right_lng = lng + global_param.resolution / 2;
-        left_lng  = lng - global_param.resolution / 2;
+        start_lat = lat - state->global_param.resolution / 2;
+        right_lng = lng + state->global_param.resolution / 2;
+        left_lng  = lng - state->global_param.resolution / 2;
 
-        delta = get_dist(lat,lng,lat+global_param.resolution/10.,lng);
+        delta = get_dist(lat,lng,lat+state->global_param.resolution/10.,lng);
 
         dist = 0.;
 
         for ( i = 0; i < 10; i++ ) {
           dist += get_dist(start_lat,left_lng,start_lat,right_lng) * delta;
-          start_lat += global_param.resolution/10;
+          start_lat += state->global_param.resolution/10;
         }
 
         temp.cell_area = dist * 1000. * 1000.; /* Grid cell area in m^2. */
@@ -881,7 +876,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /*************************************************
         Allocate and Initialize Snow Band Parameters
       *************************************************/
-      Nbands         = options.SNOW_BAND;
+      Nbands         = state->options.SNOW_BAND;
       temp.AreaFract     = (double *)calloc(Nbands,sizeof(double));
       temp.BandElev      = (float *)calloc(Nbands,sizeof(float));
       temp.Tfactor       = (double *)calloc(Nbands,sizeof(double));
@@ -945,7 +940,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
 
       /* Individual layers */
       tmp_depth = 0;
-      for (layer=0; layer<options.Nlayer; layer++) {
+      for (layer=0; layer<state->options.Nlayer; layer++) {
         b = 0.5*(temp.expt[layer]-3);
         bubble = temp.bubble[layer];
         tmp_resid_moist = temp.resid_moist[layer]*temp.depth[layer]*1000; // in mm
@@ -969,7 +964,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       bubble = 0;
       tmp_max_moist = 0;
       tmp_resid_moist = 0;
-      for (layer=0; layer<options.Nlayer-1; layer++) {
+      for (layer=0; layer<state->options.Nlayer-1; layer++) {
         b += 0.5*(temp.expt[layer]-3)*temp.depth[layer];
         bubble += temp.bubble[layer]*temp.depth[layer];
         tmp_max_moist += temp.max_moist[layer]; // total max_moist
@@ -980,34 +975,34 @@ soil_con_struct read_soilparam(FILE *soilparam,
       bubble /= tmp_depth; // average bubble
       zwt_prime = 0; // depth of free water surface below top of layer (not yet elevation)
       for (i=0; i<MAX_ZWTVMOIST; i++) {
-        temp.zwtvmoist_zwt[options.Nlayer][i] = -zwt_prime; // elevation (cm) relative to soil surface
+        temp.zwtvmoist_zwt[state->options.Nlayer][i] = -zwt_prime; // elevation (cm) relative to soil surface
         w_avg = ( tmp_depth*100 - zwt_prime
                    - (b/(b-1))*bubble*(1-pow((zwt_prime+bubble)/bubble,(b-1)/b)) )
                   / (tmp_depth*100); // in cm
         if (w_avg < 0) w_avg = 0;
         if (w_avg > 1) w_avg = 1;
-        temp.zwtvmoist_moist[options.Nlayer][i] = w_avg*(tmp_max_moist-tmp_resid_moist)+tmp_resid_moist;
+        temp.zwtvmoist_moist[state->options.Nlayer][i] = w_avg*(tmp_max_moist-tmp_resid_moist)+tmp_resid_moist;
         zwt_prime += tmp_depth*100/(MAX_ZWTVMOIST-1); // in cm
       }
 
       /* Compute zwt by taking total column soil moisture and filling column from bottom up */
       tmp_depth = 0;
-      for (layer=0; layer<options.Nlayer; layer++) {
+      for (layer=0; layer<state->options.Nlayer; layer++) {
         tmp_depth += temp.depth[layer];
       }
       zwt_prime = 0; // depth of free water surface below soil surface (not yet elevation)
       for (i=0; i<MAX_ZWTVMOIST; i++) {
-        temp.zwtvmoist_zwt[options.Nlayer+1][i] = -zwt_prime; // elevation (cm) relative to soil surface
+        temp.zwtvmoist_zwt[state->options.Nlayer+1][i] = -zwt_prime; // elevation (cm) relative to soil surface
         // Integrate w_avg in pieces
         if (zwt_prime == 0) {
           tmp_moist = 0;
-          for (layer=0; layer<options.Nlayer; layer++)
+          for (layer=0; layer<state->options.Nlayer; layer++)
             tmp_moist += temp.max_moist[layer];
-          temp.zwtvmoist_moist[options.Nlayer+1][i] = tmp_moist;
+          temp.zwtvmoist_moist[state->options.Nlayer+1][i] = tmp_moist;
         }
         else {
           tmp_moist = 0;
-          layer = options.Nlayer-1;
+          layer = state->options.Nlayer-1;
           tmp_depth2 = tmp_depth-temp.depth[layer];
           while (layer>0 && zwt_prime <= tmp_depth2*100) {
             tmp_moist += temp.max_moist[layer];
@@ -1036,7 +1031,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
             bub_save = bubble;
             tmp_depth2_save = tmp_depth2;
           }
-          temp.zwtvmoist_moist[options.Nlayer+1][i] = tmp_moist;
+          temp.zwtvmoist_moist[state->options.Nlayer+1][i] = tmp_moist;
         }
         zwt_prime += tmp_depth*100/(MAX_ZWTVMOIST-1); // in cm
       }

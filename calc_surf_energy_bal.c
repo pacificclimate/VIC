@@ -63,7 +63,8 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    soil_con_struct   *soil_con,
 			    veg_var_struct    *veg_var_dry,
 			    veg_var_struct    *veg_var_wet,
-			    int                nrecs)
+			    int                nrecs,
+			    const ProgramState* state)
 /**************************************************************
   calc_surf_energy_bal.c  Greg O'Donnell and Keith Cherkauer  Sept 9 1997
   
@@ -162,9 +163,6 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 	      operation.						TJB
 ***************************************************************/
 {
-  extern veg_lib_struct *veg_lib;
-  extern option_struct   options;
-
   int      FIRST_SOLN[2];
   int      NOFLUX;
   int      EXP_TRANS;
@@ -228,7 +226,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
   }
 
   if(iveg!=Nveg) {
-    if(veg_lib[veg_class].LAI[dmy->month-1] > 0.0) VEG = TRUE;
+    if(state->veg_lib[veg_class].LAI[dmy->month-1] > 0.0) VEG = TRUE;
     else VEG = FALSE;
   }
   else VEG = FALSE;
@@ -251,7 +249,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
   expt                = soil_con->expt[0];
   Tsnow_surf          = snow->surf_temp;
   Wdew[WET]           = veg_var_wet->Wdew;
-  if(options.DIST_PRCP) Wdew[DRY] = veg_var_dry->Wdew;
+  if(state->options.DIST_PRCP) Wdew[DRY] = veg_var_dry->Wdew;
   FIRST_SOLN[0] = TRUE;
   FIRST_SOLN[1] = TRUE;
   if ( snow->depth > 0. ) 
@@ -278,7 +276,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
   /**************************************************
     Find Surface Temperature Using Root Brent Method
   **************************************************/
-  if(options.FULL_ENERGY) {
+  if(state->options.FULL_ENERGY) {
 
     /** If snow included in solution, temperature cannot exceed 0C  **/
     if ( INCLUDE_SNOW ) {
@@ -290,7 +288,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       T_upper = 0.5*(energy->T[0]+Tair)+SURF_DT;
     }
 
-    if ( options.QUICK_SOLVE && !options.QUICK_FLUX ) {
+    if ( state->options.QUICK_SOLVE && !state->options.QUICK_FLUX ) {
       // Set iterative Nnodes using the depth of the thaw layer
       tmpNnodes = 0;
       for ( nidx = Nnodes-5; nidx >= 0; nidx-- ) 
@@ -318,8 +316,8 @@ double calc_surf_energy_bal(double             latent_heat_Le,
     }
     else { 
       tmpNnodes = Nnodes;
-      NOFLUX = options.NOFLUX;
-      EXP_TRANS = options.EXP_TRANS;
+      NOFLUX = state->options.NOFLUX;
+      EXP_TRANS = state->options.EXP_TRANS;
     }
 
     Tsurf = root_brent(T_lower, T_upper, ErrorString, func_surf_energy_bal,
@@ -348,10 +346,10 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 		       FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, 
 		       &energy->deltaH, &energy->fusion, &energy->grnd_flux, 
 		       &energy->latent, &energy->latent_sub, 
-		       &energy->sensible, &energy->snow_flux, &energy->error);
+		       &energy->sensible, &energy->snow_flux, &energy->error, state);
  
     if(Tsurf <= -998 ) {  
-      if (options.TFALLBACK) {
+      if (state->options.TFALLBACK) {
         Tsurf = Ts_old;
         Tsurf_fbflag = 1;
         Tsurf_fbcount++;
@@ -401,7 +399,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					   &energy->latent, 
 					   &energy->latent_sub, 
 					   &energy->sensible, 
-					   &energy->snow_flux, &energy->error, ErrorString);
+					   &energy->snow_flux, &energy->error, ErrorString, state);
         return ( ERROR );
       }
     }
@@ -410,9 +408,9 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       Recalculate Energy Balance Terms for Final Surface Temperature
     **************************************************/
 
-    if ( Ts_old * Tsurf < 0 && options.QUICK_SOLVE ) {
+    if ( Ts_old * Tsurf < 0 && state->options.QUICK_SOLVE ) {
       tmpNnodes = Nnodes;
-      NOFLUX = options.NOFLUX;
+      NOFLUX = state->options.NOFLUX;
       FIRST_SOLN[0] = TRUE;
       
       Tsurf = root_brent(T_lower, T_upper, ErrorString, func_surf_energy_bal,
@@ -440,10 +438,10 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			 FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, 
 			 &energy->deltaH, &energy->fusion, &energy->grnd_flux, 
 			 &energy->latent, &energy->latent_sub, 
-			 &energy->sensible, &energy->snow_flux, &energy->error);
+			 &energy->sensible, &energy->snow_flux, &energy->error, state);
       
       if(Tsurf <=  -998 ) {  
-        if (options.TFALLBACK) {
+        if (state->options.TFALLBACK) {
           Tsurf = Ts_old;
           Tsurf_fbflag = 1;
           Tsurf_fbcount++;
@@ -494,7 +492,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					     &energy->latent, 
 					     &energy->latent_sub, 
 					     &energy->sensible, 
-					     &energy->snow_flux, &energy->error, ErrorString);
+					     &energy->snow_flux, &energy->error, ErrorString, state);
           return ( ERROR );
         }
       }
@@ -504,12 +502,12 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 
     /** Frozen soil model run with no surface energy balance **/
     Tsurf  = Tair;
-    NOFLUX = options.NOFLUX;
-    EXP_TRANS = options.EXP_TRANS;
+    NOFLUX = state->options.NOFLUX;
+    EXP_TRANS = state->options.EXP_TRANS;
 
   }
   
-  if ( options.QUICK_SOLVE && !options.QUICK_FLUX ) 
+  if ( state->options.QUICK_SOLVE && !state->options.QUICK_FLUX )
     // Reset model so that it solves thermal fluxes for full soil column
     FIRST_SOLN[0] = TRUE;
   
@@ -547,7 +545,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
   /***************************************************
     Recalculate Soil Moisture and Thermal Properties
   ***************************************************/
-    if(options.QUICK_FLUX || !(options.FULL_ENERGY || (options.FROZEN_SOIL && soil_con->FS_ACTIVE))) {
+    if(state->options.QUICK_FLUX || !(state->options.FULL_ENERGY || (state->options.FROZEN_SOIL && soil_con->FS_ACTIVE))) {
 
       Tnew_node[0] = Tsurf;
       Tnew_node[1] = T1;
@@ -555,27 +553,27 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 
     }
     calc_layer_average_thermal_props(energy, layer_wet, layer_dry, layer, soil_con, 
-				     Nnodes, iveg, Tnew_node);
+				     Nnodes, iveg, Tnew_node, state);
 
   /** Store precipitation that reaches the surface */
   if ( !snow->snow && !INCLUDE_SNOW ) {
     if ( iveg != Nveg ) {
-      if ( veg_lib[veg_class].LAI[dmy->month-1] <= 0.0 ) { 
+      if ( state->veg_lib[veg_class].LAI[dmy->month-1] <= 0.0 ) {
 	veg_var_wet->throughfall = rainfall[WET];
 	ppt[WET] = veg_var_wet->throughfall;
-	if ( options.DIST_PRCP ) {
+	if ( state->options.DIST_PRCP ) {
 	  veg_var_dry->throughfall = rainfall[DRY];
 	  ppt[DRY] = veg_var_dry->throughfall;
 	}
       }
       else {
 	ppt[WET] = veg_var_wet->throughfall;
-	if(options.DIST_PRCP) ppt[DRY] = veg_var_dry->throughfall;
+	if(state->options.DIST_PRCP) ppt[DRY] = veg_var_dry->throughfall;
       }
     }
     else {
       ppt[WET] = rainfall[WET];
-      if ( options.DIST_PRCP ) ppt[DRY] = rainfall[DRY];
+      if ( state->options.DIST_PRCP ) ppt[DRY] = rainfall[DRY];
     }
   }
 
@@ -758,8 +756,6 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   2009-Mar-03 Fixed format string for print statement, eliminates
 	      compiler WARNING.						KAC via TJB
 **********************************************************************/
-
-  extern option_struct options;
 
   /* Define imported variables */
 
@@ -1041,6 +1037,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   store_error             = (double *) va_arg(ap, double *);
 
   ErrorString             = (char *) va_arg(ap, char *);
+  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
 
   /***************
     Main Routine
@@ -1163,16 +1160,16 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
   fprintf(stderr, "*snow_flux = %f\n",  *snow_flux);
   fprintf(stderr, "*store_error = %f\n",  *store_error);
 
-  write_layer(layer_wet, iveg, options.Nlayer, frost_fract, depth);
+  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract, depth);
 
-  if(options.DIST_PRCP) 
-    write_layer(layer_dry, iveg, options.Nlayer, frost_fract, depth);
+  if(state->options.DIST_PRCP)
+    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract, depth);
 
   write_vegvar(&(veg_var_wet[0]),iveg);
-  if(options.DIST_PRCP) 
+  if(state->options.DIST_PRCP)
     write_vegvar(&(veg_var_dry[0]),iveg);
 
-  if(!options.QUICK_FLUX) {
+  if(!state->options.QUICK_FLUX) {
     fprintf(stderr,"Node\tT\tTnew\tZsum\tkappa\tCs\tmoist\tbubble\texpt\tmax_moist\tice\n");
     for(i=0;i<Nnodes;i++) 
       fprintf(stderr,"%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",

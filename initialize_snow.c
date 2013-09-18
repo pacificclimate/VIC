@@ -6,7 +6,8 @@ static char vcid[] = "$Id$";
 
 void initialize_snow (snow_data_struct **snow, 
 		      int                veg_num,
-		      int                cellnum)
+		      int                cellnum,
+		      const ProgramState* state)
 /**********************************************************************
 	initialize_snow		Keith Cherkauer		January 22, 1997
 
@@ -58,19 +59,8 @@ void initialize_snow (snow_data_struct **snow,
 
 **********************************************************************/
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
-  int i, j;
-  int startlayer;
-
-  if(options.FROZEN_SOIL) startlayer=2;
-  else startlayer=0;
-
-  for ( i = 0 ; i <= veg_num ; i++ ) {
-    for ( j = 0 ; j < options.SNOW_BAND ; j++ ) {
+  for (int i = 0 ; i <= veg_num ; i++ ) {
+    for (int j = 0 ; j < state->options.SNOW_BAND ; j++ ) {
       // State vars
       snow[i][j].albedo            = 0.0;
       snow[i][j].canopy_albedo     = 0.0;

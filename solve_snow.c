@@ -64,7 +64,8 @@ double solve_snow(char                 overstory,
 		  snow_data_struct    *snow,
 		  soil_con_struct     *soil_con,
 		  veg_var_struct      *veg_var_dry,
-		  veg_var_struct      *veg_var_wet) {
+		  veg_var_struct      *veg_var_wet,
+		  const ProgramState*  state) {
 /*********************************************************************
   solve_snow.c                Keith Cherkauer       July 2, 1998
 
@@ -130,9 +131,6 @@ double solve_snow(char                 overstory,
 
 *********************************************************************/
 
-  extern option_struct   options;
-  extern veg_lib_struct *veg_lib;
-
   char                ErrStr[MAXSTRING];
   char                FIRST_SOLN[1];
   int                 ErrorFlag;
@@ -188,7 +186,7 @@ double solve_snow(char                 overstory,
       snow is present or falling **/
   if ( ( snow->swq > 0 || snowfall[WET] > 0.
 	 || (snow->snow_canopy>0. && overstory) ) ) {
-    if ( precipitation_mu != 1 && options.FULL_ENERGY ) {
+    if ( precipitation_mu != 1 && state->options.FULL_ENERGY ) {
       fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i,\t vegetation type = %i",
 	      precipitation_mu, rec, iveg);
       return( ERROR );
@@ -240,9 +238,9 @@ double solve_snow(char                 overstory,
 	(*ShortUnderIn) *= (*surf_atten);  // SW transmitted through canopy
 	ShortOverIn      = (1. - (*surf_atten)) * atmos.shortwave[hidx]; // canopy incident SW
 	ErrorFlag = snow_intercept((double)dt * SECPHOUR, 1., 
-		       veg_lib[veg_class].LAI[month-1], 
+		       state->veg_lib[veg_class].LAI[month-1],
 		       (*latent_heat_Le), atmos.longwave[hidx], LongUnderOut,
-		       veg_lib[veg_class].Wdmax[month-1], 
+		       state->veg_lib[veg_class].Wdmax[month-1],
 		       ShortOverIn, *ShortUnderIn, Tcanopy,
 		       BareAlbedo, precipitation_mu, &energy->canopy_advection, 
 		       &energy->AlbedoOver, 
@@ -258,7 +256,7 @@ double solve_snow(char                 overstory,
 		       &snow->canopy_vapor_flux, wind, displacement, 
 		       ref_height, roughness, root, *UnderStory, band, 
 		       hour, iveg, month, rec, hidx, veg_class, atmos, 
-		       layer_dry, layer_wet, soil_con, veg_var_dry, veg_var_wet);
+		       layer_dry, layer_wet, soil_con, veg_var_dry, veg_var_wet, state);
         if ( ErrorFlag == ERROR ) return ( ERROR );
 
 	/* Store throughfall from canopy */

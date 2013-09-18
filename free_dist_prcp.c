@@ -22,8 +22,6 @@ void free_dist_prcp(dist_prcp_struct *prcp,
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int Ndist;
   int i, j, Nitems;
 

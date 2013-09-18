@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 void initialize_soil (cell_data_struct **cell, 
                       soil_con_struct   *soil_con,
                       veg_con_struct    *veg_con,
-		      int                veg_num)
+                      int                veg_num,
+                      const ProgramState *state)
 /**********************************************************************
 	initialize_soil		Keith Cherkauer		July 31, 1996
 
@@ -28,17 +29,15 @@ void initialize_soil (cell_data_struct **cell,
 	      asat and zwt.						TJB
 **********************************************************************/
 {
-  extern option_struct options;
-
   int veg, band, lindex, frost_area;
   double tmp_moist[MAX_LAYERS];
   double tmp_runoff;
   
   for ( veg = 0 ; veg <= veg_num ; veg++) {
-    for(band=0;band<options.SNOW_BAND;band++) {
+    for(band=0;band < state->options.SNOW_BAND;band++) {
       cell[veg][band].baseflow = 0;
       cell[veg][band].runoff = 0;
-      for(lindex=0;lindex<options.Nlayer;lindex++) {
+      for(lindex=0;lindex < state->options.Nlayer;lindex++) {
 	cell[veg][band].layer[lindex].evap = 0;
 	cell[veg][band].layer[lindex].moist = soil_con->init_moist[lindex];
         if (cell[veg][band].layer[lindex].moist > soil_con->max_moist[lindex]) cell[veg][band].layer[lindex].moist = soil_con->max_moist[ lindex];
@@ -51,8 +50,8 @@ void initialize_soil (cell_data_struct **cell,
         cell[veg][band].layer[lindex].soil_ice = 0;
 #endif
       }
-      compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cell[veg][band].asat), &tmp_runoff);
-      wrap_compute_zwt(soil_con, &(cell[veg][band]));
+      compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cell[veg][band].asat), &tmp_runoff, state);
+      wrap_compute_zwt(soil_con, &(cell[veg][band]), state);
     }
   }
 

@@ -70,11 +70,6 @@ int initialize_lake (lake_var_struct   *lake,
 	      of the cell data structure for the lake/wetland tile.	TJB
 **********************************************************************/
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
   int i, k;
   int status;
   double depth;

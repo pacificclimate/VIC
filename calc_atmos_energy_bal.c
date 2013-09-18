@@ -29,7 +29,8 @@ double calc_atmos_energy_bal(double  InOverSensible,
 			     double *VPcanopy,
 			     double *VPDcanopy,
 			     char   *Tcanopy_fbflag,
-			     int    *Tcanopy_fbcount) {
+			     int    *Tcanopy_fbcount,
+			     const ProgramState* state) {
 /************************************************************************
   calc_atmos_energy_bal.c        Keith Cherkauer       February 6, 2001
 
@@ -56,8 +57,6 @@ double calc_atmos_energy_bal(double  InOverSensible,
   2009-Sep-19 Added T fbcount to count TFALLBACK occurrences.		TJB
   2009-Dec-11 Replaced "assert" statements with "if" statements.	TJB
 ************************************************************************/
-
-  extern option_struct options;
 
   double AtmosLatent;
   double F; // canopy closure fraction, not currently used by VIC
@@ -108,7 +107,7 @@ double calc_atmos_energy_bal(double  InOverSensible,
 		       SensibleHeat);
 
   if ( Tcanopy <= -998 ) {
-    if (options.TFALLBACK) {
+    if (state->options.TFALLBACK) {
       Tcanopy = Tair;
       *Tcanopy_fbflag = 1;
       (*Tcanopy_fbcount)++;

@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 
 lake_con_struct read_lakeparam(FILE            *lakeparam, 
 			       soil_con_struct  soil_con, 
-			       veg_con_struct  *veg_con)
+			       veg_con_struct  *veg_con,
+			       const ProgramState* state)
 /**********************************************************************
 	read_lakeparam		Laura Bowling		2000
 
@@ -65,11 +66,6 @@ lake_con_struct read_lakeparam(FILE            *lakeparam,
 **********************************************************************/
 
 {
-  extern option_struct   options;
-#if LINK_DEBUG
-  extern debug_struct    debug;
-#endif
-
   int    i;
   int    lakecel;
   int    junk, flag;
@@ -159,7 +155,7 @@ lake_con_struct read_lakeparam(FILE            *lakeparam,
   /******************************************************************/
 
   /* Read in parameters to calculate lake profile. */
-  if(!options.LAKE_PROFILE) { 
+  if(!state->options.LAKE_PROFILE) {
 
     fprintf(stderr, "LAKE PROFILE being computed. \n");
 

@@ -15,7 +15,8 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 				     soil_con_struct   *soil_con,
 				     int                Nnodes,
 				     int                veg,
-				     double            *T) {
+				     double            *T,
+				     const ProgramState* state) {
   /******************************************************************
   calc_layer_average_thermal_props      Keith Cherkauer      July 27, 1998
 
@@ -54,14 +55,9 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 	      of the settings of FROZEN_SOIL, QUICK_FLUX, etc.		TJB
 ******************************************************************/
 
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct  debug;
-#endif
-
   int     i, ErrorFlag;
 
-  if (options.FROZEN_SOIL && soil_con->FS_ACTIVE)
+  if (state->options.FROZEN_SOIL && soil_con->FS_ACTIVE)
     find_0_degree_fronts(energy, soil_con->Zsum_node, T, Nnodes);
   else
     energy->Nfrost = 0;
@@ -73,7 +69,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
   else energy->frozen = FALSE;
 
   /** Compute Soil Layer average  properties **/
-  if (options.QUICK_FLUX) {
+  if (state->options.QUICK_FLUX) {
     ErrorFlag = estimate_layer_ice_content_quick_flux(layer_wet, soil_con->depth, soil_con->dp,
 					   energy->T[0], energy->T[1], soil_con->avg_temp,
 					   soil_con->max_moist, 
@@ -84,7 +80,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->effective_porosity,
 					   soil_con->FS_ACTIVE);
     if ( ErrorFlag == ERROR ) return (ERROR);
-    if(options.DIST_PRCP) {
+    if(state->options.DIST_PRCP) {
       ErrorFlag = estimate_layer_ice_content_quick_flux(layer_dry, soil_con->depth, soil_con->dp,
 					     energy->T[0], energy->T[1], soil_con->avg_temp,
 					     soil_con->max_moist, 
@@ -108,9 +104,9 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->frost_fract, soil_con->frost_slope, 
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-					   Nnodes, options.Nlayer, soil_con->FS_ACTIVE);
+					   Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
     if ( ErrorFlag == ERROR ) return (ERROR);
-    if(options.DIST_PRCP) {
+    if(state->options.DIST_PRCP) {
       ErrorFlag = estimate_layer_ice_content(layer_dry, soil_con->Zsum_node, energy->T,
 					     soil_con->max_moist_node, 
 					     soil_con->ufwc_table_node,
@@ -120,15 +116,15 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					     soil_con->expt, soil_con->bubble, 
 					     soil_con->frost_fract, soil_con->frost_slope, 
 					     soil_con->porosity, soil_con->effective_porosity,
-					     Nnodes, options.Nlayer, soil_con->FS_ACTIVE);
+					     Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
   }
   
 #if LINK_DEBUG
-  if(debug.PRT_BALANCE && debug.DEBUG) {
+  if(state->debug.PRT_BALANCE && state->debug.DEBUG) {
     printf("After Moisture Redistribution\n");
-    write_layer(layer, veg, options.Nlayer, soil_con->frost_fract, soil_con->depth);
+    write_layer(layer, veg, state->options.Nlayer, soil_con->frost_fract, soil_con->depth);
   } 
 #endif
 
@@ -162,7 +158,8 @@ int  solve_T_profile(double *T,
 		     int     FS_ACTIVE,
 		     int     NOFLUX,
 		     int     EXP_TRANS, 
-		     int veg_class) {
+		     int veg_class,
+		     const ProgramState* state) {
 /**********************************************************************
   This subroutine was written to iteratively solve the soil temperature
   profile using a numerical difference equation.  The solution equation
@@ -189,11 +186,6 @@ int  solve_T_profile(double *T,
   2009-Jun-19 Added T fbflag to indicate whether TFALLBACK occurred.		TJB
   2009-Sep-19 Added T fbcount to count TFALLBACK occurrences.			TJB
 **********************************************************************/
-
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct  debug;
-#endif
   
   static double A[MAX_NODES];
   static double B[MAX_NODES];
@@ -273,7 +265,7 @@ int  solve_T_profile(double *T,
 				   bubble, expt, alpha, gamma, aa, bb, cc, 
 				   dd, ee, ufwc_table_node,
 				   porosity, effective_porosity,
-				   FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
+				   FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class, state);
 
   return ( Error );
   
@@ -310,7 +302,8 @@ int solve_T_profile_implicit(double *T,                           // update
 			     double *bulk_density,          // soil parameter
 			     double *soil_density,          // soil parameter
 			     double *organic,                // soil parameter
-			     double *depth)                 // soil parameter
+			     double *depth,                 // soil parameter
+			     const ProgramState* state)
 {    
   /**********************************************************************
   This subroutine was written to iteratively solve the soil temperature
@@ -335,11 +328,6 @@ int solve_T_profile_implicit(double *T,                           // update
 
   **********************************************************************/
   
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct  debug;
-#endif
-  
   int  n, Error;
   double res[MAX_NODES];
   void (*vecfunc)(double *, double *, int, int, ...);
@@ -357,7 +345,7 @@ int solve_T_profile_implicit(double *T,                           // update
   
   fda_heat_eqn(&T[1], res, n, 1, deltat, FS_ACTIVE, NOFLUX, EXP_TRANS, T0, moist, ice, kappa, Cs, max_moist, bubble, expt, 
 	       porosity, effective_porosity,
-	       alpha, beta, gamma, Zsum, Dp, bulk_dens_min, soil_dens_min, quartz, bulk_density, soil_density, organic, depth, options.Nlayer);
+	       alpha, beta, gamma, Zsum, Dp, bulk_dens_min, soil_dens_min, quartz, bulk_density, soil_density, organic, depth, state->options.Nlayer);
   
   // modified Newton-Raphson to solve for new T
   vecfunc = &(fda_heat_eqn);
@@ -399,7 +387,8 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			     int    FS_ACTIVE, 
 			     int    NOFLUX,
 			     int EXP_TRANS,
-			     int veg_class) {
+			     int veg_class,
+			     const ProgramState* state) {
   
   /**********************************************************************
   Modifications:
@@ -426,8 +415,6 @@ int calc_soil_thermal_fluxes(int     Nnodes,
   **********************************************************************/
 
   /** Eventually the nodal ice contents will also have to be updated **/
-
-  extern option_struct options;
 
   int    Error;
   char   Done;
@@ -462,7 +449,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
       
       /**	2nd order variable kappa equation **/
       
-      if(T[j] >= 0 || !FS_ACTIVE || !options.FROZEN_SOIL) {
+      if(T[j] >= 0 || !FS_ACTIVE || !state->options.FROZEN_SOIL) {
 	if(!EXP_TRANS)
 	  T[j] = (A[j]*T0[j]+B[j]*(T[j+1]-T[j-1])+C[j]*T[j+1]+D[j]*T[j-1]+E[j]*(0.-ice[j]))/(A[j]+C[j]+D[j]);
 	else
@@ -479,7 +466,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			  A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
 	
 	if(T[j] <= -998 ) {
-          if (options.TFALLBACK) {
+          if (state->options.TFALLBACK) {
             T[j] = T0[j];
             Tfbflag[j] = 1;
             Tfbcount[j]++;
@@ -503,7 +490,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
       j = Nnodes-1;
       oldT=T[j];
       
-      if(T[j] >= 0 || !FS_ACTIVE || !options.FROZEN_SOIL) {
+      if(T[j] >= 0 || !FS_ACTIVE || !state->options.FROZEN_SOIL) {
 	if(!EXP_TRANS )
 	  T[j] = (A[j]*T0[j]+B[j]*(T[j]-T[j-1])+C[j]*T[j]+D[j]*T[j-1]+E[j]*(0.-ice[j]))/(A[j]+C[j]+D[j]);
 	else
@@ -522,7 +509,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 
 	
 	if(T[j] <= -998 ) {
-          if (options.TFALLBACK) {
+          if (state->options.TFALLBACK) {
             T[j] = T0[j];
             Tfbflag[j] = 1;
             Tfbcount[j]++;
@@ -548,7 +535,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
     
   }
   
-  if (options.TFALLBACK) {
+  if (state->options.TFALLBACK) {
     // HACK to prevent runaway cold nose
     // Handle the case in which the a node was colder than both the nodes above and below
     // in the last time step, and that both differences have increased between the last
@@ -565,7 +552,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
   }
 
   if(!Done && !Error) {
-    if (options.TFALLBACK) {
+    if (state->options.TFALLBACK) {
       for(j=0;j<Nnodes;j++) {
         T[j] = T0[j];
         Tfbflag[j] = 1;

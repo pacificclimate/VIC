@@ -71,13 +71,9 @@ double arno_evap(layer_data_struct *layer_wet,
 		 double             delta_t,
 		 double             precipitation_mu,
 		 double             moist_resid,
-		 double            *frost_fract)
+		 double            *frost_fract,
+		 const ProgramState*state)
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
   int    num_term;
   int    i;
   int    Ndist;
@@ -93,7 +89,7 @@ double arno_evap(layer_data_struct *layer_wet,
   double tmpsum;
   layer_data_struct *layer;
 
-  if(options.DIST_PRCP) Ndist = 2;
+  if(state->options.DIST_PRCP) Ndist = 2;
   else Ndist = 1;
 
   Evap = 0;

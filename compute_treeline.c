@@ -8,7 +8,8 @@ void compute_treeline(atmos_data_struct        *atmos,
                       const dmy_struct               *dmy,
 		      double                   avgJulyAirTemp,
 		      double                   *Tfactor,
-		      char                     *AboveTreeLine)
+		      char                     *AboveTreeLine,
+          const ProgramState       *state)
 /**********************************************************************
   compute_treeline.c        Keith Cherkauer          March 12, 2003
 
@@ -31,8 +32,6 @@ void compute_treeline(atmos_data_struct        *atmos,
 ************************************************************************/
 {
 
-  extern option_struct       options;
-  extern global_param_struct global_param;
   extern int                 NR, NF;
 
   double MonthSum;
@@ -43,7 +42,7 @@ void compute_treeline(atmos_data_struct        *atmos,
   int    band;
   int    i;
 
-  if (options.JULY_TAVG_SUPPLIED) {
+  if (state->options.JULY_TAVG_SUPPLIED) {
 
     // use supplied average annual July air temperature
     AnnualSum = avgJulyAirTemp;
@@ -55,7 +54,7 @@ void compute_treeline(atmos_data_struct        *atmos,
     AnnualSum = 0;
     AnnualCnt = 0;
     rec = 0;
-    while ( rec < global_param.nrecs ) {
+    while ( rec < state->global_param.nrecs ) {
       if ( dmy[rec].month == 7 ) {
         MonthSum = 0;
         MonthCnt = 0;
@@ -82,7 +81,7 @@ void compute_treeline(atmos_data_struct        *atmos,
   }
 
   // Lapse average annual July air temperature to 10C and determine elevation
-  for ( band = 0; band < options.SNOW_BAND; band++ ) {
+  for ( band = 0; band < state->options.SNOW_BAND; band++ ) {
     if ( AnnualSum + Tfactor[band] <= 10. )
       // Band is above treeline
       AboveTreeLine[band] = TRUE;

@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-out_data_struct *create_output_list() {
+out_data_struct *create_output_list(const ProgramState* state) {
 /*************************************************************
   create_output_list()      Ted Bohn     September 08, 2006
 
@@ -59,7 +59,6 @@ out_data_struct *create_output_list() {
   2011-Nov-04 Added OUT_TSKC.						TJB
 *************************************************************/
 
-  extern option_struct options;
   int v;
   out_data_struct *out_data;
 
@@ -244,47 +243,47 @@ out_data_struct *create_output_list() {
   for (v=0; v<N_OUTVAR_TYPES; v++) {
     out_data[v].nelem = 1;
   }
-  if (options.FROZEN_SOIL) {
+  if (state->options.FROZEN_SOIL) {
     out_data[OUT_FDEPTH].nelem = MAX_FRONTS;
     out_data[OUT_TDEPTH].nelem = MAX_FRONTS;
   }
-  out_data[OUT_SMLIQFRAC].nelem = options.Nlayer;
-  out_data[OUT_SMFROZFRAC].nelem = options.Nlayer;
-  out_data[OUT_SOIL_ICE].nelem = options.Nlayer;
-  out_data[OUT_SOIL_LIQ].nelem = options.Nlayer;
-  out_data[OUT_SOIL_MOIST].nelem = options.Nlayer;
-  out_data[OUT_SOIL_TEMP].nelem = options.Nlayer;
-  out_data[OUT_ZWTL].nelem = options.Nlayer;
+  out_data[OUT_SMLIQFRAC].nelem = state->options.Nlayer;
+  out_data[OUT_SMFROZFRAC].nelem = state->options.Nlayer;
+  out_data[OUT_SOIL_ICE].nelem = state->options.Nlayer;
+  out_data[OUT_SOIL_LIQ].nelem = state->options.Nlayer;
+  out_data[OUT_SOIL_MOIST].nelem = state->options.Nlayer;
+  out_data[OUT_SOIL_TEMP].nelem = state->options.Nlayer;
+  out_data[OUT_ZWTL].nelem = state->options.Nlayer;
 #if EXCESS_ICE
-  out_data[OUT_SOIL_DEPTH].nelem = options.Nlayer;
-  out_data[OUT_SUBSIDENCE].nelem = options.Nlayer;
-  out_data[OUT_POROSITY].nelem = options.Nlayer;
-  out_data[OUT_ZSUM_NODE].nelem = options.Nnode;
+  out_data[OUT_SOIL_DEPTH].nelem = state->options.Nlayer;
+  out_data[OUT_SUBSIDENCE].nelem = state->options.Nlayer;
+  out_data[OUT_POROSITY].nelem = state->options.Nlayer;
+  out_data[OUT_ZSUM_NODE].nelem = state->options.Nnode;
 #endif
-  out_data[OUT_SOIL_TNODE].nelem = options.Nnode;
-  out_data[OUT_SOIL_TNODE_WL].nelem = options.Nnode;
-  out_data[OUT_SOILT_FBFLAG].nelem = options.Nnode;
-  out_data[OUT_ADV_SENS_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_ADVECTION_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_ALBEDO_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_DELTACC_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_GRND_FLUX_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_IN_LONG_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_LATENT_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_LATENT_SUB_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_MELT_ENERGY_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_NET_LONG_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_NET_SHORT_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_RFRZ_ENERGY_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SENSIBLE_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_CANOPY_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_COVER_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_DEPTH_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_FLUX_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_MELT_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_PACKT_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SNOW_SURFT_BAND].nelem = options.SNOW_BAND;
-  out_data[OUT_SWE_BAND].nelem = options.SNOW_BAND;
+  out_data[OUT_SOIL_TNODE].nelem = state->options.Nnode;
+  out_data[OUT_SOIL_TNODE_WL].nelem = state->options.Nnode;
+  out_data[OUT_SOILT_FBFLAG].nelem = state->options.Nnode;
+  out_data[OUT_ADV_SENS_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_ADVECTION_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_ALBEDO_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_DELTACC_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GRND_FLUX_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_IN_LONG_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_LATENT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_LATENT_SUB_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_MELT_ENERGY_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_NET_LONG_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_NET_SHORT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_RFRZ_ENERGY_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SENSIBLE_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_CANOPY_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_COVER_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_DEPTH_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_FLUX_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_MELT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_PACKT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SNOW_SURFT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_SWE_BAND].nelem = state->options.SNOW_BAND;
 
   // Set aggregation method - default is to average over the interval
   for (v=0; v<N_OUTVAR_TYPES; v++) {
@@ -492,20 +491,19 @@ void zero_output_list(out_data_struct *out_data) {
 
 }
 
-void free_out_data_files(out_data_file_struct **out_data_files) {
+void free_out_data_files(out_data_file_struct *out_data_files, const ProgramState* state) {
 /*************************************************************
   free_out_data_files()      Ted Bohn     September 08, 2006
 
   This routine frees the memory in the out_data_files array.
 
 *************************************************************/
-  extern option_struct options;
   int filenum;
 
-  for (filenum=0; filenum<options.Noutfiles; filenum++) {
-    free((char*)(*out_data_files)[filenum].varid);
+  for (filenum=0; filenum< state->options.Noutfiles; filenum++) {
+    free((char*)out_data_files[filenum].varid);
   }
-  free((char*)(*out_data_files));
+  free((char*)out_data_files);
 
 }
 

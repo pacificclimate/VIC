@@ -34,8 +34,6 @@ dmy_struct *make_dmy(global_param_struct *global, const ProgramState* state)
   2006-02-07 Changed indexing of line 63 (if(endday...) by 1 GCT 
 **********************************************************************/
 {
-  extern param_set_struct param_set;
-
   dmy_struct *temp;
   int    hr, year, day, month, jday, ii, daymax;
   int    days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -132,7 +130,7 @@ dmy_struct *make_dmy(global_param_struct *global, const ProgramState* state)
 
   /** Determine number of forcing records to skip before model start time **/
   for ( i = 0; i < 2; i++ ) {
-    if(param_set.FORCE_DT[i] != MISSING) {
+    if(state->param_set.FORCE_DT[i] != MISSING) {
       if(global->forceyear[i] > 0) {
 	tmpyear  = global->forceyear[i];
 	tmpmonth = global->forcemonth[i];

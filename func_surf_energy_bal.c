@@ -105,12 +105,6 @@ double func_surf_energy_bal(double Ts, va_list ap)
 
 **********************************************************************/
 {
-  extern option_struct options;
-  extern veg_lib_struct *veg_lib;
-#if LINK_DEBUG
-  extern debug_struct  debug;
-#endif
-
   /* define routine input variables */
 
   /* general model terms */
@@ -399,6 +393,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
   sensible_heat           = (double *) va_arg(ap, double *);
   snow_flux               = (double *) va_arg(ap, double *);
   store_error             = (double *) va_arg(ap, double *);
+  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
 
   frost_fract = soil_con->frost_fract;
 
@@ -448,7 +443,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     Estimate soil temperatures for ground heat flux calculations
   ***************************************************************/
 
-  if ( options.QUICK_FLUX ) {
+  if ( state->options.QUICK_FLUX ) {
     /**************************************************************
       Use Liang et al. 1999 Equations to Calculate Ground Heat Flux
     **************************************************************/
@@ -457,7 +452,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     /*****************************************************
       Compute the Ground Heat Flux from the Top Soil Layer
     *****************************************************/
-    if (options.GRND_FLUX_TYPE == GF_406) {
+    if (state->options.GRND_FLUX_TYPE == GF_406) {
       *grnd_flux = (snow_coverage + (1. - snow_coverage) * surf_atten) * (kappa1 / D1 * ((*T1) - TMean));
     }
     else {
@@ -474,13 +469,14 @@ double func_surf_energy_bal(double Ts, va_list ap)
     T_node[0] = TMean;
       
     /* IMPLICIT Solution */
-    if(options.IMPLICIT) {
-      Error = solve_T_profile_implicit(Tnew_node, T_node, Zsum_node, kappa_node, Cs_node, 
-				       moist_node, delta_t, max_moist_node, bubble_node, expt_node, 
-				       porosity_node, effective_porosity_node,
-				       ice_node, alpha, beta, gamma, dp, Nnodes, 
-				       FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class,
-				       soil_con->bulk_dens_min, soil_con->soil_dens_min, soil_con->quartz, soil_con->bulk_density, soil_con->soil_density, soil_con->organic, soil_con->depth);
+    if(state->options.IMPLICIT) {
+      Error = solve_T_profile_implicit(Tnew_node, T_node, Zsum_node, kappa_node,
+          Cs_node, moist_node, delta_t, max_moist_node, bubble_node, expt_node,
+          porosity_node, effective_porosity_node, ice_node, alpha, beta, gamma,
+          dp, Nnodes, FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class,
+          soil_con->bulk_dens_min, soil_con->soil_dens_min, soil_con->quartz,
+          soil_con->bulk_density, soil_con->soil_density, soil_con->organic,
+          soil_con->depth, state);
       
       /* print out error information for IMPLICIT solution */
       if(Error==0)
@@ -497,15 +493,15 @@ double func_surf_energy_bal(double Ts, va_list ap)
     }
 
     /* EXPLICIT Solution, or if IMPLICIT Solution Failed */
-    if(!options.IMPLICIT || Error == 1) {
-      if(options.IMPLICIT)
+    if(!state->options.IMPLICIT || Error == 1) {
+      if(state->options.IMPLICIT)
         FIRST_SOLN[0] = TRUE;
 
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node, 
 			      moist_node, delta_t, max_moist_node, bubble_node, 
 			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, ufwc_table_node,
 			      porosity_node, effective_porosity_node,
-			      Nnodes, FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class);
+			      Nnodes, FIRST_SOLN, FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class, state);
     }
       
     if ( (int)Error == ERROR ) {
@@ -518,7 +514,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     /*****************************************************
       Compute the Ground Heat Flux between nodes 0 and 1
     *****************************************************/
-    if (options.GRND_FLUX_TYPE == GF_406) {
+    if (state->options.GRND_FLUX_TYPE == GF_406) {
       *grnd_flux = (snow_coverage + (1. - snow_coverage) * surf_atten) * (kappa1 / D1 * ((*T1) - TMean));
     }
     else {
@@ -532,7 +528,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     Compute the change in heat storage in the region between nodes 0 and 1
     (this will correspond to top soil layer for the default (non-exponential) node spacing)
   ******************************************************/
-  if (options.GRND_FLUX_TYPE == GF_FULL) {
+  if (state->options.GRND_FLUX_TYPE == GF_FULL) {
     *deltaH = (snow_coverage + (1. - snow_coverage) * surf_atten)
               * (Cs1 * ((Ts_old + T1_old) - (TMean + *T1)) * D1 / delta_t / 2.);
   }
@@ -544,7 +540,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     Compute the change in heat due to solid-liquid phase changes in the region between nodes 0 and 1
     (this will correspond to top soil layer for the default (non-exponential) node spacing)
   ******************************************************/
-  if (FS_ACTIVE && options.FROZEN_SOIL) {
+  if (FS_ACTIVE && state->options.FROZEN_SOIL) {
 
     if((TMean+ *T1)/2.<0.) {
       ice = moist - maximum_unfrozen_water((TMean+ *T1)/2.,
@@ -554,7 +550,7 @@ double func_surf_energy_bal(double Ts, va_list ap)
     }
     else ice=0.;
 
-    if (options.GRND_FLUX_TYPE == GF_FULL) {
+    if (state->options.GRND_FLUX_TYPE == GF_FULL) {
       *fusion = (snow_coverage + (1. - snow_coverage) * surf_atten)
                 * (-ice_density * Lf * (ice0 - ice) * D1 / delta_t);
     }
@@ -605,19 +601,19 @@ double func_surf_energy_bal(double Ts, va_list ap)
     Use Arno Evap if LAI is set to zero (e.g. no
     winter crop planted).
   *************************************************/
-  if ( VEG && !SNOWING && veg_lib[veg_class].LAI[month-1] > 0 ) {
+  if ( VEG && !SNOWING && state->veg_lib[veg_class].LAI[month-1] > 0 ) {
     Evap = canopy_evap(layer_wet, layer_dry, veg_var_wet, veg_var_dry, TRUE, 
 		       veg_class, month, precipitation_mu, Wdew, delta_t, NetBareRad, vpd, 
 		       NetShortBare, Tair, Ra_used[1], 
 		       displacement[1], roughness[1], ref_height[1], 
 		       (double)soil_con->elevation, rainfall, soil_con->depth, soil_con->Wcr, soil_con->Wpwp,
-		       frost_fract, root);
+		       frost_fract, root, state);
   }
   else if(!SNOWING) {
     Evap = arno_evap(layer_wet, layer_dry, NetBareRad, Tair, vpd, 
 		     soil_con->depth[0], max_moist * soil_con->depth[0] * 1000., 
 		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, precipitation_mu,
-		     soil_con->resid_moist[0], frost_fract);
+		     soil_con->resid_moist[0], frost_fract, state);
 
   }
   else Evap = 0.;

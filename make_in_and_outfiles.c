@@ -12,7 +12,8 @@ static char vcid[] = "$Id$";
 ********************************/
 void make_in_files(filep_struct         *filep,
 			  filenames_struct     *filenames,
-			  soil_con_struct      *soil)
+			  soil_con_struct      *soil,
+			  const ProgramState   *state)
 /**********************************************************************
 	make_in_and_outfile	Dag Lohman	January 1996
 
@@ -40,13 +41,10 @@ void make_in_files(filep_struct         *filep,
 
 **********************************************************************/
 {
-  extern option_struct    options;
-  extern param_set_struct param_set;
-
   char   latchar[20], lngchar[20], junk[6];
   int filenum;
 
-  sprintf(junk, "%%.%if", options.GRID_DECIMAL);
+  sprintf(junk, "%%.%if", state->options.GRID_DECIMAL);
   sprintf(latchar, junk, soil->lat);
   sprintf(lngchar, junk, soil->lng);
  
@@ -54,15 +52,15 @@ void make_in_files(filep_struct         *filep,
 
   strcpy(filenames->forcing[0], filenames->f_path_pfx[0]);
   /* Append lat/lon for non-NetCDF files */
-  if(param_set.FORCE_FORMAT[0] != NETCDF) {
+  if(state->param_set.FORCE_FORMAT[0] != NETCDF) {
     strcat(filenames->forcing[0], latchar);
     strcat(filenames->forcing[0], "_");
     strcat(filenames->forcing[0], lngchar);
   }
 
-  if (param_set.FORCE_FORMAT[0] == NETCDF)
+  if (state->param_set.FORCE_FORMAT[0] == NETCDF)
     assert(nc_open(filenames->forcing[0], NC_NOWRITE, &filep->forcing_ncid[0]) == NC_NOERR); /* TODO proper error handling */
-  else if(param_set.FORCE_FORMAT[0] == BINARY)
+  else if(state->param_set.FORCE_FORMAT[0] == BINARY)
     filep->forcing[0] = open_file(filenames->forcing[0], "rb");
   else
     filep->forcing[0] = open_file(filenames->forcing[0], "r");
@@ -70,14 +68,14 @@ void make_in_files(filep_struct         *filep,
   filep->forcing[1] = NULL;
   if(strcasecmp(filenames->f_path_pfx[1],"MISSING")!=0) {
     strcpy(filenames->forcing[1], filenames->f_path_pfx[1]);
-    if(param_set.FORCE_FORMAT[1] != NETCDF) {
+    if(state->param_set.FORCE_FORMAT[1] != NETCDF) {
       strcat(filenames->forcing[1], latchar);
       strcat(filenames->forcing[1], "_");
       strcat(filenames->forcing[1], lngchar);
     }
-    if(param_set.FORCE_FORMAT[1] == NETCDF)
+    if(state->param_set.FORCE_FORMAT[1] == NETCDF)
       assert(nc_open(filenames->forcing[1], NC_NOWRITE, &filep->forcing_ncid[1]) == NC_NOERR); /* TODO proper error handling */
-    else if(param_set.FORCE_FORMAT[1] == BINARY) /* MPN: Changed this to [1]; It's used elsewhere so I presume it's actually set. */
+    else if(state->param_set.FORCE_FORMAT[1] == BINARY) /* MPN: Changed this to [1]; It's used elsewhere so I presume it's actually set. */
       filep->forcing[1] = open_file(filenames->forcing[1], "rb");
     else 
       filep->forcing[1] = open_file(filenames->forcing[1], "r");
@@ -91,18 +89,16 @@ Output Files
 void make_out_files(filep_struct         *filep,
     filenames_struct     *filenames,
     soil_con_struct      *soil,
-    out_data_file_struct *out_data_files) {
-
-  extern option_struct    options;
-  extern param_set_struct param_set;
+    out_data_file_struct *out_data_files,
+    const ProgramState   *state) {
 
   char   latchar[20], lngchar[20], junk[6];
 
-  sprintf(junk, "%%.%if", options.GRID_DECIMAL);
+  sprintf(junk, "%%.%if", state->options.GRID_DECIMAL);
   sprintf(latchar, junk, soil->lat);
   sprintf(lngchar, junk, soil->lng);
 
-  for (int filenum=0; filenum<options.Noutfiles; filenum++) {
+  for (int filenum=0; filenum < state->options.Noutfiles; filenum++) {
     strcpy(out_data_files[filenum].filename, filenames->result_dir);
     strcat(out_data_files[filenum].filename, "/");
     strcat(out_data_files[filenum].filename, out_data_files[filenum].prefix);
@@ -110,7 +106,7 @@ void make_out_files(filep_struct         *filep,
     strcat(out_data_files[filenum].filename, latchar);
     strcat(out_data_files[filenum].filename, "_");
     strcat(out_data_files[filenum].filename, lngchar);
-    if(options.BINARY_OUTPUT)
+    if(state->options.BINARY_OUTPUT)
       out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "wb");
     else out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "w");
   }

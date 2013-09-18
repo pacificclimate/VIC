@@ -11,7 +11,8 @@ int  initialize_new_storm(cell_data_struct ***cell,
 			  int                 Nveg,
 			  int                 rec,
 			  double              old_mu,
-			  double              new_mu) {
+			  double              new_mu,
+			  const ProgramState *state) {
 /**********************************************************************
   initialize_new_storm.c	Keith Cherkauer		June 24, 1998
 
@@ -25,9 +26,6 @@ int  initialize_new_storm(cell_data_struct ***cell,
   6-8-2000 modified to work with spatially distributed frost       KAC
   2007-Apr-04 Modified to return to main subroutine on cell error GCT/KAC
 **********************************************************************/
- 
-  extern option_struct options;
-
   unsigned char error;
   char          ErrorString[MAXSTRING];
   int           layer;
@@ -37,9 +35,9 @@ int  initialize_new_storm(cell_data_struct ***cell,
   double        temp_dry;
 
   /** Redistribute Soil Moisture **/
-  for(layer = 0; layer < options.Nlayer; layer++) {
+  for(layer = 0; layer < state->options.Nlayer; layer++) {
 
-    for(band = 0; band < options.SNOW_BAND; band++) {
+    for(band = 0; band < state->options.SNOW_BAND; band++) {
 
       temp_wet = cell[WET][veg][band].layer[layer].moist;
       temp_dry = cell[DRY][veg][band].layer[layer].moist;
@@ -93,7 +91,7 @@ int  initialize_new_storm(cell_data_struct ***cell,
     Redistribute Stored Water in Vegetation
   ****************************************/
   if(veg<Nveg) {
-    for(band=0;band<options.SNOW_BAND;band++) {
+    for(band=0;band<state->options.SNOW_BAND;band++) {
       temp_wet = veg_var[WET][veg][band].Wdew;
       temp_dry = veg_var[DRY][veg][band].Wdew;
       error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu, new_mu);

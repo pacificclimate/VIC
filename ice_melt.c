@@ -143,10 +143,9 @@ int ice_melt(double            z2,
 	      double           *save_Qnet,
 	      double           *save_refreeze_energy,
 	      double           *save_LWnet,
-	      double            fracprv)
+	      double            fracprv,
+	      const ProgramState* state)
 {
-  extern option_struct   options;
-
   int    Twidth;
 
   double DeltaPackCC;            /* Change in cold content of the pack */
@@ -267,7 +266,7 @@ int ice_melt(double            z2,
   // flat terrain. Fetch = 2000 m (i.e. unlimited fetch), roughness and displacement
   // calculated assuming 10 cm high protrusions on frozen ponds.
 
-  if(options.BLOWING && snow->swq > 0.) {
+  if(state->options.BLOWING && snow->swq > 0.) {
     Ls = (677. - 0.07 * snow->surf_temp) * JOULESPCAL * GRAMSPKG;
     snow->blowing_flux = CalcBlowingSnow((double) delta_t, air_temp,
 					 snow->last_snow, snow->surf_water,
@@ -430,7 +429,7 @@ int ice_melt(double            z2,
 				   &latent_heat, &latent_heat_sub, &sensible_heat, &LWnet);
 
       if (snow->surf_temp <= -998) {
-        if (options.TFALLBACK) {
+        if (state->options.TFALLBACK) {
           snow->surf_temp = OldTSurf;
           snow->surf_temp_fbflag = 1;
           snow->surf_temp_fbcount++;

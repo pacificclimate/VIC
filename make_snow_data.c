@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-snow_data_struct **make_snow_data(int nveg)
+snow_data_struct **make_snow_data(int nveg, const int NUM_SNOW_BAND)
 /**********************************************************************
 	make_snow_data	Keith Cherkauer		January 22, 1997
 
@@ -18,8 +18,6 @@ snow_data_struct **make_snow_data(int nveg)
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int                i;
   snow_data_struct **temp;
 
@@ -27,7 +25,7 @@ snow_data_struct **make_snow_data(int nveg)
 				      sizeof(snow_data_struct *));
 
   for(i=0;i<nveg;i++) {
-    temp[i] = (snow_data_struct *) calloc(options.SNOW_BAND, 
+    temp[i] = (snow_data_struct *) calloc(NUM_SNOW_BAND,
 					  sizeof(snow_data_struct));
   }
     

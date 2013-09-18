@@ -11,7 +11,8 @@ void prepare_full_energy(int               iveg,
 			 dist_prcp_struct *prcp,
 			 soil_con_struct  *soil_con,
 			 double           *moist0,
-			 double           *ice0) {
+			 double           *ice0,
+			 const ProgramState* state) {
 /*******************************************************************
   prepare_full_energy.c      Keith Cherkauer       January 20, 2000
 
@@ -27,35 +28,33 @@ void prepare_full_energy(int               iveg,
            in the current grid cell.                          KAC
   2007-Aug-09 Added features for EXCESS_ICE option.			JCA
   2008-Jan-23 Changed ice0 from a scalar to an array.  Previously,
-	      when options.SNOW_BAND > 1, the value of ice0 computed
+	      when state->options.SNOW_BAND > 1, the value of ice0 computed
 	      for earlier bands was always overwritten by the value
 	      of ice0 computed for the final band (even if the final
 	      band had 0 area).						JS via TJB
   2008-May-05 Changed moist from a scalar to an array (moist0).  Previously,
-	      when options.SNOW_BAND > 1, the value of moist computed
+	      when state->options.SNOW_BAND > 1, the value of moist computed
 	      for earlier bands was always overwritten by the value
 	      of moist computed for the final band (even if the final
 	      band had 0 area).						KAC via TJB
-  2011-Jun-03 Added options.ORGANIC_FRACT.  Soil properties now take
+  2011-Jun-03 Added state->options.ORGANIC_FRACT.  Soil properties now take
 	      organic fraction into account.				TJB
 
 *******************************************************************/
 
-  extern option_struct options;
-
   int                i, band;
   layer_data_struct *layer;
 
-  layer = (layer_data_struct *)calloc(options.Nlayer,
+  layer = (layer_data_struct *)calloc(state->options.Nlayer,
 				      sizeof(layer_data_struct));
 
-  for(band=0;band<options.SNOW_BAND;band++) {
+  for(band=0;band<state->options.SNOW_BAND;band++) {
 
     if (soil_con->AreaFract[band] > 0.0) {
 
       /* Compute average soil moisture values for distributed precipitation */
 
-      for(i=0;i<options.Nlayer;i++) 
+      for(i=0;i<state->options.Nlayer;i++)
         layer[i] = find_average_layer(&(prcp->cell[WET][iveg][band].layer[i]),
 				      &(prcp->cell[DRY][iveg][band].layer[i]),
 				      soil_con->depth[i], prcp->mu[iveg]);
@@ -66,7 +65,7 @@ void prepare_full_energy(int               iveg,
 
       /* Compute top soil layer ice content (mm/mm) */
 
-      if(options.FROZEN_SOIL && soil_con->FS_ACTIVE){
+      if(state->options.FROZEN_SOIL && soil_con->FS_ACTIVE){
         if((prcp->energy[iveg][band].T[0] 
 	    + prcp->energy[iveg][band].T[1])/2.<0.) {
 	  ice0[band] = moist0[band] 
@@ -93,7 +92,7 @@ void prepare_full_energy(int               iveg,
 					    soil_con->soil_density,
 					    soil_con->organic,
 					    soil_con->frost_fract,
-					    options.Nlayer);
+					    state->options.Nlayer);
     
       /** Save Thermal Conductivities for Energy Balance **/
       prcp->energy[iveg][band].kappa[0] = layer[0].kappa; 

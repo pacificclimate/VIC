@@ -16,7 +16,8 @@ int  runoff(cell_data_struct  *cell_wet,
       int                Nnodes,
 	    int                band,
 	    int                rec,
-	    int                iveg)
+	    int                iveg,
+	    const ProgramState *state)
 /**********************************************************************
 	runoff.c	Keith Cherkauer		May 18, 1996
 
@@ -237,11 +238,11 @@ int  runoff(cell_data_struct  *cell_wet,
   cell_data_struct  *cell;
 
   /** Set Residual Moisture **/
-  for ( i = 0; i < options.Nlayer; i++ ) 
+  for ( i = 0; i < state->options.Nlayer; i++ )
     resid_moist[i] = soil_con->resid_moist[i] * soil_con->depth[i] * 1000.;
 
   /** Initialize Other Parameters **/
-  if ( options.DIST_PRCP ) Ndist = 2;
+  if ( state->options.DIST_PRCP ) Ndist = 2;
   else Ndist = 1;
   tmp_mu = precipitation_mu;
 
@@ -268,7 +269,7 @@ int  runoff(cell_data_struct  *cell_wet,
     if(precipitation_mu>0.) {
 	
 #if SPATIAL_FROST
-      for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
+      for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
 	evap[lindex][0] = cell->layer[lindex].evap/(double)dt;
 	org_moist[lindex] = cell->layer[lindex].moist;
 	cell->layer[lindex].moist = 0;
@@ -299,7 +300,7 @@ int  runoff(cell_data_struct  *cell_wet,
       }
 
       // compute temperatures of frost subareas
-      for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
+      for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
         min_temp = cell->layer[lindex].T - soil_con->frost_slope / 2.;
         max_temp = min_temp + soil_con->frost_slope;
         for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
@@ -315,7 +316,7 @@ int  runoff(cell_data_struct  *cell_wet,
       for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 #else
       // store current evaporation
-      for ( lindex = 0; lindex < options.Nlayer; lindex++ )
+      for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
         evap[lindex][0] = cell->layer[lindex].evap/(double)dt;
 
       frost_area = 0;
@@ -328,7 +329,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	/**************************************************
 	  Initialize Variables
 	**************************************************/
-	for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
+	for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
 	  Ksat[lindex]         = soil_con->Ksat[lindex] / 24.;
 #if LOW_RES_MOIST
 	  b[lindex]            = (soil_con->expt[lindex] - 3.) / 2.;
@@ -369,7 +370,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	if(SubsidenceUpdate == 1){ 
 	  excess_water = 0;
 	  net_excess_water = 0;
-	  for ( lindex = 0; lindex < options.Nlayer; lindex++ ) {
+	  for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
 	    net_excess_water += (liq[lindex]+ice[lindex] - max_moist[lindex]);
 	    if( (liq[lindex]+ice[lindex]) > max_moist[lindex])
 	      excess_water += (liq[lindex]+ice[lindex] - max_moist[lindex]);	
@@ -378,7 +379,7 @@ int  runoff(cell_data_struct  *cell_wet,
 
 	if(SubsidenceUpdate == 1 && net_excess_water >= 0){//run simple scenario
 	  /* set all layers to saturation*/
-	  for ( lindex = 0; lindex < options.Nlayer; lindex++ ){
+	  for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ){
 	    liq[lindex] = max_moist[lindex] - ice[lindex];
 //	    if(liq[lindex] < resid_moist[lindex]){
 //	      fprintf(stderr, "ERROR in runoff(): Layer %d liquid soil moisture (%f) below minimum allowable liquid moisture (%f)\n",
@@ -388,7 +389,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	  }
 	  
 	  /*estimate baseflow contribution, same method as below*/
-	  lindex = options.Nlayer-1;
+	  lindex = state->options.Nlayer-1;
 	  Dsmax = soil_con->Dsmax / 24.;  
 	  for (time_step = 0; time_step < dt; time_step++) {
 	    /** Compute relative moisture **/
@@ -408,7 +409,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	  
 	  /*calculate total evap*/
 	  total_evap = 0;
-	  for ( lindex = 0; lindex < options.Nlayer; lindex++ ) 
+	  for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
 	    total_evap += evap[lindex][frost_area]*(double)dt;
 
 	  /* estimate runoff as sum of excess water */
@@ -430,7 +431,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	  ******************************************************/
 	  if(SubsidenceUpdate == 1 && excess_water > 0){
 	    //fill from bottom up with excess water only
-	    for(lindex=(options.Nlayer-1);lindex>=0;lindex--) {
+	    for(lindex=(state->options.Nlayer-1);lindex>=0;lindex--) {
 	      if(max_moist[lindex] > (liq[lindex] + ice[lindex])) {//if not a subsidence layer
 		if((max_moist[lindex] - (liq[lindex] + ice[lindex])) <= excess_water){//can't take all excess
 		  if(excess_water > 0){
@@ -459,10 +460,10 @@ int  runoff(cell_data_struct  *cell_wet,
           Runoff Based on Soil Moisture Level of Upper Layers
 	  ******************************************************/
 
-          for(lindex=0;lindex<options.Nlayer;lindex++) {
+          for(lindex=0;lindex<state->options.Nlayer;lindex++) {
             tmp_moist_for_runoff[lindex] = (liq[lindex] + ice[lindex]);
           }
-          compute_runoff_and_asat(soil_con, tmp_moist_for_runoff, inflow, &A, &(runoff[frost_area]));
+          compute_runoff_and_asat(soil_con, tmp_moist_for_runoff, inflow, &A, &(runoff[frost_area]), state);
 
           // save dt_runoff based on initial runoff estimate,
           // since we will modify total runoff below for the case of completely saturated soil
@@ -481,7 +482,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	    
 #if LOW_RES_MOIST
 #error // LOW_RES_MOIST is an untested code path. Continue at your own risk!
-	    for( lindex = 0; lindex < options.Nlayer; lindex++ ) {
+	    for( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
 	      if( (tmp_liq = liq[lindex] - evap[lindex][frost_area]) 
 		  < resid_moist[lindex] )
 		tmp_liq = resid_moist[lindex];
@@ -499,7 +500,7 @@ int  runoff(cell_data_struct  *cell_wet,
             Compute Drainage between Sublayers 
 	    *************************************/
 	    
-	    for( lindex = 0; lindex < options.Nlayer-1; lindex++ ) {
+	    for( lindex = 0; lindex < state->options.Nlayer-1; lindex++ ) {
 	      
 	      /** Brooks & Corey relation for hydraulic conductivity **/
 	      
@@ -537,7 +538,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	    
 	    firstlayer = TRUE;
 	    last_index = 0;
-	    for ( lindex = 0; lindex < options.Nlayer - 1; lindex++ ) {
+	    for ( lindex = 0; lindex < state->options.Nlayer - 1; lindex++ ) {
 	      
 	      if ( lindex == 0 ) dt_runoff = tmp_dt_runoff[frost_area];
 	      else dt_runoff = 0;
@@ -650,7 +651,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	    /** ARNO model for the bottom soil layer (based on bottom
 		soil layer moisture from previous time step) **/
 	    
-	    lindex = options.Nlayer-1;
+	    lindex = state->options.Nlayer-1;
 	    Dsmax = soil_con->Dsmax / 24.;
 	    
 #if LINK_DEBUG
@@ -742,20 +743,20 @@ int  runoff(cell_data_struct  *cell_wet,
 	}
 
         /** Recompute Asat based on final moisture level of upper layers **/
-        for(lindex=0;lindex<options.Nlayer;lindex++) {
+        for(lindex=0;lindex<state->options.Nlayer;lindex++) {
           tmp_moist_for_runoff[lindex] = (liq[lindex] + ice[lindex]);
         }
-        compute_runoff_and_asat(soil_con, tmp_moist_for_runoff, 0, &A, &tmp_runoff);
+        compute_runoff_and_asat(soil_con, tmp_moist_for_runoff, 0, &A, &tmp_runoff, state);
 
         /** Store tile-wide values **/
 #if SPATIAL_FROST
-	for ( lindex = 0; lindex < options.Nlayer; lindex++ ) 
+	for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
 	  cell->layer[lindex].moist += ((liq[lindex] + ice[lindex]) * frost_fract[frost_area]); 
         cell->asat     += A * frost_fract[frost_area];
         cell->runoff   += runoff[frost_area] * frost_fract[frost_area];
         cell->baseflow += baseflow[frost_area] * frost_fract[frost_area];
 #else
-	for ( lindex = 0; lindex < options.Nlayer; lindex++ ) 
+	for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
 	  cell->layer[lindex].moist = liq[lindex] + ice[lindex];      
         cell->asat     += A;
         cell->runoff   += runoff[frost_area];
@@ -764,8 +765,8 @@ int  runoff(cell_data_struct  *cell_wet,
 
 #if LINK_DEBUG
 	if(debug.PRT_BALANCE) {
-	  debug.outflow[dist][band][options.Nlayer+2] = (runoff[frost_area] + baseflow[frost_area]);
-	  debug.outflow[dist][band][options.Nlayer+1] = *baseflow;
+	  debug.outflow[dist][band][state->options.Nlayer+2] = (runoff[frost_area] + baseflow[frost_area]);
+	  debug.outflow[dist][band][state->options.Nlayer+1] = *baseflow;
 	}
 #endif // LINK_DEBUG
 #if SPATIAL_FROST
@@ -775,14 +776,14 @@ int  runoff(cell_data_struct  *cell_wet,
     } /* if mu>0 */
 
     /** Compute water table depth **/
-    wrap_compute_zwt(soil_con, cell);
+    wrap_compute_zwt(soil_con, cell, state);
 
   } /** Loop over wet and dry fractions **/
 
   /** Recompute Thermal Parameters Based on New Moisture Distribution **/
-  if(options.FULL_ENERGY || options.FROZEN_SOIL) {
+  if(state->options.FULL_ENERGY || state->options.FROZEN_SOIL) {
     layer_data_struct tmp_layer;
-    for(lindex=0;lindex<options.Nlayer;lindex++) {
+    for(lindex=0;lindex<state->options.Nlayer;lindex++) {
       tmp_layer = find_average_layer(&(cell_wet->layer[lindex]),
 				     &(cell_dry->layer[lindex]), 
 				     soil_con->depth[lindex], tmp_mu);
@@ -808,7 +809,7 @@ int  runoff(cell_data_struct  *cell_wet,
 						      soil_con->soil_density,
 						      soil_con->bulk_density,
 						      soil_con->organic, Nnodes, 
-						      options.Nlayer, soil_con->FS_ACTIVE);
+						      state->options.Nlayer, soil_con->FS_ACTIVE);
       if ( ErrorFlag == ERROR ) return (ERROR);
 #if EXCESS_ICE
     }
@@ -818,10 +819,8 @@ int  runoff(cell_data_struct  *cell_wet,
 
 }
 
-void compute_runoff_and_asat(soil_con_struct *soil_con, double *moist, double inflow, double *A, double *runoff)
+void compute_runoff_and_asat(soil_con_struct *soil_con, double *moist, double inflow, double *A, double *runoff, const ProgramState* state)
 {
-
-  extern option_struct options;
   double top_moist;
   double top_max_moist;
   int lindex;
@@ -832,7 +831,7 @@ void compute_runoff_and_asat(soil_con_struct *soil_con, double *moist, double in
 
   top_moist = 0.;
   top_max_moist=0.;
-  for(lindex=0;lindex<options.Nlayer-1;lindex++) {
+  for(lindex=0;lindex<state->options.Nlayer-1;lindex++) {
     top_moist += moist[lindex];
     top_max_moist += soil_con->max_moist[lindex];
   }

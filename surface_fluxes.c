@@ -49,7 +49,6 @@ int surface_fluxes(char                 overstory,
 		   atmos_data_struct   *atmos,
 		   const dmy_struct    *dmy,
 		   energy_bal_struct   *energy,
-		   global_param_struct *gp,
 		   cell_data_struct    *cell_dry,
 		   cell_data_struct    *cell_wet,
 		   snow_data_struct    *snow,
@@ -58,7 +57,8 @@ int surface_fluxes(char                 overstory,
 		   veg_var_struct      *veg_var_wet,
 		   float              lag_one,
 		   float              sigma_slope,
-		   float              fetch)
+		   float              fetch,
+		   const ProgramState *state)
 /**********************************************************************
 	surface_fluxes	Keith Cherkauer		February 29, 2000
 
@@ -148,12 +148,6 @@ int surface_fluxes(char                 overstory,
   2011-May-31 Removed options.GRND_FLUX.				TJB
 **********************************************************************/
 {
-  extern veg_lib_struct *veg_lib;
-  extern option_struct   options;
-#if LINK_DEBUG
-  extern debug_struct    debug;
-#endif // LINK_DEBUG
- 
   double                 total_store_moist[3];
   double                 step_store_moist[3];
 
@@ -358,12 +352,12 @@ int surface_fluxes(char                 overstory,
     hidx = 0;
     step_inc = 1;
     endhidx = hidx + NF;
-    step_dt = options.SNOW_STEP;
+    step_dt = state->options.SNOW_STEP;
   } else {
     hidx = NR;
     step_inc = 1;
     endhidx = hidx + step_inc;
-    step_dt = gp->dt;
+    step_dt = state->global_param.dt;
   }
 
   /*******************************************
@@ -416,7 +410,7 @@ int surface_fluxes(char                 overstory,
   for (dist = 0; dist < Ndist; dist++) {
     store_throughfall[dist] = 0.;
     store_canopyevap[dist] = 0.;
-    for (lidx = 0; lidx < options.Nlayer; lidx++) {
+    for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
       store_layerevap[dist][lidx] = 0.;
     }
   }
@@ -465,7 +459,7 @@ int surface_fluxes(char                 overstory,
     B_tol_over = 999;
 
     // Compute mass flux of blowing snow
-    if (!overstory && options.BLOWING && step_snow.swq > 0.) {
+    if (!overstory && state->options.BLOWING && step_snow.swq > 0.) {
       Ls = (677. - 0.07 * step_snow.surf_temp) * JOULESPCAL * GRAMSPKG;
       step_snow.blowing_flux = CalcBlowingSnow((double) step_dt, Tair,
           step_snow.last_snow, step_snow.surf_water, wind[2], Ls,
@@ -568,18 +562,18 @@ int surface_fluxes(char                 overstory,
 
         /** Solve snow accumulation, ablation and interception **/
         step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
-            gp->MIN_RAIN_TEMP, gp->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
-            step_prec[WET], snow_grnd_flux, gp->wind_h, &energy->AlbedoUnder,
+            state->global_param.MIN_RAIN_TEMP, state->global_param.MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
+            step_prec[WET], snow_grnd_flux, state->global_param.wind_h, &energy->AlbedoUnder,
             &step_Evap, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
             &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,
             iter_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
             displacement, gauge_correction, &step_melt_energy, &step_out_prec,
             &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
             roughness, snow_inflow, snowfall, &surf_atten, wind, root,
-            UNSTABLE_SNOW, options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
+            UNSTABLE_SNOW, state->options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
             veg_class, &UnderStory, dmy, *atmos, &(iter_snow_energy),
             iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
-            &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]));
+            &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]), state);
 
 // iter_snow_energy.sensible + iter_snow_energy.latent + iter_snow_energy.latent_sub + NetShortSnow + NetLongSnow + ( snow_grnd_flux + iter_snow_energy.advection - iter_snow_energy.deltaCC + iter_snow_energy.refreeze_energy + iter_snow_energy.advected_sensible ) * step_snow.coverage
         if (step_melt == ERROR)
@@ -612,11 +606,11 @@ int surface_fluxes(char                 overstory,
             (step_snow.depth + iter_snow.depth) / 2., BareAlbedo, surf_atten,
             iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
             displacement, &step_melt, step_ppt, rainfall, ref_height, roughness,
-            snowfall, wind, root, INCLUDE_SNOW, UnderStory, options.Nnode, Nveg,
-            band, step_dt, hidx, iveg, options.Nlayer, (int) overstory, rec,
+            snowfall, wind, root, INCLUDE_SNOW, UnderStory, state->options.Nnode, Nveg,
+            band, step_dt, hidx, iveg, state->options.Nlayer, (int) overstory, rec,
             veg_class, atmos, &(dmy[rec]), &iter_soil_energy, iter_layer[DRY],
             iter_layer[WET], &(iter_snow), soil_con, &iter_soil_veg_var[DRY],
-            &iter_soil_veg_var[WET], gp->nrecs);
+            &iter_soil_veg_var[WET], state->global_param.nrecs, state);
 
         if ((int) Tsurf == ERROR) {
           // Return error flag to skip rest of grid cell
@@ -644,7 +638,7 @@ int surface_fluxes(char                 overstory,
               &iter_soil_energy.AtmosLatentSub, &iter_soil_energy.NetLongAtmos,
               &iter_soil_energy.NetShortAtmos, &iter_soil_energy.AtmosSensible,
               &VPcanopy, &VPDcanopy, &iter_soil_energy.Tcanopy_fbflag,
-              &iter_soil_energy.Tcanopy_fbcount);
+              &iter_soil_energy.Tcanopy_fbcount, state);
           /* iterate to find Tcanopy which will solve the atmospheric energy
            balance.  Since I do not know vp in the canopy, use the
            sum of latent heats from the ground and foliage, and iterate
@@ -729,7 +723,7 @@ int surface_fluxes(char                 overstory,
     }
 
     // Finally, compute pot_evap
-    compute_pot_evap(veg_class, dmy, rec, gp->dt, atmos->shortwave[hidx],
+    compute_pot_evap(veg_class, dmy, rec, state->global_param.dt, atmos->shortwave[hidx],
         iter_soil_energy.NetLongAtmos, Tair, VPDcanopy, soil_con->elevation,
         step_aero_resist, iter_pot_evap);
 
@@ -744,7 +738,7 @@ int surface_fluxes(char                 overstory,
     soil_veg_var[WET] = iter_soil_veg_var[WET];
     soil_veg_var[DRY] = iter_soil_veg_var[DRY];
     step_snow = iter_snow;
-    for (lidx = 0; lidx < options.Nlayer; lidx++) {
+    for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
       step_layer[WET][lidx] = iter_layer[WET][lidx];
       step_layer[DRY][lidx] = iter_layer[DRY][lidx];
     }
@@ -764,7 +758,7 @@ int surface_fluxes(char                 overstory,
         step_Wdew[dist] = soil_veg_var[dist].Wdew;
       }
 
-      for (lidx = 0; lidx < options.Nlayer; lidx++)
+      for (lidx = 0; lidx < state->options.Nlayer; lidx++)
         store_layerevap[dist][lidx] += step_layer[dist][lidx].evap;
 
       store_ppt[dist] += step_ppt[dist];
@@ -986,7 +980,7 @@ int surface_fluxes(char                 overstory,
   ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
       SubsidenceUpdate,
       soil_con->frost_fract,
-      current_prcp_mu, gp->dt, options.Nnode, band, rec, iveg);
+      current_prcp_mu, state->global_param.dt, state->options.Nnode, band, rec, iveg, state);
 
   return (ErrorFlag);
 #if EXCESS_ICE

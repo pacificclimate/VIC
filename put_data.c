@@ -13,7 +13,8 @@ int  put_data(dist_prcp_struct  *prcp,
               out_data_struct   *out_data,
               save_data_struct  *save_data,
               const dmy_struct  *dmy,
-              int                rec)
+              int                rec,
+              const ProgramState* state)
 /**********************************************************************
 	put_data.c	Dag Lohmann		January 1996
 
@@ -140,13 +141,6 @@ int  put_data(dist_prcp_struct  *prcp,
   2011-Nov-04 Added OUT_TSKC.						TJB
 **********************************************************************/
 {
-  extern global_param_struct global_param;
-  extern veg_lib_struct  *veg_lib;
-  extern option_struct    options;
-#if LINK_DEBUG
-  extern debug_struct     debug;
-#endif
-
   int                     veg;
   int                     index;
   int                     Ndist;
@@ -192,9 +186,9 @@ int  put_data(dist_prcp_struct  *prcp,
   frost_slope = soil_con->frost_slope;
 
   dp = soil_con->dp;
-  skipyear = global_param.skipyear;
-  dt_sec = global_param.dt*SECPHOUR;
-  out_dt_sec = global_param.out_dt*SECPHOUR;
+  skipyear = state->global_param.skipyear;
+  dt_sec = state->global_param.dt*SECPHOUR;
+  out_dt_sec = state->global_param.out_dt*SECPHOUR;
   out_step_ratio = (int)(out_dt_sec/dt_sec);
   if (rec >= 0) step_count++;
   if (rec == 0) {
@@ -205,18 +199,18 @@ int  put_data(dist_prcp_struct  *prcp,
     Tfoliage_fbcount_total = 0;
   }
 
-  if(options.DIST_PRCP) 
+  if(state->options.DIST_PRCP)
     Ndist = 2;
   else 
     Ndist = 1;
 
   // Compute treeline adjustment factors
-  for ( band = 0; band < options.SNOW_BAND; band++ ) {
+  for ( band = 0; band < state->options.SNOW_BAND; band++ ) {
     if ( soil_con->AboveTreeLine[band] ) {
       Cv = 0;
       for ( veg = 0 ; veg < veg_con[0].vegetat_type_num ; veg++ ) {
-	if ( veg_lib[veg_con[veg].veg_class].overstory ) {
-          if (options.LAKES && veg_con[veg].LAKE) {
+	if ( state->veg_lib[veg_con[veg].veg_class].overstory ) {
+          if (state->options.LAKES && veg_con[veg].LAKE) {
             if (band == 0) {
               // Fraction of tile that is flooded
               Clake = prcp->lake_var.sarea/lake_con->basin[0];
@@ -253,7 +247,7 @@ int  put_data(dist_prcp_struct  *prcp,
   out_data[OUT_QAIR].data[0]      = EPS * atmos->vp[NR]/atmos->pressure[NR];
   out_data[OUT_RAINF].data[0]     = atmos->out_rain; // mm over grid cell
   out_data[OUT_REL_HUMID].data[0] = 100.*atmos->vp[NR]/(atmos->vp[NR]+atmos->vpd[NR]);
-  if (options.LAKES && lake_con->Cl[0] > 0)
+  if (state->options.LAKES && lake_con->Cl[0] > 0)
     out_data[OUT_LAKE_CHAN_IN].data[0] = atmos->channel_in[NR]; // mm over grid cell
   else
     out_data[OUT_LAKE_CHAN_IN].data[0] = 0;
@@ -271,7 +265,7 @@ int  put_data(dist_prcp_struct  *prcp,
 
     Cv = veg_con[veg].Cv;
     Clake = 0;
-    Nbands = options.SNOW_BAND;
+    Nbands = state->options.SNOW_BAND;
     IsWet = 0;
 
     if (veg < veg_con[0].vegetat_type_num)
@@ -282,13 +276,13 @@ int  put_data(dist_prcp_struct  *prcp,
     if ( Cv > 0) {
 
       // Check if this is lake/wetland tile
-      if (options.LAKES && veg_con[veg].LAKE) {
+      if (state->options.LAKES && veg_con[veg].LAKE) {
         Clake = prcp->lake_var.sarea/lake_con->basin[0];
         Nbands = 1;
         IsWet = 1;
       }
 
-      overstory = veg_lib[veg_con[veg].veg_class].overstory;
+      overstory = state->veg_lib[veg_con[veg].veg_class].overstory;
 
       /*********************************
         Store Output for all Bands 
@@ -341,7 +335,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              overstory,
                              soil_con->depth,
                              frost_fract,
-                             out_data);
+                             out_data, state);
 
 	  } // End wet/dry loop
 
@@ -368,13 +362,13 @@ int  put_data(dist_prcp_struct  *prcp,
                            soil_con->dz_node,
                            frost_fract,
                            frost_slope,
-                           out_data);
+                           out_data, state);
 
           // Store Wetland-Specific Variables
 
           if (IsWet) {
             // Wetland soil temperatures
-            for(i=0;i<options.Nnode;i++) {
+            for(i=0;i<state->options.Nnode;i++) {
               out_data[OUT_SOIL_TNODE_WL].data[i] = prcp->energy[veg][band].T[i];
             }
           }
@@ -393,7 +387,7 @@ int  put_data(dist_prcp_struct  *prcp,
               prcp->lake_var.energy.fdepth[i]      = prcp->energy[veg][band].fdepth[i];
               prcp->lake_var.energy.tdepth[i]      = prcp->energy[veg][band].fdepth[i];
             }
-            for (i=0; i<options.Nnode; i++) {
+            for (i=0; i<state->options.Nnode; i++) {
               prcp->lake_var.energy.ice_content[i]         = prcp->energy[veg][band].ice_content[i];
               prcp->lake_var.energy.T[i]           = prcp->energy[veg][band].T[i];
             }
@@ -423,7 +417,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              overstory,
                              soil_con->depth,
                              frost_fract,
-                             out_data);
+                             out_data, state);
 
 	    /**********************************
 	      Record Energy Balance Terms
@@ -448,7 +442,7 @@ int  put_data(dist_prcp_struct  *prcp,
                              soil_con->dz_node,
                              frost_fract,
                              frost_slope,
-                             out_data);
+                             out_data, state);
 
             // Store Lake-Specific Variables
 
@@ -526,12 +520,12 @@ int  put_data(dist_prcp_struct  *prcp,
     Aggregation of Dynamic Soil Properties      
    *****************************************/
 #if EXCESS_ICE
-  for(index=0;index<options.Nlayer;index++) {
+  for(index=0;index<state->options.Nlayer;index++) {
     out_data[OUT_SOIL_DEPTH].data[index]  = soil_con->depth[index];
     out_data[OUT_SUBSIDENCE].data[index]  = soil_con->subsidence[index];
     out_data[OUT_POROSITY].data[index]    = soil_con->effective_porosity[index];
   }  
-  for(index=0;index<options.Nnode;index++) 
+  for(index=0;index<state->options.Nnode;index++)
     out_data[OUT_ZSUM_NODE].data[index]   = soil_con->Zsum_node[index];
 #endif // EXCESS_ICE
 
@@ -582,7 +576,7 @@ int  put_data(dist_prcp_struct  *prcp,
    *****************************************/
   // Water balance terms
   out_data[OUT_DELSOILMOIST].data[0] = 0;
-  for (index=0; index<options.Nlayer; index++) {
+  for (index=0; index<state->options.Nlayer; index++) {
     out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
     out_data[OUT_DELSOILMOIST].data[0] += out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMLIQFRAC].data[index] = out_data[OUT_SOIL_LIQ].data[index]/out_data[OUT_SOIL_MOIST].data[index];
@@ -601,7 +595,7 @@ int  put_data(dist_prcp_struct  *prcp,
 
   // Save current moisture state for use in next time step
   save_data->total_soil_moist = 0;
-  for (index=0; index<options.Nlayer; index++) {
+  for (index=0; index<state->options.Nlayer; index++) {
     save_data->total_soil_moist += out_data[OUT_SOIL_MOIST].data[index];
   }
   save_data->surfstor = out_data[OUT_SURFSTOR].data[0];
@@ -614,8 +608,8 @@ int  put_data(dist_prcp_struct  *prcp,
   inflow  = out_data[OUT_PREC].data[0] + out_data[OUT_LAKE_CHAN_IN].data[0]; // mm over grid cell
   outflow = out_data[OUT_EVAP].data[0] + out_data[OUT_RUNOFF].data[0] + out_data[OUT_BASEFLOW].data[0]; // mm over grid cell
   storage = 0.;
-  for(index=0;index<options.Nlayer;index++)
-    if(options.MOISTFRACT)
+  for(index=0;index<state->options.Nlayer;index++)
+    if(state->options.MOISTFRACT)
       storage += (out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index]) 
 	* soil_con->depth[index] * 1000;
     else
@@ -626,7 +620,7 @@ int  put_data(dist_prcp_struct  *prcp,
   /********************
     Check Energy Balance 
   ********************/
-  if(options.FULL_ENERGY)
+  if(state->options.FULL_ENERGY)
     calc_energy_balance_error(rec, out_data[OUT_NET_SHORT].data[0] + out_data[OUT_NET_LONG].data[0],
 			      out_data[OUT_LATENT].data[0]+out_data[OUT_LATENT_SUB].data[0],
 			      out_data[OUT_SENSIBLE].data[0]+out_data[OUT_ADV_SENS].data[0],
@@ -646,7 +640,7 @@ int  put_data(dist_prcp_struct  *prcp,
   /********************
     Report T Fallback Occurrences
   ********************/
-  if (rec == global_param.nrecs-1) {
+  if (rec == state->global_param.nrecs-1) {
     fprintf(stderr,"Total number of fallbacks in Tfoliage: %d\n", Tfoliage_fbcount_total);
     fprintf(stderr,"Total number of fallbacks in Tcanopy: %d\n", Tcanopy_fbcount_total);
     fprintf(stderr,"Total number of fallbacks in Tsnowsurf: %d\n", Tsnowsurf_fbcount_total);
@@ -687,7 +681,7 @@ int  put_data(dist_prcp_struct  *prcp,
     /***********************************************
       Change of units for ALMA-compliant output
     ***********************************************/
-    if (options.ALMA_OUTPUT) {
+    if (state->options.ALMA_OUTPUT) {
       out_data[OUT_BASEFLOW].aggdata[0] /= out_dt_sec;
       out_data[OUT_EVAP].aggdata[0] /= out_dt_sec;
       out_data[OUT_EVAP_BARE].aggdata[0] /= out_dt_sec;
@@ -731,10 +725,10 @@ int  put_data(dist_prcp_struct  *prcp,
       out_data[OUT_BARESOILT].aggdata[0] += KELVIN;
       out_data[OUT_SNOW_PACK_TEMP].aggdata[0] += KELVIN;
       out_data[OUT_SNOW_SURF_TEMP].aggdata[0] += KELVIN;
-      for (index=0; index<options.Nlayer; index++) {
+      for (index=0; index<state->options.Nlayer; index++) {
         out_data[OUT_SOIL_TEMP].aggdata[index] += KELVIN;
       }
-      for (index=0; index<options.Nnode; index++) {
+      for (index=0; index<state->options.Nnode; index++) {
         out_data[OUT_SOIL_TNODE].aggdata[index] += KELVIN;
         out_data[OUT_SOIL_TNODE_WL].aggdata[index] += KELVIN;
       }
@@ -754,14 +748,14 @@ int  put_data(dist_prcp_struct  *prcp,
       Write Data
     *************/
     if(rec >= skipyear) {
-      if (options.BINARY_OUTPUT) {
+      if (state->options.BINARY_OUTPUT) {
         for (v=0; v<N_OUTVAR_TYPES; v++) {
           for (i=0; i<out_data[v].nelem; i++) {
             out_data[v].aggdata[i] *= out_data[v].mult;
           }
         }
       }
-      write_data(out_data_files, out_data, dmy, global_param.out_dt);
+      write_data(out_data_files, out_data, dmy, state->global_param.out_dt);
     }
 
     // Reset the step count
@@ -794,10 +788,9 @@ void collect_wb_terms(cell_data_struct  cell,
                       int               overstory,
                       double           *depth,
                       double           *frost_fract,
-                      out_data_struct  *out_data)
+                      out_data_struct  *out_data,
+                      const ProgramState* state)
 {
-
-  extern option_struct    options;
   double AreaFactor;
   double tmp_evap;
   double tmp_cond1;
@@ -811,7 +804,7 @@ void collect_wb_terms(cell_data_struct  cell,
 
   /** record evaporation components **/
   tmp_evap = 0.0;
-  for(index=0;index<options.Nlayer;index++)
+  for(index=0;index<state->options.Nlayer;index++)
     tmp_evap += cell.layer[index].evap;
   if (HasVeg)
     out_data[OUT_TRANSP_VEG].data[0] += tmp_evap * AreaFactor;
@@ -880,7 +873,7 @@ void collect_wb_terms(cell_data_struct  cell,
   }
 
   /** record layer moistures **/
-  for(index=0;index<options.Nlayer;index++) {
+  for(index=0;index<state->options.Nlayer;index++) {
     tmp_moist = cell.layer[index].moist;
 #if SPATIAL_FROST
     tmp_ice = 0;
@@ -890,7 +883,7 @@ void collect_wb_terms(cell_data_struct  cell,
     tmp_ice   = cell.layer[index].soil_ice;
 #endif
     tmp_moist -= tmp_ice;
-    if(options.MOISTFRACT) {
+    if(state->options.MOISTFRACT) {
       tmp_moist /= depth[index] * 1000.;
       tmp_ice /= depth[index] * 1000.;
     }
@@ -904,12 +897,12 @@ void collect_wb_terms(cell_data_struct  cell,
   out_data[OUT_ZWT].data[0] += cell.zwt * AreaFactor;
   out_data[OUT_ZWT2].data[0] += cell.zwt2 * AreaFactor;
   out_data[OUT_ZWT3].data[0] += cell.zwt3 * AreaFactor;
-  for(index=0;index<options.Nlayer;index++) {
+  for(index=0;index<state->options.Nlayer;index++) {
     out_data[OUT_ZWTL].data[index] += cell.layer[index].zwt * AreaFactor;
   }
 
   /** record layer temperatures **/
-  for(index=0;index<options.Nlayer;index++) {
+  for(index=0;index<state->options.Nlayer;index++) {
     out_data[OUT_SOIL_TEMP].data[index] += cell.layer[index].T * AreaFactor;
   }
 
@@ -962,10 +955,10 @@ void collect_eb_terms(energy_bal_struct energy,
                       double           *dz,
                       double           *frost_fract,
                       double            frost_slope,
-                      out_data_struct  *out_data)
+                      out_data_struct  *out_data,
+                      const ProgramState* state)
 {
 
-  extern option_struct    options;
   double AreaFactor;
   double tmp_fract;
   double rad_temp;
@@ -980,7 +973,7 @@ void collect_eb_terms(energy_bal_struct energy,
   **********************************/
 
   /** record freezing and thawing front depths **/
-  if(options.FROZEN_SOIL) {
+  if(state->options.FROZEN_SOIL) {
     for(index = 0; index < MAX_FRONTS; index++) {
       if(energy.fdepth[index] != MISSING)
         out_data[OUT_FDEPTH].data[index] += energy.fdepth[index] * AreaFactor * 100.;
@@ -1018,7 +1011,7 @@ void collect_eb_terms(energy_bal_struct energy,
   **********************************/
 
   /** record surface radiative temperature **/
-  if ( overstory && snow.snow && !(options.LAKES && IsWet)) {
+  if ( overstory && snow.snow && !(state->options.LAKES && IsWet)) {
     rad_temp = energy.Tcanopy + KELVIN;
   }
   else
@@ -1045,11 +1038,11 @@ void collect_eb_terms(energy_bal_struct energy,
   out_data[OUT_SURF_TEMP].data[0] += surf_temp * AreaFactor;
   
   /** record thermal node temperatures **/
-  for(index=0;index<options.Nnode;index++) {
+  for(index=0;index<state->options.Nnode;index++) {
     out_data[OUT_SOIL_TNODE].data[index] += energy.T[index] * AreaFactor;
   }
   if (IsWet) {
-    for(index=0;index<options.Nnode;index++) {
+    for(index=0;index<state->options.Nnode;index++) {
       out_data[OUT_SOIL_TNODE_WL].data[index] = energy.T[index];
     }
   }
@@ -1057,7 +1050,7 @@ void collect_eb_terms(energy_bal_struct energy,
   /** record temperature flags  **/
   out_data[OUT_SURFT_FBFLAG].data[0] += energy.Tsurf_fbflag * AreaFactor;
   *Tsurf_fbcount_total += energy.Tsurf_fbcount;
-  for (index=0; index<options.Nnode; index++) {
+  for (index=0; index<state->options.Nnode; index++) {
     out_data[OUT_SOILT_FBFLAG].data[index] += energy.T_fbflag[index] * AreaFactor;
     *Tsoil_fbcount_total += energy.T_fbcount[index];
   }

@@ -24,9 +24,6 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
 
  ********************************************************************/
 {
-
-  extern option_struct   options;
-
   /* General Model Parameters */
   int     band;
   int     month;
@@ -167,6 +164,7 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
   RefreezeEnergy     = (double *) va_arg(ap, double *);
   SensibleHeat       = (double *) va_arg(ap, double *);
   VaporMassFlux      = (double *) va_arg(ap, double *);
+  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
 
   /* Calculate the net radiation at the canopy surface, using the canopy 
      temperature.  The outgoing longwave is subtracted twice, because the 
@@ -186,7 +184,7 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
 
     /** Added multiplication by 10 to incorporate change in canopy resistance due
 	to smoothing by intercepted snow **/
-    if (options.AERO_RESIST_CANSNOW == AR_COMBO || options.AERO_RESIST_CANSNOW == AR_406 || options.AERO_RESIST_CANSNOW == AR_406_LS || options.AERO_RESIST_CANSNOW == AR_406_FULL)
+    if (state->options.AERO_RESIST_CANSNOW == AR_COMBO || state->options.AERO_RESIST_CANSNOW == AR_406 || state->options.AERO_RESIST_CANSNOW == AR_406_LS || state->options.AERO_RESIST_CANSNOW == AR_406_FULL)
       Ra_used[1] *= 10.;
 
     /** Calculate the vapor mass flux between intercepted snow in 
@@ -195,7 +193,7 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
     EsSnow = svp(Tfoliage); 
     
     /* Apply stability correction to aerodynamic resistance */
-    if (options.AERO_RESIST_CANSNOW == AR_COMBO || options.AERO_RESIST_CANSNOW == AR_410) {
+    if (state->options.AERO_RESIST_CANSNOW == AR_COMBO || state->options.AERO_RESIST_CANSNOW == AR_410) {
       if (Wind[1] > 0.0) {
         Ra_used[1] /= StabilityCorrection(ref_height[1], displacement[1], Tfoliage, 
 				          Tcanopy, Wind[1], roughness[1]);
@@ -218,12 +216,12 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
     *Evap = 0;
     veg_var_wet->throughfall = 0;
 
-    if (options.AERO_RESIST_CANSNOW == AR_406)
+    if (state->options.AERO_RESIST_CANSNOW == AR_406)
       Ra_used[1] /= 10;
   }
   else {
 
-    if (options.AERO_RESIST_CANSNOW == AR_406_FULL || options.AERO_RESIST_CANSNOW == AR_410 || options.AERO_RESIST_CANSNOW == AR_COMBO) {
+    if (state->options.AERO_RESIST_CANSNOW == AR_406_FULL || state->options.AERO_RESIST_CANSNOW == AR_410 || state->options.AERO_RESIST_CANSNOW == AR_COMBO) {
       Ra_used[0] = Ra[0];
       Ra_used[1] = Ra[1];
     }
@@ -239,7 +237,7 @@ double func_canopy_energy_bal(double Tfoliage, va_list ap)
 			veg_class, month, precipitation_mu, Wdew, delta_t, *NetRadiation, 
 			Vpd, NetShortOver, Tcanopy, Ra_used[1], displacement[1], 
 			roughness[1], ref_height[1], elevation, prec, 
-			depth, Wcr, Wpwp, frost_fract, root);
+			depth, Wcr, Wpwp, frost_fract, root, state);
     Wdew[WET] /= 1000.;
 
     *LatentHeat = latent_heat_Le * *Evap * RHO_W;

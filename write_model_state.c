@@ -7,14 +7,14 @@ static char vcid[] = "$Id$";
 
 
 void write_model_state(dist_prcp_struct    *prcp,
-		       global_param_struct *gp,
 		       int                  Nveg,
 		       int                  cellnum,
 		       filep_struct        *filep,
 		       soil_con_struct     *soil_con,
 		       char                *STILL_STORM,
 		       int                 *DRY_TIME,
-		       lake_con_struct      lake_con)
+		       lake_con_struct      lake_con,
+		       const ProgramState  *state)
 /*********************************************************************
   write_model_state      Keith Cherkauer           April 14, 2000
 

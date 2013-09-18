@@ -20,21 +20,16 @@ void vicerror(const char *error_text)
 
 **********************************************************************/
 {
-        extern option_struct options;
-	extern Error_struct Error;
-#if LINK_DEBUG
-        extern debug_struct debug;
-#endif
-
         filenames_struct fnames;
-        /*	void _exit();  Even more no. */
 
-        options.COMPRESS=FALSE;	/* turn off compression of last set of files */
+	/* turn off compression of last set of files */
+  bool compress = false;
 
 	fprintf(stderr,"VIC model run-time error...\n");
 	fprintf(stderr,"%s\n",error_text);
 	fprintf(stderr,"...now writing output files...\n");
-        close_files(&(Error.filep), Error.out_data_files, &fnames);
+	//TODO: this is broken since global state is not updated with each cell, and this would not work with multiple threads anyways
+  //close_files(&(state->Error.filep), state->Error.out_data_files, &fnames, compress);
 	fprintf(stderr,"...now exiting to system...\n");
         fflush(stdout);
         fflush(stderr);

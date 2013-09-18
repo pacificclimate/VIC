@@ -6,7 +6,7 @@
 static char vcid[] = "$Id$";
 
 void parse_output_info(const char*           input_file_name,
-                       out_data_file_struct  **out_data_files,  //TODO: make a single pointer
+                       out_data_file_struct  *out_data_files,
                        out_data_struct       *out_data,
                        ProgramState          *state)
 /**********************************************************************
@@ -62,9 +62,9 @@ void parse_output_info(const char*           input_file_name,
 
       if(strcasecmp("N_OUTFILES",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&tmp_noutfiles);
-        free_out_data_files(out_data_files);
+        free_out_data_files(out_data_files, state);
         state->options.Noutfiles = tmp_noutfiles;
-        *out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
+        out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
         outfilenum = -1;
         init_output_list(out_data, FALSE, "%.4f", OUT_TYPE_FLOAT, 1);
         // PRT_SNOW_BAND is ignored if N_OUTFILES has been specified
@@ -79,8 +79,8 @@ void parse_output_info(const char*           input_file_name,
           sprintf(ErrStr, "Error in global param file: number of output files specified in N_OUTFILES (%d) is less than actual number of output files defined in the global param file.",state->options.Noutfiles);
           nrerror(ErrStr);
         }
-        sscanf(cmdstr,"%*s %s %d",(*out_data_files)[outfilenum].prefix,&((*out_data_files)[outfilenum].nvars));
-        (*out_data_files)[outfilenum].varid = (int *)calloc((*out_data_files)[outfilenum].nvars, sizeof(int));
+        sscanf(cmdstr,"%*s %s %d",out_data_files[outfilenum].prefix,&(out_data_files[outfilenum].nvars));
+        out_data_files[outfilenum].varid = (int *)calloc(out_data_files[outfilenum].nvars, sizeof(int));
         outvarnum = 0;
       }
       else if(strcasecmp("OUTVAR",optstr)==0) {
@@ -112,7 +112,7 @@ void parse_output_info(const char*           input_file_name,
           else
             mult = (float)atof(multstr);
         }
-        if (set_output_var((*out_data_files), TRUE, outfilenum, out_data, varname, outvarnum, format, type, mult) != 0) {
+        if (set_output_var(out_data_files, TRUE, outfilenum, out_data, varname, outvarnum, format, type, mult) != 0) {
           nrerror("Error in global param file: Invalid output variable specification.");
         }
         strcpy(format,"");

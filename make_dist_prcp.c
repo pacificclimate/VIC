@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-dist_prcp_struct make_dist_prcp(int  nveg)
+dist_prcp_struct make_dist_prcp(int  nveg, const int NUM_LAYERS, const int NUM_SNOW_BAND)
 /**********************************************************************
 	read_dist_prcp	Keith Cherkauer		May 21, 1996
 
@@ -25,8 +25,6 @@ dist_prcp_struct make_dist_prcp(int  nveg)
   2009-Jul-31 Removed extra lake/wetland tile.			TJB
 **********************************************************************/
 {
-  extern option_struct options;
-
   dist_prcp_struct temp;
   int              i;
   int              Nitems;
@@ -35,11 +33,11 @@ dist_prcp_struct make_dist_prcp(int  nveg)
 
   temp.mu     = (double *)calloc(Nitems,sizeof(double));
   for ( i = 0; i < Nitems; i++ ) temp.mu[i] = 1;
-  temp.snow   = make_snow_data(Nitems);
-  temp.energy = make_energy_bal(Nitems);
+  temp.snow   = make_snow_data(Nitems, NUM_SNOW_BAND);
+  temp.energy = make_energy_bal(Nitems, NUM_SNOW_BAND);
   for ( i = 0; i < 2; i++ ) {
-    temp.veg_var[i]  = make_veg_var(Nitems);
-    temp.cell[i]     = make_cell_data(Nitems,options.Nlayer);
+    temp.veg_var[i]  = make_veg_var(Nitems, NUM_SNOW_BAND);
+    temp.cell[i]     = make_cell_data(Nitems,NUM_LAYERS, NUM_SNOW_BAND);
   }
 
   return (temp);

@@ -9,7 +9,8 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 				   char *soilparamdir, 
 				   int  *Ncells,
 				   char *RUN,
-				   int   cell)
+				   int   cell,
+				   ProgramState* state)
 /**********************************************************************
 	read_soilparam_arc     Keith Cherkauer		May 5, 1998
 
@@ -128,13 +129,6 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 	      for each grid cell.						TJB
 **********************************************************************/
 {
-  extern option_struct options;
-  extern global_param_struct global_param;
-  extern veg_lib_struct *veg_lib;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
   static double *lat;
   static double *lng;
   static int    *cellnum;
@@ -176,7 +170,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
       fscanf(soilparam,"%s",tmpstr);
       cnt++;
     }
-    if(cnt!=18+10*options.Nlayer) {
+    if(cnt!=18+10*state->options.Nlayer) {
       sprintf(ErrStr,"Not the right number of soil parameter files in the ARC/INFO file list.");
       nrerror(ErrStr);
     }
@@ -258,7 +252,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     strcat(namestr,"/");
     strcat(namestr,tmpstr);
     temp.avg_temp = read_arcinfo_value(namestr,temp.lat,temp.lng);
-    if(options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
+    if(state->options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
       fprintf(stderr,"Need valid average soil temperature in degrees C to run");
       fprintf(stderr," Full Energy model, %f is not acceptable.\n",
 	      temp.avg_temp);
@@ -280,7 +274,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     off_gmt = read_arcinfo_value(namestr,temp.lat,temp.lng);
 
     /** Get Critical Soil Moisture Fraction for each layer **/
-    for(layer = 0; layer < options.Nlayer; layer++) {
+    for(layer = 0; layer < state->options.Nlayer; layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -289,7 +283,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Wilting Point Soil Moisture Fraction for each layer **/
-    for(layer = 0; layer < options.Nlayer; layer++) {
+    for(layer = 0; layer < state->options.Nlayer; layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -307,8 +301,8 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     /* Overwrite default bare soil aerodynamic resistance parameters
        with the values taken from the soil parameter file */
     for (j=0; j<12; j++) {
-      veg_lib[veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
-      veg_lib[veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
+      state->veg_lib[state->veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
+      state->veg_lib[state->veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
     }
 #endif // !OUTPUT_FORCE
 
@@ -327,7 +321,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     temp.annual_prec = read_arcinfo_value(namestr,temp.lat,temp.lng);
 
     /** Get Layer Percent Sand **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -336,7 +330,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Percent Clay **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -345,7 +339,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Saturated Hydraulic Conductivity **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -354,7 +348,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Soil Moisture Diffusion Parameter **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -363,7 +357,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Initial Layer Moisture **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -372,7 +366,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Thickness **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -384,7 +378,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Mineral Bulk Density **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -393,7 +387,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
     }
 
     /** Get Layer Mineral Porosity **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
@@ -427,7 +421,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 #endif // SPATIAL_FROST
 
     /** Layer Initial Volumetric Ice Fraction **/
-    for(layer=0;layer<options.Nlayer;layer++) {
+    for(layer=0;layer<state->options.Nlayer;layer++) {
       fscanf(soilparam,"%s",tmpstr);
 #if EXCESS_ICE
       strcpy(namestr,soilparamdir);
@@ -437,16 +431,16 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 #endif // EXCESS_ICE
     }
 
-    if (options.COMPUTE_TREELINE && options.JULY_TAVG_SUPPLIED && (fscanf(soilparam,"%s",tmpstr)) != EOF) {
+    if (state->options.COMPUTE_TREELINE && state->options.JULY_TAVG_SUPPLIED && (fscanf(soilparam,"%s",tmpstr)) != EOF) {
       /** Get Avg July Air Temperature **/
       strcpy(namestr,soilparamdir);
       strcat(namestr,"/");
       strcat(namestr,tmpstr);
       temp.avgJulyAirTemp = read_arcinfo_value(namestr,temp.lat,temp.lng);
     }
-    if (options.ORGANIC_FRACT && (fscanf(soilparam,"%s",tmpstr)) != EOF) {
+    if (state->options.ORGANIC_FRACT && (fscanf(soilparam,"%s",tmpstr)) != EOF) {
       /** Get Layer Percent Organic **/
-      for(layer=0;layer<options.Nlayer;layer++) {
+      for(layer=0;layer<state->options.Nlayer;layer++) {
         fscanf(soilparam,"%s",tmpstr);
         strcpy(namestr,soilparamdir);
         strcat(namestr,"/");
@@ -454,7 +448,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
         temp.organic[layer] = read_arcinfo_value(namestr,temp.lat,temp.lng);
       }
       /** Get Layer Organic Bulk Density **/
-      for(layer=0;layer<options.Nlayer;layer++) {
+      for(layer=0;layer<state->options.Nlayer;layer++) {
         fscanf(soilparam,"%s",tmpstr);
         strcpy(namestr,soilparamdir);
         strcat(namestr,"/");
@@ -465,7 +459,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
         }
       }
       /** Get Layer Organic Soil Density **/
-      for(layer=0;layer<options.Nlayer;layer++) {
+      for(layer=0;layer<state->options.Nlayer;layer++) {
         fscanf(soilparam,"%s",tmpstr);
         strcpy(namestr,soilparamdir);
         strcat(namestr,"/");
@@ -477,7 +471,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
       }
     }
     else {
-      for(layer=0;layer<options.Nlayer;layer++) {
+      for(layer=0;layer<state->options.Nlayer;layer++) {
         temp.organic[layer] = 0.0;
         temp.bulk_dens_org[layer] = -9999;
         temp.soil_dens_org[layer] = -9999;
@@ -489,7 +483,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
       Compute Soil Layer Properties
       *******************************************/
     sum_depth   = 0.;
-    for(layer = 0; layer < options.Nlayer; layer++) {
+    for(layer = 0; layer < state->options.Nlayer; layer++) {
       sum_depth += temp.depth[layer];
       temp.bulk_dens_min[layer] *= 1000.;
       temp.soil_dens_min[layer] = temp.bulk_dens_min[layer] / (1.0 - temp.porosity[layer]);
@@ -569,7 +563,7 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
       }
       tmp_bubble += temp.bubble[layer];
     }
-    for(layer=0;layer<options.Nlayer;layer++) temp.bubble[layer] = tmp_bubble/3.;
+    for(layer=0;layer<state->options.Nlayer;layer++) temp.bubble[layer] = tmp_bubble/3.;
 
 #endif /* !OUTPUT_FORCE */
     

@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void write_soilparam(soil_con_struct *soil)
+void write_soilparam(soil_con_struct *soil, const ProgramState* state)
 /**********************************************************************
 	write_soilparam		Dag Lohmann	January 1996
 
@@ -19,8 +19,6 @@ void write_soilparam(soil_con_struct *soil)
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int i;
 
   printf("Soil Parameters\n");
@@ -33,42 +31,42 @@ void write_soilparam(soil_con_struct *soil)
 	 soil->Dsmax);
   printf("\tWs                   = %f [Soil Water Content]\n",soil->Ws);
   printf("\tc                    = %f\n",soil->c);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tExpt%02d             = %f [exponential]\n",i+1,soil->expt[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tKsat%02d             = %f mm/day [Saturated hydraulic conductivity]\n",i+1,soil->Ksat[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tPhi_s%02d            = %f mm/mm [soil moisture diffusion coefficient]\n",i+1,soil->phi_s[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tinit_moist%02d       = %f mm [Initial soil layer moisture]\n",
 	   i+1,soil->init_moist[i]);
   printf("\televation            = %f m [Average elevation]\n",
 	 soil->elevation);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tdepth%02d            = %f m [Soil layer thickness]\n",
 	   i+1,soil->depth[i]);
   printf("\tavg_temp             = %f C [Average soil temperature]\n",
 	 soil->avg_temp);
   printf("\tdp                   = %f m [Soil thermal damping depth]\n",
 	 soil->dp);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tbubble%02d           = %f cm [Bubbling Pressure]\n",i,soil->bubble[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tquartz%02d           = %f fract [Quartz content]\n",i,soil->quartz[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tbulk_density%02d     = %f kg/m^3 [Bulk density]\n",
 	   i+1,soil->bulk_density[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tsoil_density%02d     = %f kg/m^3 [Soil partical density]\n",
 	   i+1,soil->soil_density[i]);
   printf("\ttime_zone_lng     = %f degrees [Central longitude of time zone]\n",soil->time_zone_lng);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tmax_moist%02d     = %f mm [Maximum moisture content]\n",
 	   i+1,soil->max_moist[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tWcr%02d           = %f mm [Critical moisture content]\n",
 	   i+1,soil->Wcr[i]);
-  for(i=0;i<options.Nlayer;i++)
+  for(i=0;i<state->options.Nlayer;i++)
     printf("\tWpwp%02d          = %f mm [Wilting point moisture content]\n",
 	   i+1,soil->Wpwp[i]);
   printf("\trough             = %f m [Roughness of bare soil]\n",soil->rough);

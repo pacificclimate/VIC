@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 void initialize_veg(veg_var_struct      **veg_var,
 		    veg_con_struct       *veg_con,
 		    global_param_struct   *gp,
-		    int                    Nveg)
+		    int                    Nveg,
+		    const ProgramState    *state)
 /**********************************************************************
   initialize_veg		Dag Lohmann	 January 1996
 
@@ -23,12 +24,8 @@ void initialize_veg(veg_var_struct      **veg_var,
 
 **********************************************************************/
 {
-  extern option_struct   options;
-
-  int i, j;
-
-  for ( i = 0 ; i < Nveg ; i++) {
-    for ( j = 0 ; j < options.SNOW_BAND ; j++ ) {
+  for (int i = 0 ; i < Nveg ; i++) {
+    for (int j = 0 ; j < state->options.SNOW_BAND ; j++ ) {
       veg_var[i][j].Wdew = 0.0;
       veg_var[i][j].throughfall = 0.0;
     }

@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-veg_var_struct **make_veg_var(int veg_type_num)
+veg_var_struct **make_veg_var(int veg_type_num, const int NUM_SNOW_BAND)
 /**********************************************************************
 	make_veg_var	Dag Lohman		January 1996
 
@@ -17,15 +17,13 @@ veg_var_struct **make_veg_var(int veg_type_num)
 
 **********************************************************************/
 {
-  extern option_struct options;
-  
   int              i;
   veg_var_struct **temp;
 
   temp = (veg_var_struct **) calloc(veg_type_num, 
 				    sizeof(veg_var_struct *));
   for(i=0;i<veg_type_num;i++)
-    temp[i] = (veg_var_struct *) calloc(options.SNOW_BAND, 
+    temp[i] = (veg_var_struct *) calloc(NUM_SNOW_BAND,
 					sizeof(veg_var_struct));
   return temp;
 }

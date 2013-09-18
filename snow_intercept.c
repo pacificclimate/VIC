@@ -128,11 +128,9 @@ int snow_intercept(double  Dt,
 		   layer_data_struct *layer_wet,
 		   soil_con_struct   *soil_con,
 		   veg_var_struct    *veg_var_dry,
-		   veg_var_struct    *veg_var_wet)
+		   veg_var_struct    *veg_var_wet,
+		   const ProgramState* state)
 {
-
-  extern option_struct options;
-
   /* double AdvectedEnergy; */         /* Energy advected by the rain (W/m2) */
   double BlownSnow;              /* Depth of snow blown of the canopy (m) */
   double DeltaSnowInt;           /* Change in the physical swe of snow
@@ -348,7 +346,7 @@ int snow_intercept(double  Dt,
 				   LatentHeat, LatentHeatSub, 
 				   LongOverOut, NetLongOver, &NetRadiation, 
 				   &RefreezeEnergy, SensibleHeat, 
-				   VaporMassFlux);
+				   VaporMassFlux, state);
 
     if ( Qnet != 0 ) {
       /* Intercepted snow not melting - need to find temperature */
@@ -388,10 +386,10 @@ int snow_intercept(double  Dt,
 			   LatentHeat, LatentHeatSub, 
 			   LongOverOut, NetLongOver, &NetRadiation, 
 			   &RefreezeEnergy, SensibleHeat, 
-			   VaporMassFlux);
+			   VaporMassFlux, state);
     
     if ( *Tfoliage <= -998 ) {
-      if (options.TFALLBACK) {
+      if (state->options.TFALLBACK) {
         *Tfoliage = OldTfoliage;
         *Tfoliage_fbflag = 1;
         (*Tfoliage_fbcount)++;
@@ -414,7 +412,7 @@ int snow_intercept(double  Dt,
 					    LatentHeat, LatentHeatSub, 
 					    LongOverOut, NetLongOver, &NetRadiation, 
 					    &RefreezeEnergy, SensibleHeat, 
-					    VaporMassFlux, ErrorString);
+					    VaporMassFlux, ErrorString, state);
         return( ERROR );
       }
     }
@@ -435,7 +433,7 @@ int snow_intercept(double  Dt,
 				   LatentHeat, LatentHeatSub, 
 				   LongOverOut, NetLongOver, &NetRadiation, 
 				   &RefreezeEnergy, SensibleHeat, 
-				   VaporMassFlux);
+				   VaporMassFlux, state);
 
   }
 
@@ -628,9 +626,6 @@ double error_calc_canopy_energy_bal(double Tfoliage, ...)
 
 double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
 {  
-
-  extern option_struct options;
-
   /* General Model Parameters */
   int     band;
   int     month;
@@ -765,6 +760,7 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
   SensibleHeat       = (double *) va_arg(ap, double *);
   VaporMassFlux      = (double *) va_arg(ap, double *);
   ErrorString        = (char *) va_arg(ap, char *);
+  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
 
   /** Print variable info */
   fprintf(stderr, "%s", ErrorString);
@@ -817,13 +813,13 @@ double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
 
   printf("Wdew = %f\n", *Wdew);
 
-  write_layer(layer_wet, iveg, options.Nlayer, frost_fract, depth);
+  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract, depth);
 
-  if(options.DIST_PRCP) 
-    write_layer(layer_dry, iveg, options.Nlayer, frost_fract, depth);
+  if(state->options.DIST_PRCP)
+    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract, depth);
 
   write_vegvar(&(veg_var_wet[0]),iveg);
-  if(options.DIST_PRCP) 
+  if(state->options.DIST_PRCP)
     write_vegvar(&(veg_var_dry[0]),iveg);
 
   /* Energy Flux Terms */

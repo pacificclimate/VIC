@@ -6,7 +6,8 @@
 static char vcid[] = "$Id$";
 
 void calc_root_fractions(veg_con_struct  *veg_con,
-			 soil_con_struct  *soil_con)
+			 soil_con_struct  *soil_con,
+			 const ProgramState* state)
 /**********************************************************************
   calc_root_fraction.c    Keith Cherkauer      September 24, 1998
 
@@ -17,8 +18,6 @@ void calc_root_fractions(veg_con_struct  *veg_con,
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   char   ErrStr[MAXSTRING];
   int    Nveg;
   int    veg;
@@ -47,7 +46,7 @@ void calc_root_fractions(veg_con_struct  *veg_con,
     Zsum       = 0;
     zone       = 0;
     
-    while(zone<options.ROOT_ZONES) {
+    while(zone<state->options.ROOT_ZONES) {
       Zstep = (double)veg_con[veg].zone_depth[zone];
       if((Zsum + Zstep) <= Lsum && Zsum >= Lsum - Lstep) {
 	/** CASE 1: Root Zone Completely in Soil Layer **/
@@ -86,19 +85,19 @@ void calc_root_fractions(veg_con_struct  *veg_con,
       else if(Zsum + Zstep == Lsum) {
 	Zsum += Zstep;
 	zone ++;
-	if(layer<options.Nlayer) {
+	if(layer<state->options.Nlayer) {
 	  veg_con[veg].root[layer] = sum_fract;
 	  sum_fract = 0.;
 	}
 	layer++;
-	if(layer<options.Nlayer) {
+	if(layer<state->options.Nlayer) {
 	  Lstep  = soil_con->depth[layer];
 	  Lsum  += Lstep;
 	}
-	else if(layer==options.Nlayer) {
+	else if(layer==state->options.Nlayer) {
 	  Lstep  = Zsum + Zstep - Lsum;
-	  if(zone<options.ROOT_ZONES-1) {
-	    for(i=zone+1;i<options.ROOT_ZONES;i++) {
+	  if(zone<state->options.ROOT_ZONES-1) {
+	    for(i=zone+1;i<state->options.ROOT_ZONES;i++) {
 	      Lstep += veg_con[veg].zone_depth[i];
 	    }
 	  }
@@ -106,19 +105,19 @@ void calc_root_fractions(veg_con_struct  *veg_con,
 	}
       }
       else if(Zsum + Zstep > Lsum) {
-	if(layer<options.Nlayer) {
+	if(layer<state->options.Nlayer) {
 	  veg_con[veg].root[layer] = sum_fract;
 	  sum_fract = 0.;
 	}
 	layer++;
-	if(layer<options.Nlayer) {
+	if(layer<state->options.Nlayer) {
 	  Lstep  = soil_con->depth[layer];
 	  Lsum  += Lstep;
 	}
-	else if(layer==options.Nlayer) {
+	else if(layer==state->options.Nlayer) {
 	  Lstep  = Zsum + Zstep - Lsum;
-	  if(zone<options.ROOT_ZONES-1) {
-	    for(i=zone+1;i<options.ROOT_ZONES;i++) {
+	  if(zone<state->options.ROOT_ZONES-1) {
+	    for(i=zone+1;i<state->options.ROOT_ZONES;i++) {
 	      Lstep += veg_con[veg].zone_depth[i];
 	    }
 	  }
@@ -128,15 +127,15 @@ void calc_root_fractions(veg_con_struct  *veg_con,
 	
     }
 
-    if(sum_fract > 0 && layer >= options.Nlayer) {
-      veg_con[veg].root[options.Nlayer-1] += sum_fract;
+    if(sum_fract > 0 && layer >= state->options.Nlayer) {
+      veg_con[veg].root[state->options.Nlayer-1] += sum_fract;
     }
     else if(sum_fract > 0) {
       veg_con[veg].root[layer] += sum_fract;
     }
 
     dum=0.;
-    for (layer=0;layer<options.Nlayer;layer++) {
+    for (layer=0;layer<state->options.Nlayer;layer++) {
       if(veg_con[veg].root[layer] < 1.e-4) veg_con[veg].root[layer] = 0.;
       dum += veg_con[veg].root[layer];
     }
@@ -145,7 +144,7 @@ void calc_root_fractions(veg_con_struct  *veg_con,
 	      dum, veg_con[veg].veg_class);
       nrerror(ErrStr);
     }
-    for (layer=0;layer<options.Nlayer;layer++) {
+    for (layer=0;layer<state->options.Nlayer;layer++) {
       veg_con[veg].root[layer] /= dum;
     }
 

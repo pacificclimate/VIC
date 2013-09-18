@@ -11,11 +11,11 @@ static char vcid[] = "$Id$";
 
 void read_atmos_data(FILE                 *infile,
                      int                   ncid,
-                     global_param_struct   global_param,
                      int                   file_num,
                      int                   forceskip,
                      double              **forcing_data,
-                     soil_con_struct      *soil_con)
+                     soil_con_struct      *soil_con,
+                     const ProgramState   *state)
 /**********************************************************************
   read_atmos_data
   
@@ -65,10 +65,6 @@ void read_atmos_data(FILE                 *infile,
 
   **********************************************************************/
 {
-  
-  extern option_struct options;
-  extern param_set_struct param_set;
-
   int rec;
   int skip_recs;
   int i;
@@ -83,34 +79,34 @@ void read_atmos_data(FILE                 *infile,
   unsigned short Identifier[4];
   int Nbytes;
 
-  Nfields = param_set.N_TYPES[file_num];
+  Nfields = state->param_set.N_TYPES[file_num];
 
   /** locate starting record **/
   /* if ascii then the following refers to the number of lines to skip,
    if binary the following needs multiplying by the number of input fields */
-  skip_recs = (int) ((float) (global_param.dt * forceskip)) / (float) param_set.FORCE_DT[file_num];
-  if ((((global_param.dt < 24
-      && (param_set.FORCE_DT[file_num] * forceskip) % global_param.dt) > 0))
-      || (global_param.dt == 24
-          && (global_param.dt % param_set.FORCE_DT[file_num] > 0)))
+  skip_recs = (int) ((float) (state->global_param.dt * forceskip)) / (float) state->param_set.FORCE_DT[file_num];
+  if ((((state->global_param.dt < 24
+      && (state->param_set.FORCE_DT[file_num] * forceskip) % state->global_param.dt) > 0))
+      || (state->global_param.dt == 24
+          && (state->global_param.dt % state->param_set.FORCE_DT[file_num] > 0)))
     nrerror("Currently unable to handle a model starting date that does not correspond to a line in the forcing file.");
 
   /** Error checking - Model can be run at any time step using daily forcing
    data, but if sub-daily data is used, the model must be run at the
    same time step as the data.  That way aggregation and disaggragation
    techniques are left to the user. **/
-  if (param_set.FORCE_DT[file_num] < 24
-      && global_param.dt != param_set.FORCE_DT[file_num]) {
+  if (state->param_set.FORCE_DT[file_num] < 24
+      && state->global_param.dt != state->param_set.FORCE_DT[file_num]) {
     sprintf(ErrStr,
         "When forcing the model with sub-daily data, the model must be run at the same time step as the forcing data.  Currently the model time step is %i hours, while forcing file %i has a time step of %i hours.",
-        global_param.dt, file_num, param_set.FORCE_DT[file_num]);
+        state->global_param.dt, file_num, state->param_set.FORCE_DT[file_num]);
     nrerror(ErrStr);
   }
 
   if (infile == NULL)
     fprintf(stderr, "NULL file\n");
 
-  if (param_set.FORCE_FORMAT[file_num] == NETCDF) {
+  if (state->param_set.FORCE_FORMAT[file_num] == NETCDF) {
     /*****************************
      *  Read NetCDF Forcing Data  *
      *****************************/
@@ -124,8 +120,8 @@ void read_atmos_data(FILE                 *infile,
      */
 
     /* TODO some of these should be parameters once this is complete... */
-    const int nforcesteps = global_param.nrecs * global_param.dt
-        / param_set.FORCE_DT[file_num]; /* number of forcing timesteps to be loaded */
+    const int nforcesteps = state->global_param.nrecs * state->global_param.dt
+        / state->param_set.FORCE_DT[file_num]; /* number of forcing timesteps to be loaded */
 
     int ndims; /* scratch for nc_inq_varndims */
     nc_type vartype; /* scratch for nc_inq_vartype */
@@ -231,7 +227,7 @@ void read_atmos_data(FILE                 *infile,
             assert(
                 nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
           short int *data = (short int *) malloc(
-              (global_param.nrecs * global_param.dt) * sizeof(short));
+              (state->global_param.nrecs * state->global_param.dt) * sizeof(short));
           /* MPN FIXME DEBUG - probably duplicate this or move this up... */
           fprintf(stderr,
               "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ",
@@ -250,11 +246,11 @@ void read_atmos_data(FILE                 *infile,
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
+              forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
                   / inverse_scale_factor;
           else
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
+              forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec]
                   * scale_factor;
           free(data);
           break;
@@ -267,7 +263,7 @@ void read_atmos_data(FILE                 *infile,
             assert(
                 nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
           unsigned short int *data = (unsigned short int *) malloc(
-              (global_param.nrecs * global_param.dt) * sizeof(short));
+              (state->global_param.nrecs * state->global_param.dt) * sizeof(short));
           if ((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts,
               NULL, perm, data)) != NC_NOERR) {
             fprintf(stderr, "Error reading NetCDF variable data: %s\n",
@@ -277,10 +273,10 @@ void read_atmos_data(FILE                 *infile,
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] / inverse_scale_factor;
+              forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] / inverse_scale_factor;
           else
             for (int rec = 0; rec < nforcesteps; rec++)
-              forcing_data[param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] * scale_factor;
+              forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec] * scale_factor;
           free(data);
           break;
         }
@@ -309,7 +305,7 @@ void read_atmos_data(FILE                 *infile,
    Read BINARY Forcing Data
    ***************************/
 
-  else if (param_set.FORCE_FORMAT[file_num] == BINARY) {
+  else if (state->param_set.FORCE_FORMAT[file_num] == BINARY) {
 
     /** test whether the machine is little-endian or big-endian **/
     i = 1;
@@ -327,7 +323,7 @@ void read_atmos_data(FILE                 *infile,
       nrerror("No data in the forcing file.  Model stopping...");
     for (i = 0; i < 4; i++) {
       fread(&ustmp, sizeof(unsigned short), 1, infile);
-      if (endian != param_set.FORCE_ENDIAN[file_num]) {
+      if (endian != state->param_set.FORCE_ENDIAN[file_num]) {
         ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
       }
       Identifier[i] = ustmp;
@@ -337,7 +333,7 @@ void read_atmos_data(FILE                 *infile,
       Nbytes = 0;
     } else {
       fread(&ustmp, sizeof(unsigned short), 1, infile);
-      if (endian != param_set.FORCE_ENDIAN[file_num]) {
+      if (endian != state->param_set.FORCE_ENDIAN[file_num]) {
         ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
       }
       Nbytes = (int) ustmp;
@@ -355,22 +351,22 @@ void read_atmos_data(FILE                 *infile,
     rec = 0;
 
     while (!feof(infile)
-        && (rec * param_set.FORCE_DT[file_num]
-            < global_param.nrecs * global_param.dt)) {
+        && (rec * state->param_set.FORCE_DT[file_num]
+            < state->global_param.nrecs * state->global_param.dt)) {
 
       for (i = 0; i < Nfields; i++) {
-        if (param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].SIGNED) {
+        if (state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][i]].SIGNED) {
           fread(&stmp, sizeof(short int), 1, infile);
-          if (endian != param_set.FORCE_ENDIAN[file_num]) {
+          if (endian != state->param_set.FORCE_ENDIAN[file_num]) {
             stmp = ((stmp & 0xFF) << 8) | ((stmp >> 8) & 0xFF);
           }
-          forcing_data[param_set.FORCE_INDEX[file_num][i]][rec] = (double) stmp / param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].multiplier;
+          forcing_data[state->param_set.FORCE_INDEX[file_num][i]][rec] = (double) stmp / state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][i]].multiplier;
         } else {
           fread(&ustmp, sizeof(unsigned short int), 1, infile);
-          if (endian != param_set.FORCE_ENDIAN[file_num]) {
+          if (endian != state->param_set.FORCE_ENDIAN[file_num]) {
             ustmp = ((ustmp & 0xFF) << 8) | ((ustmp >> 8) & 0xFF);
           }
-          forcing_data[param_set.FORCE_INDEX[file_num][i]][rec] = (double) ustmp / param_set.TYPE[param_set.FORCE_INDEX[file_num][i]].multiplier;
+          forcing_data[state->param_set.FORCE_INDEX[file_num][i]][rec] = (double) ustmp / state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][i]].multiplier;
         }
       }
 
@@ -403,20 +399,20 @@ void read_atmos_data(FILE                 *infile,
     rec = 0;
 
     while (!feof(infile)
-        && (rec * param_set.FORCE_DT[file_num]
-            < global_param.nrecs * global_param.dt)) {
+        && (rec * state->param_set.FORCE_DT[file_num]
+            < state->global_param.nrecs * state->global_param.dt)) {
       for (i = 0; i < Nfields; i++)
-        fscanf(infile, "%lf", &forcing_data[param_set.FORCE_INDEX[file_num][i]][rec]);
+        fscanf(infile, "%lf", &forcing_data[state->param_set.FORCE_INDEX[file_num][i]][rec]);
       fgets(str, MAXSTRING, infile);
       rec++;
     }
   }
 
-  if (rec * param_set.FORCE_DT[file_num] < global_param.nrecs * global_param.dt) {
+  if (rec * state->param_set.FORCE_DT[file_num] < state->global_param.nrecs * state->global_param.dt) {
     sprintf(ErrStr, "Not enough records in forcing file %i (%i * %i = %i) to run the number of records defined in the global file (%i * %i = %i).  Check forcing file time step, and global file",
-        file_num + 1, rec, param_set.FORCE_DT[file_num],
-        rec * param_set.FORCE_DT[file_num], global_param.nrecs, global_param.dt,
-        global_param.nrecs * global_param.dt);
+        file_num + 1, rec, state->param_set.FORCE_DT[file_num],
+        rec * state->param_set.FORCE_DT[file_num], state->global_param.nrecs, state->global_param.dt,
+        state->global_param.nrecs * state->global_param.dt);
     nrerror(ErrStr);
   }
 

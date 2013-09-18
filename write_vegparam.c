@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void write_vegparam(veg_con_struct *veg_con)
+void write_vegparam(veg_con_struct *veg_con, const ProgramState* state)
 /**********************************************************************
 	write_vegparam		Dag Lohmann	January 1996
 
@@ -19,9 +19,6 @@ void write_vegparam(veg_con_struct *veg_con)
 
 **********************************************************************/
 {
-  extern veg_lib_struct *veg_lib;
-  extern option_struct options;
-
   int i, j, l;
   int vegclass;
 
@@ -30,29 +27,29 @@ void write_vegparam(veg_con_struct *veg_con)
 
   for (i = 0; i < veg_con[0].vegetat_type_num; i++) {
     vegclass = veg_con[i].veg_class;
-    printf("\n\tveg_class            = %d\n",  veg_lib[vegclass].veg_class);
+    printf("\n\tveg_class            = %d\n",  state->veg_lib[vegclass].veg_class);
     printf("\tCv                   = %f\n", veg_con[i].Cv);
-    if(veg_lib[vegclass].overstory)
+    if(state->veg_lib[vegclass].overstory)
       printf("\tOverstory            = TRUE\n");
     else 
       printf("\tOverstory            = FALSE\n");
-    printf("\trarc                 = %f s/m\n", veg_lib[vegclass].rarc);
-    printf("\trmin                 = %f s/m\n", veg_lib[vegclass].rmin);
-    for(l=0;l<options.ROOT_ZONES;l++)
+    printf("\trarc                 = %f s/m\n", state->veg_lib[vegclass].rarc);
+    printf("\trmin                 = %f s/m\n", state->veg_lib[vegclass].rmin);
+    for(l=0;l<state->options.ROOT_ZONES;l++)
       printf("\tzone_depth _fract%d   = %f %f\n",l+1,
 	     veg_con[i].zone_depth[l],veg_con[i].zone_fract[l]);
-    for(l=0;l<options.Nlayer;l++)
+    for(l=0;l<state->options.Nlayer;l++)
       printf("\troot_percent%d        = %f\n",l+1,veg_con[i].root[l]);
     for (j = 0; j < 12; j++) 
-      printf("\tLAI[%02d]             = %f\n",j,veg_lib[vegclass].LAI[j]);
+      printf("\tLAI[%02d]             = %f\n",j,state->veg_lib[vegclass].LAI[j]);
     for (j = 0; j < 12; j++) 
-      printf("\talbedo[%02d]          = %f\n",j,veg_lib[vegclass].albedo[j]);
+      printf("\talbedo[%02d]          = %f\n",j,state->veg_lib[vegclass].albedo[j]);
     for (j = 0; j < 12; j++) 
       printf("\tdisplacement[%02d]    = %f m\n",j,
-	     veg_lib[vegclass].displacement[j]);
+	     state->veg_lib[vegclass].displacement[j]);
     for (j = 0; j < 12; j++) 
-      printf("\troughness[%02d]       = %f m\n",j,veg_lib[vegclass].roughness[j]);
-    printf("\twind_h                  = %f s/m\n", veg_lib[vegclass].wind_h);
+      printf("\troughness[%02d]       = %f m\n",j,state->veg_lib[vegclass].roughness[j]);
+    printf("\twind_h                  = %f s/m\n", state->veg_lib[vegclass].wind_h);
   }
 }
 

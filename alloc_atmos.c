@@ -56,7 +56,7 @@ atmos_data_struct * alloc_atmos(int nrecs)
       vicerror("Memory allocation error in alloc_atmos().");
     atmos[i].prec = (double *) calloc(NR+1, sizeof(double));
     if (atmos[i].prec == NULL)
-      vicerror("Memory allocation error in alloc_atmos().");      
+      vicerror("Memory allocation error in alloc_atmos().");
     atmos[i].pressure = (double *) calloc(NR+1, sizeof(double));
     if (atmos[i].pressure == NULL)
       vicerror("Memory allocation error in alloc_atmos().");

@@ -6,9 +6,11 @@
  
 static char vcid[] = "$Id$";
 
-void close_files(filep_struct         *filep,
+void close_files(const filep_struct         *filep,
                  out_data_file_struct *out_data_files,
-                 filenames_struct     *fnames)
+                 filenames_struct     *fnames,
+                 bool                 compress,
+                 const ProgramState   *state)
 /**********************************************************************
 	close_files	Dag Lohmann		January 1996
 
@@ -30,36 +32,31 @@ void close_files(filep_struct         *filep,
 
 **********************************************************************/
 {
-  extern option_struct options;
-  extern param_set_struct param_set;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
   int filenum;
 
   /**********************
     Close All Input Files
     **********************/
 
-  if(param_set.FORCE_FORMAT[0] != NETCDF)
+  if(state->param_set.FORCE_FORMAT[0] != NETCDF)
     fclose(filep->forcing[0]);
   else /* FIXME this should only happen ONCE per invokation of VIC! (below too) */
     nc_close(filep->forcing_ncid[0]);
-  if(options.COMPRESS) compress_files(fnames->forcing[0]);
+  if(compress) compress_files(fnames->forcing[0]);
   if(filep->forcing[1]!=NULL) {
-    if(param_set.FORCE_FORMAT[1] != NETCDF)
+    if(state->param_set.FORCE_FORMAT[1] != NETCDF)
       fclose(filep->forcing[1]);
     else
       nc_close(filep->forcing_ncid[1]);      
-    if(options.COMPRESS) compress_files(fnames->forcing[1]);
+    if(compress) compress_files(fnames->forcing[1]);
   }
 
   /*******************
     Close Output Files
     *******************/
-  for (filenum=0; filenum<options.Noutfiles; filenum++) {
+  for (filenum=0; filenum<state->options.Noutfiles; filenum++) {
     fclose(out_data_files[filenum].fh);
-    if(options.COMPRESS) compress_files(out_data_files[filenum].filename);
+    if(compress) compress_files(out_data_files[filenum].filename);
   }
 
 #if !OUTPUT_FORCE
@@ -69,29 +66,29 @@ void close_files(filep_struct         *filep,
     *******************************/ 
 
 #if LINK_DEBUG
-  if(debug.DEBUG || debug.PRT_TEMP) {
-    fclose(debug.fg_temp);
+  if(state->debug.DEBUG || state->debug.PRT_TEMP) {
+    fclose(state->debug.fg_temp);
   }
-  if(debug.DEBUG || debug.PRT_MOIST) {
-    fclose(debug.fg_moist);
+  if(state->debug.DEBUG || state->debug.PRT_MOIST) {
+    fclose(state->debug.fg_moist);
   }
-  if(debug.DEBUG || debug.PRT_KAPPA) {
-    fclose(debug.fg_kappa);
+  if(state->debug.DEBUG || state->debug.PRT_KAPPA) {
+    fclose(state->debug.fg_kappa);
   }
-  if(debug.DEBUG || debug.PRT_LAKE) {
-    fclose(debug.fg_lake);
+  if(state->debug.DEBUG || state->debug.PRT_LAKE) {
+    fclose(state->debug.fg_lake);
   }
-  if(debug.DEBUG || debug.PRT_BALANCE) {
-    fclose(debug.fg_balance);
+  if(state->debug.DEBUG || state->debug.PRT_BALANCE) {
+    fclose(state->debug.fg_balance);
   }
-  if(debug.DEBUG || debug.PRT_FLUX) {
-    fclose(debug.fg_energy);
+  if(state->debug.DEBUG || state->debug.PRT_FLUX) {
+    fclose(state->debug.fg_energy);
   }
-  if(debug.DEBUG || debug.PRT_SNOW) {
-    fclose(debug.fg_snow);
+  if(state->debug.DEBUG || state->debug.PRT_SNOW) {
+    fclose(state->debug.fg_snow);
   }
-  if(debug.DEBUG || debug.PRT_GRID) {
-    fclose(debug.fg_grid);
+  if(state->debug.DEBUG || state->debug.PRT_GRID) {
+    fclose(state->debug.fg_grid);
   }
 #endif /* LINK_DEBUG */
 #endif /* !OUTPUT_FORCE */

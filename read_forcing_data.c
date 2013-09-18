@@ -8,7 +8,8 @@ static char vcid[] = "$Id$";
 double **read_forcing_data(FILE                **infile,
                            int                  *ncids,
 			   global_param_struct   global_param,
-                           soil_con_struct      *soil_con)
+                           soil_con_struct      *soil_con,
+                           const ProgramState   *state)
 /**********************************************************************
   read_forcing_data    Keith Cherkauer      January 10, 2000
 
@@ -19,8 +20,6 @@ double **read_forcing_data(FILE                **infile,
 
 **********************************************************************/
 {
-  extern option_struct    options;
-  extern param_set_struct param_set;
   extern int              NR, NF;
 
   char                 errorstr[MAXSTRING];
@@ -30,14 +29,14 @@ double **read_forcing_data(FILE                **infile,
   /** Allocate data arrays for input forcing data **/
   forcing_data = (double **)calloc(N_FORCING_TYPES,sizeof(double*));
   for(i=0;i<N_FORCING_TYPES;i++) 
-    if (param_set.TYPE[i].SUPPLIED) 
+    if (state->param_set.TYPE[i].SUPPLIED)
       forcing_data[i] = (double *)calloc((global_param.nrecs * NF),
 			   sizeof(double));
 
   /** Read First Forcing Data File **/
-  if(param_set.FORCE_DT[0] > 0) {
-    read_atmos_data(infile[0], ncids[0], global_param, 0, global_param.forceskip[0],
-		    forcing_data, soil_con);
+  if(state->param_set.FORCE_DT[0] > 0) {
+    read_atmos_data(infile[0], ncids[0], 0, global_param.forceskip[0],
+		    forcing_data, soil_con, state);
   }
   else {
     sprintf(errorstr,"ERROR: File time step must be defined for at least the first forcing file (FILE_DT).\n");
@@ -45,9 +44,9 @@ double **read_forcing_data(FILE                **infile,
   }
 
   /** Read Second Forcing Data File **/
-  if(param_set.FORCE_DT[1] > 0) {
-    read_atmos_data(infile[1], ncids[1], global_param, 1, global_param.forceskip[1], 
-		    forcing_data, soil_con);
+  if(state->param_set.FORCE_DT[1] > 0) {
+    read_atmos_data(infile[1], ncids[1], 1, global_param.forceskip[1],
+		    forcing_data, soil_con, state);
   }
 
   return(forcing_data);
