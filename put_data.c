@@ -755,7 +755,7 @@ int  put_data(dist_prcp_struct  *prcp,
           }
         }
       }
-      write_data(out_data_files, out_data, dmy, state->global_param.out_dt);
+      write_data(out_data_files, out_data, dmy, state->global_param.out_dt, state);
     }
 
     // Reset the step count

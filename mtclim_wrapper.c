@@ -55,7 +55,7 @@ void mtclim_init(int have_dewpt, int have_shortwave, double elevation, double sl
 		   double lat, int Ndays, dmy_struct *dmy, 
 		   double *prec, double *tmax, double *tmin, double *vp, double *hourlyrad, 
 		   double **tiny_radfract, control_struct *ctrl, 
-		   parameter_struct *p, data_struct *mtclim_data); 
+		   parameter_struct *p, data_struct *mtclim_data, const ProgramState* state);
 
 void mtclim_to_vic(double hour_offset, 
 		     int Ndays, dmy_struct *dmy, 
@@ -69,7 +69,7 @@ void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
                       double annual_prcp, double lat, 
 		      int Ndays, dmy_struct *dmy, 
 		      double *prec, double *tmax, double *tmin, double *tskc,
-		      double *vp, double *hourlyrad) 
+		      double *vp, double *hourlyrad, const ProgramState* state)
 {
   control_struct ctrl;
   parameter_struct p;
@@ -93,7 +93,7 @@ void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
   mtclim_init(have_dewpt, have_shortwave, elevation, slope, aspect, ehoriz, whoriz,
                 annual_prcp, lat, Ndays, dmy, prec,
 		tmax, tmin, vp, hourlyrad, tiny_radfract, &ctrl, &p,
-		&mtclim_data);  
+		&mtclim_data, state);
 
   /* calculate daily air temperatures */
   if (calc_tair(&ctrl, &p, &mtclim_data)) {
@@ -120,7 +120,7 @@ void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
 //  }
 //  else { /* no dewpoint temperature, VP, or SW data */
     /* calculate srad and humidity with iterative algorithm */
-    if (calc_srad_humidity_iterative(&ctrl, &p, &mtclim_data, tiny_radfract)) { 
+    if (calc_srad_humidity_iterative(&ctrl, &p, &mtclim_data, tiny_radfract, state)) {
       nrerror("Error in calc_srad_humidity_iterative()... exiting\n");
     }
 //  }
@@ -145,7 +145,7 @@ void mtclim_init(int have_dewpt, int have_shortwave, double elevation, double sl
 		   double lat, int Ndays, dmy_struct *dmy, 
 		   double *prec, double *tmax, double *tmin, double *vp, double *hourlyrad, 
 		   double **tiny_radfract, control_struct *ctrl, 
-		   parameter_struct *p, data_struct *mtclim_data)
+		   parameter_struct *p, data_struct *mtclim_data, const ProgramState* state)
 {
   int i,j;
   int tinystepspday;

@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 void write_data(out_data_file_struct *out_data_files,
 		out_data_struct *out_data,
 		const dmy_struct      *dmy,
-		int              dt)
+		int              dt,
+		const ProgramState* state)
 /**********************************************************************
 	write_data	Dag Lohmann		Janurary 1996
 
@@ -79,11 +80,6 @@ void write_data(out_data_file_struct *out_data_files,
 
 **********************************************************************/
 {
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct debug;
-#endif
-
   int                 file_idx;
   int                 var_idx;
   int                 elem_idx;
@@ -103,15 +99,15 @@ void write_data(out_data_file_struct *out_data_files,
       www.hydro.washington.edu/Lettenmaier/Models/VIC/VIChome.html
   ***************************************************************/
 
-  if(options.BINARY_OUTPUT) {  // BINARY
+  if(state->options.BINARY_OUTPUT) {  // BINARY
 
     // Initialize pointers
-    tmp_cptr = (char *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(char));
-    tmp_siptr = (short int *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(short int));
-    tmp_usiptr = (unsigned short int *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(unsigned short int));
-    tmp_iptr = (int *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(int));
-    tmp_fptr = (float *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(float));
-    tmp_dptr = (double *)calloc(N_OUTVAR_TYPES*options.Nlayer*options.SNOW_BAND,sizeof(double));
+    tmp_cptr = (char *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(char));
+    tmp_siptr = (short int *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(short int));
+    tmp_usiptr = (unsigned short int *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(unsigned short int));
+    tmp_iptr = (int *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(int));
+    tmp_fptr = (float *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(float));
+    tmp_dptr = (double *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(double));
 
     // Time
     tmp_iptr[0] = dmy->year;
@@ -120,7 +116,7 @@ void write_data(out_data_file_struct *out_data_files,
     tmp_iptr[3] = dmy->hour;
 
     // Loop over output files
-    for (file_idx = 0; file_idx < options.Noutfiles; file_idx++) {
+    for (file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 
 #if !OUTPUT_FORCE
       // Write the date
@@ -191,7 +187,7 @@ void write_data(out_data_file_struct *out_data_files,
   else {  // ASCII
 
     // Loop over output files
-    for (file_idx = 0; file_idx < options.Noutfiles; file_idx++) {
+    for (file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 
 #if !OUTPUT_FORCE
       // Write the date

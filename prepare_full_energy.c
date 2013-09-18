@@ -57,7 +57,7 @@ void prepare_full_energy(int               iveg,
       for(i=0;i<state->options.Nlayer;i++)
         layer[i] = find_average_layer(&(prcp->cell[WET][iveg][band].layer[i]),
 				      &(prcp->cell[DRY][iveg][band].layer[i]),
-				      soil_con->depth[i], prcp->mu[iveg]);
+				      soil_con->depth[i], prcp->mu[iveg], state);
     
       /* Compute top soil layer moisture content (mm/mm) */
 

@@ -16,17 +16,6 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, ProgramState* state);
 
-
-void syncGlobals(ProgramState* state) {
-  //TODO: remove these globals
-  global_param = state->global_param;
-  veg_lib = state->veg_lib;
-  options = state->options;
-  debug = state->debug;
-  Error = state->Error;
-  param_set = state->param_set;
-}
-
 int main(int argc, char *argv[])
 /**********************************************************************
 	vicNl.c		Dag Lohmann		January 1996
@@ -158,7 +147,6 @@ int main(int argc, char *argv[])
 
   int ncells = 0;
   cell_info_struct *cell_data_structs = initializeCells(ncells, filep, num_veg_types, filenames, dmy, state);
-  syncGlobals(&state);
 
   runModel(ncells, cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, &state);
 
@@ -353,14 +341,13 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     if (state->options.PRT_HEADER) {
       /** Write output file headers **/
-      write_header(out_data_files, out_data, dmy, state->global_param);
+      write_header(out_data_files, out_data, dmy, state);
     }
 
     //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
     state->Error.filep = filep;
     state->Error.out_data_files = out_data_files;
-    syncGlobals(state);
 
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full

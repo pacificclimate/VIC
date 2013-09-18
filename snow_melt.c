@@ -116,47 +116,28 @@ static char vcid[] = "$Id$";
   2009-Sep-19 Added T fbcount to count TFALLBACK occurrences.		TJB
   2009-Oct-08 Extended T fallback scheme to snow and ice T.		TJB
 *****************************************************************************/
-int  snow_melt(double            latent_heat_Le, 
-               double            NetShortSnow,  // net SW at absorbed by snow
-	       double            Tcanopy,
-	       double            Tgrnd,
-	       double            *Z0,  // roughness
-               double            aero_resist,  // aerodynamic resistance
-               double            *aero_resist_used,  // stability-corrected aerodynamic resistance
-               double            air_temp,  // air temperature
-	       double            coverage, // snowpack cover fraction
-	       double            delta_t,  // time step in secs
-               double            density,  // atmospheric density
-	       double            displacement,  // surface displacement
-               double            grnd_flux,  // ground heat flux
-	       double            LongSnowIn,  // incoming longwave radiation
-	       double            pressure,
-	       double            rainfall,
-               double            snowfall,
-               double            vp,
-	       double            vpd,
-	       double            wind,
-               double            z2,
-	       double           *NetLongSnow, 
-               double           *OldTSurf,
-	       double           *melt,
-               double           *save_Qnet, 
-               double           *save_advected_sensible,
-               double           *save_advection,
-               double           *save_deltaCC,
-               double           *save_grnd_flux,
-               double           *save_latent,
-               double           *save_latent_sub,
-               double           *save_refreeze_energy,
-               double           *save_sensible,
-	       int               UNSTABLE_SNOW,
-	       int               rec,
-	       int               iveg,
-	       int               band,
-               snow_data_struct *snow,
-	       soil_con_struct  *soil_con)
+int snow_melt(double latent_heat_Le,
+    double NetShortSnow,  // net SW at absorbed by snow
+    double Tcanopy, double Tgrnd,
+    double *Z0,  // roughness
+    double aero_resist,  // aerodynamic resistance
+    double *aero_resist_used,  // stability-corrected aerodynamic resistance
+    double air_temp,  // air temperature
+    double coverage, // snowpack cover fraction
+    double delta_t,  // time step in secs
+    double density,  // atmospheric density
+    double displacement,  // surface displacement
+    double grnd_flux,  // ground heat flux
+    double LongSnowIn,  // incoming longwave radiation
+    double pressure, double rainfall, double snowfall, double vp, double vpd,
+    double wind, double z2, double *NetLongSnow, double *OldTSurf, double *melt,
+    double *save_Qnet, double *save_advected_sensible, double *save_advection,
+    double *save_deltaCC, double *save_grnd_flux, double *save_latent,
+    double *save_latent_sub, double *save_refreeze_energy,
+    double *save_sensible, int UNSTABLE_SNOW, int rec, int iveg, int band,
+    snow_data_struct *snow, soil_con_struct *soil_con,
+    const ProgramState* state)
 {
-  extern option_struct   options;
   int    Twidth;
   double error;
   double DeltaPackCC;            /* Change in cold content of the pack */
@@ -359,7 +340,7 @@ int  snow_melt(double            latent_heat_Le,
 				     &snow->surface_flux);
       
         if (snow->surf_temp <= -998) {
-          if (options.TFALLBACK) {
+          if (state->options.TFALLBACK) {
             snow->surf_temp = *OldTSurf;
             snow->surf_temp_fbflag = 1;
             snow->surf_temp_fbcount++;

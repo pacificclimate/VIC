@@ -175,7 +175,7 @@ int  dist_prec(atmos_data_struct   *atmos,
           Wdmax = 0;
         redistribute_during_storm(prcp->cell, prcp->veg_var, veg,
             veg_con[0].vegetat_type_num, time_step_record, Wdmax, prcp->mu[veg], NEW_MU,
-            soil_con->max_moist);
+            soil_con->max_moist, state);
         prcp->mu[veg] = NEW_MU;
       }
     }

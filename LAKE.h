@@ -73,7 +73,7 @@ double adjflux(double, double, double ,double, double, double, double,
 void advect_soil_veg_storage(double, double, double, double *, soil_con_struct *, veg_con_struct *, cell_data_struct *, veg_var_struct *, lake_con_struct, const ProgramState*);
 void advect_snow_storage(double, double, double, snow_data_struct *);
 void alblake(double, double, double *, double *, float *, float *, double, double, 
-	     int, int *, double, double, char *, int, double);
+	     int, int *, double, double, char *, int, double, const ProgramState*);
 double calc_density(double);
 double CalcIcePackEnergyBalance(double Tsurf, ...);
 void colavg (double *, double *, double *, float, double *, int, double, double);

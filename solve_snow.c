@@ -333,7 +333,7 @@ double solve_snow(char                 overstory,
         snow->last_snow++;
         snow->albedo = snow_albedo( snowfall[WET], snow->swq, snow->depth,
 				    snow->albedo, snow->coldcontent, (double)dt, 
-				    snow->last_snow, snow->MELTING); 
+				    snow->last_snow, snow->MELTING, state);
         (*AlbedoUnder) = (*coverage * snow->albedo + (1. - *coverage) * BareAlbedo);
       }
       else {
@@ -356,7 +356,7 @@ double solve_snow(char                 overstory,
 		&energy->deltaCC, &tmp_grnd_flux, &energy->latent, 
 		&energy->latent_sub, &energy->refreeze_energy, 
 		&energy->sensible, INCLUDE_SNOW,
-		rec, iveg, band, snow, soil_con);
+		rec, iveg, band, snow, soil_con, state);
       if ( ErrorFlag == ERROR ) return ( ERROR );
 
       // store melt water
@@ -371,11 +371,11 @@ double solve_snow(char                 overstory,
 	/** Calculate Snow Density **/
 	if ( snow->surf_temp <= 0 )
 	  // snowpack present, compress and age density
-	  snow->density = snow_density(snow, snowfall[WET], old_swq, Tgrnd, air_temp, (double)dt);
+	  snow->density = snow_density(snow, snowfall[WET], old_swq, Tgrnd, air_temp, (double)dt, state);
 	else 
 	  // no snowpack present, start with new snow density
 	  if ( snow->last_snow == 0 ) 
-	    snow->density = new_snow_density(air_temp);
+	    snow->density = new_snow_density(air_temp, state);
 	
 	/** Calculate Snow Depth (H.B.H. 7.2.1) **/
 	old_depth   = snow->depth;

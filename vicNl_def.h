@@ -1353,6 +1353,7 @@ typedef struct {
   ********************************************************/
 class ProgramState {
 public:
+  ProgramState() { veg_lib = NULL; }
   global_param_struct global_param;
   veg_lib_struct *veg_lib;
   option_struct options;

@@ -120,15 +120,19 @@ int calc_prcp(const control_struct *ctrl, const parameter_struct *p,
 	      data_struct *data);
 /* start vic_change */
 int calc_srad_humidity(const control_struct *ctrl, const parameter_struct *p, 
-		       data_struct *data, double **tiny_radfract);
+		       data_struct *data, double **tiny_radfract, const ProgramState*);
 /* end vic_change */
 /* start vic_change */
 int calc_srad_humidity_iterative(const control_struct *ctrl,
 				 const parameter_struct *p, data_struct *data,
-				 double **tiny_radfract);
+				 double **tiny_radfract, const ProgramState* state);
 int snowpack(const control_struct *ctrl, const parameter_struct *p, 
 	      data_struct *data);
-void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl, data_struct *data, double *tdew, double *pva, double *ttmax0, double *flat_potrad, double *slope_potrad, double sky_prop, double *daylength, double *pet, double *parray, double pa, double *dtr);
+void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl,
+    data_struct *data, double *tdew, double *pva, double *ttmax0,
+    double *flat_potrad, double *slope_potrad, double sky_prop,
+    double *daylength, double *pet, double *parray, double pa, double *dtr,
+    const ProgramState*);
 /* end vic_change */
 int data_alloc(const control_struct *ctrl, data_struct *data);
 int data_free(const control_struct *ctrl, data_struct *data);

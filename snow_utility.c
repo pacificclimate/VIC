@@ -6,7 +6,7 @@
 
 static char vcid[] = "$Id$";
 
-double snow_density(snow_data_struct *snow, double new_snow, double sswq, double Tgrnd, double Tair, double dt)
+double snow_density(snow_data_struct *snow, double new_snow, double sswq, double Tgrnd, double Tair, double dt, const ProgramState* state)
 {
 /**********************************************************************
   snow_density		Keith Cherkauer		May 28, 1997
@@ -62,8 +62,6 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 	      = SNTHERM89.						TJB
 
 **********************************************************************/
-
-  extern option_struct   options;
   double density_new;
   double density;
   double depth;
@@ -84,7 +82,7 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 
   /* Estimate density of new snow based on air temperature */
   if (new_snow > 0.)
-    density_new = new_snow_density(Tair);
+    density_new = new_snow_density(Tair, state);
   else
     density_new = 0.0;
 
@@ -92,7 +90,7 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 //  Tavg = (snow->surf_temp+Tgrnd)/2.0+KELVIN;
   Tavg = snow->surf_temp+KELVIN;
 
-  if (options.SNOW_DENSITY == DENS_SNTHRM) {
+  if (state->options.SNOW_DENSITY == DENS_SNTHRM) {
 
     if (new_snow > 0.) {
       if (snow->depth>0.0)
@@ -145,7 +143,7 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 
   }
 
-  else if (options.SNOW_DENSITY == DENS_BRAS) {
+  else if (state->options.SNOW_DENSITY == DENS_BRAS) {
 
     depth = snow->depth;
     swq = sswq;
@@ -198,7 +196,7 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 
 }
 
-double new_snow_density(double air_temp) {
+double new_snow_density(double air_temp, const ProgramState* state) {
 /**********************************************************************
   new_snow_density		Keith Cherkauer		May 28, 1997
 
@@ -211,13 +209,12 @@ double new_snow_density(double air_temp) {
 	      compatibility.  DENS_BRAS = original algorithm; DENS_SNTHRM
 	      = Lundberg and Pomeroy (1998).				TJB
 **********************************************************************/
-  extern option_struct   options;
   double density_new;
 
-  if (options.SNOW_DENSITY == DENS_SNTHRM) {
+  if (state->options.SNOW_DENSITY == DENS_SNTHRM) {
     density_new = 67.9 + 51.3 * exp(air_temp/2.6);
   }
-  else if (options.SNOW_DENSITY == DENS_BRAS) {
+  else if (state->options.SNOW_DENSITY == DENS_BRAS) {
     air_temp = air_temp * 9. / 5. + 32.;
     if(air_temp > 0) density_new = (double)NEW_SNOW_DENSITY + 1000.
 		     * (air_temp / 100.) * (air_temp / 100.);
@@ -236,7 +233,8 @@ double snow_albedo(double new_snow,
                    double cold_content,
                    double dt,
                    int    last_snow,
-		   char   MELTING) {
+                   char   MELTING,
+                   const ProgramState* state) {
 /**********************************************************************
   snow_albedo		Keith Cherkauer		June 10, 1997
 
@@ -257,15 +255,13 @@ double snow_albedo(double new_snow,
 	      104 (D16), 19,587-19,597, 1999.				KAC via TJB
 **********************************************************************/
 
-  extern option_struct   options;
-
   /** New Snow **/
   if(new_snow > TraceSnow  && cold_content < 0.0 ) albedo = NEW_SNOW_ALB;
 
   /** Aged Snow **/
   else if(swq > 0.0) {
 
-    if ( options.SNOW_ALBEDO == SUN1999 ) {
+    if ( state->options.SNOW_ALBEDO == SUN1999 ) {
 
       // From Sun et al., JGR, 1999
       if ( depth > 0.025 ) {

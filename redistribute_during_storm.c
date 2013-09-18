@@ -13,7 +13,8 @@ int  redistribute_during_storm(cell_data_struct ***cell,
 			       double              Wdmax,
 			       double              old_mu,
 			       double              new_mu,
-			       double             *max_moist) {
+			       double             *max_moist,
+			       const ProgramState* state) {
 /**********************************************************************
   redistribute_during_storm.c     Keith Cherkauer     January 13, 1998
 
@@ -32,8 +33,6 @@ int  redistribute_during_storm(cell_data_struct ***cell,
 
 **********************************************************************/
  
-  extern option_struct   options;
-
   unsigned char error;
   char          ErrorString[MAXSTRING];
   int           layer;
@@ -43,9 +42,9 @@ int  redistribute_during_storm(cell_data_struct ***cell,
   double        temp_dry;
 
   /** Redistribute Soil Moisture **/
-  for(layer = 0; layer < options.Nlayer; layer++) {
+  for(layer = 0; layer < state->options.Nlayer; layer++) {
 
-    for(band = 0; band < options.SNOW_BAND; band++) {
+    for(band = 0; band < state->options.SNOW_BAND; band++) {
 
       temp_wet = cell[WET][veg][band].layer[layer].moist;
       temp_dry = cell[DRY][veg][band].layer[layer].moist;
@@ -102,7 +101,7 @@ int  redistribute_during_storm(cell_data_struct ***cell,
     Redistribute Stored Water in Vegetation
   ****************************************/
   if(veg < Nveg) {
-    for(band = 0; band < options.SNOW_BAND; band++) {
+    for(band = 0; band < state->options.SNOW_BAND; band++) {
       temp_wet = veg_var[WET][veg][band].Wdew;
       temp_dry = veg_var[DRY][veg][band].Wdew;
       error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, Wdmax, 

@@ -649,7 +649,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 				soil_con->ufwc_table_node,
 				soil_con->porosity, soil_con->effective_porosity,
 				soil_con->porosity_node, soil_con->effective_porosity_node,
-				Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
+				Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
 	  }
 	
 	  /* set soil moisture properties for all soil thermal nodes */
@@ -674,7 +674,8 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						soil_con->bulk_density,
 						soil_con->organic,
 						Nnodes, state->options.Nlayer,
-						soil_con->FS_ACTIVE);
+						soil_con->FS_ACTIVE,
+						state);
 	  if ( ErrorFlag == ERROR ) return ( ErrorFlag );
 	    
 	  /* initialize layer moistures and ice contents */
@@ -699,7 +700,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 					   soil_con->frost_fract, soil_con->frost_slope, 
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-					   soil_con->FS_ACTIVE);
+					   soil_con->FS_ACTIVE, state);
             }
             else {
 	      ErrorFlag = estimate_layer_ice_content(prcp->cell[dry][veg][band].layer,
@@ -719,7 +720,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 						       soil_con->porosity,
 						       soil_con->effective_porosity,
 						       Nnodes, state->options.Nlayer,
-						       soil_con->FS_ACTIVE);
+						       soil_con->FS_ACTIVE, state);
 		
 	    }
 	  }
@@ -961,7 +962,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 				  soil_con->ufwc_table_node,
 				  soil_con->porosity, soil_con->effective_porosity,
 				  soil_con->porosity_node, soil_con->effective_porosity_node,
-				  Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
+				  Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
 	  }
 
 	  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ )
@@ -990,7 +991,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						  soil_con->bulk_density,
 						  soil_con->organic,
 						  Nnodes, state->options.Nlayer,
-						  soil_con->FS_ACTIVE);
+						  soil_con->FS_ACTIVE, state);
 	    if ( ErrorFlag == ERROR ) return ( ErrorFlag );
 	  }
 
@@ -1007,7 +1008,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 					   soil_con->frost_fract, soil_con->frost_slope, 
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-					   soil_con->FS_ACTIVE);
+					   soil_con->FS_ACTIVE, state);
               }
               else {
 	        ErrorFlag = estimate_layer_ice_content(prcp->cell[dry][veg][band].layer,
@@ -1027,7 +1028,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 						       soil_con->porosity,
 						       soil_con->effective_porosity,
 						       Nnodes, state->options.Nlayer,
-						       soil_con->FS_ACTIVE);	      
+						       soil_con->FS_ACTIVE, state);
 	      }
 	    }
 	  }

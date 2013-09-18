@@ -106,10 +106,6 @@ int  full_energy(char                 NEWCELL,
 
 **********************************************************************/
 {
-#if LINK_DEBUG
-  extern debug_struct    debug;
-#endif
-
   char                   overstory;
   int                    i, j, p;
   int                    lidx;
@@ -372,7 +368,7 @@ int  full_energy(char                 NEWCELL,
       if(state->debug.DEBUG || state->debug.PRT_MOIST || state->debug.PRT_BALANCE) {
         /** Compute current total moisture for water balance check **/
         store_moisture_for_debug(iveg, Nveg, prcp->mu, prcp->cell,
-            prcp->veg_var, prcp->snow, soil_con);
+            prcp->veg_var, prcp->snow, soil_con, state);
         if(state->debug.PRT_BALANCE) {
           for(j=0; j<Ndist; j++) {
             for(band=0; band<Nbands; band++) {

@@ -526,7 +526,7 @@ int snowpack(const control_struct *ctrl, const parameter_struct *p,
    humidity can be estimated directly */
 /* start vic_change */
 int calc_srad_humidity(const control_struct *ctrl, const parameter_struct *p, 
-		       data_struct *data, double **tiny_radfract)
+		       data_struct *data, double **tiny_radfract, const ProgramState* state)
 /* end vic_change */
 {
   int ok=1;
@@ -570,7 +570,6 @@ int calc_srad_humidity(const control_struct *ctrl, const parameter_struct *p,
   /* start vic_change */
   int tinystep;
   int tinystepspday;
-  extern option_struct options;
   double tfmax_tmp;
   /* end vic_change */
   
@@ -850,7 +849,7 @@ data->s_ttmax[i] = t_tmax;
     t_fmax = 1.0 - 0.9 * exp(-b * pow(dtr[i],C));
     
     /* correct for precipitation if this is a rain day */
-    if (data->prcp[i] > options.SW_PREC_THRESH) t_fmax *= RAIN_SCALAR;
+    if (data->prcp[i] > state->options.SW_PREC_THRESH) t_fmax *= RAIN_SCALAR;
 
 data->s_tfmax[i] = t_fmax;
     
@@ -891,7 +890,7 @@ data->s_tfmax[i] = t_fmax;
     srad2 = flat_potrad[yday] * t_final * pdif * (sky_prop + DIF_ALB*(1.0-sky_prop)); 
 
     /* snow pack influence on radiation */	
-    if (options.MTCLIM_SWE_CORR && data->s_swe[i] > 0.0) {
+    if (state->options.MTCLIM_SWE_CORR && data->s_swe[i] > 0.0) {
       /* snow correction in J/m2/day */
       sc = (1.32 + 0.096 * data->s_swe[i]) * 1e6;
       /* convert to W/m2 and check for zero daylength */
@@ -1063,7 +1062,7 @@ data->s_ppratio[i] = ratio*365.25;
 /* start vic_change */
 int calc_srad_humidity_iterative(const control_struct *ctrl,
 				 const parameter_struct *p, data_struct *data,
-				 double **tiny_radfract)
+				 double **tiny_radfract, const ProgramState* state)
   /* end vic_change */
 {
   int ok=1;
@@ -1109,7 +1108,6 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   /* start vic_change */
   int tinystep;
   int tinystepspday;
-  extern option_struct options;
   double tfmax_tmp;
   /* end vic_change */
   
@@ -1492,7 +1490,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
     t_fmax[i] = 1.0 - 0.9 * exp(-b * pow(dtr[i],C));
     
     /* correct for precipitation if this is a rain day */
-    if (data->prcp[i] > options.SW_PREC_THRESH) t_fmax[i] *= RAIN_SCALAR;
+    if (data->prcp[i] > state->options.SW_PREC_THRESH) t_fmax[i] *= RAIN_SCALAR;
     data->s_tfmax[i] = t_fmax[i];
 
   }
@@ -1536,7 +1534,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   }
   
   /* Initial estimates of solar radiation, cloud fraction, etc. */
-  compute_srad_humidity_onetime(ndays, ctrl, data, tdew, pva, ttmax0, flat_potrad, slope_potrad, sky_prop, daylength, pet, parray, pa, dtr);
+  compute_srad_humidity_onetime(ndays, ctrl, data, tdew, pva, ttmax0, flat_potrad, slope_potrad, sky_prop, daylength, pet, parray, pa, dtr, state);
 
   /* estimate annual PET */
   sum_pet = 0.0;
@@ -1551,7 +1549,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   printf("PET/PRCP = %.4lf\n",ann_pet/ann_prcp);
 
   /* Reset humidity terms if no iteration desired */
-  if (ctrl->indewpt || ctrl->invp || (options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) ) {
+  if (ctrl->indewpt || ctrl->invp || (state->options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) ) {
     for (i=0 ; i<ndays ; i++) {
       tdew[i] = tdew_save[i];
       pva[i] = pva_save[i];
@@ -1559,9 +1557,9 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   }
 
   /* Set up srad-humidity iterations */
-  if (options.VP_ITER == VP_ITER_ALWAYS || (options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) || options.VP_ITER == VP_ITER_CONVERGE) {
+  if (state->options.VP_ITER == VP_ITER_ALWAYS || (state->options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) || state->options.VP_ITER == VP_ITER_CONVERGE) {
     printf("Using arid-climate humidity algorithm\n");
-    if (options.VP_ITER == VP_ITER_CONVERGE) {
+    if (state->options.VP_ITER == VP_ITER_CONVERGE) {
       max_iter = 100;
     }
     else {
@@ -1582,7 +1580,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
     for (i=0 ; i<ndays ; i++) {
       tdew_save[i] = tdew[i];
     }
-    compute_srad_humidity_onetime(ndays, ctrl, data, tdew, pva, ttmax0, flat_potrad, slope_potrad, sky_prop, daylength, pet, parray, pa, dtr);
+    compute_srad_humidity_onetime(ndays, ctrl, data, tdew, pva, ttmax0, flat_potrad, slope_potrad, sky_prop, daylength, pet, parray, pa, dtr, state);
     rmse_tdew = 0;
     for (i=0 ; i<ndays ; i++) {
       rmse_tdew += (tdew[i]-tdew_save[i])*(tdew[i]-tdew_save[i]);
@@ -1629,9 +1627,12 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
 
 } /* end of calc_srad_humidity_iterative() */
 
-void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl, data_struct *data, double *tdew, double *pva, double *ttmax0, double *flat_potrad, double *slope_potrad, double sky_prop, double *daylength, double *pet, double *parray, double pa, double *dtr) {
+void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl,
+    data_struct *data, double *tdew, double *pva, double *ttmax0,
+    double *flat_potrad, double *slope_potrad, double sky_prop,
+    double *daylength, double *pet, double *parray, double pa, double *dtr,
+    const ProgramState* state) {
 
-  extern option_struct options;
   int i;
   int yday;
   double t_tmax;
@@ -1693,7 +1694,7 @@ void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl, data_s
     srad2 = flat_potrad[yday] * t_final * pdif * (sky_prop + DIF_ALB*(1.0-sky_prop)); 
 
     /* snow pack influence on radiation */
-    if (options.MTCLIM_SWE_CORR && data->s_swe[i] > 0.0) {
+    if (state->options.MTCLIM_SWE_CORR && data->s_swe[i] > 0.0) {
       /* snow correction in J/m2/day */
       sc = (1.32 + 0.096 * data->s_swe[i]) * 1e6;
       /* convert to W/m2 and check for zero daylength */

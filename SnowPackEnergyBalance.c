@@ -87,8 +87,6 @@ static char vcid[] = "$Id$";
 double SnowPackEnergyBalance(double TSurf, va_list ap)
 {
 
-  extern option_struct options;
-
   const char *Routine = "SnowPackEnergyBalance";
 
   /* Define Variable Argument List */

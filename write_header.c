@@ -6,9 +6,9 @@
 static char vcid[] = "$Id$";
 
 void write_header(out_data_file_struct *out_data_files,
-		  out_data_struct      *out_data,
-                  const dmy_struct           *dmy,
-                  global_param_struct   global)
+                  out_data_struct *out_data,
+                  const dmy_struct *dmy,
+                  const ProgramState* state)
 /**********************************************************************
 	write_header	Ted Bohn		Janurary 2007
 
@@ -21,7 +21,6 @@ void write_header(out_data_file_struct *out_data_files,
 
 **********************************************************************/
 {
-  extern option_struct options;
   int                 file_idx;
   int                 var_idx;
   int                 elem_idx;
@@ -37,12 +36,12 @@ void write_header(out_data_file_struct *out_data_files,
   char                tmp_type;
   float               tmp_mult;
 
-  if (options.ALMA_OUTPUT)
+  if (state->options.ALMA_OUTPUT)
     tmp_ALMA_OUTPUT = 1;
   else
     tmp_ALMA_OUTPUT = 0;
 
-  if(options.BINARY_OUTPUT) {  // BINARY
+  if(state->options.BINARY_OUTPUT) {  // BINARY
 
     tmp_str = (char *)calloc(256, sizeof(char));
 
@@ -77,7 +76,7 @@ void write_header(out_data_file_struct *out_data_files,
     Identifier = 0xFFFF;
 
     // Loop over output files
-    for (file_idx = 0; file_idx < options.Noutfiles; file_idx++) {
+    for (file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 
       // ***** Compute the number of bytes in part 1 *****
 
@@ -109,7 +108,7 @@ void write_header(out_data_file_struct *out_data_files,
       Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // year
       Nbytes2 += sizeof(char) + 5*sizeof(char) + sizeof(char) + sizeof(float); // month
       Nbytes2 += sizeof(char) + 3*sizeof(char) + sizeof(char) + sizeof(float); // day
-      if (global.out_dt < 24)
+      if (state->global_param.out_dt < 24)
         Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // hour
 #endif
 
@@ -143,10 +142,10 @@ void write_header(out_data_file_struct *out_data_files,
       fwrite(&Nbytes1, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
 
       // nrecs
-      fwrite(&(global.nrecs), sizeof(int), 1, out_data_files[file_idx].fh);
+      fwrite(&(state->global_param.nrecs), sizeof(int), 1, out_data_files[file_idx].fh);
 
       // dt
-      fwrite(&(global.out_dt), sizeof(int), 1, out_data_files[file_idx].fh);
+      fwrite(&(state->global_param.out_dt), sizeof(int), 1, out_data_files[file_idx].fh);
 
       // start date (year, month, day, hour)
       fwrite(&(dmy->year), sizeof(int), 1, out_data_files[file_idx].fh);
@@ -160,7 +159,7 @@ void write_header(out_data_file_struct *out_data_files,
       // Nvars
       Nvars = out_data_files[file_idx].nvars;
 #if !OUTPUT_FORCE
-      if (global.out_dt < 24)
+      if (state->global_param.out_dt < 24)
         Nvars += 4;
       else
         Nvars += 3;
@@ -199,7 +198,7 @@ void write_header(out_data_file_struct *out_data_files,
       fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
       fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
 
-      if (global.out_dt < 24) {
+      if (state->global_param.out_dt < 24) {
         // hour
         strcpy(tmp_str,"HOUR");
         tmp_len = strlen(tmp_str);
@@ -252,18 +251,18 @@ void write_header(out_data_file_struct *out_data_files,
     //    Nvars       = Number of variables in the file, including date fields
 
     // Loop over output files
-    for (file_idx = 0; file_idx < options.Noutfiles; file_idx++) {
+    for (file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 
       // Header part 1: Global attributes
       Nvars = out_data_files[file_idx].nvars;
 #if !OUTPUT_FORCE
-      if (global.out_dt < 24)
+      if (state->global_param.out_dt < 24)
         Nvars += 4;
       else
         Nvars += 3;
 #endif
-      fprintf(out_data_files[file_idx].fh, "# NRECS: %d\n", global.nrecs);
-      fprintf(out_data_files[file_idx].fh, "# DT: %d\n", global.out_dt);
+      fprintf(out_data_files[file_idx].fh, "# NRECS: %d\n", state->global_param.nrecs);
+      fprintf(out_data_files[file_idx].fh, "# DT: %d\n", state->global_param.out_dt);
       fprintf(out_data_files[file_idx].fh, "# STARTDATE: %04d-%02d-%02d %02d:00:00\n",
         dmy->year, dmy->month, dmy->day, dmy->hour);
       fprintf(out_data_files[file_idx].fh, "# ALMA_OUTPUT: %d\n", tmp_ALMA_OUTPUT);
@@ -274,7 +273,7 @@ void write_header(out_data_file_struct *out_data_files,
 
 #if !OUTPUT_FORCE
       // Write the date
-      if (global.out_dt < 24) {
+      if (state->global_param.out_dt < 24) {
         // Write year, month, day, and hour
         fprintf(out_data_files[file_idx].fh, "YEAR\tMONTH\tDAY\tHOUR\t");
       }

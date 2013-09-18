@@ -78,7 +78,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->frost_fract, soil_con->frost_slope, 
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-					   soil_con->FS_ACTIVE);
+					   soil_con->FS_ACTIVE, state);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(state->options.DIST_PRCP) {
       ErrorFlag = estimate_layer_ice_content_quick_flux(layer_dry, soil_con->depth, soil_con->dp,
@@ -89,7 +89,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					     soil_con->frost_fract, soil_con->frost_slope, 
 					     soil_con->porosity,
 					     soil_con->effective_porosity,
-					     soil_con->FS_ACTIVE);
+					     soil_con->FS_ACTIVE, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
   }
@@ -104,7 +104,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					   soil_con->frost_fract, soil_con->frost_slope, 
 					   soil_con->porosity,
 					   soil_con->effective_porosity,
-					   Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
+					   Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(state->options.DIST_PRCP) {
       ErrorFlag = estimate_layer_ice_content(layer_dry, soil_con->Zsum_node, energy->T,
@@ -116,7 +116,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 					     soil_con->expt, soil_con->bubble, 
 					     soil_con->frost_fract, soil_con->frost_slope, 
 					     soil_con->porosity, soil_con->effective_porosity,
-					     Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE);
+					     Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
   }

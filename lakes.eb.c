@@ -242,7 +242,7 @@ int solve_lake(double             snowfall,
     alblake(Tcutoff, tair, &lake->SAlbedo, &tempalbs, &albi, &albw, snowfall,
 	    lake->snow.coldcontent, dt, &lake->snow.last_snow,
 	    lake->snow.swq, lake->snow.depth, &lake->snow.MELTING,
-	    dmy.day_in_year, (double)soil_con.lat);
+	    dmy.day_in_year, (double)soil_con.lat, state);
 
     /* --------------------------------------------------------------------
      * Calculate the incoming solar radiaton for both the ice fraction
@@ -644,7 +644,8 @@ void alblake (double  Tcutoff,
 	      double  depth,
 	      char   *MELTING,
 	      int     day_in_year,
-	      double  latitude)
+	      double  latitude,
+	      const ProgramState* state)
 {
 /**********************************************************************
  * Calculate the albedo of snow, ice and water of the lake.
@@ -713,7 +714,7 @@ void alblake (double  Tcutoff,
 
   // compute snow surface albedo
   if(swq > 0.0)
-    *snowalbedo = snow_albedo(newsnow, swq, depth, *snowalbedo, coldcontent, dt, *last_snow, *MELTING);
+    *snowalbedo = snow_albedo(newsnow, swq, depth, *snowalbedo, coldcontent, dt, *last_snow, *MELTING, state);
   else if(swq == 0.0 && newsnow > 0.0)
     *snowalbedo = NEW_SNOW_ALB;
   else
@@ -2316,7 +2317,7 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
                                                     soil_con.soil_density,
                                                     soil_con.bulk_density,
                                                     soil_con.organic, state->options.Nnode,
-                                                    state->options.Nlayer, soil_con.FS_ACTIVE);
+                                                    state->options.Nlayer, soil_con.FS_ACTIVE, state);
     if ( ErrorFlag == ERROR ) return (ERROR);
   }
   else if (lakefrac < 1.0) { // wetland is gone at end of time step, but existed at beginning of step

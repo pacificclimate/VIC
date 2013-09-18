@@ -164,11 +164,6 @@ int  runoff(cell_data_struct  *cell_wet,
 	      organic fraction into account.					TJB
 **********************************************************************/
 {  
-  extern option_struct options;
-#if LINK_DEBUG
-  extern debug_struct  debug;
-#endif // LINK_DEBUG
-
   char               ErrStr[MAXSTRING];
   int                firstlayer, lindex, sub;
   int                i;
@@ -545,33 +540,33 @@ int  runoff(cell_data_struct  *cell_wet,
 	      
 	      /* Store moistures for water balance debugging */
 #if LINK_DEBUG
-	      if ( debug.PRT_BALANCE ) {
+	      if ( state->debug.PRT_BALANCE ) {
 		if ( time_step == 0 ) {
 		  if ( firstlayer )
 #if SPATIAL_FROST
-		    debug.inflow[dist][band][lindex+2] 
+		    state->debug.inflow[dist][band][lindex+2]
 		      += (inflow - dt_runoff) * frost_fract[frost_area];
 #else
-		  debug.inflow[dist][band][lindex+2] = inflow - dt_runoff;
+		  state->debug.inflow[dist][band][lindex+2] = inflow - dt_runoff;
 #endif // SPATIAL_FROST
 		  else {
 #if SPATIAL_FROST
-		    debug.inflow[dist][band][lindex+2] 
+		    state->debug.inflow[dist][band][lindex+2]
 		      += inflow * frost_fract[frost_area];
-		    debug.outflow[dist][band][lindex+1] 
+		    state->debug.outflow[dist][band][lindex+1]
 		      += inflow * frost_fract[frost_area];
 #else
-		    debug.inflow[dist][band][lindex+2] = inflow;
-		    debug.outflow[dist][band][lindex+1] = inflow;
+		    state->debug.inflow[dist][band][lindex+2] = inflow;
+		    state->debug.outflow[dist][band][lindex+1] = inflow;
 #endif // SPATIAL_FROST
 		  }
 		}
 		else {
 		  if ( firstlayer )
-		    debug.inflow[dist][band][lindex+2]  += inflow - dt_runoff;
+		    state->debug.inflow[dist][band][lindex+2]  += inflow - dt_runoff;
 		  else {
-		    debug.inflow[dist][band][lindex+2]  += inflow;
-		    debug.outflow[dist][band][lindex+1] += inflow;
+		    state->debug.inflow[dist][band][lindex+2]  += inflow;
+		    state->debug.outflow[dist][band][lindex+1] += inflow;
 		  }
 		}
 	      }
@@ -579,7 +574,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	      
 	      /* transport moisture for all sublayers **/
 #if LINK_DEBUG
-	      if(debug.DEBUG || debug.PRT_BALANCE) 
+	      if(state->debug.DEBUG || state->debug.PRT_BALANCE)
 		last_liq = liq[lindex];
 #endif // LINK_DEBUG
 	      
@@ -603,10 +598,10 @@ int  runoff(cell_data_struct  *cell_wet,
 		  while(tmp_inflow > 0) {
 		    tmplayer--;
 #if LINK_DEBUG
-		    if(debug.PRT_BALANCE) {
+		    if(state->debug.PRT_BALANCE) {
 		      /** Update debugging storage terms **/
-		      debug.inflow[dist][band][lindex+2]  -= tmp_inflow;
-		      debug.outflow[dist][band][lindex+1] -= tmp_inflow;
+		      state->debug.inflow[dist][band][lindex+2]  -= tmp_inflow;
+		      state->debug.outflow[dist][band][lindex+1] -= tmp_inflow;
 		    }
 #endif // LINK_DEBUG
 		    if ( tmplayer < 0 ) {
@@ -655,11 +650,11 @@ int  runoff(cell_data_struct  *cell_wet,
 	    Dsmax = soil_con->Dsmax / 24.;
 	    
 #if LINK_DEBUG
-	    if(debug.DEBUG || debug.PRT_BALANCE) {
+	    if(state->debug.DEBUG || state->debug.PRT_BALANCE) {
 	      last_liq = liq[lindex];
 	      /** Update debugging storage terms **/
-	      debug.outflow[dist][band][lindex+1] += Q12[lindex-1];
-	      debug.inflow[dist][band][lindex+2]  += Q12[lindex-1];
+	      state->debug.outflow[dist][band][lindex+1] += Q12[lindex-1];
+	      state->debug.inflow[dist][band][lindex+2]  += Q12[lindex-1];
 	    }
 #endif // LINK_DEBUG
 	    
@@ -703,10 +698,10 @@ int  runoff(cell_data_struct  *cell_wet,
 	      while(tmp_moist > 0) {
 		tmplayer--;
 #if LINK_DEBUG
-		if(debug.PRT_BALANCE) {
+		if(state->debug.PRT_BALANCE) {
 		  /** Update debugging storage terms **/
-		  debug.inflow[dist][band][lindex+2]  -= tmp_moist;
-		  debug.outflow[dist][band][lindex+1] -= tmp_moist;
+		  state->debug.inflow[dist][band][lindex+2]  -= tmp_moist;
+		  state->debug.outflow[dist][band][lindex+1] -= tmp_moist;
 		}
 #endif // LINK_DEBUG
 		if(tmplayer<0) {
@@ -764,9 +759,9 @@ int  runoff(cell_data_struct  *cell_wet,
 #endif // SPATIAL_FROST
 
 #if LINK_DEBUG
-	if(debug.PRT_BALANCE) {
-	  debug.outflow[dist][band][state->options.Nlayer+2] = (runoff[frost_area] + baseflow[frost_area]);
-	  debug.outflow[dist][band][state->options.Nlayer+1] = *baseflow;
+	if(state->debug.PRT_BALANCE) {
+	  state->debug.outflow[dist][band][state->options.Nlayer+2] = (runoff[frost_area] + baseflow[frost_area]);
+	  state->debug.outflow[dist][band][state->options.Nlayer+1] = *baseflow;
 	}
 #endif // LINK_DEBUG
 #if SPATIAL_FROST
@@ -786,7 +781,7 @@ int  runoff(cell_data_struct  *cell_wet,
     for(lindex=0;lindex<state->options.Nlayer;lindex++) {
       tmp_layer = find_average_layer(&(cell_wet->layer[lindex]),
 				     &(cell_dry->layer[lindex]), 
-				     soil_con->depth[lindex], tmp_mu);
+				     soil_con->depth[lindex], tmp_mu, state);
       moist[lindex] = tmp_layer.moist;
     }
     
@@ -809,7 +804,7 @@ int  runoff(cell_data_struct  *cell_wet,
 						      soil_con->soil_density,
 						      soil_con->bulk_density,
 						      soil_con->organic, Nnodes, 
-						      state->options.Nlayer, soil_con->FS_ACTIVE);
+						      state->options.Nlayer, soil_con->FS_ACTIVE, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
 #if EXCESS_ICE
     }

@@ -62,8 +62,6 @@ static char vcid[] = "$Id$";
 double IceEnergyBalance(double TSurf, va_list ap)
 {
 
-  extern option_struct options;
-
   const char *Routine = "IceEnergyBalance";
 
   /* start of list of arguments in variable argument list */

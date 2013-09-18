@@ -159,7 +159,8 @@ void set_node_parameters(double   *dz_node,
 			 double    *effective_porosity_node,
 			 int       Nnodes,
 			 int       Nlayers,
-			 char      FS_ACTIVE) {
+			 char      FS_ACTIVE,
+			 const ProgramState* state) {
 /**********************************************************************
   This subroutine sets the thermal node soil parameters to constant 
   values based on those defined for the current grid cells soil type.
@@ -208,7 +209,6 @@ void set_node_parameters(double   *dz_node,
   2009-Jul-31 Removed unused layer_node_fract array.			TJB
 **********************************************************************/
 
-  extern option_struct options;
 #if QUICK_FS
   extern double temps[];
 #endif
@@ -267,7 +267,7 @@ void set_node_parameters(double   *dz_node,
     beta[nidx] = Zsum_node[nidx+1] - Zsum_node[nidx];
     gamma[nidx] = Zsum_node[nidx+2] - Zsum_node[nidx+1];
   }
-  if(options.NOFLUX) {
+  if(state->options.NOFLUX) {
     /* no flux bottom boundary activated */
     alpha[Nnodes-2] = 2. * (Zsum_node[Nnodes-1] - Zsum_node[Nnodes-2]);
     beta[nidx] = Zsum_node[Nnodes-1] - Zsum_node[Nnodes-2];
@@ -280,7 +280,7 @@ void set_node_parameters(double   *dz_node,
   /* If quick frozen soil solution activated, prepare a linearized
      estimation on the maximum unfrozen water content equation */
 
-  if(FS_ACTIVE && options.FROZEN_SOIL) {
+  if(FS_ACTIVE && state->options.FROZEN_SOIL) {
     for(nidx=0;nidx<Nnodes;nidx++) { 
       for(ii=0;ii<QUICK_FS_TEMPS;ii++) {
 	Aufwc = maximum_unfrozen_water(temps[ii], 1.0, 
@@ -323,7 +323,8 @@ int distribute_node_moisture_properties(double *moist_node,
 					double *organic,
 					int     Nnodes,
 					int     Nlayers,
-					char    FS_ACTIVE) {
+					char    FS_ACTIVE,
+					const ProgramState* state) {
   /*********************************************************************
   This subroutine determines the moisture and ice contents of each 
   soil thermal node based on the current node temperature and layer
@@ -377,9 +378,6 @@ int distribute_node_moisture_properties(double *moist_node,
 	      soil_conductivity() to fix bug in commputation of kappa.		TJB
 
 *********************************************************************/
-
-  extern option_struct options;
-
   char PAST_BOTTOM;
   int nidx, lidx;
   double Lsum; /* cumulative depth of moisture layer */
@@ -414,7 +412,7 @@ int distribute_node_moisture_properties(double *moist_node,
 //    }
     if (moist_node[nidx]-max_moist_node[nidx] > 0) moist_node[nidx] = max_moist_node[nidx]; // HACK!!!!!!!!!!!
 
-    if(T_node[nidx] < 0 && (FS_ACTIVE && options.FROZEN_SOIL)) {
+    if(T_node[nidx] < 0 && (FS_ACTIVE && state->options.FROZEN_SOIL)) {
       /* compute moisture and ice contents */
 #if QUICK_FS
       ice_node[nidx] 
@@ -485,7 +483,8 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 			       double            *effective_porosity,
 			       int                Nnodes, 
 			       int                Nlayers,
-			       char               FS_ACTIVE) {
+			       char               FS_ACTIVE,
+			       const ProgramState* state) {
 /**************************************************************
   This subroutine estimates the ice content of all soil 
   moisture layers based on the distribution of soil thermal
@@ -520,9 +519,6 @@ int estimate_layer_ice_content(layer_data_struct *layer,
   2009-Dec-11 Removed min_liq and options.MIN_LIQ.		TJB
 
 **************************************************************/
-
-  extern option_struct options;
-
   int    nidx, min_nidx, max_nidx;
   int    lidx, frost_area, Nfrost;
   double Lsum[MAX_LAYERS+1];
@@ -606,7 +602,7 @@ int estimate_layer_ice_content(layer_data_struct *layer,
     }
 
     // Get soil node ice content for current layer
-    if (options.FROZEN_SOIL && FS_ACTIVE) {
+    if (state->options.FROZEN_SOIL && FS_ACTIVE) {
       for ( nidx = min_nidx; nidx <= max_nidx; nidx++ ) {
         for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) {
 	  tmp_ice[nidx][frost_area] = layer[lidx].moist 
@@ -671,7 +667,8 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 			       double             frost_slope,
 			       double            *porosity,
 			       double            *effective_porosity,
-			       char               FS_ACTIVE) {
+			       char               FS_ACTIVE,
+			       const ProgramState* state) {
 /**************************************************************
   This subroutine estimates the temperature and ice content of all soil 
   moisture layers based on the simplified soil T profile described in
@@ -689,7 +686,6 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 
 ********************************************************************/
 
-  extern option_struct options;
   int    lidx, frost_area, Nfrost;
   double Lsum[MAX_LAYERS+1];
   double tmpT, tmp_fract, tmp_ice;
@@ -703,16 +699,16 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 
   // compute cumulative layer depths
   Lsum[0] = 0;
-  for ( lidx = 1; lidx <= options.Nlayer; lidx++ ) Lsum[lidx] = depth[lidx-1] + Lsum[lidx-1];
+  for ( lidx = 1; lidx <= state->options.Nlayer; lidx++ ) Lsum[lidx] = depth[lidx-1] + Lsum[lidx-1];
 
   // estimate soil layer average temperatures
   layer[0].T = 0.5*(Tsurf+T1); // linear profile in topmost layer
-  for ( lidx = 1; lidx < options.Nlayer; lidx++ ) {
+  for ( lidx = 1; lidx < state->options.Nlayer; lidx++ ) {
     layer[lidx].T = Tp - Dp/(depth[lidx])*(T1-Tp)*(exp(-(Lsum[lidx+1]-Lsum[1])/Dp)-exp(-(Lsum[lidx]-Lsum[1])/Dp));
   }
 
   // estimate soil layer ice contents
-  for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) layer[lidx].soil_ice[frost_area] = 0;
@@ -720,7 +716,7 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
     layer[lidx].soil_ice = 0;
 #endif
 
-    if (options.FROZEN_SOIL && FS_ACTIVE) {
+    if (state->options.FROZEN_SOIL && FS_ACTIVE) {
 
 #if SPATIAL_FROST
 
@@ -955,7 +951,8 @@ double maximum_unfrozen_water_quick(double   T,
 layer_data_struct find_average_layer(layer_data_struct *wet,
 				     layer_data_struct *dry,
 				     double             depth,
-				     double             precipitation_mu) {
+				     double             precipitation_mu,
+				     const ProgramState* state) {
 /*************************************************************
   This subroutine computes the average soil layer moistures
   between the wet and dry fraction for use in computing 
@@ -968,14 +965,12 @@ layer_data_struct find_average_layer(layer_data_struct *wet,
   2011-Jun-07 Added condition that wet and dry portions are
 	      only averaged together if DIST_PRCP is TRUE.	TJB
 **************************************************************/
-
-  extern option_struct options;
   layer_data_struct layer;
   int frost_area;
 
   layer = *wet;
 
-  if (options.DIST_PRCP) {
+  if (state->options.DIST_PRCP) {
 
 #if SPATIAL_FROST
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )

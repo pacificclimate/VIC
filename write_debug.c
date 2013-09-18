@@ -43,8 +43,6 @@ void write_debug(atmos_data_struct    *atmos,
 
 **********************************************************************/
 
-  extern debug_struct debug;  //TODO: handle error and debugging information
-
   static short int   FIRST;
   static double    **MOIST_ERROR;
   static double     *INIT_MOIST;
@@ -82,7 +80,7 @@ void write_debug(atmos_data_struct    *atmos,
 
   Nbands = state->options.SNOW_BAND;
 
-  if(debug.PRT_FLUX && state->options.FULL_ENERGY) {
+  if(state->debug.PRT_FLUX && state->options.FULL_ENERGY) {
 
     /***** Record Hourly Energy Balance Terms *****/
 
@@ -175,29 +173,29 @@ void write_debug(atmos_data_struct    *atmos,
     }
 
     if(rec==0 && veg==0 && dist==0) {
-      fprintf(debug.fg_energy,"DATE\tNET SHT\tNET LNG\t");
-      fprintf(debug.fg_energy,"GRND F\tLATENT\tSENSBL\tADVEC\tdel H\t");
-      fprintf(debug.fg_energy,"del CC\tSNWFLX\tMELT\t");
-      fprintf(debug.fg_energy,"ERROR\tERR CAL\tGRND T\tT_1\tWIND\n");
+      fprintf(state->debug.fg_energy,"DATE\tNET SHT\tNET LNG\t");
+      fprintf(state->debug.fg_energy,"GRND F\tLATENT\tSENSBL\tADVEC\tdel H\t");
+      fprintf(state->debug.fg_energy,"del CC\tSNWFLX\tMELT\t");
+      fprintf(state->debug.fg_energy,"ERROR\tERR CAL\tGRND T\tT_1\tWIND\n");
     }
     if((state->options.DIST_PRCP && dist==1) || !state->options.DIST_PRCP) {
-      fprintf(debug.fg_energy,"%7.4f\t%7.4f\t%7.4f",
+      fprintf(state->debug.fg_energy,"%7.4f\t%7.4f\t%7.4f",
 	      (float)rec/24.0*(float)state->global_param.dt, INSHORT[veg],
 	      INLONG[veg]);
-      fprintf(debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f",
+      fprintf(state->debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f",
 	      -GRND_FLUX[veg], LATENT[veg], SENSIBLE[veg]);
-      fprintf(debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7.4f",
+      fprintf(state->debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7.4f",
 	      ADVECTION[veg], DELTA_H[veg], DELTA_CC[veg], SNOW_FLUX[veg], 
 	      REFREEZEENERGY[veg]);
-      fprintf(debug.fg_energy,"\t%7.4f\t%7.4f",
+      fprintf(state->debug.fg_energy,"\t%7.4f\t%7.4f",
 	      ENERGY_ERROR[veg],ENERGY_ERROR_CALC[veg]);
-      fprintf(debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f\n",
+      fprintf(state->debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f\n",
 	      energy[0].T[0], energy[0].T[1],
 	      atmos->wind[NR]);
     }
   }
  
-  if(debug.PRT_SNOW) {
+  if(state->debug.PRT_SNOW) {
 
     /***** Record Hourly Snow Terms *****/
     
@@ -208,28 +206,28 @@ void write_debug(atmos_data_struct    *atmos,
  
       if(rec==0 && veg==0 && dist==0 && band==0) {
 	/** Print File Header **/
-	fprintf(debug.fg_snow,"Date\tBand\tSWE TOT\tSWE SRF\tSWE PCK\t");
-	fprintf(debug.fg_snow,"GRND T\tlyr1 T\tSURF T\tPACK T\tMELT\t");
-	fprintf(debug.fg_snow,"VPR FLX\tAIR T\tSNOW\tRAIN\tGRNDFLX\t");
-	fprintf(debug.fg_snow,"DEPTH\tKAPPA\tCANOPY\tCNPYFLUX\n");
+	fprintf(state->debug.fg_snow,"Date\tBand\tSWE TOT\tSWE SRF\tSWE PCK\t");
+	fprintf(state->debug.fg_snow,"GRND T\tlyr1 T\tSURF T\tPACK T\tMELT\t");
+	fprintf(state->debug.fg_snow,"VPR FLX\tAIR T\tSNOW\tRAIN\tGRNDFLX\t");
+	fprintf(state->debug.fg_snow,"DEPTH\tKAPPA\tCANOPY\tCNPYFLUX\n");
       }
-      fprintf(debug.fg_snow,"%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7.3f",
+      fprintf(state->debug.fg_snow,"%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7.3f",
 	      (float)rec/24.0*(float)state->global_param.dt,snow[band].swq*1000.,
 	      snow[band].surf_water*1000.,
 	      snow[band].pack_water*1000.,energy->T[0]);
-      fprintf(debug.fg_snow,"\t%7.3f\t%7.3f\t%7.3f\t%7.3f",
+      fprintf(state->debug.fg_snow,"\t%7.3f\t%7.3f\t%7.3f\t%7.3f",
         energy->T[1],snow[band].surf_temp,snow[band].pack_temp,
         snow[band].vapor_flux*1000.);
-      fprintf(debug.fg_snow,"\t%7.3f\t%7.4f",
+      fprintf(state->debug.fg_snow,"\t%7.3f\t%7.4f",
 	      atmos->air_temp[NR], grnd_flux);
-      fprintf(debug.fg_snow,"\t%7.4f\t%7.4f\t%7.4f\t%7.4f\n",
+      fprintf(state->debug.fg_snow,"\t%7.4f\t%7.4f\t%7.4f\t%7.4f\n",
 	      snow[band].depth,snow[band].density,
 	      snow[band].snow_canopy*1000.,
 	      snow[band].canopy_vapor_flux*1000.);
     }
   }
  
-  if(debug.PRT_BALANCE) {
+  if(state->debug.PRT_BALANCE) {
  
     /***** Compute Water Balance Error *****/
 
@@ -254,8 +252,8 @@ void write_debug(atmos_data_struct    *atmos,
     }
     if(rec==0 && dist==0) {
       for(band = 0; band < Nbands; band++) {
-	INIT_MOIST[veg] = debug.store_moist[WET][band][state->options.Nlayer+2] * precipitation_mu;
-	INIT_MOIST[veg] += debug.store_moist[DRY][band][state->options.Nlayer+2]
+	INIT_MOIST[veg] = state->debug.store_moist[WET][band][state->options.Nlayer+2] * precipitation_mu;
+	INIT_MOIST[veg] += state->debug.store_moist[DRY][band][state->options.Nlayer+2]
 	  * (1. - precipitation_mu);
       }
       for(i=0;i<state->options.Nlayer+3;i++) MOIST_ERROR[veg][i] = 0.;
@@ -305,9 +303,9 @@ void write_debug(atmos_data_struct    *atmos,
 	for(i = 0; i < state->options.Nlayer+3; i++) {
 	  if(dist==0 && band==0) MOIST_ERROR[veg][i] = 0.;
 	  MOIST_ERROR[veg][i] 
-	    += (debug.inflow[dist][band][i] 
-		- (debug.outflow[dist][band][i] + Evap[i]) 
-		- (curr_moist[i] - debug.store_moist[dist][band][i])) 
+	    += (state->debug.inflow[dist][band][i]
+		- (state->debug.outflow[dist][band][i] + Evap[i])
+		- (curr_moist[i] - state->debug.store_moist[dist][band][i]))
 	    * precipitation_mu * soil_con->AreaFract[band];
 	  if(fabs(MOIST_ERROR[veg][i]) > 1.e-4) {
 	    fprintf(stderr,"WARNING: Debug Layer %i has a Moisture Balance Error of %f in rec %i, veg %i, band %i, precip dist %i\n",i,MOIST_ERROR[veg][i],rec,veg,band,dist);
@@ -324,14 +322,14 @@ void write_debug(atmos_data_struct    *atmos,
     }
 
     if(rec==0 && veg==0 && dist==0) {
-      fprintf(debug.fg_balance,"Date\tVeg Num\tPrecip\tRunoff");
-      fprintf(debug.fg_balance,"\tBFlow\tEvap\tdStor\tError\n");
+      fprintf(state->debug.fg_balance,"Date\tVeg Num\tPrecip\tRunoff");
+      fprintf(state->debug.fg_balance,"\tBFlow\tEvap\tdStor\tError\n");
     }
     if((state->options.DIST_PRCP && dist==1) || !state->options.DIST_PRCP) {
-      fprintf(debug.fg_balance,"%f\t%i\t%f\t%f\t%f",
+      fprintf(state->debug.fg_balance,"%f\t%i\t%f\t%f\t%f",
 	      (double)rec/24.0*(double)state->global_param.dt,veg,INFLOW[veg],RUNOFF[veg],
 	      BASEFLOW[veg]);
-      fprintf(debug.fg_balance,"\t%f\t%f\t%f\n",
+      fprintf(state->debug.fg_balance,"\t%f\t%f\t%f\n",
           EVAP[veg],curr_moist[state->options.Nlayer+2]-INIT_MOIST[veg],
           MOIST_ERROR[veg][state->options.Nlayer+2]);
     }
@@ -339,104 +337,104 @@ void write_debug(atmos_data_struct    *atmos,
     free((char*)curr_moist);
   }
  
-  if(debug.PRT_TEMP) {
+  if(state->debug.PRT_TEMP) {
   
     /***** Temperature Profile Debugging Output *****/
  
     if(rec==0 && veg==0 && dist==0) {
-      fprintf(debug.fg_temp,"%i\n",state->options.Nnode);
-      fprintf(debug.fg_temp,"Date - hour(REC)\tveg\tband\tAir T\tFdpth\tTdpth");
+      fprintf(state->debug.fg_temp,"%i\n",state->options.Nnode);
+      fprintf(state->debug.fg_temp,"Date - hour(REC)\tveg\tband\tAir T\tFdpth\tTdpth");
       for(i=0;i<state->options.Nlayer;i++)
-	fprintf(debug.fg_temp,"\tLayer %i",i);
+	fprintf(state->debug.fg_temp,"\tLayer %i",i);
       for(i=0;i<state->options.Nnode;i++) {
-	fprintf(debug.fg_temp,"\tT%.0f",soil_con->Zsum_node[i]*100.0);
+	fprintf(state->debug.fg_temp,"\tT%.0f",soil_con->Zsum_node[i]*100.0);
       }
       for(i=0;i<state->options.Nnode;i++) {
-	fprintf(debug.fg_temp,"\tM%.0f",soil_con->Zsum_node[i]*100.0);
+	fprintf(state->debug.fg_temp,"\tM%.0f",soil_con->Zsum_node[i]*100.0);
       }
       for(i=0;i<state->options.Nnode;i++) {
-	fprintf(debug.fg_temp,"\tI%.0f",soil_con->Zsum_node[i]*100.0);
+	fprintf(state->debug.fg_temp,"\tI%.0f",soil_con->Zsum_node[i]*100.0);
       }
       for(i=0;i<state->options.Nnode;i++) {
-	fprintf(debug.fg_temp,"\tK%.0f",soil_con->Zsum_node[i]*100.0);
+	fprintf(state->debug.fg_temp,"\tK%.0f",soil_con->Zsum_node[i]*100.0);
       }
       for(i=0;i<state->options.Nnode;i++) {
-	fprintf(debug.fg_temp,"\tCs%.0f",soil_con->Zsum_node[i]*100.0);
+	fprintf(state->debug.fg_temp,"\tCs%.0f",soil_con->Zsum_node[i]*100.0);
       }
-      fprintf(debug.fg_temp,"\n");
+      fprintf(state->debug.fg_temp,"\n");
     }
     for(band = 0; band < Nbands; band++) {
       if(soil_con->AreaFract[band]>0) {
-	fprintf(debug.fg_temp,"%02i/%02i/%04i - %02i\t%7f\t%i\t%i",
+	fprintf(state->debug.fg_temp,"%02i/%02i/%04i - %02i\t%7f\t%i\t%i",
 		dmy->day, dmy->month, dmy->year, dmy->hour,
 		(float)rec/24.0*(float)state->global_param.dt, veg, band);
-	fprintf(debug.fg_temp,"\t%6.2f\t%6.2f\t%6.2f",
+	fprintf(state->debug.fg_temp,"\t%6.2f\t%6.2f\t%6.2f",
 		atmos->air_temp[NR], energy->fdepth[0] * 100., 
 		energy->tdepth[0] * 100.);
 	/* print layer temperatures */
 	for(i = 0; i < state->options.Nlayer; i++)
-	  fprintf(debug.fg_temp,"\t%6.2f", cell[band].layer[i].T);
+	  fprintf(state->debug.fg_temp,"\t%6.2f", cell[band].layer[i].T);
 	/* print node temperatures */
 	for(i = 0; i < state->options.Nnode; i++)
-	  fprintf(debug.fg_temp,"\t%6.2f", energy->T[i]);
+	  fprintf(state->debug.fg_temp,"\t%6.2f", energy->T[i]);
 	/* print node moisture contents */
 	for(i = 0; i < state->options.Nnode; i++)
-	  fprintf(debug.fg_temp,"\t%6.4f", energy->moist[i]);
+	  fprintf(state->debug.fg_temp,"\t%6.4f", energy->moist[i]);
 	/* print node ice contents */
 	for(i = 0; i < state->options.Nnode; i++)
-	  fprintf(debug.fg_temp,"\t%6.4f", energy->ice_content[i]);
+	  fprintf(state->debug.fg_temp,"\t%6.4f", energy->ice_content[i]);
 	/* print node thermal conductivities */
 	for(i = 0; i < state->options.Nnode; i++)
-	  fprintf(debug.fg_temp,"\t%6.2f", energy->kappa_node[i]);
+	  fprintf(state->debug.fg_temp,"\t%6.2f", energy->kappa_node[i]);
 	/* print node volumetric heat capacities */
 	for(i = 0;i < state->options.Nnode; i++)
-	  fprintf(debug.fg_temp,"\t%6.0f", energy->Cs_node[i]);
-	fprintf(debug.fg_temp,"\n");
+	  fprintf(state->debug.fg_temp,"\t%6.0f", energy->Cs_node[i]);
+	fprintf(state->debug.fg_temp,"\n");
       }
     }
  
   }
  
-  if(debug.PRT_MOIST) {
+  if(state->debug.PRT_MOIST) {
 
     /***** Moisture Profile Debugging Output *****/
 
     if(FIRST != -999) {
-      fprintf(debug.fg_moist,"Date - hour(REC)        \tVeg Num\tDist Num");
-      fprintf(debug.fg_moist,"\tT Air");
-      fprintf(debug.fg_moist,"\tInflow\tRunoff");
+      fprintf(state->debug.fg_moist,"Date - hour(REC)        \tVeg Num\tDist Num");
+      fprintf(state->debug.fg_moist,"\tT Air");
+      fprintf(state->debug.fg_moist,"\tInflow\tRunoff");
       for(i=0;i<state->options.Nlayer;i++)
-        fprintf(debug.fg_moist,"\t%i Moist\t%i Ice",i,i);
-      fprintf(debug.fg_moist,"\n");
+        fprintf(state->debug.fg_moist,"\t%i Moist\t%i Ice",i,i);
+      fprintf(state->debug.fg_moist,"\n");
     }
 
     for(band = 0; band < Nbands; band++) {
       if(soil_con->AreaFract[band]>0) {
 
-	fprintf(debug.fg_moist,"%02i/%02i/%04i - %02i\t%7f\t%i\t%i",
+	fprintf(state->debug.fg_moist,"%02i/%02i/%04i - %02i\t%7f\t%i\t%i",
 		dmy->day,dmy->month,dmy->year,dmy->hour,
 		(float)rec/24.0*(float)state->global_param.dt,veg,dist);
-	fprintf(debug.fg_moist,"\t%6.2f\t%6.4f\t%6.4f",
+	fprintf(state->debug.fg_moist,"\t%6.2f\t%6.4f\t%6.4f",
 		atmos->air_temp[NR], cell[band].inflow, cell[band].runoff);
 	
 	curr_moist = (double *)calloc(1,sizeof(double));
 	for(i = 0; i < state->options.Nlayer; i++) {
 	  curr_moist[0] = cell[band].layer[i].moist * (soil_con->depth[i]) 
 	    / soil_con->depth[i];
-	  fprintf(debug.fg_moist,"\t%6.4f",
+	  fprintf(state->debug.fg_moist,"\t%6.4f",
 		  curr_moist[0] / soil_con->depth[i] / 1000.);
 	}
-	fprintf(debug.fg_moist,"\n");
+	fprintf(state->debug.fg_moist,"\n");
 	free((char*)curr_moist);
       }
     }
   }
  
-  if(debug.PRT_KAPPA) {
+  if(state->debug.PRT_KAPPA) {
  
     /***** Soil Thermal Properties Profile Debugging Output *****/
 
-    fprintf(debug.fg_kappa,"%02i/%02i/%04i - %02i\t%7f\t%i",
+    fprintf(state->debug.fg_kappa,"%02i/%02i/%04i - %02i\t%7f\t%i",
         dmy->day,dmy->month,dmy->year,dmy->hour,
         (float)rec/24.0*(float)state->global_param.dt,veg);
  
@@ -444,21 +442,21 @@ void write_debug(atmos_data_struct    *atmos,
       if(soil_con->AreaFract[band]>0) {
 
 	for(i=0;i<state->options.Nlayer;i++) {
-	  fprintf(debug.fg_kappa,"\t%6.2f\t%6.0f",
+	  fprintf(state->debug.fg_kappa,"\t%6.2f\t%6.0f",
 		  cell[band].layer[i].kappa,
 		  cell[band].layer[i].Cs);
 	}
-	fprintf(debug.fg_kappa,"\n");
+	fprintf(state->debug.fg_kappa,"\n");
       }
     }
   }
  
-  if(debug.PRT_GRID) {
+  if(state->debug.PRT_GRID) {
 
     /***** Soil Themperature GMT Grided Profile Output *****/
  
     for(i=0;i<state->options.Nnode;i++) {
-      fprintf(debug.fg_grid,"%7f\t%f\t%f\n",
+      fprintf(state->debug.fg_grid,"%7f\t%f\t%f\n",
 	      (float)rec/24.0*(float)state->global_param.dt,
 	      soil_con->Zsum_node[i],energy->T[i]);
     }

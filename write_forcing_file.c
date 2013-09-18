@@ -7,7 +7,8 @@ static char vcid[] = "$Id$";
 void write_forcing_file(atmos_data_struct *atmos,
 			int                nrecs,
 			out_data_file_struct *out_data_files, 
-			out_data_struct   *out_data)
+			out_data_struct   *out_data,
+			const ProgramState* state)
 /**********************************************************************
   write_forcing_file          Keith Cherkauer           July 19, 2000
 
@@ -29,9 +30,6 @@ void write_forcing_file(atmos_data_struct *atmos,
 
 **********************************************************************/
 {
-  extern global_param_struct global_param;
-  extern option_struct options;
-
   int                 rec = 0, i = 0, j = 0, v = 0;
   short int          *tmp_siptr = NULL;
   unsigned short int *tmp_usiptr = NULL;
@@ -39,7 +37,7 @@ void write_forcing_file(atmos_data_struct *atmos,
   int                 dummy_dt = 0;
   int                 dt_sec = 0;
 
-  dt_sec = global_param.dt*SECPHOUR;
+  dt_sec = state->global_param.dt*SECPHOUR;
 
   for ( rec = 0; rec < nrecs; rec++ ) {
     for ( j = 0; j < NF; j++ ) {
@@ -56,16 +54,16 @@ void write_forcing_file(atmos_data_struct *atmos,
       out_data[OUT_VP].data[0]        = atmos[rec].vp[j]/kPa2Pa;
       out_data[OUT_VPD].data[0]       = atmos[rec].vpd[j]/kPa2Pa;
       out_data[OUT_WIND].data[0]      = atmos[rec].wind[j];
-      if (out_data[OUT_AIR_TEMP].data[0] >= global_param.MAX_SNOW_TEMP) {
+      if (out_data[OUT_AIR_TEMP].data[0] >= state->global_param.MAX_SNOW_TEMP) {
         out_data[OUT_RAINF].data[0] = out_data[OUT_PREC].data[0];
         out_data[OUT_SNOWF].data[0] = 0;
       }
-      else if (out_data[OUT_AIR_TEMP].data[0] <= global_param.MIN_RAIN_TEMP) {
+      else if (out_data[OUT_AIR_TEMP].data[0] <= state->global_param.MIN_RAIN_TEMP) {
         out_data[OUT_RAINF].data[0] = 0;
         out_data[OUT_SNOWF].data[0] = out_data[OUT_PREC].data[0];
       }
       else {
-        out_data[OUT_RAINF].data[0] = ((out_data[OUT_AIR_TEMP].data[0]-global_param.MIN_RAIN_TEMP)/(global_param.MAX_SNOW_TEMP-global_param.MIN_RAIN_TEMP))*out_data[OUT_PREC].data[0];
+        out_data[OUT_RAINF].data[0] = ((out_data[OUT_AIR_TEMP].data[0]-state->global_param.MIN_RAIN_TEMP)/(state->global_param.MAX_SNOW_TEMP-state->global_param.MIN_RAIN_TEMP))*out_data[OUT_PREC].data[0];
         out_data[OUT_SNOWF].data[0] = out_data[OUT_PREC].data[0]-out_data[OUT_RAINF].data[0];
       }
 
@@ -75,7 +73,7 @@ void write_forcing_file(atmos_data_struct *atmos,
         }
       }
 
-      if (options.ALMA_OUTPUT) {
+      if (state->options.ALMA_OUTPUT) {
         out_data[OUT_PREC].aggdata[0] /= dt_sec;
         out_data[OUT_RAINF].aggdata[0] /= dt_sec;
         out_data[OUT_SNOWF].aggdata[0] /= dt_sec;
@@ -85,14 +83,14 @@ void write_forcing_file(atmos_data_struct *atmos,
         out_data[OUT_VPD].aggdata[0] *= 1000;
       }
 
-      if (options.BINARY_OUTPUT) {
+      if (state->options.BINARY_OUTPUT) {
         for (v=0; v<N_OUTVAR_TYPES; v++) {
           for (i=0; i<out_data[v].nelem; i++) {
             out_data[v].aggdata[i] *= out_data[v].mult;
           }
         }
       }
-      write_data(out_data_files, out_data, dummy_dmy, dummy_dt);
+      write_data(out_data_files, out_data, dummy_dmy, dummy_dt, state);
     }
   }
 

@@ -800,7 +800,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
   **************************************************/
   mtclim_wrapper(have_dewpt, have_shortwave, hour_offset, soil_con->elevation, soil_con->slope,
                    soil_con->aspect, soil_con->ehoriz, soil_con->whoriz, soil_con->annual_prec, soil_con->lat, Ndays_local,
-                   dmy_local, prec, tmax, tmin, tskc, daily_vp, hourlyrad);
+                   dmy_local, prec, tmax, tmin, tskc, daily_vp, hourlyrad, state);
 
   /***********************************************************
     Shortwave, part 2.

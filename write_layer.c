@@ -22,8 +22,6 @@ void write_layer(layer_data_struct *layer,
 
 **********************************************************************/
 {
-  extern option_struct options;
-
   int index;
   double layer_moist;
   double sum_moist;

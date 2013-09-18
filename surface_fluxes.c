@@ -725,7 +725,7 @@ int surface_fluxes(char                 overstory,
     // Finally, compute pot_evap
     compute_pot_evap(veg_class, dmy, rec, state->global_param.dt, atmos->shortwave[hidx],
         iter_soil_energy.NetLongAtmos, Tair, VPDcanopy, soil_con->elevation,
-        step_aero_resist, iter_pot_evap);
+        step_aero_resist, iter_pot_evap, state);
 
     /**************************************
      Store sub-model time step variables

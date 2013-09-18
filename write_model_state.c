@@ -77,8 +77,6 @@ void write_model_state(dist_prcp_struct    *prcp,
 	      values will be stored.						TJB
 *********************************************************************/
 {
-  extern option_struct options;
-
   double tmpval;
   int    veg;
   int    band;
@@ -92,14 +90,14 @@ void write_model_state(dist_prcp_struct    *prcp,
 
   int    node;
 
-  if(options.DIST_PRCP) 
+  if(state->options.DIST_PRCP)
     Ndist = 2;
   else 
     Ndist = 1;
-  Nbands = options.SNOW_BAND;
+  Nbands = state->options.SNOW_BAND;
 
   /* write cell information */
-  if ( options.BINARY_STATE_FILE ) {
+  if ( state->options.BINARY_STATE_FILE ) {
     fwrite( &cellnum, sizeof(int), 1, filep->statefile );
     fwrite( &Nveg, sizeof(int), 1, filep->statefile );
     fwrite( &Nbands, sizeof(int), 1, filep->statefile );
@@ -111,30 +109,30 @@ void write_model_state(dist_prcp_struct    *prcp,
   // of the line.  DO NOT CHANGE unless you have changed the values
   // written to the state file.
   // IF YOU EDIT THIS FILE: UPDATE THIS VALUE!
-  if ( options.BINARY_STATE_FILE ) {
-    Nbytes = ( options.Nnode * sizeof(double) // dz_node
-	       + options.Nnode * sizeof(double) // Zsum_node
+  if ( state->options.BINARY_STATE_FILE ) {
+    Nbytes = ( state->options.Nnode * sizeof(double) // dz_node
+	       + state->options.Nnode * sizeof(double) // Zsum_node
 #if EXCESS_ICE
-	       + options.Nlayer * sizeof(double) //soil depth
-	       + options.Nlayer * sizeof(double) //effective porosity
+	       + state->options.Nlayer * sizeof(double) //soil depth
+	       + state->options.Nlayer * sizeof(double) //effective porosity
 	       + sizeof(double) //damping depth
 #endif
 	       + (Nveg+1) * sizeof(double) // mu
 	       + (Nveg+1) * sizeof(char) // STILL_STORM
 	       + (Nveg+1) * sizeof(int) // DRY_TIME
 	       + (Nveg+1) * Nbands * 2 * sizeof(int) // veg & band
-	       + (Nveg+1) * Nbands * Ndist * options.Nlayer * sizeof(double) // soil moisture
+	       + (Nveg+1) * Nbands * Ndist * state->options.Nlayer * sizeof(double) // soil moisture
 #if SPATIAL_FROST
-	       + (Nveg+1) * Nbands * Ndist * options.Nlayer * FROST_SUBAREAS * sizeof(double) // soil ice
+	       + (Nveg+1) * Nbands * Ndist * state->options.Nlayer * FROST_SUBAREAS * sizeof(double) // soil ice
 #else
-	       + (Nveg+1) * Nbands * Ndist * options.Nlayer * sizeof(double) // soil ice
+	       + (Nveg+1) * Nbands * Ndist * state->options.Nlayer * sizeof(double) // soil ice
 #endif // SPATIAL_FROST
 	       + Nveg * Nbands * Ndist * sizeof(double) // dew
 	       + (Nveg+1) * Nbands * sizeof(int) // last_snow
 	       + (Nveg+1) * Nbands * sizeof(char) // MELTING
 	       + (Nveg+1) * Nbands * sizeof(double) * 9 // other snow parameters
-	       + (Nveg+1) * Nbands * options.Nnode * sizeof(double) ); // soil temperatures
-    if ( options.LAKES ) {
+	       + (Nveg+1) * Nbands * state->options.Nnode * sizeof(double) ); // soil temperatures
+    if ( state->options.LAKES ) {
       /* Lake/wetland tiles have lake-specific state vars */
       Nbytes += sizeof(int) // activenod
 	+ sizeof(double) // dz
@@ -158,45 +156,45 @@ void write_model_state(dist_prcp_struct    *prcp,
 	+ sizeof(double) // pack_water
 	+ sizeof(double) // SAlbedo
 	+ sizeof(double) // sdepth
-	+ Ndist * options.Nlayer * sizeof(double) // soil moisture
+	+ Ndist * state->options.Nlayer * sizeof(double) // soil moisture
 #if SPATIAL_FROST
-	+ Ndist * options.Nlayer * FROST_SUBAREAS * sizeof(double) // soil ice
+	+ Ndist * state->options.Nlayer * FROST_SUBAREAS * sizeof(double) // soil ice
 #else
-	+ Ndist * options.Nlayer * sizeof(double) // soil ice
+	+ Ndist * state->options.Nlayer * sizeof(double) // soil ice
 #endif // SPATIAL_FROST
 	+ sizeof(int) // last_snow
 	+ sizeof(char) // MELTING
 	+ sizeof(double) * 9 // other snow parameters
-	+ options.Nnode * sizeof(double) // soil temperatures
+	+ state->options.Nnode * sizeof(double) // soil temperatures
 	;
     }
     fwrite( &Nbytes, sizeof(int), 1, filep->statefile );
   }
   
   /* Write soil thermal node deltas */
-  for ( nidx = 0; nidx < options.Nnode; nidx++ ) {
-    if ( options.BINARY_STATE_FILE )
+  for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+    if ( state->options.BINARY_STATE_FILE )
       fwrite( &soil_con->dz_node[nidx], sizeof(double), 1,
 	      filep->statefile );
     else
       fprintf( filep->statefile, " %f ", soil_con->dz_node[nidx] );
   } 
   /* Write soil thermal node depths */
-  for ( nidx = 0; nidx < options.Nnode; nidx++ ) {
-    if ( options.BINARY_STATE_FILE )
+  for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+    if ( state->options.BINARY_STATE_FILE )
       fwrite( &soil_con->Zsum_node[nidx], sizeof(double), 1, 
 	      filep->statefile );
     else
       fprintf( filep->statefile, " %f ", soil_con->Zsum_node[nidx] );
   }    
-  if ( !options.BINARY_STATE_FILE )
+  if ( !state->options.BINARY_STATE_FILE )
     fprintf( filep->statefile, "\n" );
   
   /* Write dynamic soil properties */
 #if EXCESS_ICE
   /* Write soil depth */
-  for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
-    if ( options.BINARY_STATE_FILE )
+  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+    if ( state->options.BINARY_STATE_FILE )
       fwrite( &soil_con->depth[lidx], sizeof(double), 1,
 	      filep->statefile );
     else
@@ -204,8 +202,8 @@ void write_model_state(dist_prcp_struct    *prcp,
   }
   
   /* Write effective porosity */
-  for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
-    if ( options.BINARY_STATE_FILE )
+  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+    if ( state->options.BINARY_STATE_FILE )
       fwrite( &soil_con->effective_porosity[lidx], sizeof(double), 1,
 	      filep->statefile );
     else
@@ -213,7 +211,7 @@ void write_model_state(dist_prcp_struct    *prcp,
   }
   
   /* Write damping depth */
-  if ( options.BINARY_STATE_FILE )
+  if ( state->options.BINARY_STATE_FILE )
     fwrite( &soil_con->dp, sizeof(double), 1,
 	    filep->statefile );
   else
@@ -224,13 +222,13 @@ void write_model_state(dist_prcp_struct    *prcp,
   for ( veg = 0; veg <= Nveg; veg++ ) {
     
     // Store distributed precipitation fraction
-    if ( options.BINARY_STATE_FILE )
+    if ( state->options.BINARY_STATE_FILE )
       fwrite( &prcp->mu[veg], sizeof(double), 1, filep->statefile );
     else
       fprintf( filep->statefile, "%f", prcp->mu[veg] );
     
     // Store distributed precipitation variables
-    if ( options.BINARY_STATE_FILE ) {
+    if ( state->options.BINARY_STATE_FILE ) {
       fwrite( &STILL_STORM[veg], sizeof(char), 1, filep->statefile );
       fwrite( &DRY_TIME[veg], sizeof(int), 1, filep->statefile );
     }
@@ -243,7 +241,7 @@ void write_model_state(dist_prcp_struct    *prcp,
     /* Output for all snow bands */
     for ( band = 0; band < Nbands; band++ ) {
       /* Write cell identification information */
-      if ( options.BINARY_STATE_FILE ) {
+      if ( state->options.BINARY_STATE_FILE ) {
 	fwrite( &veg, sizeof(int), 1, filep->statefile );
 	fwrite( &band, sizeof(int), 1, filep->statefile );
       }
@@ -255,21 +253,21 @@ void write_model_state(dist_prcp_struct    *prcp,
 	// Store both wet and dry fractions if using distributed precipitation
 
 	/* Write total soil moisture */
-	for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 	  tmpval = prcp->cell[dist][veg][band].layer[lidx].moist; /* MPN */
-	  if ( options.BINARY_STATE_FILE )
+	  if ( state->options.BINARY_STATE_FILE )
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  else
 	    fprintf( filep->statefile, " %f", tmpval );
 	}
 
         /* Write average ice content */
-        for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 #error
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area];
-	    if ( options.BINARY_STATE_FILE ) {
+	    if ( state->options.BINARY_STATE_FILE ) {
 	      fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	    }
 	    else {
@@ -278,7 +276,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 	  }
 #else
 	  tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice;
-	  if ( options.BINARY_STATE_FILE ) {
+	  if ( state->options.BINARY_STATE_FILE ) {
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  }
 	  else {
@@ -290,7 +288,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 	/* Write dew storage */
 	if ( veg < Nveg ) {
 	  tmpval = prcp->veg_var[dist][veg][band].Wdew;
-	  if ( options.BINARY_STATE_FILE )
+	  if ( state->options.BINARY_STATE_FILE )
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  else
 	    fprintf( filep->statefile, " %f", tmpval );
@@ -298,7 +296,7 @@ void write_model_state(dist_prcp_struct    *prcp,
       }
       
       /* Write snow data */
-      if ( options.BINARY_STATE_FILE ) {
+      if ( state->options.BINARY_STATE_FILE ) {
 	fwrite( &prcp->snow[veg][band].last_snow, sizeof(int), 1, filep->statefile );
 	fwrite( &prcp->snow[veg][band].MELTING, sizeof(char), 1, filep->statefile );
 	fwrite( &prcp->snow[veg][band].coverage, sizeof(double), 1, filep->statefile );
@@ -322,30 +320,30 @@ void write_model_state(dist_prcp_struct    *prcp,
       }
       
       /* Write soil thermal node temperatures */
-      for ( nidx = 0; nidx < options.Nnode; nidx++ ) 
-	if ( options.BINARY_STATE_FILE )
+      for ( nidx = 0; nidx < state->options.Nnode; nidx++ )
+	if ( state->options.BINARY_STATE_FILE )
 	  fwrite( &prcp->energy[veg][band].T[nidx], sizeof(double), 1,
 		  filep->statefile );
 	else
 	  fprintf( filep->statefile, " %f", prcp->energy[veg][band].T[nidx] );
 
-      if ( !options.BINARY_STATE_FILE ) fprintf( filep->statefile, "\n" );
+      if ( !state->options.BINARY_STATE_FILE ) fprintf( filep->statefile, "\n" );
       
     }
   }
 
-  if ( options.LAKES ) {
-    if ( options.BINARY_STATE_FILE ) {
+  if ( state->options.LAKES ) {
+    if ( state->options.BINARY_STATE_FILE ) {
       for ( dist = 0; dist < Ndist; dist ++ ) {
 	// Store both wet and dry fractions if using distributed precipitation
 
 	/* Write total soil moisture */
-	for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 	  fwrite( &prcp->lake_var.soil.layer[lidx].moist, sizeof(double), 1, filep->statefile );
 	}
 
         /* Write average ice content */
-        for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    fwrite( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, filep->statefile );
@@ -369,7 +367,7 @@ void write_model_state(dist_prcp_struct    *prcp,
       fwrite( &prcp->lake_var.snow.snow_canopy, sizeof(double), 1, filep->statefile );
       
       /* Write soil thermal node temperatures */
-      for ( nidx = 0; nidx < options.Nnode; nidx++ ) 
+      for ( nidx = 0; nidx < state->options.Nnode; nidx++ )
 	fwrite( &prcp->lake_var.energy.T[nidx], sizeof(double), 1, filep->statefile );
 
       /* Write lake-specific variables */
@@ -405,12 +403,12 @@ void write_model_state(dist_prcp_struct    *prcp,
 	// Store both wet and dry fractions if using distributed precipitation
 
 	/* Write total soil moisture */
-	for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 	  fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].moist );
 	}
 
         /* Write average ice content */
-        for ( lidx = 0; lidx < options.Nlayer; lidx++ ) {
+        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].soil_ice[frost_area] );
@@ -431,7 +429,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 		 prcp->lake_var.snow.snow_canopy );
       
       /* Write soil thermal node temperatures */
-      for ( nidx = 0; nidx < options.Nnode; nidx++ ) 
+      for ( nidx = 0; nidx < state->options.Nnode; nidx++ )
 	fprintf( filep->statefile, " %f", prcp->lake_var.energy.T[nidx] );
       
       /* Write lake-specific variables */
