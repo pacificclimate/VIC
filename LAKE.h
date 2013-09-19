@@ -79,8 +79,17 @@ void colavg (double *, double *, double *, float, double *, int, double, double)
 float dragcoeff(float, double, double);
 void eddy (int, double, double * , double *, double *, double, int, double, double);
 void energycalc(double *, double *, int, double, double,double *, double *, double *);
-double ErrorIcePackEnergyBalance(double Tsurf, ...);
-double ErrorPrintIcePackEnergyBalance(double, va_list);
+double ErrorPrintIcePackEnergyBalance(double TSurf, double Dt, double Ra,
+    double *Ra_used, double Z, double Displacement, double Z0, double Wind,
+    double ShortRad, double LongRadIn, double AirDens, double Lv, double Tair,
+    double Press, double Vpd, double EactAir, double Rain,
+    double SweSurfaceLayer, double SurfaceLiquidWater, double OldTSurf,
+    double *RefreezeEnergy, double *vapor_flux, double *blowing_flux,
+    double *surface_flux, double *AdvectedEnergy, double DeltaColdContent,
+    double Tfreeze, double AvgCond, double SWconducted, double SWabsorbed,
+    double SnowDensity, double SurfAttenuation,
+    double *GroundFlux, double *LatentHeat, double *LatentHeatSub,
+    double *SensibleHeat, double *LWnet, char *ErrorString);
 int get_depth(lake_con_struct, double, double *);
 int get_depth_from_sarea(lake_con_struct, double, double *);
 int get_sarea(lake_con_struct, double, double *);

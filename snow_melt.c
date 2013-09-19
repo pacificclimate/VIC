@@ -349,13 +349,13 @@ int snow_melt(double latent_heat_Le,
             snow->surf_temp_fbcount++;
           }
           else {
-	    error = ErrorSnowPackEnergyBalance(snow->surf_temp, rec, iveg, band,
+	    error = ErrorPrintSnowPackEnergyBalance(snow->surf_temp, rec, iveg, band,
 					 delta_t, aero_resist, aero_resist_used,
 					 displacement, z2, Z0, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,
 					 RainFall, NetShortSnow, vpd, 
 					 wind, (*OldTSurf), coverage, 
-					 snow->depth, snow->density,
+					 snow->density,
 					 snow->surf_water, SurfaceSwq, 
 					 Tcanopy, Tgrnd, 
 					 &advection, &advected_sensible_heat, 
@@ -364,7 +364,7 @@ int snow_melt(double latent_heat_Le,
 					 &latent_heat_sub, 
 					 NetLongSnow, &RefreezeEnergy, 
 					 &sensible_heat, &snow->vapor_flux,
-					 &snow->blowing_flux, &snow->surface_flux);
+					 &snow->blowing_flux, &snow->surface_flux, ErrorString);
             return(ERROR);
           }
         }
@@ -563,138 +563,47 @@ int snow_melt(double latent_heat_Le,
   return ( 0 );
 }
 
-
-double ErrorSnowPackEnergyBalance(double Tsurf, ...)
+double ErrorPrintSnowPackEnergyBalance(double TSurf, int rec, int iveg, int band,
+    double Dt,                      /* Model time step (sec) */
+    /* Vegetation Parameters */
+    double Ra,                      /* Aerodynamic resistance (s/m) */
+    double* RaUsed,
+    double Displacement,            /* Displacement height (m) */
+    double Z,                       /* Reference height (m) */
+    double *Z0,                      /* surface roughness height (m) */
+    /* Atmospheric Forcing Variables */
+    double AirDens,                 /* Density of air (kg/m3) */
+    double EactAir,                 /* Actual vapor pressure of air (Pa) */
+    double LongSnowIn,              /* Incoming longwave radiation (W/m2) */
+    double Lv,                      /* Latent heat of vaporization (J/kg3) */
+    double Press,                   /* Air pressure (Pa) */
+    double Rain,                    /* Rain fall (m/timestep) */
+    double ShortRad,                /* Net incident shortwave radiation (W/m2) */
+    double Vpd,                     /* Vapor pressure deficit (Pa) */
+    double Wind,                    /* Wind speed (m/s) */
+    /* Snowpack Variables */
+    double OldTSurf,                /* Surface temperature during previous time step */
+    double SnowCoverFract,          /* Fraction of area covered by snow */
+    double SnowDensity,             /* Density of snowpack (kg/m^3) */
+    double SurfaceLiquidWater,      /* Liquid water in the surface layer (m) */
+    double SweSurfaceLayer,         /* Snow water equivalent in surface layer (m) */
+    /* Energy Balance Components */
+    double Tair,                    /* Canopy surface temperature (C) */
+    double TGrnd,                   /* Ground surface temperature (C) */
+    double *AdvectedEnergy,         /* Energy advected by precipitation (W/m2) */
+    double *AdvectedSensibleHeat,   /* Sensible heat advected from snow-free area into snow covered area (W/m^2) */
+    double *DeltaColdContent,       /* Change in cold content of surface layer (W/m2) */
+    double *GroundFlux,             /* Ground Heat Flux (W/m2) */
+    double *LatentHeat,             /* Latent heat exchange at surface (W/m2) */
+    double *LatentHeatSub,          /* Latent heat of sub exchange at surface (W/m2) */
+    double *NetLongSnow,            /* Net longwave radiation at snowpack surface (W/m^2) */
+    double *RefreezeEnergy,         /* Refreeze energy (W/m2) */
+    double *SensibleHeat,           /* Sensible heat exchange at surface (W/m2) */
+    double *VaporMassFlux,          /* Mass flux of water vapor to or from the intercepted snow */
+    double *BlowingMassFlux,        /* Mass flux of water vapor to or from the intercepted snow */
+    double *SurfaceMassFlux,        /* Mass flux of water vapor to or from the intercepted snow */
+    char *ErrorString)
 {
-
-  va_list ap;                   /* Used in traversing variable argument list
-                                 */ 
-  double Qnet;                   /* Net energy exchange at the SnowPack snow
-                                   surface (W/m^2) */
-
-  va_start(ap, Tsurf);
-  Qnet = ErrorPrintSnowPackEnergyBalance(Tsurf, ap);
-  va_end(ap);
-  
-  return Qnet;
-}
-
-double ErrorPrintSnowPackEnergyBalance(double TSurf, va_list ap)
-{
-
-  /* Define Variable Argument List */
-
-  /* General Model Parameters */
-  int rec, iveg, band;
-  double Dt;                      /* Model time step (sec) */
-
-  /* Vegetation Parameters */
-  double Ra;                      /* Aerodynamic resistance (s/m) */
-  double Displacement;            /* Displacement height (m) */
-  double Z;                       /* Reference height (m) */
-  double Z0;                      /* surface roughness height (m) */
-
-  /* Atmospheric Forcing Variables */
-  double AirDens;                 /* Density of air (kg/m3) */
-  double EactAir;                 /* Actual vapor pressure of air (Pa) */
-  double LongSnowIn;              /* Incoming longwave radiation (W/m2) */
-  double Lv;                      /* Latent heat of vaporization (J/kg3) */
-  double Press;                   /* Air pressure (Pa) */
-  double Rain;                    /* Rain fall (m/timestep) */
-  double ShortRad;                /* Net incident shortwave radiation 
-				     (W/m2) */ 
-  double Vpd;			  /* Vapor pressure deficit (Pa) */
-  double Wind;                    /* Wind speed (m/s) */
-
-  /* Snowpack Variables */
-  double OldTSurf;                /* Surface temperature during previous time
-				     step */ 
-  double SnowCoverFract;          /* Fraction of area covered by snow */
-  double SnowDensity;             /* Density of snowpack (kg/m^3) */
-  double SurfaceLiquidWater;      /* Liquid water in the surface layer (m) */
-  double SweSurfaceLayer;         /* Snow water equivalent in surface layer 
-				     (m) */ 
-
-  /* Energy Balance Components */
-  double Tair;                    /* Canopy surface temperature (C) */
-  double TGrnd;                   /* Ground surface temperature (C) */
-
-  double *AdvectedEnergy;         /* Energy advected by precipitation (W/m2) */
-  double *AdvectedSensibleHeat;	  /* Sensible heat advected from snow-free
-				     area into snow covered area (W/m^2) */
-  double *DeltaColdContent;       /* Change in cold content of surface 
-				     layer (W/m2) */
-  double *DeltaPackColdContent;   /* Change in sold content of pack 
-				     layer (W/m^2) */
-  double *GroundFlux;		  /* Ground Heat Flux (W/m2) */
-  double *LatentHeat;		  /* Latent heat exchange at surface (W/m2) */
-  double *LatentHeatSub;          /* Latent heat of sub exchange at 
-				     surface (W/m2) */
-  double *NetLongSnow;            /* Net longwave radiation at snowpack 
-				     surface (W/m^2) */
-  double *RefreezeEnergy;         /* Refreeze energy (W/m2) */
-  double *SensibleHeat;		  /* Sensible heat exchange at surface 
-				     (W/m2) */
-  double *VaporMassFlux;          /* Mass flux of water vapor to or from the
-				     intercepted snow */
-  double *BlowingMassFlux;          /* Mass flux of water vapor to or from the
-				     intercepted snow */
-  double *SurfaceMassFlux;          /* Mass flux of water vapor to or from the
-					 intercepted snow */
-
-  char *ErrorString;
-
-  /* Read Variable Argument List */
-
-  /* General Model Parameters */
-  rec       = (int) va_arg(ap, int);
-  iveg      = (int) va_arg(ap, int);
-  band      = (int) va_arg(ap, int);
-  Dt        = (double) va_arg(ap, double);
-
-  /* Vegetation Parameters */
-  Ra           = (double) va_arg(ap, double);
-  Displacement = (double) va_arg(ap, double);
-  Z            = (double) va_arg(ap, double);
-  Z0           = (double) va_arg(ap, double);
-
-  /* Atmospheric Forcing Variables */
-  AirDens    = (double) va_arg(ap, double);
-  EactAir    = (double) va_arg(ap, double);
-  LongSnowIn = (double) va_arg(ap, double);
-  Lv         = (double) va_arg(ap, double);
-  Press      = (double) va_arg(ap, double);
-  Rain       = (double) va_arg(ap, double);
-  ShortRad   = (double) va_arg(ap, double);
-  Vpd        = (double) va_arg(ap, double);
-  Wind       = (double) va_arg(ap, double);
-
-  /* Snowpack Variables */
-  OldTSurf           = (double) va_arg(ap, double);
-  SnowCoverFract     = (double) va_arg(ap, double);
-  SnowDensity        = (double) va_arg(ap, double);
-  SurfaceLiquidWater = (double) va_arg(ap, double);
-  SweSurfaceLayer    = (double) va_arg(ap, double);
-
-  /* Energy Balance Components */
-  Tair         = (double) va_arg(ap, double);
-  TGrnd           = (double) va_arg(ap, double);
-
-  AdvectedEnergy        = (double *) va_arg(ap, double *);
-  AdvectedSensibleHeat  = (double *)va_arg(ap, double *);
-  DeltaColdContent      = (double *) va_arg(ap, double *);
-  DeltaPackColdContent  = (double *) va_arg(ap, double *);
-  GroundFlux            = (double *) va_arg(ap, double *);
-  LatentHeat            = (double *) va_arg(ap, double *);
-  LatentHeatSub         = (double *) va_arg(ap, double *);
-  NetLongSnow           = (double *) va_arg(ap, double *);
-  RefreezeEnergy        = (double *) va_arg(ap, double *);
-  SensibleHeat          = (double *) va_arg(ap, double *);
-  VaporMassFlux         = (double *) va_arg(ap, double *);
-  BlowingMassFlux       = (double *) va_arg(ap, double *);
-  SurfaceMassFlux       = (double *) va_arg(ap, double *);
-  ErrorString           = (char *) va_arg(ap, char *);
-
   /* print variables */
   fprintf(stderr, "%s", ErrorString);
   fprintf(stderr, "ERROR: snow_melt failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");
@@ -709,7 +618,6 @@ double ErrorPrintSnowPackEnergyBalance(double TSurf, va_list ap)
   fprintf(stderr,"Ra = %f\n",Ra);
   fprintf(stderr,"Displacement = %f\n",Displacement);
   fprintf(stderr,"Z = %f\n",Z);
-  fprintf(stderr,"Z0 = %f\n",Z0);
 
   /* meteorological terms */
   fprintf(stderr,"AirDens = %f\n",AirDens);
@@ -733,7 +641,6 @@ double ErrorPrintSnowPackEnergyBalance(double TSurf, va_list ap)
   fprintf(stderr,"AdvectedEnergy = %f\n",AdvectedEnergy[0]);
   fprintf(stderr,"AdvectedSensibleHeat = %f\n",AdvectedSensibleHeat[0]);
   fprintf(stderr,"DeltaColdContent = %f\n",DeltaColdContent[0]);
-  fprintf(stderr,"DeltaPackColdContent = %f\n",DeltaPackColdContent[0]);
   fprintf(stderr,"GroundFlux = %f\n",GroundFlux[0]);
   fprintf(stderr,"LatentHeat = %f\n",LatentHeat[0]);
   fprintf(stderr,"LatentHeatSub = %f\n",LatentHeatSub[0]);

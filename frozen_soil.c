@@ -3,6 +3,7 @@
 #include <strings.h>
 #include <vicNl.h>
 #include <stdarg.h>
+#include "newt_raph_func_fast.h"
 
 #define MAXIT 1000
 
@@ -330,7 +331,6 @@ int solve_T_profile_implicit(double *T,                           // update
   
   int  n, Error;
   double res[MAX_NODES];
-  void (*vecfunc)(double *, double *, int, int, ...);
 
   if(FIRST_SOLN[0]) 
     FIRST_SOLN[0] = FALSE;
@@ -343,13 +343,13 @@ int solve_T_profile_implicit(double *T,                           // update
   else
     n = Nnodes-1;
   
-  fda_heat_eqn(&T[1], res, n, 1, deltat, FS_ACTIVE, NOFLUX, EXP_TRANS, T0, moist, ice, kappa, Cs, max_moist, bubble, expt, 
-	       porosity, effective_porosity,
-	       alpha, beta, gamma, Zsum, Dp, bulk_dens_min, soil_dens_min, quartz, bulk_density, soil_density, organic, depth, state->options.Nlayer);
-  
+  NewtonRaphsonMethod nrMethod(&T[1], res, n, deltat, FS_ACTIVE, NOFLUX,
+      EXP_TRANS, T0, moist, ice, kappa, Cs, max_moist, bubble, expt, porosity,
+      effective_porosity, alpha, beta, gamma, Zsum, Dp, bulk_dens_min,
+      soil_dens_min, quartz, bulk_density, soil_density, organic, depth,
+      state->options.Nlayer);
   // modified Newton-Raphson to solve for new T
-  vecfunc = &(fda_heat_eqn);
-  Error = newt_raph(vecfunc, &T[1], n);
+  Error = nrMethod.compute(&T[1], n);
  
   // update temperature boundaries
   if(Error == 0 ){
@@ -473,11 +473,10 @@ int calc_soil_thermal_fluxes(int     Nnodes,
             Tfbcount[j]++;
           }
           else {
-	    error_solve_T_profile(T[j], T[j+1], T[j-1], T0[j], moist[j], 
-				  max_moist[j], bubble[j], expt[j], ice[j], 
-				  gamma[j-1], A[j], B[j], C[j], D[j], 
-				  E[j], ErrorString);
-            return ( ERROR );
+            error_print_solve_T_profile(T[j], T[j + 1], T[j - 1], T0[j],
+                moist[j], max_moist[j], bubble[j], expt[j], ice[j],
+                gamma[j - 1], A[j], B[j], C[j], D[j], E[j], ErrorString);
+            return (ERROR);
 	  }
 	}
       }
@@ -516,14 +515,12 @@ int calc_soil_thermal_fluxes(int     Nnodes,
             Tfbcount[j]++;
           }
           else {
-	    error_solve_T_profile(T[Nnodes-1], T[Nnodes-1],
-				  T[Nnodes-2], T0[Nnodes-1], 
-				  moist[Nnodes-1], max_moist[Nnodes-1], 
-				  bubble[Nnodes-1], 
-				  expt[Nnodes-1], ice[Nnodes-1], 
-				  gamma[Nnodes-2], 
-				  A[j], B[j], C[j], D[j], E[j], ErrorString);
-            return ( ERROR );
+            error_print_solve_T_profile(T[Nnodes - 1], T[Nnodes - 1],
+                T[Nnodes - 2], T0[Nnodes - 1], moist[Nnodes - 1],
+                max_moist[Nnodes - 1], bubble[Nnodes - 1], expt[Nnodes - 1],
+                ice[Nnodes - 1], gamma[Nnodes - 2], A[j], B[j], C[j], D[j],
+                E[j], ErrorString);
+            return (ERROR);
           }
         }
       }
@@ -573,53 +570,10 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 
 }
 
-double error_solve_T_profile (double Tj, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap,Tj);
-  error = error_print_solve_T_profile(Tj, ap);
-  va_end(ap);
-
-  return error;
-
-}
-
-double error_print_solve_T_profile(double T, va_list ap) {
-
-  double TL;
-  double TU;
-  double T0;
-  double moist;
-  double max_moist;
-  double bubble;
-  double expt;
-  double ice0;
-  double gamma;
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
-  char *ErrorString;
-
-  TL        = (double) va_arg(ap, double);
-  TU        = (double) va_arg(ap, double);
-  T0        = (double) va_arg(ap, double);
-  moist     = (double) va_arg(ap, double);
-  max_moist = (double) va_arg(ap, double);
-  bubble    = (double) va_arg(ap, double);
-  expt      = (double) va_arg(ap, double);
-  ice0      = (double) va_arg(ap, double);
-  gamma     = (double) va_arg(ap, double);
-  A         = (double) va_arg(ap, double);
-  B         = (double) va_arg(ap, double);
-  C         = (double) va_arg(ap, double);
-  D         = (double) va_arg(ap, double);
-  E         = (double) va_arg(ap, double);
-  ErrorString = (char *) va_arg(ap, char *);
+double error_print_solve_T_profile(double T, double TL, double TU, double T0,
+    double moist, double max_moist, double bubble, double expt, double ice0,
+    double gamma, double A, double B, double C, double D, double E,
+    char *ErrorString) {
   
   fprintf(stderr, "%s", ErrorString);
   fprintf(stderr, "ERROR: solve_T_profile failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");
@@ -649,7 +603,7 @@ double error_print_solve_T_profile(double T, va_list ap) {
 
 
 
-void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
+void NewtonRaphsonMethod::fda_heat_eqn(double T_2[], double res[], int n, int focus)
 {
   /**********************************************************************
   Heat Equation for implicit scheme (used to calculate residual of the heat equation)
@@ -674,311 +628,246 @@ void fda_heat_eqn(double T_2[], double res[], int n, int init, ...)
   2011-Jun-10 Added bulk_dens_min and soil_dens_min to arglist of
 	      soil_conductivity() to fix bug in commputation of kappa.		TJB
   **********************************************************************/
-    
-  static double  deltat;
-  static int     FS_ACTIVE;
-  static int     NOFLUX;
-  static int     EXP_TRANS;
-  static double *T0;
-  static double *moist;
-  static double *ice;
-  static double *kappa;
-  static double *Cs;
-  static double *max_moist;
-  static double *bubble;
-  static double *expt;
-  static double *porosity;
-  static double *effective_porosity;
-  static double *alpha;
-  static double *beta;
-  static double *gamma;
-  static double *Zsum;
-  static double Dp;
-  static double *bulk_dens_min;
-  static double *soil_dens_min;
-  static double *quartz;
-  static double *bulk_density;
-  static double *soil_density;
-  static double *organic;
-  static double *depth;
-  static int Nlayers;
-  
-  // variables used to calculate residual of the heat equation
-  // defined here
-  static double Ts;
-  static double Tb;
   
   // locally used variables
-  static double ice_new[MAX_NODES], Cs_new[MAX_NODES], kappa_new[MAX_NODES];
-  static double DT[MAX_NODES],DT_down[MAX_NODES],DT_up[MAX_NODES],T_up[MAX_NODES];
-  static double Dkappa[MAX_NODES];
-  static double Bexp;
+  double ice_new[MAX_NODES], Cs_new[MAX_NODES], kappa_new[MAX_NODES];
+  double DT[MAX_NODES],DT_down[MAX_NODES],DT_up[MAX_NODES],T_up[MAX_NODES];
+  double Dkappa[MAX_NODES];
   char PAST_BOTTOM;
   double storage_term, flux_term, phase_term, flux_term1, flux_term2;
   double Lsum;
   int i, lidx;
-  int focus, left, right;
-  
-  // argument list handling
-  va_list arg_addr;
-
-  // initialize variables if init==1  
-  if (init==1) {
-    va_start(arg_addr, init);
-    deltat     = va_arg(arg_addr, double);
-    FS_ACTIVE  = va_arg(arg_addr, int);
-    NOFLUX     = va_arg(arg_addr, int);
-    EXP_TRANS  = va_arg(arg_addr, int);
-    T0         = va_arg(arg_addr, double *);
-    moist      = va_arg(arg_addr, double *);
-    ice        = va_arg(arg_addr, double *);
-    kappa      = va_arg(arg_addr, double *);
-    Cs         = va_arg(arg_addr, double *);
-    max_moist  = va_arg(arg_addr, double *);
-    bubble     = va_arg(arg_addr, double *);
-    expt       = va_arg(arg_addr, double *);
-    porosity   = va_arg(arg_addr, double *);
-    effective_porosity = va_arg(arg_addr, double *);
-    alpha      = va_arg(arg_addr, double *);
-    beta       = va_arg(arg_addr, double *);
-    gamma      = va_arg(arg_addr, double *);
-    Zsum       = va_arg(arg_addr, double *);
-    Dp         = va_arg(arg_addr, double);
-    bulk_dens_min = va_arg(arg_addr, double *);
-    soil_dens_min = va_arg(arg_addr, double *);
-    quartz     = va_arg(arg_addr, double *);
-    bulk_density = va_arg(arg_addr, double *);
-    soil_density = va_arg(arg_addr, double *);
-    organic    = va_arg(arg_addr, double *);
-    depth      = va_arg(arg_addr, double *);
-    Nlayers    = va_arg(arg_addr, int);
-    
-    if(EXP_TRANS){
-      if(!NOFLUX)
-	Bexp = log(Dp+1.)/(double)(n+1);
-      else
-	Bexp = log(Dp+1.)/(double)(n);
-    }    
-
-    Ts = T0[0];
-    if(!NOFLUX)
-      Tb = T0[n+1];
-    else
-      Tb = T0[n];
-    for (i=0; i<n; i++) 
-      T_2[i] = T0[i+1];    
-  }
-  
-  // calculate residuals if init==0
-  else {
-    // get the range of columns to calculate
-    va_start(arg_addr, init);
-    focus = va_arg(arg_addr, int);
+  int left, right;
     
     // calculate all entries if focus == -1
-    if (focus==-1) {
-      
-      lidx = 0;
-      Lsum = 0.;
-      PAST_BOTTOM = FALSE;
+  if (focus == -1) {
 
-      for (i=0; i<n+1; i++) {
-	kappa_new[i]=kappa[i];
-	if(i>=1) {  //all but surface node
-	  // update ice contents
-	  if (T_2[i-1]<0) {
-	    ice_new[i] = moist[i] - maximum_unfrozen_water(T_2[i-1], 
-							   porosity[i], effective_porosity[i],
-							   max_moist[i], bubble[i], expt[i]);
-	    if (ice_new[i]<0) ice_new[i]=0;
-	  }
-	  else ice_new[i] = 0;
-	  Cs_new[i]=Cs[i];
+    lidx = 0;
+    Lsum = 0.;
+    PAST_BOTTOM = FALSE;
 
-	  // update other states due to ice content change
-	  /***********************************************/
-	  if (ice_new[i]!=ice[i]) {
-	    kappa_new[i] = soil_conductivity(moist[i], moist[i] - ice_new[i],
-					     soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
-					     soil_density[lidx], bulk_density[lidx], organic[lidx]);
-	    Cs_new[i] = volumetric_heat_capacity(bulk_density[lidx]/soil_density[lidx], moist[i]-ice_new[i], ice_new[i], organic[lidx]);
-	  }
-	  /************************************************/	  
-	}
-	
-	if(Zsum[i] > Lsum + depth[lidx] && !PAST_BOTTOM) {
-	  Lsum += depth[lidx];
-	  lidx++;
-	  if( lidx == Nlayers ) {
-	    PAST_BOTTOM = TRUE;
-	    lidx = Nlayers-1;
-	  }
-	}
+    for (i = 0; i < n + 1; i++) {
+      kappa_new[i] = kappa[i];
+      if (i >= 1) {  //all but surface node
+        // update ice contents
+        if (T_2[i - 1] < 0) {
+          ice_new[i] = moist[i]
+              - maximum_unfrozen_water(T_2[i - 1], porosity[i],
+                  effective_porosity[i], max_moist[i], bubble[i], expt[i]);
+          if (ice_new[i] < 0)
+            ice_new[i] = 0;
+        } else
+          ice_new[i] = 0;
+        Cs_new[i] = Cs[i];
+
+        // update other states due to ice content change
+        /***********************************************/
+        if (ice_new[i] != ice[i]) {
+          kappa_new[i] = soil_conductivity(moist[i], moist[i] - ice_new[i],
+              soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
+              soil_density[lidx], bulk_density[lidx], organic[lidx]);
+          Cs_new[i] = volumetric_heat_capacity(
+              bulk_density[lidx] / soil_density[lidx], moist[i] - ice_new[i],
+              ice_new[i], organic[lidx]);
+        }
+        /************************************************/
       }
-      
-      // constants used in fda equation
-      for (i=0; i<n; i++) {
-	if (i==0) {
-	  DT[i]=T_2[i+1]-Ts;
-	  DT_up[i]=T_2[i]-Ts;
-	  DT_down[i]=T_2[i+1]-T_2[i];
-	  T_up[i]=Ts;
-	}
-	else if (i==n-1) {
-	  DT[i]=Tb-T_2[i-1];
-	  DT_up[i]=T_2[i]-T_2[i-1];
-	  DT_down[i]=Tb-T_2[i];
-	  T_up[i]=T_2[i-1];
-	}
-	else {
-	  DT[i]=T_2[i+1]-T_2[i-1];
-	  DT_up[i]=T_2[i]-T_2[i-1];
-	  DT_down[i]=T_2[i+1]-T_2[i];
-	  T_up[i]=T_2[i-1];
-	}
-	if(i<n-1)
-	  Dkappa[i]=kappa_new[i+2]-kappa_new[i];
-	else
-	  if(!NOFLUX)
-	    Dkappa[i]=kappa_new[i+2]-kappa_new[i];
-	  else
-	    Dkappa[i]=kappa_new[i+1]-kappa_new[i];
-      }
-      
-      for (i=0; i<n; i++) {
-	storage_term = Cs_new[i+1]*(T_2[i] - T0[i+1])/deltat + T_2[i]*(Cs_new[i+1]-Cs[i+1])/deltat;
-	if(!EXP_TRANS) {
-	  flux_term1 = Dkappa[i]/alpha[i]*DT[i]/alpha[i];
-	  flux_term2 = kappa_new[i+1]*(DT_down[i]/gamma[i]-DT_up[i]/beta[i])/(0.5*alpha[i]);
-	}
-	else { //grid transformation
-	  flux_term1 = Dkappa[i]/2.*DT[i]/2./(Bexp*(Zsum[i+1]+1.))/(Bexp*(Zsum[i+1]+1.));
-	  flux_term2 = kappa_new[i+1]*((DT_down[i]-DT_up[i])/(Bexp*(Zsum[i+1]+1.))/(Bexp*(Zsum[i+1]+1.))  -  DT[i]/2./(Bexp*(Zsum[i+1]+1.)*(Zsum[i+1]+1.)));
-	}
-	//inelegant fix for "cold nose" problem - when a very cold node skates off to
-	//much colder and breaks the second law of thermodynamics (because
-	//flux_term1 exceeds flux_term2 in absolute magnitude) - therefore, don't let
-	//that node get any colder.  This only seems to happen in the first and
-	//second near-surface nodes.
-//	if(i==0 || i==1 ){//surface nodes only
-	  if(fabs(DT[i])>5. && (T_2[i]<T_2[i+1] && T_2[i]<T_up[i])){//cold nose
-	    if((flux_term1<0 && flux_term2>0) && fabs(flux_term1)>fabs(flux_term2)){
-	      flux_term1 = 0;
-#if VERBOSE
-	      fprintf(stderr,"WARNING: resetting thermal flux term in soil heat solution to zero for node %d.\nT[i]=%.2f T[i-1]=%.2f T[i+1]=%.2f flux_term1=%.2f flux_term2=%.2f\n",i+1,T_2[i],T_up[i],T_2[i+1],flux_term1,flux_term2);
-#endif
-	    }
-	  }
-//	}
-	flux_term = flux_term1+flux_term2;
-	phase_term   = ice_density*Lf * (ice_new[i+1] - ice[i+1])/deltat;
-        res[i] = flux_term + phase_term - storage_term;
+
+      if (Zsum[i] > Lsum + depth[lidx] && !PAST_BOTTOM) {
+        Lsum += depth[lidx];
+        lidx++;
+        if (lidx == Nlayers) {
+          PAST_BOTTOM = TRUE;
+          lidx = Nlayers - 1;
+        }
       }
     }
-    
-    // only calculate entries focus-1, focus, and focus+1 if focus has a value>=0
-    else {
-      if (focus==0)    left=0;   else  left=focus-1;
-      if (focus==n-1) right=n-1; else right=focus+1;
 
-      // update ice content for node focus and its adjacents
-      for (i=left; i<=right; i++) {
-	if (T_2[i]<0) {
-	  ice_new[i+1] = moist[i+1] - maximum_unfrozen_water(T_2[i], 
-							     porosity[i+1], effective_porosity[i+1],
-							     max_moist[i+1], bubble[i+1], expt[i+1]);
-	  if (ice_new[i+1]<0) ice_new[i+1]=0;
-	}
-	else ice_new[i+1]=0;
+    // constants used in fda equation
+    for (i = 0; i < n; i++) {
+      if (i == 0) {
+        DT[i] = T_2[i + 1] - Ts;
+        DT_up[i] = T_2[i] - Ts;
+        DT_down[i] = T_2[i + 1] - T_2[i];
+        T_up[i] = Ts;
+      } else if (i == n - 1) {
+        DT[i] = Tb - T_2[i - 1];
+        DT_up[i] = T_2[i] - T_2[i - 1];
+        DT_down[i] = Tb - T_2[i];
+        T_up[i] = T_2[i - 1];
+      } else {
+        DT[i] = T_2[i + 1] - T_2[i - 1];
+        DT_up[i] = T_2[i] - T_2[i - 1];
+        DT_down[i] = T_2[i + 1] - T_2[i];
+        T_up[i] = T_2[i - 1];
       }
-      
-      // update other parameters due to ice content change
-      /********************************************************/
-      lidx = 0;
-      Lsum = 0.;
-      PAST_BOTTOM = FALSE;
-      for (i=0; i<=right+1; i++) {
-	if(i>=left+1) {
-	  if (ice_new[i]!=ice[i]) {
-	    kappa_new[i] = soil_conductivity(moist[i], moist[i] - ice_new[i],
-					     soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
-					     soil_density[lidx], bulk_density[lidx], organic[lidx]);
-	    Cs_new[i] = volumetric_heat_capacity(bulk_density[lidx]/soil_density[lidx], moist[i]-ice_new[i], ice_new[i], organic[lidx]);
-	  }
-	}
-	if(Zsum[i] > Lsum + depth[lidx] && !PAST_BOTTOM) {
-	  Lsum += depth[lidx];
-	  lidx++;
-	  if( lidx == Nlayers ) {
-	    PAST_BOTTOM = TRUE;
-	    lidx = Nlayers-1;
-	  }
-	}
+      if (i < n - 1)
+        Dkappa[i] = kappa_new[i + 2] - kappa_new[i];
+      else if (!NOFLUX)
+        Dkappa[i] = kappa_new[i + 2] - kappa_new[i];
+      else
+        Dkappa[i] = kappa_new[i + 1] - kappa_new[i];
+    }
+
+    for (i = 0; i < n; i++) {
+      storage_term = Cs_new[i + 1] * (T_2[i] - T0[i + 1]) / deltat
+          + T_2[i] * (Cs_new[i + 1] - Cs[i + 1]) / deltat;
+      if (!EXP_TRANS) {
+        flux_term1 = Dkappa[i] / alpha[i] * DT[i] / alpha[i];
+        flux_term2 = kappa_new[i + 1]
+            * (DT_down[i] / gamma[i] - DT_up[i] / beta[i]) / (0.5 * alpha[i]);
+      } else { //grid transformation
+        flux_term1 = Dkappa[i] / 2. * DT[i] / 2. / (Bexp * (Zsum[i + 1] + 1.))
+            / (Bexp * (Zsum[i + 1] + 1.));
+        flux_term2 =
+            kappa_new[i + 1]
+                * ((DT_down[i] - DT_up[i]) / (Bexp * (Zsum[i + 1] + 1.))
+                    / (Bexp * (Zsum[i + 1] + 1.))
+                    - DT[i] / 2.
+                        / (Bexp * (Zsum[i + 1] + 1.) * (Zsum[i + 1] + 1.)));
       }
-      /*********************************************************/
-      
-      // update other states due to ice content change
-      for (i=left; i<=right; i++) {
-	if (i==0) {
-	  DT[i]=T_2[i+1]-Ts;
-	  DT_up[i]=T_2[i]-Ts;
-	  DT_down[i]=T_2[i+1]-T_2[i];
-	  T_up[i]=Ts;
-	}
-	else if (i==n-1) {
-	  DT[i]=Tb-T_2[i-1];
-	  DT_up[i]=T_2[i]-T_2[i-1];
-	  DT_down[i]=Tb-T_2[i];
-	  T_up[i]=T_2[i-1];
-	}
-	else {
-	  DT[i]=T_2[i+1]-T_2[i-1];
-	  DT_up[i]=T_2[i]-T_2[i-1];
-	  DT_down[i]=T_2[i+1]-T_2[i];
-	  T_up[i]=T_2[i-1];
-	}
-	//update Dkappa due to ice content change
-	/*******************************************/
-	if(i<n-1)
-	  Dkappa[i]=kappa_new[i+2]-kappa_new[i];
-	else
-	  if(!NOFLUX)
-	    Dkappa[i]=kappa_new[i+2]-kappa_new[i];
-	  else
-	    Dkappa[i]=kappa_new[i+1]-kappa_new[i];
-	/********************************************/
-      }
-      
-      for (i=left; i<=right; i++) {
-	storage_term = Cs_new[i+1]*(T_2[i] - T0[i+1])/deltat + T_2[i]*(Cs_new[i+1]-Cs[i+1])/deltat;
-	if(!EXP_TRANS) {
-	  flux_term1 = Dkappa[i]/alpha[i]*DT[i]/alpha[i];
-	  flux_term2 = kappa_new[i+1]*(DT_down[i]/gamma[i]-DT_up[i]/beta[i])/(0.5*alpha[i]);
-	}
-	else { //grid transformation
-	  flux_term1 = Dkappa[i]/2.*DT[i]/2./(Bexp*(Zsum[i+1]+1.))/(Bexp*(Zsum[i+1]+1.));
-	  flux_term2 = kappa_new[i+1]*((DT_down[i]-DT_up[i])/(Bexp*(Zsum[i+1]+1.))/(Bexp*(Zsum[i+1]+1.))  -  DT[i]/2./(Bexp*(Zsum[i+1]+1.)*(Zsum[i+1]+1.)));
-	}
-	//inelegant fix for "cold nose" problem - when a very cold node skates off to
-	//much colder and breaks the second law of thermodynamics (because
-	//flux_term1 exceeds flux_term2 in absolute magnitude) - therefore, don't let
-	//that node get any colder.  This only seems to happen in the first and
-	//second near-surface nodes.
-	if(i==0 || i==1 ){//surface nodes only
-	  if(fabs(DT[i])>5. && (T_2[i]<T_2[i+1] && T_2[i]<T_up[i])){//cold nose
-	    if((flux_term1<0 && flux_term2>0) && fabs(flux_term1)>fabs(flux_term2)){
-	      flux_term1 = 0;
+      //inelegant fix for "cold nose" problem - when a very cold node skates off to
+      //much colder and breaks the second law of thermodynamics (because
+      //flux_term1 exceeds flux_term2 in absolute magnitude) - therefore, don't let
+      //that node get any colder.  This only seems to happen in the first and
+      //second near-surface nodes.
+//	if(i==0 || i==1 ){//surface nodes only
+      if (fabs(DT[i]) > 5. && (T_2[i] < T_2[i + 1] && T_2[i] < T_up[i])) {//cold nose
+        if ((flux_term1 < 0 && flux_term2 > 0)
+            && fabs(flux_term1) > fabs(flux_term2)) {
+          flux_term1 = 0;
 #if VERBOSE
-	      fprintf(stderr,"WARNING: resetting thermal flux term in soil heat solution to zero for node %d.\nT[i]=%.2f T[i-1]=%.2f T[i+1]=%.2f flux_term1=%.2f flux_term2=%.2f\n",i+1,T_2[i],T_up[i],T_2[i+1],flux_term1,flux_term2);
+          fprintf(stderr,
+              "WARNING: resetting thermal flux term in soil heat solution to zero for node %d.\nT[i]=%.2f T[i-1]=%.2f T[i+1]=%.2f flux_term1=%.2f flux_term2=%.2f\n",
+              i + 1, T_2[i], T_up[i], T_2[i + 1], flux_term1, flux_term2);
 #endif
-	    }
-	  }
-	}
-	flux_term = flux_term1+flux_term2;
-	phase_term   = ice_density*Lf * (ice_new[i+1] - ice[i+1]) / deltat;
-        res[i] = flux_term + phase_term - storage_term;
+        }
       }
-    } // end of calculation of focus node only
-  } // end of non-init
-  
+//	}
+      flux_term = flux_term1 + flux_term2;
+      phase_term = ice_density * Lf * (ice_new[i + 1] - ice[i + 1]) / deltat;
+      res[i] = flux_term + phase_term - storage_term;
+    }
+  }
+
+  // only calculate entries focus-1, focus, and focus+1 if focus has a value>=0
+  else {
+    if (focus == 0)
+      left = 0;
+    else
+      left = focus - 1;
+    if (focus == n - 1)
+      right = n - 1;
+    else
+      right = focus + 1;
+
+    // update ice content for node focus and its adjacents
+    for (i = left; i <= right; i++) {
+      if (T_2[i] < 0) {
+        ice_new[i + 1] = moist[i + 1]
+            - maximum_unfrozen_water(T_2[i], porosity[i + 1],
+                effective_porosity[i + 1], max_moist[i + 1], bubble[i + 1],
+                expt[i + 1]);
+        if (ice_new[i + 1] < 0)
+          ice_new[i + 1] = 0;
+      } else
+        ice_new[i + 1] = 0;
+    }
+
+    // update other parameters due to ice content change
+    /********************************************************/
+    lidx = 0;
+    Lsum = 0.;
+    PAST_BOTTOM = FALSE;
+    for (i = 0; i <= right + 1; i++) {
+      if (i >= left + 1) {
+        if (ice_new[i] != ice[i]) {
+          kappa_new[i] = soil_conductivity(moist[i], moist[i] - ice_new[i],
+              soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
+              soil_density[lidx], bulk_density[lidx], organic[lidx]);
+          Cs_new[i] = volumetric_heat_capacity(
+              bulk_density[lidx] / soil_density[lidx], moist[i] - ice_new[i],
+              ice_new[i], organic[lidx]);
+        }
+      }
+      if (Zsum[i] > Lsum + depth[lidx] && !PAST_BOTTOM) {
+        Lsum += depth[lidx];
+        lidx++;
+        if (lidx == Nlayers) {
+          PAST_BOTTOM = TRUE;
+          lidx = Nlayers - 1;
+        }
+      }
+    }
+    /*********************************************************/
+
+    // update other states due to ice content change
+    for (i = left; i <= right; i++) {
+      if (i == 0) {
+        DT[i] = T_2[i + 1] - Ts;
+        DT_up[i] = T_2[i] - Ts;
+        DT_down[i] = T_2[i + 1] - T_2[i];
+        T_up[i] = Ts;
+      } else if (i == n - 1) {
+        DT[i] = Tb - T_2[i - 1];
+        DT_up[i] = T_2[i] - T_2[i - 1];
+        DT_down[i] = Tb - T_2[i];
+        T_up[i] = T_2[i - 1];
+      } else {
+        DT[i] = T_2[i + 1] - T_2[i - 1];
+        DT_up[i] = T_2[i] - T_2[i - 1];
+        DT_down[i] = T_2[i + 1] - T_2[i];
+        T_up[i] = T_2[i - 1];
+      }
+      //update Dkappa due to ice content change
+      /*******************************************/
+      if (i < n - 1)
+        Dkappa[i] = kappa_new[i + 2] - kappa_new[i];
+      else if (!NOFLUX)
+        Dkappa[i] = kappa_new[i + 2] - kappa_new[i];
+      else
+        Dkappa[i] = kappa_new[i + 1] - kappa_new[i];
+      /********************************************/
+    }
+
+    for (i = left; i <= right; i++) {
+      storage_term = Cs_new[i + 1] * (T_2[i] - T0[i + 1]) / deltat
+          + T_2[i] * (Cs_new[i + 1] - Cs[i + 1]) / deltat;
+      if (!EXP_TRANS) {
+        flux_term1 = Dkappa[i] / alpha[i] * DT[i] / alpha[i];
+        flux_term2 = kappa_new[i + 1]
+            * (DT_down[i] / gamma[i] - DT_up[i] / beta[i]) / (0.5 * alpha[i]);
+      } else { //grid transformation
+        flux_term1 = Dkappa[i] / 2. * DT[i] / 2. / (Bexp * (Zsum[i + 1] + 1.))
+            / (Bexp * (Zsum[i + 1] + 1.));
+        flux_term2 =
+            kappa_new[i + 1]
+                * ((DT_down[i] - DT_up[i]) / (Bexp * (Zsum[i + 1] + 1.))
+                    / (Bexp * (Zsum[i + 1] + 1.))
+                    - DT[i] / 2.
+                        / (Bexp * (Zsum[i + 1] + 1.) * (Zsum[i + 1] + 1.)));
+      }
+      //inelegant fix for "cold nose" problem - when a very cold node skates off to
+      //much colder and breaks the second law of thermodynamics (because
+      //flux_term1 exceeds flux_term2 in absolute magnitude) - therefore, don't let
+      //that node get any colder.  This only seems to happen in the first and
+      //second near-surface nodes.
+      if (i == 0 || i == 1) {	//surface nodes only
+        if (fabs(DT[i]) > 5. && (T_2[i] < T_2[i + 1] && T_2[i] < T_up[i])) {//cold nose
+          if ((flux_term1 < 0 && flux_term2 > 0)
+              && fabs(flux_term1) > fabs(flux_term2)) {
+            flux_term1 = 0;
+#if VERBOSE
+            fprintf(stderr,
+                "WARNING: resetting thermal flux term in soil heat solution to zero for node %d.\nT[i]=%.2f T[i-1]=%.2f T[i+1]=%.2f flux_term1=%.2f flux_term2=%.2f\n",
+                i + 1, T_2[i], T_up[i], T_2[i + 1], flux_term1, flux_term2);
+#endif
+          }
+        }
+      }
+      flux_term = flux_term1 + flux_term2;
+      phase_term = ice_density * Lf * (ice_new[i + 1] - ice[i + 1]) / deltat;
+      res[i] = flux_term + phase_term - storage_term;
+    }
+  } // end of calculation of focus node only
 }

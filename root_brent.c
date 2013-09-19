@@ -74,14 +74,6 @@ static char vcid[] = "$Id$";
     double LowerBound     - Lower bound for root
     double UpperBound     - Upper bound for root
     char *ErrorString     - For storing description of errors (if any)
-    double (*Function)(double Estimate, va_list ap)
-    ...                   - Variable arguments 
-                            The number and order of arguments has to be
-                            appropriate for the Function pointed to, since
-                            the list of arguments after Nargs will be passed
-                            on to Function.
-                            See the appropriate Function for the correct
-                            arguments. 
 
   Returns      :
     double b              - Effective surface temperature (C)
@@ -105,7 +97,6 @@ static char vcid[] = "$Id$";
 double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorString)
 {
   const char *Routine = "RootBrent";
-  va_list ap;                   /* Used in traversing variable argument list */ 
   double a;
   double b;
   double c;
@@ -137,7 +128,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
   // If Function returns values of ERROR for both bounds, give up
   if (fa == ERROR && fb == ERROR) {
     sprintf(ErrorString,"ERROR: %s: lower and upper bounds %f and %f failed to bracket the root because the given function was not defined at either point.\n",Routine,a,b);
-    va_end(ap);
     return(ERROR);
   }      
 
@@ -171,7 +161,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
     if (fc == ERROR) {
       /* if we get here, we could not find a bound for which the function returns a valid value */
       sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
-      va_end(ap);
       return(ERROR);
     }
     else {
@@ -206,7 +195,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
         if (fb == ERROR) {
           /* Undefined function values in both directions - give up */
           sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
-          va_end(ap);
           return(ERROR);
         }
         last_good = a;
@@ -217,7 +205,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
         if (fa == ERROR) {
           /* Undefined function values in both directions - give up */
           sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
-          va_end(ap);
           return(ERROR);
         }
         last_good = b;
@@ -237,7 +224,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
       if (fc == ERROR) {
         /* if we get here, we could not find a bound for which the function returns a valid value */
         sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
-        va_end(ap);
         return(ERROR);
       }
       else {
@@ -258,7 +244,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
   if ((fa * fb) >= 0) {
     /* if we get here, the lower and upper bounds did not bracket the root */
     sprintf(ErrorString,"WARNING: %s: lower and upper bounds %f and %f failed to bracket the root.\n",Routine,a,b);
-    va_end(ap);
     return(ERROR);
   }
 
@@ -290,7 +275,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
     m = 0.5 * (c - b);
     
     if (fabs(m) <= tol || fb == 0) {
-      va_end(ap);
       return b;
     }
     
@@ -341,7 +325,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
       // Catch ERROR values returned from Function
       if(fb == ERROR){
 	sprintf(ErrorString,"ERROR returned to root_brent on iteration %d: temperature = %.4f\n",i+1,b);
-	va_end(ap);
 	return( ERROR );
       }      
 
@@ -349,7 +332,6 @@ double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorSt
   }
   /* If we get here, there were too many iterations */
   sprintf(ErrorString,"WARNING: %s: too many iterations.\n",Routine);
-  va_end(ap);
   return(ERROR);
 
 }

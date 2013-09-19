@@ -114,12 +114,10 @@ double calc_atmos_energy_bal(double  InOverSensible,
     }
     else {
       // handle error flag from root brent
-      (*Error) = error_calc_atmos_energy_bal(Tcanopy, (*LatentHeat) 
-					     + (*LatentHeatSub), 
-					     NetRadiation, Ra, Tair, 
-					     atmos_density, InSensible, 
-					     SensibleHeat, ErrorString);
-      return ( ERROR );
+      (*Error) = error_print_atmos_energy_bal(Tcanopy,
+          (*LatentHeat) + (*LatentHeatSub), NetRadiation, Ra, Tair,
+          atmos_density, InSensible, SensibleHeat, ErrorString);
+      return (ERROR);
     }
   }
   // compute variables based on final temperature
@@ -166,42 +164,9 @@ double calc_atmos_energy_bal(double  InOverSensible,
 
 }
 
-double error_calc_atmos_energy_bal(double Tcanopy, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap, Tcanopy);
-  error = error_print_atmos_energy_bal(Tcanopy, ap);
-  va_end(ap);
-
-  return error;
-
-}
-
-double error_print_atmos_energy_bal(double Tcanopy, va_list ap) {
-
-  double  LatentHeat;
-  double  NetRadiation;
-  double  Ra;
-  double  Tair;
-  double  atmos_density;
-  double  InSensible;
-
-  double *SensibleHeat;
-  char *ErrorString;
- 
-  // extract variables from va_arg
-  LatentHeat    = (double)  va_arg(ap, double);
-  NetRadiation  = (double)  va_arg(ap, double);
-  Ra            = (double)  va_arg(ap, double);
-  Tair          = (double)  va_arg(ap, double);
-  atmos_density = (double)  va_arg(ap, double);
-  InSensible    = (double)  va_arg(ap, double);
-
-  SensibleHeat  = (double *)va_arg(ap, double *);
-  ErrorString   = (char *)va_arg(ap, char *);
+double error_print_atmos_energy_bal(double Tcanopy, double LatentHeat,
+    double NetRadiation, double Ra, double Tair, double atmos_density,
+    double InSensible, double *SensibleHeat, char *ErrorString) {
 
   // print variable values
   fprintf(stderr, "%s", ErrorString);
@@ -218,58 +183,11 @@ double error_print_atmos_energy_bal(double Tcanopy, va_list ap) {
   fprintf(stderr, "Finished writing calc_atmos_energy_bal variables.\nTry increasing CANOPY_DT to get model to complete cell.\nThen check output for instabilities.\n");
 
   return( ERROR );
-    
 }
 
-double solve_atmos_moist_bal(double VPcanopy, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap, VPcanopy);
-  error = func_atmos_moist_bal(VPcanopy, ap);
-  va_end(ap);
-
-  return error;
-
-}
-
-double error_calc_atmos_moist_bal(double VPcanopy, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap, VPcanopy);
-  error = error_print_atmos_moist_bal(VPcanopy, ap);
-  va_end(ap);
-
-  return error;
-
-}
-
-double error_print_atmos_moist_bal(double VPcanopy, va_list ap) {
-
- 
-  double  InLatent;
-  double  Lv;
-  double  Ra;
-  double  atmos_density;
-  double  gamma;
-  double  vp;
-  double *AtmosLatent;
-  char *ErrorString;
-
-  // extract variables from va_arg
-  InLatent      = (double)  va_arg(ap, double);
-  Lv            = (double)  va_arg(ap, double);
-  Ra            = (double)  va_arg(ap, double);
-  atmos_density = (double)  va_arg(ap, double);
-  gamma         = (double)  va_arg(ap, double);
-  vp            = (double)  va_arg(ap, double);
-  AtmosLatent   = (double *)va_arg(ap, double *);
-  ErrorString   = (char *)  va_arg(ap, char *);
+double error_print_atmos_moist_bal(double VPcanopy, double InLatent, double Lv,
+    double Ra, double atmos_density, double gamma, double vp,
+    double *AtmosLatent, char *ErrorString) {
 
   // print variable values
   fprintf(stderr, "%s", ErrorString);

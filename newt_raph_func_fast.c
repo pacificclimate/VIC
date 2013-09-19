@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <vicNl.h>
+#include "newt_raph_func_fast.h"
 
 #define MAXSIZE  20
 #define MAXTRIAL 150
@@ -13,8 +14,38 @@
 #define RELAX2   0.7
 #define RELAX3   0.2
 
-int newt_raph(void (*vecfunc)(double x[], double fvec[], int n, int init, ...), 
-               double x[], int n)
+NewtonRaphsonMethod::NewtonRaphsonMethod(double T_2[], double res[], int n, double deltat, int FS_ACTIVE,
+    int NOFLUX, int EXP_TRANS, double *T0, double *moist, double *ice,
+    double *kappa, double *Cs, double *max_moist, double *bubble, double *expt,
+    double *porosity, double *effective_porosity, double *alpha, double *beta,
+    double *gamma, double *Zsum, double Dp, double *bulk_dens_min,
+    double *soil_dens_min, double *quartz, double *bulk_density,
+    double *soil_density, double *organic, double *depth, int Nlayers) :
+
+    deltat(deltat), FS_ACTIVE(FS_ACTIVE), NOFLUX(NOFLUX), EXP_TRANS(EXP_TRANS), T0(T0), moist(moist),
+    ice(ice), kappa(kappa), Cs(Cs), max_moist(max_moist), bubble(bubble), expt(expt),
+    porosity(porosity), effective_porosity(effective_porosity), alpha(alpha), beta(beta), gamma(gamma),
+    Zsum(Zsum), Dp(Dp), bulk_dens_min(bulk_dens_min), soil_dens_min(soil_dens_min), quartz(quartz),
+    bulk_density(bulk_density), soil_density(soil_density), organic(organic), depth(depth), Nlayers(Nlayers) {
+
+  if (EXP_TRANS) {
+    if (!NOFLUX)
+      Bexp = log(Dp + 1.) / (double) (n + 1);
+    else
+      Bexp = log(Dp + 1.) / (double) (n);
+  }
+
+  Ts = T0[0];
+  if (!NOFLUX)
+    Tb = T0[n + 1];
+  else
+    Tb = T0[n];
+  for (int i = 0; i < n; i++)
+    T_2[i] = T0[i + 1];
+
+}
+
+int NewtonRaphsonMethod::compute(double x[], int n)
 {
 
 /******************************************************************
@@ -38,7 +69,7 @@ int newt_raph(void (*vecfunc)(double x[], double fvec[], int n, int init, ...),
   for (k=0; k<MAXTRIAL; k++) {
 
     // calculate function value for all nodes, i.e. focus = -1
-    (*vecfunc)(x, fvec, n, 0, -1);
+    fda_heat_eqn(x, fvec, n, -1);
 
     // stop if TOLF is satisfied
     errf=0.0;
@@ -49,7 +80,7 @@ int newt_raph(void (*vecfunc)(double x[], double fvec[], int n, int init, ...),
     }
     
     // calculate the Jacobian
-    fdjac3(x, fvec, a, b, c, vecfunc, n);
+    fdjac3(x, fvec, a, b, c, n);
 
     for (i=0; i<n; i++) p[i]=-fvec[i];
 
@@ -99,9 +130,7 @@ int newt_raph(void (*vecfunc)(double x[], double fvec[], int n, int init, ...),
 
 #define EPS2     1e-4
 
-void fdjac3(double x[], double fvec[], double a[], double b[], double c[],
-            void (*vecfunc)(double x[], double fvec[], int n, int init, ...), 
-            int n)
+void NewtonRaphsonMethod::fdjac3(double x[], double fvec[], double a[], double b[], double c[], int n)
 {
 
 /******************************************************************
@@ -123,7 +152,7 @@ void fdjac3(double x[], double fvec[], double a[], double b[], double c[],
     h=x[j]-temp;
 
     // only update column j-1, j and j+1, caused by change in x[j]
-    (*vecfunc)(x, f, n, 0, j);
+    fda_heat_eqn(x, f, n, j);
 
     x[j]=temp;
 

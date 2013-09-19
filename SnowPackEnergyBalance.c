@@ -28,9 +28,6 @@ static char vcid[] = "$Id$";
 
   Required     :
     double TSurf           - new estimate of effective surface temperature
-    va_list ap            - Argument list initialized by va_start().  For
-                            elements of list and order, see beginning of
-                            routine
 
   Returns      :
     double RestTerm        - Rest term in the energy balance

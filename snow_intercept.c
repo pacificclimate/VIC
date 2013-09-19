@@ -384,7 +384,7 @@ int snow_intercept(double  Dt,
         (*Tfoliage_fbcount)++;
       }
       else { 
-        Qnet = error_calc_canopy_energy_bal(*Tfoliage, band, month, rec, Dt, 
+        Qnet = error_print_canopy_energy_bal(*Tfoliage, band, month, rec, Dt,
 					    soil_con->elevation, 
 					    soil_con->Wcr, soil_con->Wpwp, 
 					    soil_con->depth, 
@@ -583,156 +583,62 @@ int snow_intercept(double  Dt,
 
 }
 
-double error_calc_canopy_energy_bal(double Tfoliage, ...)
+double error_print_canopy_energy_bal(double Tfoliage,
+    /* General Model Parameters */
+    int     band,
+    int     month,
+    int     rec,
+    double  delta_t,
+    double  elevation,
+    double *Wcr,
+    double *Wpwp,
+    double *depth,
+    double *frost_fract,
+    /* Atmopheric Condition and Forcings */
+    double  AirDens,
+    double  EactAir,
+    double  Press,
+    double  latent_heat_Le,
+    double  Tcanopy,
+    double  Vpd,
+    double  mu,
+    double *Evap,
+    double *Ra,
+    double *Ra_used,
+    double *Rainfall,
+    double *Wind,
+    /* Vegetation Terms */
+    int     UnderStory,
+    int     iveg,
+    int     veg_class,
+    double *displacement,
+    double *ref_height,
+    double *roughness,
+    float  *root,
+    /* Water Flux Terms */
+    double  IntRain,
+    double  IntSnow,
+    double *Wdew,
+    layer_data_struct *layer_wet,
+    layer_data_struct *layer_dry,
+    veg_var_struct    *veg_var_wet,
+    veg_var_struct    *veg_var_dry,
+    /* Energy Flux Terms */
+    double  LongOverIn,
+    double  LongUnderOut,
+    double  NetShortOver,
+    double *AdvectedEnergy,
+    double *LatentHeat,
+    double *LatentHeatSub,
+    double *LongOverOut,
+    double *NetLongOver,
+    double *NetRadiation,
+    double *RefreezeEnergy,
+    double *SensibleHeat,
+    double *VaporMassFlux,
+    char *ErrorString,
+    const ProgramState* state)
 {
-  va_list  ap;
-  double   Qnet;
-
-  va_start(ap, Tfoliage);
-  Qnet = error_print_canopy_energy_bal(Tfoliage, ap);
-  va_end(ap);
-
-  return Qnet;
-}
-
-double error_print_canopy_energy_bal(double Tfoliage, va_list ap)
-{  
-  /* General Model Parameters */
-  int     band;
-  int     month;
-  int     rec;
-
-  double  delta_t;
-  double  elevation;
-
-  double *Wcr;
-  double *Wpwp;
-  double *depth;
-  double *frost_fract;
-
-  /* Atmopheric Condition and Forcings */
-  double  AirDens;
-  double  EactAir;
-  double  Press;
-  double  latent_heat_Le;
-  double  Tcanopy;
-  double  Vpd;
-  double  mu;
-
-  double *Evap;
-  double *Ra;
-  double *Ra_used;
-  double *Rainfall;
-  double *Wind;
-
-  /* Vegetation Terms */
-  int     UnderStory;
-  int     iveg;
-  int     veg_class;
-
-  double *displacement;
-  double *ref_height;
-  double *roughness;
-
-  float  *root;
-
-  /* Water Flux Terms */
-  double  IntRain;
-  double  IntSnow;
-
-  double *Wdew;
-
-  layer_data_struct *layer_wet;
-  layer_data_struct *layer_dry;
-  veg_var_struct    *veg_var_wet;
-  veg_var_struct    *veg_var_dry;
-
-  /* Energy Flux Terms */
-  double  LongOverIn;
-  double  LongUnderOut;
-  double  NetShortOver;
-
-  double *AdvectedEnergy;
-  double *LatentHeat;
-  double *LatentHeatSub;
-  double *LongOverOut;
-  double *NetLongOver;
-  double *NetRadiation;
-  double *RefreezeEnergy;
-  double *SensibleHeat;
-  double *VaporMassFlux;
-
-  char *ErrorString;
-
-  /** Read variables from variable length argument list **/
-
-  /* General Model Parameters */
-  band    = (int) va_arg(ap, int);
-  month   = (int) va_arg(ap, int);
-  rec     = (int) va_arg(ap, int);
-
-  delta_t   = (double) va_arg(ap, double);
-  elevation = (double) va_arg(ap, double);
-
-  Wcr   = (double *) va_arg(ap, double *);
-  Wpwp  = (double *) va_arg(ap, double *);
-  depth = (double *) va_arg(ap, double *);
-  frost_fract = (double *) va_arg(ap, double *);
-
-  /* Atmopheric Condition and Forcings */
-  AirDens = (double) va_arg(ap, double);
-  EactAir = (double) va_arg(ap, double);
-  Press   = (double) va_arg(ap, double);
-  latent_heat_Le = (double) va_arg(ap, double);
-  Tcanopy = (double) va_arg(ap, double);
-  Vpd     = (double) va_arg(ap, double);
-  mu      = (double) va_arg(ap, double);
-
-  Evap     = (double *) va_arg(ap, double *);
-  Ra       = (double *) va_arg(ap, double *);
-  Ra_used  = (double *) va_arg(ap, double *);
-  Rainfall = (double *) va_arg(ap, double *);
-  Wind     = (double *) va_arg(ap, double *);
-
-  /* Vegetation Terms */
-  UnderStory = (int) va_arg(ap, int);
-  iveg       = (int) va_arg(ap, int);
-  veg_class  = (int) va_arg(ap, int);
-
-  displacement = (double *) va_arg(ap, double *);
-  ref_height   = (double *) va_arg(ap, double *);
-  roughness    = (double *) va_arg(ap, double *);
-
-  root = (float *) va_arg(ap, float *);
-
-  /* Water Flux Terms */
-  IntRain = (double) va_arg(ap, double);
-  IntSnow = (double) va_arg(ap, double);
-
-  Wdew    = (double *) va_arg(ap, double *);
-
-  layer_wet   = (layer_data_struct *) va_arg(ap, layer_data_struct *);
-  layer_dry   = (layer_data_struct *) va_arg(ap, layer_data_struct *);
-  veg_var_wet = (veg_var_struct *) va_arg(ap, veg_var_struct *);
-  veg_var_dry = (veg_var_struct *) va_arg(ap, veg_var_struct *);
-
-  /* Energy Flux Terms */
-  LongOverIn       = (double) va_arg(ap, double);
-  LongUnderOut     = (double) va_arg(ap, double);
-  NetShortOver     = (double) va_arg(ap, double);
-
-  AdvectedEnergy     = (double *) va_arg(ap, double *);
-  LatentHeat         = (double *) va_arg(ap, double *);
-  LatentHeatSub      = (double *) va_arg(ap, double *);
-  LongOverOut        = (double *) va_arg(ap, double *);
-  NetLongOver        = (double *) va_arg(ap, double *);
-  NetRadiation       = (double *) va_arg(ap, double *);
-  RefreezeEnergy     = (double *) va_arg(ap, double *);
-  SensibleHeat       = (double *) va_arg(ap, double *);
-  VaporMassFlux      = (double *) va_arg(ap, double *);
-  ErrorString        = (char *) va_arg(ap, char *);
-  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
-
   /** Print variable info */
   fprintf(stderr, "%s", ErrorString);
   fprintf(stderr, "ERROR: snow_intercept failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");

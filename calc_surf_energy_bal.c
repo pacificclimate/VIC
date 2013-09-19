@@ -356,7 +356,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       }
       else {
         fprintf(stderr, "SURF_DT = %.2f\n", SURF_DT);
-        error = error_calc_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
+        error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
 					   veg_class, delta_t, Cs1, Cs2, D1, D2, 
 					   T1_old, T2, Ts_old, 
 					   soil_con->b_infilt, bubble, dp, 
@@ -445,7 +445,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
           Tsurf_fbcount++;
         }
         else {
-	  error = error_calc_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
+	  error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
 					     veg_class, delta_t, Cs1, Cs2, D1, 
 					     D2, T1_old, T2, Ts_old, 
 					     soil_con->b_infilt, bubble, dp, 
@@ -715,312 +715,62 @@ double calc_surf_energy_bal(double             latent_heat_Le,
     
 }
 
-double error_calc_surf_energy_bal(double Tsurf, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap, Tsurf);
-  error = error_print_surf_energy_bal(Tsurf, ap);
-  va_end(ap);
-
-  return error;
-
-}
-
-double error_print_surf_energy_bal(double Ts, va_list ap) {
+double error_print_surf_energy_bal(double Ts, int year, int month, int day, int hour,
+    int iveg, int VEG, int veg_class,
+    double delta_t,
+    /* soil layer terms */
+    double Cs1, double Cs2, double D1, double D2, double T1_old, double T2,
+    double Ts_old, double b_infilt, double bubble, double dp, double expt,
+    double ice0, double kappa1, double kappa2, double max_infil,
+    double max_moist, double moist,
+    double *Wcr, double *Wpwp, double *depth, double *resid_moist,
+    float *root,
+    /* meteorological forcing terms */
+    int UnderStory, int overstory,
+    double NetShortBare,  // net SW that reaches bare ground
+    double NetShortGrnd,  // net SW that penetrates snowpack
+    double NetShortSnow,  // net SW that reaches snow surface
+    double Tair, double atmos_density, double atmos_pressure, double elevation,
+    double emissivity, double LongBareIn, double LongSnowIn,
+    double precipitation_mu, double surf_atten, double vp, double vpd,
+    double *Wdew, double *displacement, double *ra, double *ra_used,
+    double *rainfall, double *ref_height, double *roughness, double *wind,
+    /* latent heat terms */
+    double Le,
+    /* snowpack terms */
+    double Advection, double OldTSurf, double TPack, double Tsnow_surf,
+    double kappa_snow, double melt_energy, double snow_coverage,
+    double snow_density, double snow_swq, double snow_water,
+    double *deltaCC, double *refreeze_energy, double *VaporMassFlux,
+    /* soil node terms */
+    int Nnodes,
+    double *Cs_node, double *T_node, double *Tnew_node, double *alpha,
+    double *beta, double *bubble_node, double *Zsum_node, double *expt_node,
+    double *gamma, double *ice_node, double *kappa_node, double *max_moist_node,
+    double *moist_node,
+    /* spatial frost terms */
+    double *frost_fract,
+    /* quick solution frozen soils terms */
+    double **ufwc_table_layer, double ***ufwc_table_node,
+    /* model structures */
+    layer_data_struct *layer_wet, layer_data_struct *layer_dry,
+    veg_var_struct *veg_var_wet, veg_var_struct *veg_var_dry,
+    /* control flags */
+    int INCLUDE_SNOW, int FS_ACTIVE, int NOFLUX, int EXP_TRANS,
+    int SNOWING,
+    int *FIRST_SOLN,
+    /* returned energy balance terms */
+    double *NetLongBare, // net LW from snow-free ground
+    double *NetLongSnow, // net longwave from snow surface - if INCLUDE_SNOW
+    double *T1, double *deltaH, double *fusion, double *grnd_flux,
+    double *latent_heat, double *latent_heat_sub, double *sensible_heat,
+    double *snow_flux, double *store_error, char *ErrorString,
+    const ProgramState* state) {
 /**********************************************************************
   Modifications:
   2009-Mar-03 Fixed format string for print statement, eliminates
 	      compiler WARNING.						KAC via TJB
 **********************************************************************/
-
-  /* Define imported variables */
-
-  /* general model terms */
-  int year,month,day,hour;
-  int iveg;
-  int VEG;
-  int veg_class;
-
-  double delta_t;
-
-  /* soil layer terms */
-  double Cs1;
-  double Cs2;
-  double D1;
-  double D2;
-  double T1_old;
-  double T2;
-  double Ts_old;
-  double b_infilt;
-  double bubble;
-  double dp;
-  double expt;
-  double ice0;
-  double kappa1;
-  double kappa2;
-  double max_infil;
-  double max_moist;
-  double moist;
-
-  double *Wcr;
-  double *Wpwp;
-  double *depth;
-  double *resid_moist;
-
-  float *root;
-
-  /* meteorological forcing terms */
-  int UnderStory;
-  int overstory;
-
-  double NetShortBare;  // net SW that reaches bare ground
-  double NetShortGrnd;  // net SW that penetrates snowpack
-  double NetShortSnow;  // net SW that reaches snow surface
-  double Tair;
-  double atmos_density;
-  double atmos_pressure;
-  double elevation;
-  double emissivity;
-  double LongBareIn; 
-  double LongSnowIn; 
-  double precipitation_mu;
-  double surf_atten;
-  double vp;
-  double vpd;
-
-  double *Wdew;
-  double *displacement;
-  double *ra;
-  double *ra_used;
-  double *rainfall;
-  double *ref_height;
-  double *roughness;
-  double *wind;
- 
-  /* latent heat terms */
-  double  Le;
-
-  /* snowpack terms */
-  double Advection;
-  double OldTSurf;
-  double TPack;
-  double Tsnow_surf;
-  double kappa_snow;
-  double melt_energy;
-  double snow_coverage;
-  double snow_density;
-  double snow_swq;
-  double snow_water;
-
-  double *deltaCC;
-  double *refreeze_energy;
-  double *VaporMassFlux;
-
-  /* soil node terms */
-  int Nnodes;
-
-  double *Cs_node;
-  double *T_node;
-  double *Tnew_node;
-  double *alpha;
-  double *beta;
-  double *bubble_node;
-  double *Zsum_node;
-  double *expt_node;
-  double *gamma;
-  double *ice_node;
-  double *kappa_node;
-  double *max_moist_node;
-  double *moist_node;
-
-  /* spatial frost terms */
-  double *frost_fract;
-
-  /* quick solution frozen soils terms */
-  double **ufwc_table_layer;
-  double ***ufwc_table_node;
-
-  /* model structures */
-  layer_data_struct *layer_wet;
-  layer_data_struct *layer_dry;
-  veg_var_struct *veg_var_wet;
-  veg_var_struct *veg_var_dry;
-
-  /* control flags */
-  int INCLUDE_SNOW;
-  int FS_ACTIVE;
-  int NOFLUX;
-  int EXP_TRANS;
-
-  int SNOWING;
-
-  int *FIRST_SOLN;
-
-  /* returned energy balance terms */
-  double *NetLongBare; // net LW from snow-free ground
-  double *NetLongSnow; // net longwave from snow surface - if INCLUDE_SNOW
-  double *T1;
-  double *deltaH;
-  double *fusion;
-  double *grnd_flux;
-  double *latent_heat;
-  double *latent_heat_sub;
-  double *sensible_heat;
-  double *snow_flux;
-  double *store_error;
-
-  char *ErrorString;
-
-  /* Define internal routine variables */
-  int                i;
-
-  /***************************
-    Read Variables from List
-  ***************************/
-
-  /* general model terms */
-  year                   = (int) va_arg(ap, int);
-  month                   = (int) va_arg(ap, int);
-  day                   = (int) va_arg(ap, int);
-  hour                   = (int) va_arg(ap, int);
-  VEG                    = (int) va_arg(ap, int);
-  iveg                     = (int) va_arg(ap, int);
-  veg_class               = (int) va_arg(ap, int);
-
-  delta_t                 = (double) va_arg(ap, double);
-
-  /* soil layer terms */
-  Cs1                     = (double) va_arg(ap, double);
-  Cs2                     = (double) va_arg(ap, double);
-  D1                      = (double) va_arg(ap, double);
-  D2                      = (double) va_arg(ap, double);
-  T1_old                  = (double) va_arg(ap, double);
-  T2                      = (double) va_arg(ap, double);
-  Ts_old                  = (double) va_arg(ap, double);
-  b_infilt                = (double) va_arg(ap, double);
-  bubble                  = (double) va_arg(ap, double);
-  dp                      = (double) va_arg(ap, double);
-  expt                    = (double) va_arg(ap, double);
-  ice0                    = (double) va_arg(ap, double);
-  kappa1                  = (double) va_arg(ap, double);
-  kappa2                  = (double) va_arg(ap, double);
-  max_infil               = (double) va_arg(ap, double);
-  max_moist               = (double) va_arg(ap, double);
-  moist                   = (double) va_arg(ap, double);
-
-  Wcr                     = (double *) va_arg(ap, double *);
-  Wpwp                    = (double *) va_arg(ap, double *);
-  depth                   = (double *) va_arg(ap, double *);
-  resid_moist             = (double *) va_arg(ap, double *);
-
-  root                    = (float  *) va_arg(ap, float  *);
-
-  /* meteorological forcing terms */
-  UnderStory              = (int) va_arg(ap, int);
-  overstory               = (int) va_arg(ap, int);
-
-  NetShortBare            = (double) va_arg(ap, double);
-  NetShortGrnd            = (double) va_arg(ap, double);
-  NetShortSnow            = (double) va_arg(ap, double);
-  Tair                    = (double) va_arg(ap, double);
-  atmos_density           = (double) va_arg(ap, double);
-  atmos_pressure          = (double) va_arg(ap, double);
-  elevation               = (double) va_arg(ap, double);
-  emissivity              = (double) va_arg(ap, double);
-  LongBareIn              = (double) va_arg(ap, double);
-  LongSnowIn              = (double) va_arg(ap, double);
-  precipitation_mu                      = (double) va_arg(ap, double);
-  surf_atten              = (double) va_arg(ap, double);
-  vp                      = (double) va_arg(ap, double);
-  vpd                     = (double) va_arg(ap, double);
-
-  Wdew                    = (double *) va_arg(ap, double *);
-  displacement            = (double *) va_arg(ap, double *);
-  ra                      = (double *) va_arg(ap, double *);
-  ra_used                 = (double *) va_arg(ap, double *);
-  rainfall                = (double *) va_arg(ap, double *);
-  ref_height              = (double *) va_arg(ap, double *);
-  roughness               = (double *) va_arg(ap, double *);
-  wind                    = (double *) va_arg(ap, double *);
-
-  /* latent heat terms */
-  Le                      = (double) va_arg(ap, double);
-
-  /* snowpack terms */
-  Advection               = (double) va_arg(ap, double);
-  OldTSurf                = (double) va_arg(ap, double);
-  TPack                   = (double) va_arg(ap, double);
-  Tsnow_surf              = (double) va_arg(ap, double);
-  kappa_snow              = (double) va_arg(ap, double);
-  melt_energy             = (double) va_arg(ap, double);
-  snow_coverage           = (double) va_arg(ap, double);
-  snow_density            = (double) va_arg(ap, double);
-  snow_swq                = (double) va_arg(ap, double);
-  snow_water              = (double) va_arg(ap, double);
-
-  deltaCC                 = (double *) va_arg(ap, double *);
-  refreeze_energy         = (double *) va_arg(ap, double *);
-  VaporMassFlux           = (double *) va_arg(ap, double *);
-
-  /* soil node terms */
-  Nnodes                  = (int) va_arg(ap, int);
-
-  Cs_node                 = (double *) va_arg(ap, double *);
-  T_node                  = (double *) va_arg(ap, double *);
-  Tnew_node               = (double *) va_arg(ap, double *);
-  alpha                   = (double *) va_arg(ap, double *);
-  beta                    = (double *) va_arg(ap, double *);
-  bubble_node             = (double *) va_arg(ap, double *);
-  Zsum_node               = (double *) va_arg(ap, double *);
-  expt_node               = (double *) va_arg(ap, double *);
-  gamma                   = (double *) va_arg(ap, double *);
-  ice_node                = (double *) va_arg(ap, double *);
-  kappa_node              = (double *) va_arg(ap, double *);
-  max_moist_node          = (double *) va_arg(ap, double *);
-  moist_node              = (double *) va_arg(ap, double *);
-
-  frost_fract             = (double *) va_arg(ap, double *);
-
-  ufwc_table_layer        = (double **) va_arg(ap, double **);
-  ufwc_table_node         = (double ***) va_arg(ap, double ***);
-
-  /* model structures */
-  layer_wet               = (layer_data_struct *) va_arg(ap, layer_data_struct *);
-  layer_dry               = (layer_data_struct *) va_arg(ap, layer_data_struct *);
-  veg_var_wet             = (veg_var_struct *) va_arg(ap, veg_var_struct *);
-  veg_var_dry             = (veg_var_struct *) va_arg(ap, veg_var_struct *);
-
-  /* control flags */
-  INCLUDE_SNOW            = (int) va_arg(ap, int);
-  FS_ACTIVE               = (int) va_arg(ap, int);
-  NOFLUX                  = (int) va_arg(ap, int);
-  EXP_TRANS               = (int) va_arg(ap, int);
-  SNOWING                 = (int) va_arg(ap, int);
-
-  FIRST_SOLN              = (int *) va_arg(ap, int *);
-
-  /* returned energy balance terms */
-  NetLongBare             = (double *) va_arg(ap, double *);
-  NetLongSnow             = (double *) va_arg(ap, double *);
-  T1                      = (double *) va_arg(ap, double *);
-  deltaH                  = (double *) va_arg(ap, double *);
-  fusion                  = (double *) va_arg(ap, double *);
-  grnd_flux               = (double *) va_arg(ap, double *);
-  latent_heat             = (double *) va_arg(ap, double *);
-  latent_heat_sub         = (double *) va_arg(ap, double *);
-  sensible_heat           = (double *) va_arg(ap, double *);
-  snow_flux               = (double *) va_arg(ap, double *);
-  store_error             = (double *) va_arg(ap, double *);
-
-  ErrorString             = (char *) va_arg(ap, char *);
-  const ProgramState* state = (const ProgramState*) va_arg(ap, const ProgramState*);
-
-  /***************
-    Main Routine
-  ***************/
 
   fprintf(stderr, "%s", ErrorString);
   fprintf(stderr, "ERROR: calc_surf_energy_bal failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");
@@ -1150,7 +900,7 @@ double error_print_surf_energy_bal(double Ts, va_list ap) {
 
   if(!state->options.QUICK_FLUX) {
     fprintf(stderr,"Node\tT\tTnew\tZsum\tkappa\tCs\tmoist\tbubble\texpt\tmax_moist\tice\n");
-    for(i=0;i<Nnodes;i++) 
+    for(int i=0;i<Nnodes;i++)
       fprintf(stderr,"%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
 	      i, T_node[i], Tnew_node[i], Zsum_node[i], kappa_node[i], 
 	      Cs_node[i], moist_node[i], bubble_node[i], expt_node[i], 
