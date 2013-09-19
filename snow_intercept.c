@@ -329,24 +329,18 @@ int snow_intercept(double  Dt,
     *AlbedoOver = NEW_SNOW_ALB; // albedo of intercepted snow in canopy
     *NetShortOver = (1. - *AlbedoOver) * ShortOverIn; // net SW in canopy
 
-    Qnet = solve_canopy_energy_bal(0., band, month, rec, Dt, 
-				   soil_con->elevation, 
-				   soil_con->Wcr, soil_con->Wpwp, 
-				   soil_con->depth, 
-				   soil_con->frost_fract, 
-				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
-				   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
-				   RainFall, Wind, UnderStory, iveg, 
-				   veg_class, displacement, ref_height, 
-				   roughness, root, IntRainOrg, *IntSnow, 
-				   IntRain, layer_wet, layer_dry, veg_var_wet, 
-				   veg_var_dry, LongOverIn, LongUnderOut, 
-				   *NetShortOver, 
-				   AdvectedEnergy, 
-				   LatentHeat, LatentHeatSub, 
-				   LongOverOut, NetLongOver, &NetRadiation, 
-				   &RefreezeEnergy, SensibleHeat, 
-				   VaporMassFlux, state);
+    CanopyEnergyBal canopyEnergyBal(band, month, rec, Dt, soil_con->elevation,
+        soil_con->Wcr, soil_con->Wpwp, soil_con->depth, soil_con->frost_fract,
+        atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx],
+        latent_heat_Le, Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra,
+        Ra_used, RainFall, Wind, UnderStory, iveg, veg_class, displacement,
+        ref_height, roughness, root, IntRainOrg, *IntSnow, IntRain, layer_wet,
+        layer_dry, veg_var_wet, veg_var_dry, LongOverIn, LongUnderOut,
+        *NetShortOver, AdvectedEnergy, LatentHeat, LatentHeatSub, LongOverOut,
+        NetLongOver, &NetRadiation, &RefreezeEnergy, SensibleHeat,
+        VaporMassFlux, state);
+
+    Qnet = canopyEnergyBal.calculate(0.);
 
     if ( Qnet != 0 ) {
       /* Intercepted snow not melting - need to find temperature */
@@ -370,23 +364,18 @@ int snow_intercept(double  Dt,
 
   if ( Tupper != MISSING && Tlower != MISSING ) {
 
-    *Tfoliage = root_brent(Tlower, Tupper, ErrorString, func_canopy_energy_bal,  band, 
-			   month, rec, Dt, soil_con->elevation, 
-			   soil_con->Wcr, soil_con->Wpwp, soil_con->depth, 
-			   soil_con->frost_fract, 
-			   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
-			   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
-			   RainFall, Wind, UnderStory, iveg, 
-			   veg_class, displacement, ref_height, 
-			   roughness, root, IntRainOrg, *IntSnow, 
-			   IntRain, layer_wet, layer_dry, veg_var_wet, 
-			   veg_var_dry, LongOverIn, LongUnderOut, 
-			   *NetShortOver, 
-			   AdvectedEnergy, 
-			   LatentHeat, LatentHeatSub, 
-			   LongOverOut, NetLongOver, &NetRadiation, 
-			   &RefreezeEnergy, SensibleHeat, 
-			   VaporMassFlux, state);
+    CanopyEnergyBal canopyEnergyBalance(band, month, rec, Dt,
+        soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
+        soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
+        atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, Wind, UnderStory, iveg,
+        veg_class, displacement, ref_height, roughness, root, IntRainOrg,
+        *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
+        LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
+        LatentHeatSub, LongOverOut, NetLongOver, &NetRadiation, &RefreezeEnergy,
+        SensibleHeat, VaporMassFlux, state);
+
+    *Tfoliage = canopyEnergyBalance.root_brent(Tlower, Tupper, ErrorString);
     
     if ( *Tfoliage <= -998 ) {
       if (state->options.TFALLBACK) {
@@ -416,24 +405,18 @@ int snow_intercept(double  Dt,
         return( ERROR );
       }
     }
+    CanopyEnergyBal foliageCanopyEnergyBal(band, month, rec, Dt,
+        soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
+        soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
+        atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, Wind, UnderStory, iveg,
+        veg_class, displacement, ref_height, roughness, root, IntRainOrg,
+        *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
+        LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
+        LatentHeatSub, LongOverOut, NetLongOver, &NetRadiation, &RefreezeEnergy,
+        SensibleHeat, VaporMassFlux, state);
     
-    Qnet = solve_canopy_energy_bal(*Tfoliage, band, month, rec, Dt, 
-				   soil_con->elevation, soil_con->Wcr, 
-				   soil_con->Wpwp, soil_con->depth, 
-				   soil_con->frost_fract, 
-				   atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
-				   Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
-				   RainFall, Wind, UnderStory, iveg, 
-				   veg_class, displacement, ref_height, 
-				   roughness, root, IntRainOrg, *IntSnow, 
-				   IntRain, layer_wet, layer_dry, veg_var_wet, 
-				   veg_var_dry, LongOverIn, LongUnderOut, 
-				   *NetShortOver, 
-				   AdvectedEnergy, 
-				   LatentHeat, LatentHeatSub, 
-				   LongOverOut, NetLongOver, &NetRadiation, 
-				   &RefreezeEnergy, SensibleHeat, 
-				   VaporMassFlux, state);
+    Qnet = foliageCanopyEnergyBal.calculate(*Tfoliage);
 
   }
 
@@ -598,18 +581,6 @@ int snow_intercept(double  Dt,
 
   return( 0 );
 
-}
-
-double solve_canopy_energy_bal(double Tfoliage, ...)
-{
-  va_list  ap;
-  double   Qnet;
-
-  va_start(ap, Tfoliage);
-  Qnet = func_canopy_energy_bal(Tfoliage, ap);
-  va_end(ap);
-
-  return Qnet;
 }
 
 double error_calc_canopy_energy_bal(double Tfoliage, ...)

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vicNl.h>
+#include "SnowPackEnergyBalance.h"
 
 static char vcid[] = "$Id$";
 
@@ -84,67 +85,10 @@ static char vcid[] = "$Id$";
   2009-Sep-19 Added Added ground flux computation consistent with 4.0.6.	TJB
 
 *****************************************************************************/
-double SnowPackEnergyBalance(double TSurf, va_list ap)
+double SnowPackEnergyBalance::calculate(double TSurf)
 {
 
   const char *Routine = "SnowPackEnergyBalance";
-
-  /* Define Variable Argument List */
-
-  /* General Model Parameters */
-  double Dt;                      /* Model time step (sec) */
-  double Ra;                      /* Aerodynamic resistance (s/m) */
-  double *Ra_used;                /* Aerodynamic resistance (s/m) after stability correction */
-
-  /* Vegetation Parameters */
-  double Displacement;            /* Displacement height (m) */
-  double Z;                       /* Reference height (m) */
-  double *Z0;                      /* surface roughness height (m) */
-
-  /* Atmospheric Forcing Variables */
-  double AirDens;                 /* Density of air (kg/m3) */
-  double EactAir;                 /* Actual vapor pressure of air (Pa) */
-  double LongSnowIn;               /* Incoming longwave radiation (W/m2) */
-  double Lv;                      /* Latent heat of vaporization (J/kg3) */
-  double Press;                   /* Air pressure (Pa) */
-  double Rain;                    /* Rain fall (m/timestep) */
-  double NetShortUnder;           /* Net incident shortwave radiation 
-				     (W/m2) */ 
-  double Vpd;			  /* Vapor pressure deficit (Pa) */
-  double Wind;                    /* Wind speed (m/s) */
-
-  /* Snowpack Variables */
-  double OldTSurf;                /* Surface temperature during previous time
-				     step */ 
-  double SnowCoverFract;          /* Fraction of area covered by snow */
-  double SnowDepth;               /* Depth of snowpack (m) */
-  double SnowDensity;             /* Density of snowpack (kg/m^3) */
-  double SurfaceLiquidWater;      /* Liquid water in the surface layer (m) */
-  double SweSurfaceLayer;         /* Snow water equivalent in surface layer 
-				     (m) */ 
-
-  /* Energy Balance Components */
-  double Tair;                    /* Canopy air / Air temperature (C) */
-  double TGrnd;                   /* Ground surface temperature (C) */
-
-  double *AdvectedEnergy;         /* Energy advected by precipitation (W/m2) */
-  double *AdvectedSensibleHeat;	  /* Sensible heat advected from snow-free
-				     area into snow covered area (W/m^2) */
-  double *DeltaColdContent;       /* Change in cold content of surface 
-				     layer (W/m2) */
-  double *GroundFlux;		  /* Ground Heat Flux (W/m2) */
-  double *LatentHeat;		  /* Latent heat exchange at surface (W/m2) */
-  double *LatentHeatSub;  /* Latent heat of sublimation exchange at 
-				     surface (W/m2) */
-  double *NetLongUnder;           /* Net longwave radiation at snowpack 
-				     surface (W/m^2) */
-  double *RefreezeEnergy;         /* Refreeze energy (W/m2) */
-  double *SensibleHeat;		  /* Sensible heat exchange at surface 
-				     (W/m2) */
-  double *vapor_flux;             /* Mass flux of water vapor to or from the
-				     intercepted snow (m/timestep) */
-  double *blowing_flux;           /* Mass flux of water vapor from blowing snow. (m/timestep) */
-  double *surface_flux;           /* Mass flux of water vapor from pack snow. (m/timestep) */
 
   /* Internal Routine Variables */
 
@@ -162,64 +106,6 @@ double SnowPackEnergyBalance(double TSurf, va_list ap)
   double BlowingMassFlux;         /* Mass flux of water vapor from blowing snow. (kg/m2s) */
   double SurfaceMassFlux;         /* Mass flux of water vapor from pack snow. (kg/m2s) */
 
-  /* Assign the elements of the array to the appropriate variables.  The list
-     is traversed as if the elements are doubles, because:
-
-     In the variable-length part of variable-length argument lists, the old
-     ``default argument promotions'' apply: arguments of type double are
-     always promoted (widened) to type double, and types char and short int
-     are promoted to int. Therefore, it is never correct to invoke
-     va_arg(argp, double); instead you should always use va_arg(argp,
-     double). 
-
-     (quoted from the comp.lang.c FAQ list)
-     */
-
-  /* General Model Parameters */
-  Dt           = (double) va_arg(ap, double);
-  Ra           = (double) va_arg(ap, double);
-  Ra_used      = (double *) va_arg(ap, double *);
-
-  /* Vegetation Parameters */
-  Displacement = (double) va_arg(ap, double);
-  Z            = (double) va_arg(ap, double);
-  Z0           = (double *) va_arg(ap, double *);
-
-  /* Atmospheric Forcing Variables */
-  AirDens       = (double) va_arg(ap, double);
-  EactAir       = (double) va_arg(ap, double);
-  LongSnowIn    = (double) va_arg(ap, double);
-  Lv            = (double) va_arg(ap, double);
-  Press         = (double) va_arg(ap, double);
-  Rain          = (double) va_arg(ap, double);
-  NetShortUnder = (double) va_arg(ap, double);
-  Vpd           = (double) va_arg(ap, double);
-  Wind          = (double) va_arg(ap, double);
-
-  /* Snowpack Variables */
-  OldTSurf           = (double) va_arg(ap, double);
-  SnowCoverFract     = (double) va_arg(ap, double);
-  SnowDepth          = (double) va_arg(ap, double);
-  SnowDensity        = (double) va_arg(ap, double);
-  SurfaceLiquidWater = (double) va_arg(ap, double);
-  SweSurfaceLayer    = (double) va_arg(ap, double);
-
-  /* Energy Balance Components */
-  Tair = (double) va_arg(ap, double);
-  TGrnd   = (double) va_arg(ap, double);
-
-  AdvectedEnergy        = (double *) va_arg(ap, double *);
-  AdvectedSensibleHeat  = (double *)va_arg(ap, double *);
-  DeltaColdContent      = (double *) va_arg(ap, double *);
-  GroundFlux            = (double *) va_arg(ap, double *);
-  LatentHeat            = (double *) va_arg(ap, double *);
-  LatentHeatSub         = (double *) va_arg(ap, double *);
-  NetLongUnder          = (double *) va_arg(ap, double *);
-  RefreezeEnergy        = (double *) va_arg(ap, double *);
-  SensibleHeat          = (double *) va_arg(ap, double *);
-  vapor_flux            = (double *) va_arg(ap, double *);
-  blowing_flux          = (double *) va_arg(ap, double *); 
-  surface_flux          = (double *) va_arg(ap, double *);   
 
   /* Calculate active temp for energy balance as average of old and new  */
   

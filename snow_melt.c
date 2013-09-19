@@ -226,7 +226,7 @@ int snow_melt(double latent_heat_Le,
   
   /* Calculate the surface energy balance for snow_temp = 0.0 */
   
-  Qnet = CalcSnowPackEnergyBalance((double)0.0, delta_t, aero_resist, aero_resist_used,
+  SnowPackEnergyBalance snowPack(delta_t, aero_resist, aero_resist_used,
 				   displacement, z2, Z0, 
 				   density, vp, LongSnowIn, latent_heat_Le, pressure,
 				   RainFall, NetShortSnow, vpd, 
@@ -241,6 +241,8 @@ int snow_melt(double latent_heat_Le,
 				   &RefreezeEnergy, &sensible_heat, 
 				   &snow->vapor_flux, &snow->blowing_flux,
 				   &snow->surface_flux);
+
+  Qnet = snowPack.calculate((double)0.0);
 
   /* Check that snow swq exceeds minimum value for model stability */
 //  if ( SurfaceSwq > MIN_SWQ_EB_THRES && !UNSTABLE_SNOW ) {
@@ -320,10 +322,7 @@ int snow_melt(double latent_heat_Le,
     else  {
       /* Calculate surface layer temperature using "Brent method" */
       if (SurfaceSwq > MIN_SWQ_EB_THRES) {
-	snow->surf_temp = root_brent((double)(snow->surf_temp-SNOW_DT), 
-				     (double)(snow->surf_temp+SNOW_DT),
-				     ErrorString, SnowPackEnergyBalance, 
-				     delta_t, aero_resist, aero_resist_used,
+        SnowPackEnergyBalance snowPackEnergyBalance(delta_t, aero_resist, aero_resist_used,
 				     displacement, z2, Z0, 
 				     density, vp, LongSnowIn, latent_heat_Le, pressure,
 				     RainFall, NetShortSnow, vpd, 
@@ -338,6 +337,10 @@ int snow_melt(double latent_heat_Le,
 				     &RefreezeEnergy, &sensible_heat, 
 				     &snow->vapor_flux, &snow->blowing_flux,
 				     &snow->surface_flux);
+
+        snow->surf_temp = snowPackEnergyBalance.root_brent(
+            (double) (snow->surf_temp - SNOW_DT),
+            (double) (snow->surf_temp + SNOW_DT), ErrorString);
       
         if (snow->surf_temp <= -998) {
           if (state->options.TFALLBACK) {
@@ -372,8 +375,7 @@ int snow_melt(double latent_heat_Le,
 	snow->surf_temp = 999;
       }
       if (snow->surf_temp > -998 && snow->surf_temp < 999) {
-	Qnet = CalcSnowPackEnergyBalance(snow->surf_temp, 
-					 delta_t, aero_resist, aero_resist_used,
+        SnowPackEnergyBalance snowPackEnergyBalanceSurfTemp(delta_t, aero_resist, aero_resist_used,
 					 displacement, z2, Z0, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,
 					 RainFall, NetShortSnow, vpd, 
@@ -388,6 +390,8 @@ int snow_melt(double latent_heat_Le,
 					 NetLongSnow, &RefreezeEnergy, 
 					 &sensible_heat, &snow->vapor_flux,
 					 &snow->blowing_flux, &snow->surface_flux);
+
+	Qnet = snowPackEnergyBalanceSurfTemp.calculate(snow->surf_temp);
 	
 	/* since we iterated, the surface layer is below freezing and no snowmelt */ 
 	
@@ -559,37 +563,6 @@ int snow_melt(double latent_heat_Le,
   return ( 0 );
 }
 
-/*****************************************************************************
-  Function name: CalcSnowPackEnergyBalance()
-
-  Purpose      : Dummy function to make a direct call to
-                 SnowEnergyBalance() possible.
-
-  Required     : 
-    double TSurf - SnowPack surface temperature (C)
-    other arguments required by SnowPackEnergyBalance()
-
-  Returns      :
-    double Qnet - Net energy exchange at the SnowPack snow surface (W/m^2)
-
-  Modifies     : none
-
-  Comments     : function is local to this module
-*****************************************************************************/
-double CalcSnowPackEnergyBalance(double Tsurf, ...)
-{
-
-  va_list ap;                   /* Used in traversing variable argument list
-                                 */ 
-  double Qnet;                   /* Net energy exchange at the SnowPack snow
-                                   surface (W/m^2) */
-
-  va_start(ap, Tsurf);
-  Qnet = SnowPackEnergyBalance(Tsurf, ap);
-  va_end(ap);
-  
-  return Qnet;
-}
 
 double ErrorSnowPackEnergyBalance(double Tsurf, ...)
 {
