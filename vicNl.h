@@ -107,6 +107,13 @@
 #include <math.h>
 #include <vicNl_def.h>
 #include <LAKE.h>
+#include "root_brent.h"
+#include "atmos_energy_bal.h"
+#include "surf_energy_bal.h"
+#include "soil_thermal_eqn.h"
+#include "IceEnergyBalance.h"
+#include "canopy_energy_bal.h"
+#include "SnowPackEnergyBalance.h"
 
 /*** SubRoutine Prototypes ***/
 
@@ -144,7 +151,6 @@ int    calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *
 				double *, double *, double *, double ***,
         double *, double *, int, int, int, int, const ProgramState*);
 
-double CalcSnowPackEnergyBalance(double Tsurf, ...);
 double CalcBlowingSnow(double, double, int, double, double, double, double, 
                        double, double, double, double, double, float, 
                        float, double, int, int, float, double, double, double *); 
@@ -273,7 +279,6 @@ int    full_energy(char, int, int, atmos_data_struct *, dist_prcp_struct *,
 double func_aero_resist(double,double,double,double,double);
 double func_atmos_energy_bal(double, va_list);
 double func_atmos_moist_bal(double, va_list);
-double func_canopy_energy_bal(double, va_list);
 double func_snow_ground_flux(double, va_list);
 double func_surf_energy_bal(double, va_list);
 
@@ -395,7 +400,6 @@ int    snow_melt(double, double, double, double, double *, double, double *, dou
                  double *, double *, double *, double *, double *, double *, 
                  double *, double *, double *, double *, double *, double *, 
                  int, int, int, int, snow_data_struct *, soil_con_struct *, const ProgramState*);
-double SnowPackEnergyBalance(double, va_list);
 double soil_conductivity(double, double, double, double, double, double, double, double);
 void   soil_thermal_calc(soil_con_struct *, layer_data_struct *,
 			 energy_bal_struct, double *, double *, double *,
@@ -413,11 +417,8 @@ double solve_snow(char, double, double, double, double, double, double,
                   layer_data_struct *, layer_data_struct *,
                   snow_data_struct *, soil_con_struct *,
                   veg_var_struct *, veg_var_struct *, const ProgramState*);
-double solve_atmos_energy_bal(double Tcanopy, ...);
 double solve_atmos_moist_bal(double , ...);
-double solve_canopy_energy_bal(double Tfoliage, ...);
 double solve_snow_ground_flux(double Tsurf, ...);
-double solve_surf_energy_bal(double Tsurf, ...);
 
 int solve_T_profile(double *, double *, char *, int *, double *, double *,
     double *, double *, double, double *, double *, double *, double *,

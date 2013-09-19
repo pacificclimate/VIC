@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vicNl.h>
+#include "soil_thermal_eqn.h"
 
 static char vcid[] = "$Id$";
 
-double soil_thermal_eqn(double T, va_list ap) {
+double SoilThermalEqn::calculate(double T) {
 
  /******************************************************************
   Modifications:
@@ -21,51 +22,10 @@ double soil_thermal_eqn(double T, va_list ap) {
   2007-Oct-08 Fixed error in EXP_TRANS formulation.				JCA
   ******************************************************************/
 
-
   double value;
-
-  double TL;
-  double TU;
-  double T0;
-  double moist;
-  double max_moist;
-  double **ufwc_table;
-  double bubble;
-  double expt;
-  double porosity = 0;
-  double effective_porosity = 0;
-  double ice0;
-  double gamma;
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
   double ice;
-  int EXP_TRANS;
-  int node;
   double flux_term1;
   double flux_term2;
-
-  TL         = (double) va_arg(ap, double);
-  TU         = (double) va_arg(ap, double);
-  T0         = (double) va_arg(ap, double);
-  moist      = (double) va_arg(ap, double);
-  max_moist  = (double) va_arg(ap, double);
-  ufwc_table = (double **) va_arg(ap, double **);
-  bubble     = (double) va_arg(ap, double);
-  expt       = (double) va_arg(ap, double);
-  porosity   = (double) va_arg(ap, double);
-  effective_porosity   = (double) va_arg(ap, double);
-  ice0       = (double) va_arg(ap, double);
-  gamma      = (double) va_arg(ap, double);
-  A          = (double) va_arg(ap, double);
-  B          = (double) va_arg(ap, double);
-  C          = (double) va_arg(ap, double);
-  D          = (double) va_arg(ap, double);
-  E          = (double) va_arg(ap, double);
-  EXP_TRANS  = (int) va_arg(ap, int);
-  node       = (int) va_arg(ap, int);
 
   if(T<0.) {
 #if QUICK_FS

@@ -101,10 +101,10 @@ double calc_atmos_energy_bal(double  InOverSensible,
   T_upper = (Tair) + CANOPY_DT;
 
   // iterate for canopy air temperature
-  Tcanopy = root_brent(T_lower, T_upper, ErrorString, func_atmos_energy_bal, 
-		       (*LatentHeat) + (*LatentHeatSub), 
-		       NetRadiation, Ra, Tair, atmos_density, InSensible, 
-		       SensibleHeat);
+  AtmosEnergyBal atmosEnergyBalanceIterative((*LatentHeat) + (*LatentHeatSub),
+           NetRadiation, Ra, Tair, atmos_density, InSensible,
+           SensibleHeat);
+  Tcanopy = atmosEnergyBalanceIterative.root_brent(T_lower, T_upper, ErrorString);
 
   if ( Tcanopy <= -998 ) {
     if (state->options.TFALLBACK) {
@@ -122,10 +122,11 @@ double calc_atmos_energy_bal(double  InOverSensible,
       return ( ERROR );
     }
   }
-  // compute varaibles based on final temperature
-  (*Error) = solve_atmos_energy_bal(Tcanopy, (*LatentHeat) + (*LatentHeatSub), 
-				    NetRadiation, Ra, Tair, atmos_density, 
-				    InSensible, SensibleHeat);
+  // compute variables based on final temperature
+  AtmosEnergyBal atmosEnergyBalance((*LatentHeat) + (*LatentHeatSub),
+      NetRadiation, Ra, Tair, atmos_density,
+      InSensible, SensibleHeat);
+  (*Error) = atmosEnergyBalance.calculate(Tcanopy);
 
   /*****************************
     Find Canopy Vapor Pressure
@@ -162,20 +163,6 @@ double calc_atmos_energy_bal(double  InOverSensible,
 
 
   return(Tcanopy);
-
-}
-
-double solve_atmos_energy_bal(double Tcanopy, ...) {
-
-  va_list ap;
-
-  double error;
-
-  va_start(ap, Tcanopy);
-  error = func_atmos_energy_bal(Tcanopy, ap);
-  va_end(ap);
-
-  return error;
 
 }
 

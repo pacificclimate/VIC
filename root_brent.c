@@ -102,8 +102,7 @@ static char vcid[] = "$Id$";
   2009-May-22 Modified root-bracketing scheme to handle case when one bound
 	      yields garbage output from the target function.			TJB
 *****************************************************************************/
-double root_brent(double LowerBound, double UpperBound, char *ErrorString,
-                double (*Function)(double Estimate, va_list ap), ...)
+double RootBrent::root_brent(double LowerBound, double UpperBound, char* ErrorString)
 {
   const char *Routine = "RootBrent";
   va_list ap;                   /* Used in traversing variable argument list */ 
@@ -130,10 +129,8 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
   /* initialize variable argument list */
   a = LowerBound;
   b = UpperBound;
-  va_start(ap, Function);
-  fa = Function(a, ap);
-  va_start(ap, Function);
-  fb = Function(b, ap);
+  fa = calculate(a);
+  fb = calculate(b);
  
   which_err = 0;
 
@@ -160,16 +157,14 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
     }
 
     c = 0.5*(last_bad+last_good);
-    va_start(ap, Function);
-    fc = Function(c, ap);
+    fc = calculate(c);
 
     /* search for valid point via bisection */
     j = 0;
     while (fc == ERROR && j < MAXITER) {
       last_bad = c;
       c = 0.5*(last_bad+last_good);
-      va_start(ap, Function);
-      fc = Function(c, ap);
+      fc = calculate(c);
       j++;
     }
 
@@ -201,16 +196,13 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
     if (which_err == 0) { // No undefined values were encountered
       a -= TSTEP;
       b += TSTEP;
-      va_start(ap, Function);
-      fa = Function(a, ap);
-      va_start(ap, Function);
-      fb = Function(b, ap);
+      fa = calculate(a);
+      fb = calculate(b);
     }
     else { // Undefined values were encountered
       if (which_err == -1) { // Undefined values encountered in the lower direction
         b += TSTEP;
-        va_start(ap, Function);
-        fb = Function(b, ap);
+        fb = calculate(b);
         if (fb == ERROR) {
           /* Undefined function values in both directions - give up */
           sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
@@ -221,8 +213,7 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
       }
       else { // Undefined values encountered in the upper direction
         a -= TSTEP;
-        va_start(ap, Function);
-        fa = Function(a, ap);
+        fa = calculate(a);
         if (fa == ERROR) {
           /* Undefined function values in both directions - give up */
           sprintf(ErrorString,"ERROR: %s: the given function produced undefined values while attempting to bracket the root between %f and %f.\n",Routine,LowerBound,UpperBound);
@@ -234,14 +225,12 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
 
       /* search for valid point via bisection */
       c = 0.5*(last_good+last_bad);
-      va_start(ap, Function);
-      fc = Function(c, ap);
+      fc = calculate(c);
       i = 0;
       while (fc == ERROR && i < MAXITER) {
         last_bad = c;
         c = 0.5*(last_bad+last_good);
-        va_start(ap, Function);
-        fc = Function(c, ap);
+        fc = calculate(c);
         i++;
       }
 
@@ -347,8 +336,7 @@ double root_brent(double LowerBound, double UpperBound, char *ErrorString,
       a = b;
       fa = fb;
       b += (fabs(d) > tol) ? d : ((m > 0) ? tol : -tol);
-      va_start(ap, Function);
-      fb = Function(b, ap);
+      fb = calculate(b);
 
       // Catch ERROR values returned from Function
       if(fb == ERROR){

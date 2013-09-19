@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vicNl.h>
+#include "IceEnergyBalance.h"
 
 static char vcid[] = "$Id$";
 
@@ -292,8 +293,7 @@ int ice_melt(double            z2,
   surface_flux = snow->surface_flux;
 
   /* Calculate the surface energy balance for snow_temp = 0.0 */
-
-  Qnet = CalcIcePackEnergyBalance((double)0.0, (double)delta_t, aero_resist,
+  IceEnergyBalance iceEnergyBalance((double)delta_t, aero_resist,
 				  aero_resist_used, z2, displacement, Z0, wind, net_short, 
 				  longwave, density, latent_heat_Le, air_temp,
 				  pressure * 1000., vpd * 1000., vp * 1000.,
@@ -304,6 +304,8 @@ int ice_melt(double            z2,
 				  SWconducted, snow->swq*RHO_W/RHOSNOW, 
 				  RHOSNOW, surf_atten, &SnowFlux, 
 				  &latent_heat, &latent_heat_sub, &sensible_heat, &LWnet);
+
+  Qnet = iceEnergyBalance.calculate((double)0.0);
 
   snow->vapor_flux = vapor_flux;
   snow->surface_flux = surface_flux;
@@ -412,21 +414,19 @@ int ice_melt(double            z2,
   else  {
     /* Calculate surface layer temperature using "Brent method" */
     if (SurfaceSwq > MIN_SWQ_EB_THRES) {
-      snow->surf_temp = root_brent((double)(snow->surf_temp-SNOW_DT), 
-				   (double)(snow->surf_temp+SNOW_DT), ErrorString,
-				   IceEnergyBalance, (double)delta_t, 
-				   aero_resist, aero_resist_used, z2, 
-				   displacement, Z0, wind, net_short, longwave,
-				   density, latent_heat_Le, air_temp, pressure * 1000.,
-				   vpd * 1000., vp * 1000., RainFall, 
-				   SurfaceSwq,
-				   snow->surf_water, OldTSurf, &RefreezeEnergy, 
-				   &vapor_flux, &blowing_flux, &surface_flux,
-				   &advection, deltaCC, Tcutoff, 
-				   avgcond, SWconducted,
-				   snow->swq*RHO_W/RHOSNOW,
-				   RHOSNOW,surf_atten,&SnowFlux,
-				   &latent_heat, &latent_heat_sub, &sensible_heat, &LWnet);
+      IceEnergyBalance iceEnergyBalanceIteration((double) delta_t, aero_resist,
+          aero_resist_used, z2, displacement, Z0, wind, net_short, longwave,
+          density, latent_heat_Le, air_temp, pressure * 1000., vpd * 1000.,
+          vp * 1000., RainFall, SurfaceSwq, snow->surf_water, OldTSurf,
+          &RefreezeEnergy, &vapor_flux, &blowing_flux, &surface_flux,
+          &advection, deltaCC, Tcutoff, avgcond, SWconducted,
+          snow->swq * RHO_W / RHOSNOW, RHOSNOW, surf_atten, &SnowFlux,
+          &latent_heat, &latent_heat_sub, &sensible_heat, &LWnet);
+
+      snow->surf_temp = iceEnergyBalanceIteration.root_brent(
+          (double) (snow->surf_temp - SNOW_DT),
+          (double) (snow->surf_temp + SNOW_DT), ErrorString);
+
 
       if (snow->surf_temp <= -998) {
         if (state->options.TFALLBACK) {
@@ -456,17 +456,16 @@ int ice_melt(double            z2,
       snow->surf_temp = 999;
     }
     if (snow->surf_temp > -998 && snow->surf_temp < 999) {
-      Qnet = CalcIcePackEnergyBalance(snow->surf_temp, (double)delta_t, aero_resist,
-				      aero_resist_used, z2, displacement, Z0, wind, net_short,
-				      longwave, density, latent_heat_Le, air_temp,
-				      pressure * 1000., vpd * 1000., 
-				      vp * 1000.,RainFall, SurfaceSwq, 
-				      snow->surf_water, OldTSurf, &RefreezeEnergy, 
-				      &vapor_flux, &blowing_flux, &surface_flux,
-				      &advection, deltaCC, Tcutoff, 
-				      avgcond, SWconducted, snow->swq*RHO_W/RHOSNOW, 
-				      RHOSNOW,surf_atten, &SnowFlux, &latent_heat,
-				      &latent_heat_sub, &sensible_heat, &LWnet);
+      IceEnergyBalance iceEnergyBalSnow((double) delta_t, aero_resist,
+          aero_resist_used, z2, displacement, Z0, wind, net_short, longwave,
+          density, latent_heat_Le, air_temp, pressure * 1000., vpd * 1000.,
+          vp * 1000., RainFall, SurfaceSwq, snow->surf_water, OldTSurf,
+          &RefreezeEnergy, &vapor_flux, &blowing_flux, &surface_flux,
+          &advection, deltaCC, Tcutoff, avgcond, SWconducted,
+          snow->swq * RHO_W / RHOSNOW, RHOSNOW, surf_atten, &SnowFlux,
+          &latent_heat, &latent_heat_sub, &sensible_heat, &LWnet);
+
+      Qnet = iceEnergyBalSnow.calculate(snow->surf_temp);
 
       snow->vapor_flux = vapor_flux;
       snow->surface_flux = surface_flux;
@@ -656,38 +655,6 @@ int ice_melt(double            z2,
 
   return (0);
 
-}
-
-/*****************************************************************************
-  Function name: CalcIcePackEnergyBalance()
-
-  Purpose      : Dummy function to make a direct call to
-                 IceEnergyBalance() possible.
-
-  Required     : 
-    double TSurf - IcePack surface temperature (C)
-    other arguments required by IcePackEnergyBalance()
-
-  Returns      :
-    double Qnet - Net energy exchange at the IcePack snow surface (W/m^2)
-
-  Modifies     : none
-
-  Comments     : function is local to this module
-*****************************************************************************/
-double CalcIcePackEnergyBalance(double Tsurf, ...)
-{
-
-  va_list ap;                   /* Used in traversing variable argument list
-                                 */ 
-  double Qnet;                   /* Net energy exchange at the IcePack snow
-                                   surface (W/m^2) */
-
-  va_start(ap, Tsurf);
-  Qnet = IceEnergyBalance(Tsurf, ap);
-  va_end(ap);
-  
-  return Qnet;
 }
 
 double ErrorIcePackEnergyBalance(double Tsurf, ...)
