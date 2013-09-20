@@ -396,7 +396,8 @@ void   read_initial_model_state(FILE *, dist_prcp_struct *,
 void   read_snowband(FILE *, soil_con_struct *, const int);
 void   read_snowmodel(atmos_data_struct *, FILE *, int, int, int, int);
 soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
-soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int, ProgramState*);
+soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
+    double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
 veg_con_struct *read_vegparam(FILE *, int, int, const ProgramState*);
 int redistribute_during_storm(cell_data_struct ***, veg_var_struct ***, int,

@@ -189,6 +189,9 @@ cell_info_struct* initializeCells(int &ncells,
   cell_info_struct *cell_data_structs = (cell_info_struct *) malloc(nallocatedcells * sizeof(cell_info_struct));
   assert(cell_data_structs != NULL);
 
+  double *lat = NULL;
+  double *lng = NULL;
+  int    *cellnum = NULL;
   while (!done_reading_forcings) {
     if (ncells >= (nallocatedcells - 1)) {
       // grows number of allocated cells by 1.4 if out of space
@@ -201,7 +204,7 @@ cell_info_struct* initializeCells(int &ncells,
     if (state.options.ARC_SOIL) {
       assert(0); // presently unsupported; maybe support vector functionality later?
       int  Ncells = 0;  // This will be initialized in read_soilparam_arc
-      cell_data_structs[ncells++].soil_con = read_soilparam_arc(filep.soilparam, filenames.soil_dir, &Ncells, &is_valid_soil_cell, current_cell, &state);
+      cell_data_structs[ncells++].soil_con = read_soilparam_arc(filep.soilparam, filenames.soil_dir, &Ncells, &is_valid_soil_cell, current_cell, lat, lng, cellnum, &state);
       current_cell++;
       if (current_cell == Ncells)
         done_reading_forcings = TRUE;

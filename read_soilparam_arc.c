@@ -10,6 +10,9 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 				   int  *Ncells,
 				   char *RUN,
 				   int   cell,
+				   double *lat,
+				   double *lng,
+				   int    *cellnum,
 				   ProgramState* state)
 /**********************************************************************
 	read_soilparam_arc     Keith Cherkauer		May 5, 1998
@@ -129,10 +132,6 @@ soil_con_struct read_soilparam_arc(FILE *soilparam,
 	      for each grid cell.						TJB
 **********************************************************************/
 {
-  static double *lat;
-  static double *lng;
-  static int    *cellnum;
-
   int             layer;
   int             cnt;
   int             i,j;
