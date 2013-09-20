@@ -191,7 +191,7 @@ FILE  *check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, out_data_file_struct *, filenames_struct *, bool, const ProgramState*);
 void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);
 void   collect_eb_terms(energy_bal_struct, snow_data_struct, cell_data_struct,
-                        int *, int *, int *, int *, int *, double, double, double,
+                        FallBackStats*, double, double, double,
                         int, int, double, int, int, double *, double *,
                         double *, double,
                         out_data_struct *, const ProgramState*);

@@ -169,13 +169,8 @@ int  put_data(cell_info_struct* cell,
   int                     dt_sec;
   int                     out_dt_sec;
   int                     out_step_ratio;
-  static int              step_count;
   int                     ErrorFlag;
-  static int              Tfoliage_fbcount_total;
-  static int              Tcanopy_fbcount_total;
-  static int              Tsnowsurf_fbcount_total;
-  static int              Tsurf_fbcount_total;
-  static int              Tsoil_fbcount_total;
+
 
   frost_fract = cell->soil_con.frost_fract;
   frost_slope = cell->soil_con.frost_slope;
@@ -185,14 +180,7 @@ int  put_data(cell_info_struct* cell,
   dt_sec = state->global_param.dt*SECPHOUR;
   out_dt_sec = state->global_param.out_dt*SECPHOUR;
   out_step_ratio = (int)(out_dt_sec/dt_sec);
-  if (rec >= 0) step_count++;
-  if (rec == 0) {
-    Tsoil_fbcount_total = 0;
-    Tsurf_fbcount_total = 0;
-    Tsnowsurf_fbcount_total = 0;
-    Tcanopy_fbcount_total = 0;
-    Tfoliage_fbcount_total = 0;
-  }
+  if (rec >= 0) (cell->fallBackStats.step_count)++;
 
   if(state->options.DIST_PRCP)
     Ndist = 2;
@@ -345,11 +333,7 @@ int  put_data(cell_info_struct* cell,
           collect_eb_terms(cell->prcp.energy[veg][band],
                            cell->prcp.snow[veg][band],
                            cell->prcp.cell[WET][veg][band],
-                           &Tsoil_fbcount_total,
-                           &Tsurf_fbcount_total,
-                           &Tsnowsurf_fbcount_total,
-                           &Tcanopy_fbcount_total,
-                           &Tfoliage_fbcount_total,
+                           &cell->fallBackStats,
                            Cv,
                            ThisAreaFract,
                            ThisTreeAdjust,
@@ -425,11 +409,7 @@ int  put_data(cell_info_struct* cell,
             collect_eb_terms(cell->prcp.lake_var.energy,
                              cell->prcp.lake_var.snow,
                              cell->prcp.lake_var.soil,
-                             &Tsoil_fbcount_total,
-                             &Tsurf_fbcount_total,
-                             &Tsnowsurf_fbcount_total,
-                             &Tcanopy_fbcount_total,
-                             &Tfoliage_fbcount_total,
+                             &(cell->fallBackStats),
                              Cv,
                              ThisAreaFract,
                              ThisTreeAdjust,
@@ -642,11 +622,11 @@ int  put_data(cell_info_struct* cell,
     Report T Fallback Occurrences
   ********************/
   if (rec == state->global_param.nrecs-1) {
-    fprintf(stderr,"Total number of fallbacks in Tfoliage: %d\n", Tfoliage_fbcount_total);
-    fprintf(stderr,"Total number of fallbacks in Tcanopy: %d\n", Tcanopy_fbcount_total);
-    fprintf(stderr,"Total number of fallbacks in Tsnowsurf: %d\n", Tsnowsurf_fbcount_total);
-    fprintf(stderr,"Total number of fallbacks in Tsurf: %d\n", Tsurf_fbcount_total);
-    fprintf(stderr,"Total number of fallbacks in soil T profile: %d\n", Tsoil_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in Tfoliage: %d\n", cell->fallBackStats.Tfoliage_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in Tcanopy: %d\n", cell->fallBackStats.Tcanopy_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in Tsnowsurf: %d\n", cell->fallBackStats.Tsnowsurf_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in Tsurf: %d\n", cell->fallBackStats.Tsurf_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in soil T profile: %d\n", cell->fallBackStats.Tsoil_fbcount_total);
   }
 
   /********************
@@ -677,7 +657,7 @@ int  put_data(cell_info_struct* cell,
     Output procedure
     (only execute when we've completed an output interval)
     ********************/
-  if (step_count == out_step_ratio) {
+  if (cell->fallBackStats.step_count == out_step_ratio) {
 
     /***********************************************
       Change of units for ALMA-compliant output
@@ -760,7 +740,7 @@ int  put_data(cell_info_struct* cell,
     }
 
     // Reset the step count
-    step_count = 0;
+    cell->fallBackStats.step_count = 0;
 
     // Reset the agg data
     for (v=0; v<N_OUTVAR_TYPES; v++) {
@@ -939,11 +919,7 @@ void collect_wb_terms(cell_data_struct  cell,
 void collect_eb_terms(energy_bal_struct energy,
                       snow_data_struct  snow,
                       cell_data_struct  cell_wet,
-                      int              *Tsoil_fbcount_total,
-                      int              *Tsurf_fbcount_total,
-                      int              *Tsnowsurf_fbcount_total,
-                      int              *Tcanopy_fbcount_total,
-                      int              *Tfoliage_fbcount_total,
+                      FallBackStats     *fallBackStats,
                       double            Cv,
                       double            AreaFract,
                       double            TreeAdjustFactor,
@@ -1050,17 +1026,17 @@ void collect_eb_terms(energy_bal_struct energy,
 
   /** record temperature flags  **/
   out_data[OUT_SURFT_FBFLAG].data[0] += energy.Tsurf_fbflag * AreaFactor;
-  *Tsurf_fbcount_total += energy.Tsurf_fbcount;
+  fallBackStats->Tsurf_fbcount_total += energy.Tsurf_fbcount;
   for (index=0; index<state->options.Nnode; index++) {
     out_data[OUT_SOILT_FBFLAG].data[index] += energy.T_fbflag[index] * AreaFactor;
-    *Tsoil_fbcount_total += energy.T_fbcount[index];
+    fallBackStats->Tsoil_fbcount_total += energy.T_fbcount[index];
   }
   out_data[OUT_SNOWT_FBFLAG].data[0] += snow.surf_temp_fbflag * AreaFactor;
-  *Tsnowsurf_fbcount_total += snow.surf_temp_fbcount;
+  fallBackStats->Tsnowsurf_fbcount_total += snow.surf_temp_fbcount;
   out_data[OUT_TFOL_FBFLAG].data[0] += energy.Tfoliage_fbflag * AreaFactor;
-  *Tfoliage_fbcount_total += energy.Tfoliage_fbcount;
+  fallBackStats->Tfoliage_fbcount_total += energy.Tfoliage_fbcount;
   out_data[OUT_TCAN_FBFLAG].data[0] += energy.Tcanopy_fbflag * AreaFactor;
-  *Tcanopy_fbcount_total += energy.Tcanopy_fbcount;
+  fallBackStats->Tcanopy_fbcount_total += energy.Tcanopy_fbcount;
 
   /** record net shortwave radiation **/
   out_data[OUT_NET_SHORT].data[0] += energy.NetShortAtmos * AreaFactor;

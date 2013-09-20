@@ -1346,6 +1346,23 @@ struct CellBalanceErrors {
 };
 
 /***********************************************************
+  This struct stores the per-cell information about fall backs
+  which occured, and is only really used for printing/debugging.
+  See put_data.c for its use.
+  ***********************************************************/
+struct FallBackStats {
+  FallBackStats() : step_count(0), Tfoliage_fbcount_total(0),
+      Tcanopy_fbcount_total(0), Tsnowsurf_fbcount_total(0),
+      Tsurf_fbcount_total(0), Tsoil_fbcount_total(0) {}
+  int step_count;
+  int Tfoliage_fbcount_total;
+  int Tcanopy_fbcount_total;
+  int Tsnowsurf_fbcount_total;
+  int Tsurf_fbcount_total;
+  int Tsoil_fbcount_total;
+};
+
+/***********************************************************
   This structure stores the per-cell data that must exist
   before or after running the model for that cell; also
   eventually must contain state to be affected by glacier
@@ -1362,6 +1379,7 @@ typedef struct {
   save_data_struct save_data;
   atmos_data_struct *atmos;
   CellBalanceErrors cellErrors;
+  FallBackStats fallBackStats;
 } cell_info_struct;
 
 /********************************************************
