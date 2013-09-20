@@ -69,28 +69,12 @@ int  dist_prec(cell_info_struct* cell,
 
 **********************************************************************/
 
-  /* MPN : FIXME:  Move state out! */
-  static char STILL_STORM[MAX_VEG];
-  static int DRY_TIME[MAX_VEG];
-
   char ANY_SNOW[MAX_VEG];
   int veg, i;
   int month;
   int ErrorFlag, ErrorFlag2;
   double Wdmax;
   double NEW_MU;
-
-  /**************************************************
-   If rec >= 0, proceed with simulation
-   **************************************************/
-  // check if state file has been used to initialize storm tracking
-  if ((long int) cell->init_DRY_TIME >= 0) { /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
-    // initialize storm tracking
-    for (veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
-      DRY_TIME[veg] = cell->init_DRY_TIME[veg];
-      STILL_STORM[veg] = cell->init_STILL_STORM[veg];
-    }
-  }
 
   if (state->options.DIST_PRCP) {
 
@@ -112,10 +96,10 @@ int  dist_prec(cell_info_struct* cell,
           /* Set model variables if first time step */
           cell->prcp.mu[veg] = NEW_MU;
           if (cell->atmos[time_step_record].prec[NR] > 0)
-            STILL_STORM[veg] = TRUE;
+            cell->init_STILL_STORM[veg] = TRUE;
           else
-            STILL_STORM[veg] = FALSE;
-          DRY_TIME[veg] = 0;
+            cell->init_STILL_STORM[veg] = FALSE;
+          cell->init_DRY_TIME[veg] = 0;
         }
         ANY_SNOW[veg] = TRUE;
       } else {
@@ -124,27 +108,27 @@ int  dist_prec(cell_info_struct* cell,
             /* If first time step has no rain, than set mu to 1. */
             cell->prcp.mu[veg] = 1.;
             NEW_MU = 1.;
-            STILL_STORM[veg] = TRUE;
-            DRY_TIME[veg] = 24;
+            cell->init_STILL_STORM[veg] = TRUE;
+            cell->init_DRY_TIME[veg] = 24;
           } else {
             /* If first time step has rain, then set mu based on intensity */
             cell->prcp.mu[veg] = NEW_MU;
-            STILL_STORM[veg] = TRUE;
-            DRY_TIME[veg] = 0;
+            cell->init_STILL_STORM[veg] = TRUE;
+            cell->init_DRY_TIME[veg] = 0;
           }
-        } else if (cell->atmos[time_step_record].prec[NR] == 0 && DRY_TIME[veg] >= 24.) {
+        } else if (cell->atmos[time_step_record].prec[NR] == 0 && cell->init_DRY_TIME[veg] >= 24.) {
           /* Check if storm has ended */
           NEW_MU = cell->prcp.mu[veg];
-          STILL_STORM[veg] = FALSE;
-          DRY_TIME[veg] = 0;
+          cell->init_STILL_STORM[veg] = FALSE;
+          cell->init_DRY_TIME[veg] = 0;
         } else if (cell->atmos[time_step_record].prec[NR] == 0) {
           /* May be pause in storm, keep track of pause length */
           NEW_MU = cell->prcp.mu[veg];
-          DRY_TIME[veg] += state->global_param.dt;
+          cell->init_DRY_TIME[veg] += state->global_param.dt;
         }
       }
 
-      if (!STILL_STORM[veg]
+      if (!cell->init_STILL_STORM[veg]
           && (cell->atmos[time_step_record].prec[NR] > STORM_THRES || ANY_SNOW[veg])) {
         /** Average soil moisture before a new storm **/
         ErrorFlag = initialize_new_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
@@ -152,9 +136,9 @@ int  dist_prec(cell_info_struct* cell,
         if (ErrorFlag == ERROR)
           return (ERROR);
 
-        STILL_STORM[veg] = TRUE;
+        cell->init_STILL_STORM[veg] = TRUE;
         cell->prcp.mu[veg] = NEW_MU;
-      } else if (NEW_MU != cell->prcp.mu[veg] && STILL_STORM[veg]) {
+      } else if (NEW_MU != cell->prcp.mu[veg] && cell->init_STILL_STORM[veg]) {
         /** Redistribute soil moisture during the storm if mu changes **/
         if (dmy[time_step_record].day == 1 && dmy[time_step_record].hour == 0) {
           month = dmy[time_step_record].month - 2;
@@ -211,7 +195,7 @@ int  dist_prec(cell_info_struct* cell,
           && (time_step_record + 1 == state->global_param.nrecs
               || dmy[time_step_record + 1].day != state->global_param.stateday)))
     write_model_state(&cell->prcp, cell->veg_con[0].vegetat_type_num,
-        cell->soil_con.gridcel, filep, &cell->soil_con, STILL_STORM, DRY_TIME, cell->lake_con, state);
+        cell->soil_con.gridcel, filep, &cell->soil_con, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con, state);
 
   return (ErrorFlag);
 

@@ -293,6 +293,7 @@ cell_info_struct* initializeCells(int &ncells,
       fprintf(stderr, "Model State Initialization\n");
   #endif /* VERBOSE */
       //TODO: fix the global NR variable and friends
+      //TODO: just pass in cell_data_structs[cellidx] not all its members individually
       int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx].prcp, dmy[0], &state.global_param, filep,
           cell_data_structs[cellidx].soil_con.gridcel,
           cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state.options.Nnode, Ndist,
@@ -388,8 +389,6 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
       }
 
       NEWCELL = FALSE;
-      for (int veg = 0; veg <= cell_data_structs[cellidx].veg_con[0].vegetat_type_num; veg++)
-        cell_data_structs[cellidx].init_DRY_TIME[veg] = -999;
 
     } /* End Rec Loop */
 
