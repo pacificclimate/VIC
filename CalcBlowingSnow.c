@@ -338,16 +338,17 @@ double qromb(double (*funcd)(double,double,double,double,double,double,double,do
   void polint(double xa[], double ya[], int n, double x, double *y, double *dy);
   double trapzd(double (*funcd)(double,double,double,double,double,double,double,double,double,double,double), double es, double Wind, double AirDens, 
 		double ZO, double EactAir, double F, double hsalt, double phi_r, 
-		double ushear, double Zrh, double a, double b, int n);
+		double ushear, double Zrh, double a, double b, int n, double lastSValue);
 
   double ss, dss;
   double s[MAX_ITER+1], h[MAX_ITER+2];
   int j;
 
   h[1] = 1.0;
-  for(j=1; j<=MAX_ITER; j++) {
-    s[j]=trapzd(funcd,es, Wind, AirDens, ZO, EactAir, F, hsalt, phi_r, 
-		ushear, Zrh, a,b,j);
+  double lastSValue = 0.0;
+  for (j = 1; j <= MAX_ITER; j++) {
+    s[j] = trapzd(funcd, es, Wind, AirDens, ZO, EactAir, F, hsalt, phi_r, ushear, Zrh, a, b, j, lastSValue);
+    lastSValue = s[j];
     if(j >= K) {
       polint(&h[j-K],&s[j-K],K,0.0,&ss,&dss);
       if (fabs(dss) <= MACHEPS*fabs(ss)) return ss;
@@ -396,18 +397,15 @@ void polint(double xa[], double ya[], int n, double x, double *y, double *dy)
   free(c);
 }
 
-
-
 double trapzd(double (*funcd)(double,double,double,double,double,double,double,double,double,double,double), double es, double Wind, double AirDens, double ZO, 
 	      double EactAir, double F, double hsalt, double phi_r, double ushear, 
-	      double Zrh, double a, double b, int n)
+	      double Zrh, double a, double b, int n, double lastSValue)
 {
   double x, tnm, sum, del;
-  static double s;
   int it, j;
 
   if (n==1) {
-    return (s=0.5*(b-a)*((*funcd)(a, es, Wind, AirDens, ZO, EactAir, F, hsalt, 
+    return (0.5*(b-a)*((*funcd)(a, es, Wind, AirDens, ZO, EactAir, F, hsalt,
 					 phi_r, ushear, Zrh) + 
 			 (*funcd)(b,es, Wind, AirDens, ZO, EactAir, F, hsalt, 
 					 phi_r, ushear, Zrh)));
@@ -419,7 +417,7 @@ double trapzd(double (*funcd)(double,double,double,double,double,double,double,d
     x=a+0.5*del;
     for(sum=0.0, j=1; j<=it; j++, x+=del ) sum += (*funcd)(x,es, Wind, AirDens, ZO, EactAir, 
 							   F, hsalt, phi_r, ushear, Zrh);
-    s=0.5*(s+(b-a)*sum/tnm);
+    double s = 0.5*(lastSValue+(b-a)*sum/tnm);
     return s;
   }
 }
