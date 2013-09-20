@@ -358,11 +358,7 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     /** Initialize the storage terms in the water and energy balances **/
     //TODO: check error flag here
-    put_data(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].atmos,
-        &cell_data_structs[cellidx].soil_con,
-        cell_data_structs[cellidx].veg_con,
-        &cell_data_structs[cellidx].lake_con, out_data_files, out_data,
-        &cell_data_structs[cellidx].save_data, &dmy[0],
+    put_data(&cell_data_structs[cellidx], out_data_files, out_data, &dmy[0],
         -state->global_param.nrecs, state);
 
     /******************************************
@@ -372,11 +368,8 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-      int ErrorFlag = dist_prec(&cell_data_structs[cellidx].atmos[rec], &cell_data_structs[cellidx].prcp,
-          &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con, &cell_data_structs[cellidx].lake_con, dmy,
-          &filep, out_data_files, out_data, &cell_data_structs[cellidx].save_data, rec,
-          cellidx, NEWCELL, cell_data_structs[cellidx].init_STILL_STORM,
-          cell_data_structs[cellidx].init_DRY_TIME, state);
+      int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
+          out_data_files, out_data, rec, cellidx, NEWCELL, state);
 
       if (ErrorFlag == ERROR) {
         if (state->options.CONTINUEONERROR == TRUE) {

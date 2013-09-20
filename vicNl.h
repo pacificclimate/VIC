@@ -128,7 +128,7 @@ int   CalcAerodynamic(char, double, double, double, double, double,
 	  	       double *, double *, double *, double *, double *);
 void   calc_cloud_cover_fraction(atmos_data_struct *, dmy_struct *, int,
 				 int, int, double *);
-void   calc_energy_balance_error(int, double, double, double, double, double);
+void   calc_energy_balance_error(int, double, double, double, double, double, int, CellBalanceErrors*);
 void   calc_forcing_stats(int, atmos_data_struct *);
 void   calc_longwave(double *, double, double, double, const ProgramState*);
 void   calc_netlongwave(double *, double, double, double);
@@ -180,7 +180,7 @@ double calc_trans(double, double);
 double calc_veg_displacement(double);
 double calc_veg_height(double);
 double calc_veg_roughness(double);
-double calc_water_balance_error(int, double, double, double);
+double calc_water_balance_error(int, double, double, double, int, CellBalanceErrors*);
 double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     veg_var_struct *, char, int, int, double, double *, double, double, double,
     double, double, double, double, double, double, double, double *, double *,
@@ -210,10 +210,8 @@ void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double 
 double compute_zwt(soil_con_struct *, int, double);
 out_data_struct *create_output_list(const ProgramState*);
 
-int dist_prec(atmos_data_struct *, dist_prcp_struct *, soil_con_struct *,
-    veg_con_struct *, lake_con_struct *, const dmy_struct *, filep_struct *,
-    out_data_file_struct *, out_data_struct *, save_data_struct *, int, int,
-    char, char *, int *, const ProgramState*);
+int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, out_data_file_struct *,
+    out_data_struct *, int, int, char, const ProgramState*);
 
 int distribute_node_moisture_properties(double *, double *, double *, double *,
     double *, double *, double *, double ***, double *, double *, double *,
@@ -384,11 +382,8 @@ double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(int, int, int, dist_prcp_struct *, 
 			   soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
-int    put_data(dist_prcp_struct *, atmos_data_struct *,
-		soil_con_struct *, veg_con_struct *,
-                lake_con_struct *, out_data_file_struct *,
-		out_data_struct *, save_data_struct *,
- 	        const dmy_struct *, int, const ProgramState*);
+int put_data(cell_info_struct*, out_data_file_struct *, out_data_struct *,
+    const dmy_struct *, int, const ProgramState*);
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);

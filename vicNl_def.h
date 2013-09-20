@@ -1330,6 +1330,22 @@ typedef struct {
 } Error_struct;
 
 /***********************************************************
+  This struct stores the per-cell error data which is relevant
+  for the water and energy balance functions.
+  ***********************************************************/
+struct CellBalanceErrors {
+  CellBalanceErrors() :
+      water_last_storage(0), water_cum_error(0), water_max_error(0),
+      energy_cum_error(0), energy_max_error(0) {
+  }
+  double water_last_storage;
+  double water_cum_error;
+  double water_max_error;
+  double energy_cum_error;
+  double energy_max_error;
+};
+
+/***********************************************************
   This structure stores the per-cell data that must exist
   before or after running the model for that cell; also
   eventually must contain state to be affected by glacier
@@ -1345,6 +1361,7 @@ typedef struct {
   lake_con_struct  lake_con;
   save_data_struct save_data;
   atmos_data_struct *atmos;
+  CellBalanceErrors cellErrors;
 } cell_info_struct;
 
 /********************************************************

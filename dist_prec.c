@@ -5,21 +5,14 @@
 
 static char vcid[] = "$Id$";
 
-int  dist_prec(atmos_data_struct   *atmos,
-               dist_prcp_struct    *prcp,
-               soil_con_struct     *soil_con,
-               veg_con_struct      *veg_con,
-               lake_con_struct     *lake_con,
+int  dist_prec(cell_info_struct* cell,
                const dmy_struct    *dmy,
                filep_struct        *filep,
                out_data_file_struct *out_data_files,
                out_data_struct     *out_data,
-               save_data_struct    *save_data,
                int                  time_step_record,
                const int            cellnum,
                char                 NEWCELL,
-               char                *init_STILL_STORM,
-               int                 *init_DRY_TIME,
                const ProgramState  *state) {
 /**********************************************************************
   dist_prec		Keith Cherkauer		October 9, 1997
@@ -91,11 +84,11 @@ int  dist_prec(atmos_data_struct   *atmos,
    If rec >= 0, proceed with simulation
    **************************************************/
   // check if state file has been used to initialize storm tracking
-  if ((long int) init_DRY_TIME >= 0) { /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
+  if ((long int) cell->init_DRY_TIME >= 0) { /* MPN FIXME WTF is this trying to test?  NULL pointer, or zero value at address? commented this out so it compiles but this needs to be investigated */
     // initialize storm tracking
-    for (veg = 0; veg <= veg_con[0].vegetat_type_num; veg++) {
-      DRY_TIME[veg] = init_DRY_TIME[veg];
-      STILL_STORM[veg] = init_STILL_STORM[veg];
+    for (veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
+      DRY_TIME[veg] = cell->init_DRY_TIME[veg];
+      STILL_STORM[veg] = cell->init_STILL_STORM[veg];
     }
   }
 
@@ -105,20 +98,20 @@ int  dist_prec(atmos_data_struct   *atmos,
      Controls Distributed Precipitation Model
      *******************************************/
 
-    NEW_MU = 1.0 - exp(-state->options.PREC_EXPT * atmos->prec[NR]);
-    for (veg = 0; veg <= veg_con[0].vegetat_type_num; veg++) {
+    NEW_MU = 1.0 - exp(-state->options.PREC_EXPT * cell->atmos[time_step_record].prec[NR]);
+    for (veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
       ANY_SNOW[veg] = FALSE;
       for (i = 0; i < state->options.SNOW_BAND; i++)
         /* Check for snow on ground or falling */
-        if (prcp->snow[veg][i].swq > 0 || prcp->snow[veg][i].snow_canopy > 0.)
+        if (cell->prcp.snow[veg][i].swq > 0 || cell->prcp.snow[veg][i].snow_canopy > 0.)
           ANY_SNOW[veg] = TRUE;
-      if (ANY_SNOW[veg] || atmos->snowflag[NR]) {
+      if (ANY_SNOW[veg] || cell->atmos[time_step_record].snowflag[NR]) {
         /* If snow present, mu must be set to 1. */
         NEW_MU = 1.;
         if (time_step_record == 0) {
           /* Set model variables if first time step */
-          prcp->mu[veg] = NEW_MU;
-          if (atmos->prec[NR] > 0)
+          cell->prcp.mu[veg] = NEW_MU;
+          if (cell->atmos[time_step_record].prec[NR] > 0)
             STILL_STORM[veg] = TRUE;
           else
             STILL_STORM[veg] = FALSE;
@@ -127,41 +120,41 @@ int  dist_prec(atmos_data_struct   *atmos,
         ANY_SNOW[veg] = TRUE;
       } else {
         if (time_step_record == 0) {
-          if (atmos->prec[NR] == 0) {
+          if (cell->atmos[time_step_record].prec[NR] == 0) {
             /* If first time step has no rain, than set mu to 1. */
-            prcp->mu[veg] = 1.;
+            cell->prcp.mu[veg] = 1.;
             NEW_MU = 1.;
             STILL_STORM[veg] = TRUE;
             DRY_TIME[veg] = 24;
           } else {
             /* If first time step has rain, then set mu based on intensity */
-            prcp->mu[veg] = NEW_MU;
+            cell->prcp.mu[veg] = NEW_MU;
             STILL_STORM[veg] = TRUE;
             DRY_TIME[veg] = 0;
           }
-        } else if (atmos->prec[NR] == 0 && DRY_TIME[veg] >= 24.) {
+        } else if (cell->atmos[time_step_record].prec[NR] == 0 && DRY_TIME[veg] >= 24.) {
           /* Check if storm has ended */
-          NEW_MU = prcp->mu[veg];
+          NEW_MU = cell->prcp.mu[veg];
           STILL_STORM[veg] = FALSE;
           DRY_TIME[veg] = 0;
-        } else if (atmos->prec[NR] == 0) {
+        } else if (cell->atmos[time_step_record].prec[NR] == 0) {
           /* May be pause in storm, keep track of pause length */
-          NEW_MU = prcp->mu[veg];
+          NEW_MU = cell->prcp.mu[veg];
           DRY_TIME[veg] += state->global_param.dt;
         }
       }
 
       if (!STILL_STORM[veg]
-          && (atmos->prec[NR] > STORM_THRES || ANY_SNOW[veg])) {
+          && (cell->atmos[time_step_record].prec[NR] > STORM_THRES || ANY_SNOW[veg])) {
         /** Average soil moisture before a new storm **/
-        ErrorFlag = initialize_new_storm(prcp->cell, prcp->veg_var, veg,
-            veg_con[0].vegetat_type_num, time_step_record, prcp->mu[veg], NEW_MU, state);
+        ErrorFlag = initialize_new_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
+            cell->veg_con[0].vegetat_type_num, time_step_record, cell->prcp.mu[veg], NEW_MU, state);
         if (ErrorFlag == ERROR)
           return (ERROR);
 
         STILL_STORM[veg] = TRUE;
-        prcp->mu[veg] = NEW_MU;
-      } else if (NEW_MU != prcp->mu[veg] && STILL_STORM[veg]) {
+        cell->prcp.mu[veg] = NEW_MU;
+      } else if (NEW_MU != cell->prcp.mu[veg] && STILL_STORM[veg]) {
         /** Redistribute soil moisture during the storm if mu changes **/
         if (dmy[time_step_record].day == 1 && dmy[time_step_record].hour == 0) {
           month = dmy[time_step_record].month - 2;
@@ -169,20 +162,20 @@ int  dist_prec(atmos_data_struct   *atmos,
             month = 11;
         } else
           month = dmy[time_step_record].month - 1;
-        if (veg < veg_con[0].vegetat_type_num)
-          Wdmax = state->veg_lib[veg_con[veg].veg_class].Wdmax[month];
+        if (veg < cell->veg_con[0].vegetat_type_num)
+          Wdmax = state->veg_lib[cell->veg_con[veg].veg_class].Wdmax[month];
         else
           Wdmax = 0;
-        redistribute_during_storm(prcp->cell, prcp->veg_var, veg,
-            veg_con[0].vegetat_type_num, time_step_record, Wdmax, prcp->mu[veg], NEW_MU,
-            soil_con->max_moist, state);
-        prcp->mu[veg] = NEW_MU;
+        redistribute_during_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
+            cell->veg_con[0].vegetat_type_num, time_step_record, Wdmax, cell->prcp.mu[veg], NEW_MU,
+            cell->soil_con.max_moist, state);
+        cell->prcp.mu[veg] = NEW_MU;
       }
     }
 
     /** Solve model time step **/
-    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, atmos, prcp, dmy,
-        lake_con, soil_con, veg_con, state);
+    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
+        &cell->lake_con, &cell->soil_con, cell->veg_con, state);
 
   }
 
@@ -192,8 +185,8 @@ int  dist_prec(atmos_data_struct   *atmos,
      Controls Grid Cell Averaged Precipitation Model
      **************************************************/
 
-    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, atmos, prcp, dmy,
-        lake_con, soil_con, veg_con, state);
+    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
+        &cell->lake_con, &cell->soil_con, cell->veg_con, state);
 
   }
 
@@ -201,8 +194,8 @@ int  dist_prec(atmos_data_struct   *atmos,
    Write cell average values for current time step
    **************************************************/
 
-  ErrorFlag2 = put_data(prcp, atmos, soil_con, veg_con, lake_con,
-      out_data_files, out_data, save_data, &dmy[time_step_record], time_step_record, state);
+  ErrorFlag2 = put_data(cell, out_data_files, out_data, &dmy[time_step_record],
+      time_step_record, state);
   if (ErrorFlag2 == ERROR)
     ErrorFlag = ERROR;
 
@@ -217,8 +210,8 @@ int  dist_prec(atmos_data_struct   *atmos,
           && dmy[time_step_record].day == state->global_param.stateday
           && (time_step_record + 1 == state->global_param.nrecs
               || dmy[time_step_record + 1].day != state->global_param.stateday)))
-    write_model_state(prcp, veg_con[0].vegetat_type_num,
-        soil_con->gridcel, filep, soil_con, STILL_STORM, DRY_TIME, *lake_con, state);
+    write_model_state(&cell->prcp, cell->veg_con[0].vegetat_type_num,
+        cell->soil_con.gridcel, filep, &cell->soil_con, STILL_STORM, DRY_TIME, cell->lake_con, state);
 
   return (ErrorFlag);
 
