@@ -188,88 +188,81 @@ int  solve_T_profile(double *T,
   2009-Sep-19 Added T fbcount to count TFALLBACK occurrences.			TJB
 **********************************************************************/
   
-  static double A[MAX_NODES];
-  static double B[MAX_NODES];
-  static double C[MAX_NODES];
-  static double D[MAX_NODES];
-  static double E[MAX_NODES];
+  double A[MAX_NODES];
+  double B[MAX_NODES];
+  double C[MAX_NODES];
+  double D[MAX_NODES];
+  double E[MAX_NODES];
 
-  double *aa, *bb, *cc, *dd, *ee, Bexp;
+  double Bexp;
 
-  int    Error;
-  int    j;
+  int Error;
+  int j;
 
-  if(FIRST_SOLN[0]) {
+  if (FIRST_SOLN[0]) {
     //fprintf(stderr,"*************EXPLICIT SOLUTION***********\n");
-    
-    if(EXP_TRANS)
-      Bexp = log(Dp+1.)/(double)(Nnodes-1);
+
+    if (EXP_TRANS)
+      Bexp = log(Dp + 1.) / (double) (Nnodes - 1);
 
     FIRST_SOLN[0] = FALSE;
-    if(!EXP_TRANS) {
-      for(j=1;j<Nnodes-1;j++) {
-	A[j] = Cs[j]*alpha[j-1]*alpha[j-1];
-	B[j] = (kappa[j+1]-kappa[j-1])*deltat;
+    if (!EXP_TRANS) {
+      for (j = 1; j < Nnodes - 1; j++) {
+        A[j] = Cs[j] * alpha[j - 1] * alpha[j - 1];
+        B[j] = (kappa[j + 1] - kappa[j - 1]) * deltat;
 
-	//C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
-	//D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
+        //C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
+        //D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
 
-	C[j] = 2*deltat*kappa[j]*alpha[j-1]/gamma[j-1]; // new formulation
-	D[j] = 2*deltat*kappa[j]*alpha[j-1]/beta[j-1];  // new formulation
+        C[j] = 2 * deltat * kappa[j] * alpha[j - 1] / gamma[j - 1]; // new formulation
+        D[j] = 2 * deltat * kappa[j] * alpha[j - 1] / beta[j - 1]; // new formulation
 
-	E[j] = ice_density*Lf*alpha[j-1]*alpha[j-1];
+        E[j] = ice_density * Lf * alpha[j - 1] * alpha[j - 1];
       }
-      if(NOFLUX) {
-	j = Nnodes-1;
-	A[j] = Cs[j]*alpha[j-1]*alpha[j-1];
-	B[j] = (kappa[j]-kappa[j-1])*deltat;
+      if (NOFLUX) {
+        j = Nnodes - 1;
+        A[j] = Cs[j] * alpha[j - 1] * alpha[j - 1];
+        B[j] = (kappa[j] - kappa[j - 1]) * deltat;
 
+        //C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
+        //D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
 
-	//C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
-	//D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
+        C[j] = 2 * deltat * kappa[j] * alpha[j - 1] / gamma[j - 1]; //new formulation
+        D[j] = 2 * deltat * kappa[j] * alpha[j - 1] / beta[j - 1]; //new formulation
 
-	C[j] = 2*deltat*kappa[j]*alpha[j-1]/gamma[j-1]; //new formulation
-	D[j] = 2*deltat*kappa[j]*alpha[j-1]/beta[j-1]; //new formulation
-
-	E[j] = ice_density*Lf*alpha[j-1]*alpha[j-1];
+        E[j] = ice_density * Lf * alpha[j - 1] * alpha[j - 1];
       }
-    }
-    else { //grid transformation terms
-      for(j=1;j<Nnodes-1;j++) {
-	A[j] = 4*Bexp*Bexp*Cs[j]*(Zsum[j]+1)*(Zsum[j]+1);
-	B[j] = (kappa[j+1]-kappa[j-1])*deltat;
-	C[j] = 4*deltat*kappa[j];
-	D[j] = 2*deltat*kappa[j]*Bexp;
-	E[j] = 4*Bexp*Bexp*ice_density*Lf*(Zsum[j]+1)*(Zsum[j]+1);
+    } else { //grid transformation terms
+      for (j = 1; j < Nnodes - 1; j++) {
+        A[j] = 4 * Bexp * Bexp * Cs[j] * (Zsum[j] + 1) * (Zsum[j] + 1);
+        B[j] = (kappa[j + 1] - kappa[j - 1]) * deltat;
+        C[j] = 4 * deltat * kappa[j];
+        D[j] = 2 * deltat * kappa[j] * Bexp;
+        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (Zsum[j] + 1)
+            * (Zsum[j] + 1);
       }
-      if(NOFLUX) {
-	j = Nnodes-1;
-	A[j] = 4*Bexp*Bexp*Cs[j]*(Zsum[j]+1)*(Zsum[j]+1);
-	B[j] = (kappa[j]-kappa[j-1])*deltat;
-	C[j] = 4*deltat*kappa[j];
-	D[j] = 2*deltat*kappa[j]*Bexp;
-	E[j] = 4*Bexp*Bexp*ice_density*Lf*(Zsum[j]+1)*(Zsum[j]+1);
+      if (NOFLUX) {
+        j = Nnodes - 1;
+        A[j] = 4 * Bexp * Bexp * Cs[j] * (Zsum[j] + 1) * (Zsum[j] + 1);
+        B[j] = (kappa[j] - kappa[j - 1]) * deltat;
+        C[j] = 4 * deltat * kappa[j];
+        D[j] = 2 * deltat * kappa[j] * Bexp;
+        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (Zsum[j] + 1)
+            * (Zsum[j] + 1);
       }
     }
   }
-  
-  aa = &A[0];
-  bb = &B[0];
-  cc = &C[0];
-  dd = &D[0];
-  ee = &E[0];
-  
-  for(j=0;j<Nnodes;j++) T[j]=T0[j];
 
+  for (j = 0; j < Nnodes; j++)
+    T[j] = T0[j];
 
-  Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist, max_moist, ice, 
-				   bubble, expt, alpha, gamma, aa, bb, cc, 
-				   dd, ee, ufwc_table_node,
-				   porosity, effective_porosity,
-				   FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class, state);
+  Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist,
+      max_moist, ice, bubble, expt, alpha, gamma, A, B, C, D, E,
+      ufwc_table_node, porosity, effective_porosity, FS_ACTIVE, NOFLUX,
+      EXP_TRANS, veg_class, state);
 
-  return ( Error );
-  
+  return (Error);
+
 }
  
 
