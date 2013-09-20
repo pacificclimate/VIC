@@ -62,7 +62,7 @@ public:
           NetLongBare), NetLongSnow(NetLongSnow), T1(T1), deltaH(deltaH), fusion(
           fusion), grnd_flux(grnd_flux), latent_heat(latent_heat), latent_heat_sub(
           latent_heat_sub), sensible_heat(sensible_heat), snow_flux(snow_flux), store_error(
-          store_error), state(state)
+          store_error), state(state), error_cnt0(0), error_cnt1(0)
   {
   }
 
@@ -169,6 +169,9 @@ public:
   double* snow_flux;
   double* store_error;
   const ProgramState* state;
+  //error counting variables for IMPLICIT option
+  int error_cnt0;
+  int error_cnt1;
 
 };
 

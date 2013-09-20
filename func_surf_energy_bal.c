@@ -111,8 +111,6 @@ double SurfEnergyBal::calculate(double Ts)
   /* general model terms */
   int i;
   int Error;
-  //error counting variables for IMPLICIT option
-  static int error_cnt0, error_cnt1;  
 
   /* spatial frost terms */
   double *frost_fract;
@@ -159,10 +157,6 @@ double SurfEnergyBal::calculate(double Ts)
   ***************/
 
   Error = 0;
-  if(rec==0){
-    error_cnt0=0;
-    error_cnt1=0;
-  }
 
   TMean = Ts;
   Tmp = TMean + KELVIN;
