@@ -6,7 +6,17 @@
 static char vcid[] = "$Id$";
 
 #if LINK_DEBUG
-void write_debug(atmos_data_struct    *atmos,
+
+WriteDebug::WriteDebug() :
+    FIRST(0), MOIST_ERROR(NULL), INIT_MOIST(NULL), ENERGY_ERROR(NULL), ENERGY_ERROR_CALC(
+        NULL), INFLOW(NULL), RUNOFF(NULL), BASEFLOW(NULL), EVAP(NULL), INSHORT(
+        NULL), OUTSHORT(NULL), INLONG(NULL), OUTLONG(NULL), SENSIBLE(NULL), LATENT(
+        NULL), GRND_FLUX(NULL), ADVECTION(NULL), DELTA_CC(NULL), SNOW_FLUX(
+        NULL), REFREEZEENERGY(NULL), DELTA_H(NULL)
+{
+}
+
+void WriteDebug::write_debug(atmos_data_struct    *atmos,
                  soil_con_struct      *soil_con,
                  cell_data_struct     *cell,
                  energy_bal_struct    *energy,
@@ -42,28 +52,6 @@ void write_debug(atmos_data_struct    *atmos,
            recalculating.  JCA
 
 **********************************************************************/
-
-  static short int   FIRST;
-  static double    **MOIST_ERROR;
-  static double     *INIT_MOIST;
-  static double     *ENERGY_ERROR;
-  static double     *ENERGY_ERROR_CALC;
-  static double     *INFLOW;
-  static double     *RUNOFF;
-  static double     *BASEFLOW;
-  static double     *EVAP;
-  static double     *INSHORT;
-  static double     *OUTSHORT;
-  static double     *INLONG;
-  static double     *OUTLONG;
-  static double     *SENSIBLE;
-  static double     *LATENT;
-  static double     *GRND_FLUX;
-  static double     *ADVECTION;
-  static double     *DELTA_CC;
-  static double     *SNOW_FLUX;
-  static double     *REFREEZEENERGY;
-  static double     *DELTA_H;
 
   int     i;
   int     Ntemp;

@@ -319,7 +319,7 @@ void   free_out_data_files(out_data_file_struct *, const ProgramState*);
 void   free_out_data(out_data_struct **);
 int    full_energy(char, int, int, atmos_data_struct *, dist_prcp_struct *,
 		     const dmy_struct *, lake_con_struct *, soil_con_struct *,
-		     veg_con_struct *, const ProgramState*);
+		     veg_con_struct *, WriteDebug*, const ProgramState*);
 double func_aero_resist(double,double,double,double,double);
 double func_atmos_moist_bal(double VPcanopy, double InLatentHeat, double Lv,
     double Ra, double atmos_density, double gamma, double atmospheric_vp);

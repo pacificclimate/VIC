@@ -1362,6 +1362,39 @@ struct FallBackStats {
   int Tsoil_fbcount_total;
 };
 
+class ProgramState;
+
+struct WriteDebug {
+  WriteDebug();
+  void write_debug(atmos_data_struct *atmos, soil_con_struct *soil_con,
+      cell_data_struct *cell, energy_bal_struct *energy, snow_data_struct *snow,
+      veg_var_struct *veg_var, const dmy_struct *dmy, double out_short,
+      double precipitation_mu, int Nveg, int veg, int rec, const int gridcell,
+      int dist, char NEWCELL, const ProgramState *state);
+private:
+  short int   FIRST;
+  double    **MOIST_ERROR;
+  double     *INIT_MOIST;
+  double     *ENERGY_ERROR;
+  double     *ENERGY_ERROR_CALC;
+  double     *INFLOW;
+  double     *RUNOFF;
+  double     *BASEFLOW;
+  double     *EVAP;
+  double     *INSHORT;
+  double     *OUTSHORT;
+  double     *INLONG;
+  double     *OUTLONG;
+  double     *SENSIBLE;
+  double     *LATENT;
+  double     *GRND_FLUX;
+  double     *ADVECTION;
+  double     *DELTA_CC;
+  double     *SNOW_FLUX;
+  double     *REFREEZEENERGY;
+  double     *DELTA_H;
+};
+
 /***********************************************************
   This structure stores the per-cell data that must exist
   before or after running the model for that cell; also
@@ -1373,6 +1406,7 @@ typedef struct {
   char            *init_STILL_STORM;
   int             *init_DRY_TIME;
   char             ErrStr[MAXSTRING];
+  WriteDebug      writeDebug;
   dist_prcp_struct prcp;
   veg_con_struct  *veg_con;
   lake_con_struct  lake_con;

@@ -14,6 +14,7 @@ int  full_energy(char                 NEWCELL,
                  lake_con_struct     *lake_con,
                  soil_con_struct     *soil_con,
                  veg_con_struct      *veg_con,
+                 WriteDebug          *writeDebug,
                  const ProgramState  *state)
 /**********************************************************************
 	full_energy	Keith Cherkauer		January 8, 1997
@@ -471,7 +472,7 @@ int  full_energy(char                 NEWCELL,
           } /** End loop through elevation bands **/
         }
 
-        write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
+        writeDebug->write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
             prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[time_step_record]), out_short,
             tmp_mu, Nveg, iveg, time_step_record, gridcell, j, NEWCELL, state);
       }

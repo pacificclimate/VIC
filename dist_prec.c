@@ -159,7 +159,7 @@ int  dist_prec(cell_info_struct* cell,
 
     /** Solve model time step **/
     ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
-        &cell->lake_con, &cell->soil_con, cell->veg_con, state);
+        &cell->lake_con, &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
 
   }
 
@@ -170,7 +170,7 @@ int  dist_prec(cell_info_struct* cell,
      **************************************************/
 
     ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
-        &cell->lake_con, &cell->soil_con, cell->veg_con, state);
+        &cell->lake_con, &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
 
   }
 
