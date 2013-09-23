@@ -5,6 +5,27 @@
 
 static char vcid[] = "$Id$";
 
+out_data_struct* copy_output_data(out_data_struct* out_data, const ProgramState* state) {
+  out_data_struct* cur_data = (out_data_struct*) calloc(N_OUTVAR_TYPES, sizeof(out_data_struct));
+  for (int i = 0; i < N_OUTVAR_TYPES; i++) {
+    strcpy(cur_data[i].varname, out_data[i].varname);
+    strcpy(cur_data[i].format, out_data[i].format);
+    cur_data[i].nelem = out_data[i].nelem;
+    cur_data[i].aggtype = out_data[i].aggtype;
+    cur_data[i].mult = out_data[i].mult;
+    cur_data[i].type = out_data[i].type;
+    cur_data[i].write = out_data[i].write;
+    // Allocate space for data
+    cur_data[i].data = (double *)calloc(cur_data[i].nelem, sizeof(double));
+    cur_data[i].aggdata = (double *)calloc(cur_data[i].nelem, sizeof(double));
+    for (int element = 0; element < cur_data[i].nelem; element++) {
+      cur_data[i].data[element] = out_data[i].data[element];
+      cur_data[i].aggdata[element] = out_data[i].aggdata[element];
+    }
+  }
+  return cur_data;
+}
+
 out_data_struct *create_output_list(const ProgramState* state) {
 /*************************************************************
   create_output_list()      Ted Bohn     September 08, 2006

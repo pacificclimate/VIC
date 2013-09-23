@@ -4,6 +4,7 @@
 #include <vicNl.h>
 #include <global.h>
 #include <assert.h>
+#include <omp.h>
 
 static char vcid[] = "$Id$";
 
@@ -14,7 +15,7 @@ cell_info_struct* initializeCells(int &ncells,
 void runModel(const int ncells, cell_info_struct * cell_data_structs,
     filep_struct filep, int num_veg_types, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
-    dmy_struct* dmy, ProgramState* state);
+    dmy_struct* dmy, const ProgramState* state);
 
 int main(int argc, char *argv[])
 /**********************************************************************
@@ -295,7 +296,6 @@ cell_info_struct* initializeCells(int &ncells,
   #if VERBOSE
       fprintf(stderr, "Model State Initialization\n");
   #endif /* VERBOSE */
-      //TODO: fix the global NR variable and friends
       //TODO: just pass in cell_data_structs[cellidx] not all its members individually
       int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx].prcp, dmy[0], &state.global_param, filep,
           cell_data_structs[cellidx].soil_con.gridcel,
@@ -328,30 +328,57 @@ cell_info_struct* initializeCells(int &ncells,
   return cell_data_structs;
 }
 
+void printThreadInformation() {
+  // Obtain thread number
+  int tid = omp_get_thread_num();
+  // Only master thread does this
+  if (tid == 0) {
+    printf("Thread %d getting environment info...\n", tid);
+    // Get environment information
+    int procs = omp_get_num_procs();
+    int nthreads = omp_get_num_threads();
+    int maxt = omp_get_max_threads();
+    int inpar = omp_in_parallel();
+    int dynamic = omp_get_dynamic();
+    int nested = omp_get_nested();
+    // Print environment information
+    printf("Number of processors = %d\n", procs);
+    printf("Number of threads = %d\n", nthreads);
+    printf("Max threads = %d\n", maxt);
+    printf("In parallel? = %d\n", inpar);
+    printf("Dynamic threads enabled? = %d\n", dynamic);
+    printf("Nested parallelism supported? = %d\n", nested);
+  }
+}
+
 /************************************
  Run Model for all Active Grid Cells
  ************************************/
 void runModel(const int ncells, cell_info_struct * cell_data_structs,
     filep_struct filep, int num_veg_types, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
-    dmy_struct* dmy, ProgramState* state) {
+    dmy_struct* dmy, const ProgramState* state) {
 
-
+  #pragma omp parallel for
   for (int cellidx = 0; cellidx < ncells; cellidx++) {
 
+    printThreadInformation();
+
+    //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
     out_data_file_struct* out_data_files = copy_data_file_format(out_data_files_template, state);
+    out_data_struct* current_output_data = copy_output_data(out_data, state);
     /** Build Gridded Filenames, and Open **/
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, out_data_files, state);
 
     if (state->options.PRT_HEADER) {
       /** Write output file headers **/
-      write_header(out_data_files, out_data, dmy, state);
+      write_header(out_data_files, current_output_data, dmy, state);
     }
 
     //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
-    state->Error.filep = filep;
-    state->Error.out_data_files = out_data_files;
+    //state->Error.filep = filep;
+    //state->Error.out_data_files = out_data_files;
 
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
@@ -362,18 +389,17 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     /** Initialize the storage terms in the water and energy balances **/
     //TODO: check error flag here
-    put_data(&cell_data_structs[cellidx], out_data_files, out_data, &dmy[0],
+    put_data(&cell_data_structs[cellidx], out_data_files, current_output_data, &dmy[0],
         -state->global_param.nrecs, state);
 
     /******************************************
      Run Model in Grid Cell for all Time Steps
      ******************************************/
     char NEWCELL = TRUE;
-
     for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
-          out_data_files, out_data, rec, cellidx, NEWCELL, state);
+          out_data_files, current_output_data, rec, cellidx, NEWCELL, state);
 
       if (ErrorFlag == ERROR) {
         if (state->options.CONTINUEONERROR == TRUE) {
@@ -413,6 +439,7 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     close_files(&filep, out_data_files, &filenames, state->options.COMPRESS, state);
     free_out_data_files(out_data_files, state);
+    free_out_data(&current_output_data);
 
     free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
     free_dist_prcp(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].veg_con[0].vegetat_type_num);
@@ -422,6 +449,7 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
     free((char *) cell_data_structs[cellidx].soil_con.Tfactor);
     free((char *) cell_data_structs[cellidx].soil_con.Pfactor);
     free((char *) cell_data_structs[cellidx].soil_con.AboveTreeLine);
+
     /*      free((char*)init_STILL_STORM);
      free((char*)init_DRY_TIME); */
   } /* End Grid Loop */

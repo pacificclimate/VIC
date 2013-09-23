@@ -208,6 +208,7 @@ void   compute_soil_layer_thermal_properties(layer_data_struct *, double *,
                   double *, int);
 void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double *, char *, const ProgramState*);
 double compute_zwt(soil_con_struct *, int, double);
+out_data_struct* copy_output_data(out_data_struct* out_data, const ProgramState* state);
 out_data_struct *create_output_list(const ProgramState*);
 
 int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, out_data_file_struct *,
