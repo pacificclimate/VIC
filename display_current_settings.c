@@ -49,7 +49,7 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
 **********************************************************************/
 {
 
-  extern char *version;
+  extern const char *version;
 
   int file_num;
 

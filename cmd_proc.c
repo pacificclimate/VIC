@@ -23,9 +23,7 @@ void cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState* stat
 
 **********************************************************************/
 {
-  /*  extern int getopt(); */
-  extern char *optarg;
-  extern char *optstring;
+  const char *optstring = "g:vo";
 
   int              optchar;
   bool             GLOBAL_SET;

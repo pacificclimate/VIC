@@ -210,7 +210,7 @@ void set_node_parameters(double   *dz_node,
 **********************************************************************/
 
 #if QUICK_FS
-  extern double temps[];
+  extern const double temps[];
 #endif
 
   char   PAST_BOTTOM;

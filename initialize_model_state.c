@@ -116,7 +116,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
 **********************************************************************/
 {
 #if QUICK_FS
-  extern double temps[];
+  extern const double temps[];
 #endif
 
   char     ErrStr[MAXSTRING];
