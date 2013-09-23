@@ -279,7 +279,7 @@ cell_info_struct* initializeCells(int &ncells,
   #endif /* VERBOSE */
 
       /** allocate memory for the atmos_data_struct **/
-      cell_data_structs[cellidx].atmos = alloc_atmos(state.global_param.nrecs);
+      cell_data_structs[cellidx].atmos = alloc_atmos(state.global_param.nrecs, state.NR);
       initialize_atmos(cell_data_structs[cellidx].atmos, dmy, filep.forcing, filep.forcing_ncid,
           &cell_data_structs[cellidx].soil_con, &state);
 
@@ -300,7 +300,7 @@ cell_info_struct* initializeCells(int &ncells,
       int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx].prcp, dmy[0], &state.global_param, filep,
           cell_data_structs[cellidx].soil_con.gridcel,
           cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state.options.Nnode, Ndist,
-          cell_data_structs[cellidx].atmos[0].air_temp[NR], &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con,
+          cell_data_structs[cellidx].atmos[0].air_temp[state.NR], &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con,
           cell_data_structs[cellidx].lake_con, &cell_data_structs[cellidx].init_STILL_STORM,
           &cell_data_structs[cellidx].init_DRY_TIME, &state);
       if (ErrorFlag == ERROR) {

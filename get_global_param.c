@@ -3,15 +3,7 @@
 #include <vicNl.h>
 #include <string.h>
  
-static char vcid[] = "$Id$";
-
-/********************************************************************/
-/*			GLOBAL VARIABLES                            */
-/********************************************************************/
-int NR;		      /* array index for atmos struct that indicates
-			 the model step avarage or sum */
-int NF;		      /* array index loop counter limit for atmos
-			 struct that indicates the SNOW_STEP values */
+static char vcid[] = "$Id: get_global_param.c,v 5.22.2.35 2011/12/23 06:57:55 vicadmin Exp $";
  
 void ProgramState::init_global_param(filenames_struct *names, const char* global_file_name)
 /**********************************************************************

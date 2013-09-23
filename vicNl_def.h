@@ -520,13 +520,6 @@ extern const char ref_veg_ref_crop[];
 #define DISP_COMPILE_TIME 2
 #define DISP_ALL 3
 
-
-/* global variables */
-extern int NR;			/* array index for atmos struct that indicates
-				   the model step avarage or sum */
-extern int NF;			/* array index loop counter limit for atmos
-				   struct that indicates the SNOW_STEP values */
-
 /***** Data Structures *****/
 
 /** file structures **/
@@ -1431,6 +1424,8 @@ public:
 #endif
   Error_struct Error;
   param_set_struct param_set;
+  int NR;  /* array index for atmos struct that indicates the model step avarage or sum */
+  int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   void initialize_global();
   void init_global_param(filenames_struct *, const char* global_file_name);
   void display_current_settings(int, filenames_struct *);

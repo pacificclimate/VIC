@@ -82,20 +82,20 @@ int  dist_prec(cell_info_struct* cell,
      Controls Distributed Precipitation Model
      *******************************************/
 
-    NEW_MU = 1.0 - exp(-state->options.PREC_EXPT * cell->atmos[time_step_record].prec[NR]);
+    NEW_MU = 1.0 - exp(-state->options.PREC_EXPT * cell->atmos[time_step_record].prec[state->NR]);
     for (veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
       ANY_SNOW[veg] = FALSE;
       for (i = 0; i < state->options.SNOW_BAND; i++)
         /* Check for snow on ground or falling */
         if (cell->prcp.snow[veg][i].swq > 0 || cell->prcp.snow[veg][i].snow_canopy > 0.)
           ANY_SNOW[veg] = TRUE;
-      if (ANY_SNOW[veg] || cell->atmos[time_step_record].snowflag[NR]) {
+      if (ANY_SNOW[veg] || cell->atmos[time_step_record].snowflag[state->NR]) {
         /* If snow present, mu must be set to 1. */
         NEW_MU = 1.;
         if (time_step_record == 0) {
           /* Set model variables if first time step */
           cell->prcp.mu[veg] = NEW_MU;
-          if (cell->atmos[time_step_record].prec[NR] > 0)
+          if (cell->atmos[time_step_record].prec[state->NR] > 0)
             cell->init_STILL_STORM[veg] = TRUE;
           else
             cell->init_STILL_STORM[veg] = FALSE;
@@ -104,7 +104,7 @@ int  dist_prec(cell_info_struct* cell,
         ANY_SNOW[veg] = TRUE;
       } else {
         if (time_step_record == 0) {
-          if (cell->atmos[time_step_record].prec[NR] == 0) {
+          if (cell->atmos[time_step_record].prec[state->NR] == 0) {
             /* If first time step has no rain, than set mu to 1. */
             cell->prcp.mu[veg] = 1.;
             NEW_MU = 1.;
@@ -116,12 +116,12 @@ int  dist_prec(cell_info_struct* cell,
             cell->init_STILL_STORM[veg] = TRUE;
             cell->init_DRY_TIME[veg] = 0;
           }
-        } else if (cell->atmos[time_step_record].prec[NR] == 0 && cell->init_DRY_TIME[veg] >= 24.) {
+        } else if (cell->atmos[time_step_record].prec[state->NR] == 0 && cell->init_DRY_TIME[veg] >= 24.) {
           /* Check if storm has ended */
           NEW_MU = cell->prcp.mu[veg];
           cell->init_STILL_STORM[veg] = FALSE;
           cell->init_DRY_TIME[veg] = 0;
-        } else if (cell->atmos[time_step_record].prec[NR] == 0) {
+        } else if (cell->atmos[time_step_record].prec[state->NR] == 0) {
           /* May be pause in storm, keep track of pause length */
           NEW_MU = cell->prcp.mu[veg];
           cell->init_DRY_TIME[veg] += state->global_param.dt;
@@ -129,7 +129,7 @@ int  dist_prec(cell_info_struct* cell,
       }
 
       if (!cell->init_STILL_STORM[veg]
-          && (cell->atmos[time_step_record].prec[NR] > STORM_THRES || ANY_SNOW[veg])) {
+          && (cell->atmos[time_step_record].prec[state->NR] > STORM_THRES || ANY_SNOW[veg])) {
         /** Average soil moisture before a new storm **/
         ErrorFlag = initialize_new_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
             cell->veg_con[0].vegetat_type_num, time_step_record, cell->prcp.mu[veg], NEW_MU, state);

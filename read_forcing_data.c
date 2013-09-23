@@ -20,8 +20,6 @@ double **read_forcing_data(FILE                **infile,
 
 **********************************************************************/
 {
-  extern int              NR, NF;
-
   char                 errorstr[MAXSTRING];
   int                  i;
   double             **forcing_data;
@@ -30,7 +28,7 @@ double **read_forcing_data(FILE                **infile,
   forcing_data = (double **)calloc(N_FORCING_TYPES,sizeof(double*));
   for(i=0;i<N_FORCING_TYPES;i++) 
     if (state->param_set.TYPE[i].SUPPLIED)
-      forcing_data[i] = (double *)calloc((global_param.nrecs * NF),
+      forcing_data[i] = (double *)calloc((global_param.nrecs * state->NF),
 			   sizeof(double));
 
   /** Read First Forcing Data File **/

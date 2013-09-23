@@ -40,7 +40,7 @@ void write_forcing_file(atmos_data_struct *atmos,
   dt_sec = state->global_param.dt*SECPHOUR;
 
   for ( rec = 0; rec < nrecs; rec++ ) {
-    for ( j = 0; j < NF; j++ ) {
+    for ( j = 0; j < state->NF; j++ ) {
 
       out_data[OUT_AIR_TEMP].data[0]  = atmos[rec].air_temp[j];
       out_data[OUT_DENSITY].data[0]   = atmos[rec].density[j];

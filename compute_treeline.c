@@ -31,9 +31,6 @@ void compute_treeline(atmos_data_struct        *atmos,
 
 ************************************************************************/
 {
-
-  extern int                 NR, NF;
-
   double MonthSum;
   double AnnualSum;
   int    MonthCnt;
@@ -59,7 +56,7 @@ void compute_treeline(atmos_data_struct        *atmos,
         MonthSum = 0;
         MonthCnt = 0;
         while ( dmy[rec].month == 7 ) {
-          for (i = 0; i < NF; i++) {
+          for (i = 0; i < state->NF; i++) {
             MonthSum += atmos[rec].air_temp[i];
             MonthCnt++;
           }

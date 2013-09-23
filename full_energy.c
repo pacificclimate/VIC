@@ -198,8 +198,8 @@ int  full_energy(char                 NEWCELL,
   /* Compute gauge undercatch correction factors 
    - this assumes that the gauge is free of vegetation effects, so gauge
    correction is constant for the entire grid cell */
-  if (state->options.CORRPREC && atmos->prec[NR] > 0)
-    correct_precip(gauge_correction, atmos->wind[NR], state->global_param.wind_h,
+  if (state->options.CORRPREC && atmos->prec[state->NR] > 0)
+    correct_precip(gauge_correction, atmos->wind[state->NR], state->global_param.wind_h,
         soil_con->rough, soil_con->snow_rough);
   else {
     gauge_correction[0] = 1;
@@ -315,7 +315,7 @@ int  full_energy(char                 NEWCELL,
       for (p = 0; p < N_PET_TYPES + 1; p++) {
 
         /* Initialize wind speeds */
-        tmp_wind[0] = atmos->wind[NR];
+        tmp_wind[0] = atmos->wind[state->NR];
         tmp_wind[1] = -999.; /* MPN:  FIXME:  Find crap like this and SET AS NaN */
         tmp_wind[2] = -999.;
 
@@ -756,9 +756,9 @@ int  full_energy(char                 NEWCELL,
         * soil_con->cell_area * 0.001; // m3
     prcp->lake_var.baseflow_in = (sum_baseflow * lake_con->rpercent
         + wetland_baseflow) * soil_con->cell_area * 0.001; // m3
-    prcp->lake_var.channel_in = atmos->channel_in[NR] * soil_con->cell_area * 0.001; // m3
-    prcp->lake_var.prec = atmos->prec[NR] * prcp->lake_var.sarea * 0.001; // m3
-    rainonly = calc_rainonly(atmos->air_temp[NR], atmos->prec[NR], state->global_param.MAX_SNOW_TEMP, state->global_param.MIN_RAIN_TEMP, 1);
+    prcp->lake_var.channel_in = atmos->channel_in[state->NR] * soil_con->cell_area * 0.001; // m3
+    prcp->lake_var.prec = atmos->prec[state->NR] * prcp->lake_var.sarea * 0.001; // m3
+    rainonly = calc_rainonly(atmos->air_temp[state->NR], atmos->prec[state->NR], state->global_param.MAX_SNOW_TEMP, state->global_param.MIN_RAIN_TEMP, 1);
     if ((int) rainonly == ERROR) {
       return (ERROR);
     }
@@ -768,14 +768,14 @@ int  full_energy(char                 NEWCELL,
      **********************************************************************/
 
     oldsnow = prcp->lake_var.snow.swq;
-    snowprec = gauge_correction[SNOW] * (atmos->prec[NR] - rainonly);
+    snowprec = gauge_correction[SNOW] * (atmos->prec[state->NR] - rainonly);
     rainprec = gauge_correction[SNOW] * rainonly;
     atmos->out_prec += (snowprec + rainprec) * lake_con->Cl[0] * lakefrac;
 
-    ErrorFlag = solve_lake(snowprec, rainprec, atmos->air_temp[NR],
-        atmos->wind[NR], atmos->vp[NR] / 1000., atmos->shortwave[NR],
-        atmos->longwave[NR], atmos->vpd[NR] / 1000.,
-        atmos->pressure[NR] / 1000., atmos->density[NR], &(prcp->lake_var), *lake_con,
+    ErrorFlag = solve_lake(snowprec, rainprec, atmos->air_temp[state->NR],
+        atmos->wind[state->NR], atmos->vp[state->NR] / 1000., atmos->shortwave[state->NR],
+        atmos->longwave[state->NR], atmos->vpd[state->NR] / 1000.,
+        atmos->pressure[state->NR] / 1000., atmos->density[state->NR], &(prcp->lake_var), *lake_con,
         *soil_con, state->global_param.dt, time_step_record, state->global_param.wind_h, dmy[time_step_record], fraci, state);
     if (ErrorFlag == ERROR)
       return (ERROR);

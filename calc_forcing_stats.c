@@ -12,10 +12,7 @@ double get_min(double *, int, double);
 double get_max(double *, int, double);
 
 void calc_forcing_stats(int                Nrecs,
-/* 			int                cell, */
-/* 			double             lat, */
-/* 			double             lng, */
-			atmos_data_struct *atmos) {
+			atmos_data_struct *atmos, const int NR) {
 /**********************************************************************
   calc_forcing_stats.c     Keith Cherkauer          November 16, 2000
 
@@ -26,8 +23,6 @@ void calc_forcing_stats(int                Nrecs,
   an exhaustive study of that data.
 
 **********************************************************************/
-
-  extern int                 NR, NF;
 
   int rec, i;
   double *values;

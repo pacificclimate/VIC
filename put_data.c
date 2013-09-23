@@ -223,28 +223,28 @@ int  put_data(cell_info_struct* cell,
   /* MPN */
   // Set output versions of input forcings
   if (rec >= 0) {
-    out_data[OUT_AIR_TEMP].data[0] = cell->atmos[rec].air_temp[NR];
-    out_data[OUT_DENSITY].data[0] = cell->atmos[rec].density[NR];
-    out_data[OUT_LONGWAVE].data[0] = cell->atmos[rec].longwave[NR];
+    out_data[OUT_AIR_TEMP].data[0] = cell->atmos[rec].air_temp[state->NR];
+    out_data[OUT_DENSITY].data[0] = cell->atmos[rec].density[state->NR];
+    out_data[OUT_LONGWAVE].data[0] = cell->atmos[rec].longwave[state->NR];
     out_data[OUT_PREC].data[0] = cell->atmos[rec].out_prec; // mm over grid cell
-    out_data[OUT_PRESSURE].data[0] = cell->atmos[rec].pressure[NR]
+    out_data[OUT_PRESSURE].data[0] = cell->atmos[rec].pressure[state->NR]
         / kPa2Pa;
-    out_data[OUT_QAIR].data[0] = EPS * cell->atmos[rec].vp[NR]
-        / cell->atmos[rec].pressure[NR];
+    out_data[OUT_QAIR].data[0] = EPS * cell->atmos[rec].vp[state->NR]
+        / cell->atmos[rec].pressure[state->NR];
     out_data[OUT_RAINF].data[0] = cell->atmos[rec].out_rain; // mm over grid cell
-    out_data[OUT_REL_HUMID].data[0] = 100. * cell->atmos[rec].vp[NR]
-        / (cell->atmos[rec].vp[NR] + cell->atmos[rec].vpd[NR]);
+    out_data[OUT_REL_HUMID].data[0] = 100. * cell->atmos[rec].vp[state->NR]
+        / (cell->atmos[rec].vp[state->NR] + cell->atmos[rec].vpd[state->NR]);
     if (state->options.LAKES && cell->lake_con.Cl[0] > 0)
       out_data[OUT_LAKE_CHAN_IN].data[0] =
-          cell->atmos[rec].channel_in[NR]; // mm over grid cell
+          cell->atmos[rec].channel_in[state->NR]; // mm over grid cell
     else
       out_data[OUT_LAKE_CHAN_IN].data[0] = 0;
-    out_data[OUT_SHORTWAVE].data[0] = cell->atmos[rec].shortwave[NR];
+    out_data[OUT_SHORTWAVE].data[0] = cell->atmos[rec].shortwave[state->NR];
     out_data[OUT_SNOWF].data[0] = cell->atmos[rec].out_snow; // mm over grid cell
-    out_data[OUT_TSKC].data[0] = cell->atmos[rec].tskc[NR];
-    out_data[OUT_VP].data[0] = cell->atmos[rec].vp[NR] / kPa2Pa;
-    out_data[OUT_VPD].data[0] = cell->atmos[rec].vpd[NR] / kPa2Pa;
-    out_data[OUT_WIND].data[0] = cell->atmos[rec].wind[NR];
+    out_data[OUT_TSKC].data[0] = cell->atmos[rec].tskc[state->NR];
+    out_data[OUT_VP].data[0] = cell->atmos[rec].vp[state->NR] / kPa2Pa;
+    out_data[OUT_VPD].data[0] = cell->atmos[rec].vpd[state->NR] / kPa2Pa;
+    out_data[OUT_WIND].data[0] = cell->atmos[rec].wind[state->NR];
   }
     /****************************************
     Store Output for all Vegetation Types (except lakes)

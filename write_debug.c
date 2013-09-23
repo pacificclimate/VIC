@@ -138,9 +138,9 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 	    - energy[band].snow_flux + energy[band].refreeze_energy 
 	    + energy[band].advection) * precipitation_mu / soil_con->AreaFract[band];
       
-      INSHORT[veg]        += (1.-energy[band].AlbedoOver)*atmos->shortwave[NR] 
+      INSHORT[veg]        += (1.-energy[band].AlbedoOver)*atmos->shortwave[state->NR]
 	* precipitation_mu / soil_con->AreaFract[band];
-      INLONG[veg]         += atmos->longwave[NR] * precipitation_mu 
+      INLONG[veg]         += atmos->longwave[state->NR] * precipitation_mu
 	/ soil_con->AreaFract[band];
       SENSIBLE[veg]       += energy[band].sensible * precipitation_mu 
 	/ soil_con->AreaFract[band];
@@ -179,7 +179,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 	      ENERGY_ERROR[veg],ENERGY_ERROR_CALC[veg]);
       fprintf(state->debug.fg_energy,"\t%7.4f\t%7.4f\t%7.4f\n",
 	      energy[0].T[0], energy[0].T[1],
-	      atmos->wind[NR]);
+	      atmos->wind[state->NR]);
     }
   }
  
@@ -207,7 +207,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
         energy->T[1],snow[band].surf_temp,snow[band].pack_temp,
         snow[band].vapor_flux*1000.);
       fprintf(state->debug.fg_snow,"\t%7.3f\t%7.4f",
-	      atmos->air_temp[NR], grnd_flux);
+	      atmos->air_temp[state->NR], grnd_flux);
       fprintf(state->debug.fg_snow,"\t%7.4f\t%7.4f\t%7.4f\t%7.4f\n",
 	      snow[band].depth,snow[band].density,
 	      snow[band].snow_canopy*1000.,
@@ -301,7 +301,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 	}
 
 	/** Store Variables **/
-	INFLOW[veg]   += atmos->prec[NR] * soil_con->Pfactor[band] 
+	INFLOW[veg]   += atmos->prec[state->NR] * soil_con->Pfactor[band]
 	  / soil_con->AreaFract[band];
 	BASEFLOW[veg] += cell[band].baseflow * precipitation_mu / soil_con->AreaFract[band];
 	RUNOFF[veg]   += cell[band].runoff * precipitation_mu / soil_con->AreaFract[band];
@@ -357,7 +357,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 		dmy->day, dmy->month, dmy->year, dmy->hour,
 		(float)rec/24.0*(float)state->global_param.dt, veg, band);
 	fprintf(state->debug.fg_temp,"\t%6.2f\t%6.2f\t%6.2f",
-		atmos->air_temp[NR], energy->fdepth[0] * 100., 
+		atmos->air_temp[state->NR], energy->fdepth[0] * 100.,
 		energy->tdepth[0] * 100.);
 	/* print layer temperatures */
 	for(i = 0; i < state->options.Nlayer; i++)
@@ -403,7 +403,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 		dmy->day,dmy->month,dmy->year,dmy->hour,
 		(float)rec/24.0*(float)state->global_param.dt,veg,dist);
 	fprintf(state->debug.fg_moist,"\t%6.2f\t%6.4f\t%6.4f",
-		atmos->air_temp[NR], cell[band].inflow, cell[band].runoff);
+		atmos->air_temp[state->NR], cell[band].inflow, cell[band].runoff);
 	
 	curr_moist = (double *)calloc(1,sizeof(double));
 	for(i = 0; i < state->options.Nlayer; i++) {

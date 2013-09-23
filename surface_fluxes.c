@@ -348,13 +348,13 @@ int surface_fluxes(char                 overstory,
    if frozen soils are present)
    ********************************/
 
-  if (snow->swq > 0 || snow->snow_canopy > 0 || atmos->snowflag[NR]) {
+  if (snow->swq > 0 || snow->snow_canopy > 0 || atmos->snowflag[state->NR]) {
     hidx = 0;
     step_inc = 1;
-    endhidx = hidx + NF;
+    endhidx = hidx + state->NF;
     step_dt = state->options.SNOW_STEP;
   } else {
-    hidx = NR;
+    hidx = state->NR;
     step_inc = 1;
     endhidx = hidx + step_inc;
     step_dt = state->global_param.dt;

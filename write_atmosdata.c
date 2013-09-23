@@ -22,9 +22,9 @@ void write_atmosdata(atmos_data_struct *atmos, int nrecs, ProgramState* state)
 
   /*  first write all the SNOW_STEP data  - only write if the modelstep !=
       SNOWSTEP */
-  if (NR > 0) {
+  if (state->NR > 0) {
     for (i = 0; i < nrecs; i++) {
-      for (j = 0; j < NF; j++) {
+      for (j = 0; j < state->NF; j++) {
 	fprintf(state->debug.fg_snowstep_atmos,"%d\t%d",  i, j);
 	fprintf(state->debug.fg_snowstep_atmos,"\t%f", atmos[i].prec[j]);
 	fprintf(state->debug.fg_snowstep_atmos,"\t%f", atmos[i].air_temp[j]);
@@ -45,15 +45,15 @@ void write_atmosdata(atmos_data_struct *atmos, int nrecs, ProgramState* state)
   /* then write all the dt data */
   for (i = 0; i < nrecs; i++) {
     fprintf(state->debug.fg_modelstep_atmos,"%d",  i);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].prec[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].air_temp[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].wind[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].vpd[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].vp[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].pressure[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].density[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].shortwave[NR]);
-    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].longwave[NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].prec[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].air_temp[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].wind[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].vpd[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].vp[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].pressure[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].density[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].shortwave[state->NR]);
+    fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].longwave[state->NR]);
     fprintf(state->debug.fg_modelstep_atmos,"\n");
   }
   fclose(state->debug.fg_modelstep_atmos);
