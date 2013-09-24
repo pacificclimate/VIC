@@ -367,20 +367,17 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, const ProgramState* state) {
 
-  for (int cellidx = 0; cellidx < ncells; cellidx++) {
-    //TODO: check error flag here
-    int initError = initializeCell(cell_data_structs, cellidx, filep, dmy,
-        filenames, num_veg_types, state);
-  }
-
   #pragma omp parallel for
   for (int cellidx = 0; cellidx < ncells; cellidx++) {
 
     printThreadInformation();
 
-    //int initError = initializeCell(cell_data_structs, cellidx, filep, dmy,
-    //        filenames, num_veg_types, state);
-
+    #pragma omp critical(initCells)
+    {
+      //TODO: check and handle error flag
+    int initError = initializeCell(cell_data_structs, cellidx, filep, dmy,
+            filenames, num_veg_types, state);
+    }
     //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
     out_data_file_struct* out_data_files = copy_data_file_format(out_data_files_template, state);
     out_data_struct* current_output_data = copy_output_data(out_data, state);

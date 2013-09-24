@@ -186,7 +186,7 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, double *,
     double *, double *, double *, float *, const ProgramState*);
 
-filep_struct   get_files(const filenames_struct *, ProgramState*);
+filep_struct   get_files(const filenames_struct *, const ProgramState*);
 FILE  *check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, out_data_file_struct *, filenames_struct *, bool, const ProgramState*);
 void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);

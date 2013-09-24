@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-filep_struct get_files(const filenames_struct *fnames, ProgramState* state)
+filep_struct get_files(const filenames_struct *fnames, const ProgramState* state)
 /**********************************************************************
 	check_files		Dag Lohmann		January 1996
 
