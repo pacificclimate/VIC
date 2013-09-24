@@ -4,6 +4,50 @@
 #include <string.h>
  
 static char vcid[] = "$Id: get_global_param.c,v 5.22.2.35 2011/12/23 06:57:55 vicadmin Exp $";
+
+void finilizeForceTypes(ProgramState* state) {
+  if (state->param_set.TYPE[RAINF].SUPPLIED
+      && state->param_set.TYPE[SNOWF].SUPPLIED) {
+    /* rainfall and snowfall supplied */
+    state->param_set.TYPE[PREC].SUPPLIED =
+        state->param_set.TYPE[RAINF].SUPPLIED;
+  } else if (state->param_set.TYPE[CRAINF].SUPPLIED
+      && state->param_set.TYPE[LSRAINF].SUPPLIED
+      && state->param_set.TYPE[CSNOWF].SUPPLIED
+      && state->param_set.TYPE[LSSNOWF].SUPPLIED) {
+    /* convective and large-scale rainfall and snowfall supplied */
+    state->param_set.TYPE[PREC].SUPPLIED =
+        state->param_set.TYPE[LSRAINF].SUPPLIED;
+  }
+
+  if (state->param_set.TYPE[WIND_E].SUPPLIED
+      && state->param_set.TYPE[WIND_N].SUPPLIED) {
+    /* specific wind_e and wind_n supplied */
+    state->param_set.TYPE[WIND].SUPPLIED =
+        state->param_set.TYPE[WIND_E].SUPPLIED;
+  }
+
+  if (state->param_set.TYPE[QAIR].SUPPLIED
+      && state->param_set.TYPE[PRESSURE].SUPPLIED) {
+    /* specific humidity and atm. pressure supplied */
+    state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[QAIR].SUPPLIED;
+  } else if (state->param_set.TYPE[REL_HUMID].SUPPLIED
+      && state->param_set.TYPE[AIR_TEMP].SUPPLIED) {
+    /* relative humidity and atm. pressure supplied */
+    state->param_set.TYPE[VP].SUPPLIED =
+        state->param_set.TYPE[REL_HUMID].SUPPLIED;
+  }
+
+  if (!state->param_set.TYPE[VP].SUPPLIED) {
+    if (state->param_set.TYPE[QAIR].SUPPLIED) {
+      state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[QAIR].SUPPLIED;
+    } else if (state->param_set.TYPE[REL_HUMID].SUPPLIED) {
+      state->param_set.TYPE[VP].SUPPLIED =
+          state->param_set.TYPE[REL_HUMID].SUPPLIED;
+    } // end if REL_HUMID supplied
+  } // end if VP not supplied
+
+}
  
 void ProgramState::init_global_param(filenames_struct *names, const char* global_file_name)
 /**********************************************************************
@@ -705,6 +749,8 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     fgets(cmdstr,MAXSTRING,gp);
   }
   fclose(gp);
+
+  finilizeForceTypes(this);
 
   /******************************************
     Check for undefined required parameters

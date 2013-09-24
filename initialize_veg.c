@@ -6,7 +6,6 @@ static char vcid[] = "$Id$";
 
 void initialize_veg(veg_var_struct      **veg_var,
 		    veg_con_struct       *veg_con,
-		    global_param_struct   *gp,
 		    int                    Nveg,
 		    const ProgramState    *state)
 /**********************************************************************

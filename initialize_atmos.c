@@ -9,7 +9,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
                       FILE                    **infile,
                       int                      *ncids,
                       soil_con_struct          *soil_con,
-                      ProgramState             *state)
+                      const ProgramState       *state)
 
 /**********************************************************************
   initialize_atmos	Keith Cherkauer		February 3, 1997
@@ -313,7 +313,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
     for (int idx=0; idx<(state->global_param.nrecs*state->NF); idx++) {
       forcing_data[PREC][idx] = forcing_data[RAINF][idx] + forcing_data[SNOWF][idx];
     }
-    state->param_set.TYPE[PREC].SUPPLIED = state->param_set.TYPE[RAINF].SUPPLIED;
   }
   else if(state->param_set.TYPE[CRAINF].SUPPLIED && state->param_set.TYPE[LSRAINF].SUPPLIED
     && state->param_set.TYPE[CSNOWF].SUPPLIED && state->param_set.TYPE[LSSNOWF].SUPPLIED) {
@@ -325,7 +324,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
       forcing_data[PREC][idx] = forcing_data[CRAINF][idx] + forcing_data[LSRAINF][idx]
                                + forcing_data[CSNOWF][idx] + forcing_data[LSSNOWF][idx];
     }
-    state->param_set.TYPE[PREC].SUPPLIED = state->param_set.TYPE[LSRAINF].SUPPLIED;
   }
 
   /*************************************************
@@ -342,7 +340,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
       forcing_data[WIND][idx] = sqrt( forcing_data[WIND_E][idx]*forcing_data[WIND_E][idx]
                                     + forcing_data[WIND_N][idx]*forcing_data[WIND_N][idx] );
     }
-    state->param_set.TYPE[WIND].SUPPLIED = state->param_set.TYPE[WIND_E].SUPPLIED;
   }
 
   /*************************************************
@@ -718,7 +715,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
           daily_vp[day] /= 24;
         }
       }
-      state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[QAIR].SUPPLIED;
     }
 
     /*************************************************
@@ -756,7 +752,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
           daily_vp[day] /= 24;
         }
       }
-      state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[REL_HUMID].SUPPLIED;
     }
 
   } // end if VP not supplied
@@ -1052,9 +1047,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
           if(state->NF>1) atmos[rec].vp[state->NR] = sum / (float)state->NF;
         }
       }
-
-      state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[QAIR].SUPPLIED;
-
     } // end if QAIR supplied
 
     else if(state->param_set.TYPE[REL_HUMID].SUPPLIED) {
@@ -1096,9 +1088,6 @@ void initialize_atmos(atmos_data_struct        *atmos,
           if(state->NF>1) atmos[rec].vp[state->NR] = sum / (float)state->NF;
         }
       }
-
-      state->param_set.TYPE[VP].SUPPLIED = state->param_set.TYPE[REL_HUMID].SUPPLIED;
-
     } // end if REL_HUMID supplied
 
   } // end if VP not supplied

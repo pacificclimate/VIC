@@ -7,7 +7,6 @@ static char vcid[] = "$Id$";
 
 void read_initial_model_state(FILE    *init_state,
 			            dist_prcp_struct    *prcp,
-			            global_param_struct *gp,
 			            int                  Nveg,
 			            int                  Nbands,
 			            int                  cellnum,

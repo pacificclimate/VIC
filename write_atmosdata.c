@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-void write_atmosdata(atmos_data_struct *atmos, int nrecs, ProgramState* state)
+void write_atmosdata(atmos_data_struct *atmos, int nrecs, const ProgramState* state)
 /**********************************************************************
 	write_atmosdata		Dag Lohmann	Januray 1996
 

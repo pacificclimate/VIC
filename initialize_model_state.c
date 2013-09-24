@@ -7,7 +7,6 @@ static char vcid[] = "$Id$";
 
 int initialize_model_state(dist_prcp_struct    *prcp,
 			   dmy_struct           dmy,
-			   global_param_struct *global_param,
 			   filep_struct         filep,
 			   int                  cellnum,
 			   int                  Nveg,
@@ -186,9 +185,9 @@ int initialize_model_state(dist_prcp_struct    *prcp,
     - some may be reset if state file present
   ********************************************/
 
-  initialize_veg(prcp->veg_var[WET], veg_con, global_param, Nveg, state);
+  initialize_veg(prcp->veg_var[WET], veg_con, Nveg, state);
   if ( state->options.DIST_PRCP )
-    initialize_veg(prcp->veg_var[DRY], veg_con, global_param, Nveg, state);
+    initialize_veg(prcp->veg_var[DRY], veg_con, Nveg, state);
 
   /********************************************
     Initialize all lake variables 
@@ -266,7 +265,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
     }
 #endif
 
-    read_initial_model_state(filep.init_state, prcp, global_param,  
+    read_initial_model_state(filep.init_state, prcp,
 			     Nveg, state->options.SNOW_BAND, cellnum, soil_con,
 			     Ndist, *init_STILL_STORM, *init_DRY_TIME, lake_con, state);
 
