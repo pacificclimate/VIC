@@ -122,6 +122,9 @@
 
 #include <user_def.h>
 #include <snow.h>
+#include <cmath>
+#include <limits>
+#include <climits>
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -133,6 +136,14 @@
 #define LITTLE 1		/* little-endian flag */
 #define BIG 2			/* big-endian flag */
 #define ERROR -999              /* Error Flag returned by subroutines */
+
+//Using the C style "Not A Number" conventions, this will not work if -ffast-math is used
+#define INVALID NAN
+#define IS_INVALID(a) isnan(a)
+#define IS_VALID(a) !isnan(a)
+#define INVALID_INT INT_MIN
+#define IS_INVALID_INT(a) (a == INVALID_INT)
+#define IS_VALID_INT(a) (!IS_INVALID_INT(a))
 
 /***** Met file formats *****/
 #define ASCII 1
