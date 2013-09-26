@@ -681,7 +681,8 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       else snow->coverage = 0.;
 #endif // SPATIAL_SNOW
 
-      if ( snow->surf_temp > 0 ) 
+      if ( IS_INVALID(snow->surf_temp) || snow->surf_temp > 0 )
+
 	energy->snow_flux = ( energy->grnd_flux + energy->deltaH 
 			      + energy->fusion );
 

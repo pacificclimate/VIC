@@ -453,9 +453,9 @@ int ice_melt(double            z2,
     }
     else {
 //        fprintf(stderr,"Snow/Ice layer is too thin to solve separately \n");
-      snow->surf_temp = 999;
+      snow->surf_temp = INVALID;
     }
-    if (snow->surf_temp > -998 && snow->surf_temp < 999) {
+    if (IS_VALID(snow->surf_temp) && snow->surf_temp > -998) {
       IceEnergyBalance iceEnergyBalSnow((double) delta_t, aero_resist,
           aero_resist_used, z2, displacement, Z0, wind, net_short, longwave,
           density, latent_heat_Le, air_temp, pressure * 1000., vpd * 1000.,
@@ -519,7 +519,7 @@ int ice_melt(double            z2,
     }
 
     else {
-      snow->surf_temp = 999;
+      snow->surf_temp = INVALID;
     }
 
   }

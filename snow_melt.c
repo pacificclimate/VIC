@@ -372,9 +372,9 @@ int snow_melt(double latent_heat_Le,
       else {
 	/* Thin snowpack must be solved in conjunction with ground surface energy balance */
 //        fprintf(stderr,"Snowpack is too thin to solve separately; it will be solved in conjunction with ground surface energy balance\n");
-	snow->surf_temp = 999;
+	snow->surf_temp = INVALID;
       }
-      if (snow->surf_temp > -998 && snow->surf_temp < 999) {
+      if (IS_VALID(snow->surf_temp) && snow->surf_temp > -998) {
         SnowPackEnergyBalance snowPackEnergyBalanceSurfTemp(delta_t, aero_resist, aero_resist_used,
 					 displacement, z2, Z0, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,
@@ -438,7 +438,7 @@ int snow_melt(double latent_heat_Le,
 /*     latent_heat_sub    = 0.0; */
 /*     sensible_heat      = 0.0; */
 /*     snow->vapor_flux   = 0.0; */
-    snow->surf_temp = 999;
+    snow->surf_temp = INVALID;
   }
 
   /* Done with iteration etc, now Update the liquid water content of the

@@ -369,7 +369,7 @@ double solve_snow(char                 overstory,
       if(snow->swq > 0.) {
 
 	/** Calculate Snow Density **/
-	if ( snow->surf_temp <= 0 )
+	if ( IS_VALID(snow->surf_temp) && snow->surf_temp <= 0 )
 	  // snowpack present, compress and age density
 	  snow->density = snow_density(snow, snowfall[WET], old_swq, Tgrnd, air_temp, (double)dt, state);
 	else 
