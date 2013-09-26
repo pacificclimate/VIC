@@ -356,7 +356,7 @@ int snow_intercept(double  Dt,
     /* No snow in canopy */
     *AlbedoOver = bare_albedo;
     *NetShortOver = (1. - *AlbedoOver) * ShortOverIn; // net SW in canopy
-    Qnet = -9999;
+    Qnet = INVALID;
     Tupper = (*Tfoliage) + SNOW_DT;
     Tlower = (*Tfoliage) - SNOW_DT;
 

@@ -199,7 +199,7 @@ double solve_snow(char                 overstory,
   }
 
   /** If first iteration, set UnderStory index **/
-  if ( *UnderStory == 999 ) {
+  if ( IS_INVALID(*UnderStory) ) {
     if ( snow->swq > 0 || snowfall[WET] > 0 ) *UnderStory = 2; // snow covered
     else *UnderStory = 0; // understory bare
   }

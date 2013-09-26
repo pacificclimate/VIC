@@ -289,16 +289,7 @@ int surface_fluxes(char                 overstory,
   // handle bisection of understory solution
   double store_tol_under;
   double A_tol_under;
-  double B_tol_under;
   double A_snow_flux;
-  double B_snow_flux;
-
-  // handle bisection of overstory solution
-  double store_tol_over;
-  double A_tol_over;
-  double B_tol_over;
-  double A_Tcanopy;
-  double B_Tcanopy;
 
   step_aero_resist = (double**) calloc(N_PET_TYPES, sizeof(double*));
   for (p = 0; p < N_PET_TYPES; p++) {
@@ -448,15 +439,13 @@ int surface_fluxes(char                 overstory,
     VPDcanopy = atmos->vpd[hidx];
 
     over_iter = 0;
-    tol_over = 999;
+    tol_over = INVALID;
 
-    last_Tcanopy = 999;
-    last_snow_flux = 999;
+    last_Tcanopy = INVALID;
+    last_snow_flux = INVALID;
 
     // initialize bisection startup
     BISECT_OVER = FALSE;
-    A_tol_over = 999;
-    B_tol_over = 999;
 
     // Compute mass flux of blowing snow
     if (!overstory && state->options.BLOWING && step_snow.swq > 0.) {
@@ -482,20 +471,15 @@ int surface_fluxes(char                 overstory,
       last_tol_over = tol_over;
 
       under_iter = 0;
-      tol_under = 999;
-      UnderStory = 999;
+      tol_under = INVALID;
+      UnderStory = INVALID_INT;
 
       UNSTABLE_CNT = 0;
 
       // bisect understory
       BISECT_UNDER = FALSE;
-      A_tol_under = 999;
-      B_tol_under = 999;
-      store_tol_under = 999;
-
-      A_tol_over = 999;
-      B_tol_over = 999;
-      store_tol_over = 999;
+      A_tol_under = INVALID;
+      store_tol_under = INVALID;
 
       do {
 
@@ -504,15 +488,13 @@ int surface_fluxes(char                 overstory,
         under_iter++;
         last_tol_under = tol_under;
 
-        if (last_Tcanopy != 999)
+        if (IS_VALID(last_Tcanopy))
           Tcanopy = (last_Tcanopy + Tcanopy) / 2.;
         last_Tcanopy = Tcanopy;
-        A_tol_over = store_tol_over;
-        A_Tcanopy = Tcanopy;
 
         // update understory energy balance terms for iteration
-        if (last_snow_flux != 999) {
-          if ((fabs(store_tol_under) > fabs(A_tol_under) && A_tol_under != 999
+        if (IS_VALID(last_snow_flux)) {
+          if ((fabs(store_tol_under) > fabs(A_tol_under) && IS_VALID(A_tol_under)
               && fabs(store_tol_under - A_tol_under) > 1.) || tol_under < 0) { // stepped the correct way
             UNSTABLE_CNT++;
             if (UNSTABLE_CNT > 3 || tol_under < 0)
@@ -673,14 +655,12 @@ int surface_fluxes(char                 overstory,
           tol_under = fabs(store_tol_under);
         }
         if (fabs(tol_under - last_tol_under) < GRND_TOL && tol_under > 1.)
-          tol_under = -999;
+          tol_under = INVALID;
 
         // compute overstory tolerance
         if (overstory && iter_snow.snow) {
-          store_tol_over = Tcanopy - last_Tcanopy;
-          tol_over = fabs(store_tol_over);
+          tol_over = fabs(Tcanopy - last_Tcanopy);
         } else {
-          store_tol_over = 0;
           tol_over = 0;
         }
 
