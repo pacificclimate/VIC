@@ -615,10 +615,10 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   if(!(state->param_set.TYPE[TMAX].SUPPLIED && state->param_set.TYPE[TMIN].SUPPLIED)) {
     for (int day=0; day<Ndays_local; day++) {
-      tmax[day] = tmin[day] = -9999;
+      tmax[day] = tmin[day] = INVALID;
       for (int hour = 0; hour < 24; hour++) {
-        if ( hour >= 9 && ( tmax[day] == -9999 || local_forcing_data[AIR_TEMP][hour] > tmax[day] ) ) tmax[day] = local_forcing_data[AIR_TEMP][hour];
-        if ( hour < 12 && ( tmin[day] == -9999 || local_forcing_data[AIR_TEMP][hour] < tmin[day] ) ) tmin[day] = local_forcing_data[AIR_TEMP][hour];
+        if ( hour >= 9 && ( IS_INVALID(tmax[day]) || local_forcing_data[AIR_TEMP][hour] > tmax[day] ) ) tmax[day] = local_forcing_data[AIR_TEMP][hour];
+        if ( hour < 12 && ( IS_INVALID(tmin[day]) || local_forcing_data[AIR_TEMP][hour] < tmin[day] ) ) tmin[day] = local_forcing_data[AIR_TEMP][hour];
       }
     }
   }

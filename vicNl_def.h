@@ -139,11 +139,17 @@
 
 //Using the C style "Not A Number" conventions, this will not work if -ffast-math is used
 #define INVALID NAN
-#define IS_INVALID(a) isnan(a)
-#define IS_VALID(a) !isnan(a)
+//#define IS_INVALID(a) isnan(a)
+//#define IS_VALID(a) !isnan(a)
+inline bool IS_INVALID(float a) { return isnan(a); }
+inline bool IS_VALID(float a) { return !isnan(a); }
+inline bool IS_INVALID(double a) { return isnan(a); }
+inline bool IS_VALID(double a) { return !isnan(a); }
 #define INVALID_INT INT_MIN
-#define IS_INVALID_INT(a) (a == INVALID_INT)
-#define IS_VALID_INT(a) (!IS_INVALID_INT(a))
+inline bool IS_INVALID(int a) { return a == INVALID_INT; }
+inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
+//#define IS_INVALID_INT(a) (a == INVALID_INT)
+//#define IS_VALID_INT(a) (!IS_INVALID_INT(a))
 
 /***** Met file formats *****/
 #define ASCII 1
@@ -1376,7 +1382,7 @@ struct WriteDebug {
       double precipitation_mu, int Nveg, int veg, int rec, const int gridcell,
       int dist, char NEWCELL, const ProgramState *state);
 private:
-  short int   FIRST;
+  bool        FIRST;
   double    **MOIST_ERROR;
   double     *INIT_MOIST;
   double     *ENERGY_ERROR;

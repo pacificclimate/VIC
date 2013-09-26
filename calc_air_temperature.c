@@ -183,7 +183,7 @@ void set_max_min_hour(double *hourlyrad,
       if (hourlyrad[i*24+hour] <= 0 && hourlyrad[i*24+hour-1] > 0)
 	sethour = hour;
     }
-    if (IS_VALID_INT(risehour) && IS_VALID_INT(sethour)) {
+    if (IS_VALID(risehour) && IS_VALID(sethour)) {
       tmaxhour[i] = 0.67 * (sethour - risehour) + risehour;
       tminhour[i] = risehour - 1;
     }

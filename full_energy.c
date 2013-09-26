@@ -316,8 +316,8 @@ int  full_energy(char                 NEWCELL,
 
         /* Initialize wind speeds */
         tmp_wind[0] = atmos->wind[state->NR];
-        tmp_wind[1] = -999.; /* MPN:  FIXME:  Find crap like this and SET AS NaN */
-        tmp_wind[2] = -999.;
+        tmp_wind[1] = INVALID;
+        tmp_wind[2] = INVALID;
 
         /* Set surface descriptive variables */
         if (p < N_PET_TYPES_NON_NAT) {

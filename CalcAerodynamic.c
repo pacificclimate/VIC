@@ -236,11 +236,11 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
   if ( tmp_wind > 0. ) {
     U[0] *= tmp_wind;
     Ra[0] /= tmp_wind;
-    if(U[1]!=-999) {
+    if(IS_VALID(U[1])) {
       U[1] *= tmp_wind;
       Ra[1] /= tmp_wind;
     }
-    if(U[2]!=-999) {
+    if(IS_VALID(U[2])) {
       U[2] *= tmp_wind;
       Ra[2] /= tmp_wind;
     }
@@ -248,10 +248,10 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
   else {
     U[0] *= tmp_wind;
     Ra[0] = HUGE_RESIST;
-    if(U[1]!=-999)
+    if(IS_VALID(U[1]))
       U[1] *= tmp_wind;
     Ra[1] = HUGE_RESIST;
-    if(U[2]!=-999)
+    if(IS_VALID(U[2]))
       U[2] *= tmp_wind;
     Ra[2] = HUGE_RESIST;
   }

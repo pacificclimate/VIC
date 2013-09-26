@@ -30,7 +30,7 @@ double compute_zwt(soil_con_struct  *soil_con,
   }
   if (i == MAX_ZWTVMOIST-1) {
     if (moist < soil_con->zwtvmoist_moist[lindex][i])
-      zwt = 999; // 999 indicates water table not present in this layer
+      zwt = INVALID; // INVALID indicates water table not present in this layer
     else if (moist == soil_con->zwtvmoist_moist[lindex][i])
       zwt = soil_con->zwtvmoist_zwt[lindex][i]; // Just barely enough water for a water table
   }
@@ -75,7 +75,7 @@ void wrap_compute_zwt(soil_con_struct  *soil_con,
   for (lindex=0; lindex<state->options.Nlayer; lindex++) {
     cell->layer[lindex].zwt = compute_zwt(soil_con, lindex, cell->layer[lindex].moist);
   }
-  if (cell->layer[state->options.Nlayer-1].zwt == 999) cell->layer[state->options.Nlayer-1].zwt = -total_depth*100; // in cm
+  if (IS_INVALID(cell->layer[state->options.Nlayer-1].zwt)) cell->layer[state->options.Nlayer-1].zwt = -total_depth*100; // in cm
 
   /** Compute total soil column's zwt1; this will be the zwt of the lowest layer that isn't completely saturated **/
   lindex = state->options.Nlayer-1;
@@ -86,7 +86,7 @@ void wrap_compute_zwt(soil_con_struct  *soil_con,
   }
   if (lindex < 0) cell->zwt = 0;
   else if (lindex < state->options.Nlayer-1) {
-    if (cell->layer[lindex].zwt != 999)
+    if (IS_VALID(cell->layer[lindex].zwt))
       cell->zwt = cell->layer[lindex].zwt;
     else
       cell->zwt = -tmp_depth*100;
@@ -101,7 +101,7 @@ void wrap_compute_zwt(soil_con_struct  *soil_con,
     tmp_moist += cell->layer[lindex].moist;
   }
   cell->zwt2 = compute_zwt(soil_con, state->options.Nlayer, tmp_moist);
-  if (cell->zwt2 == 999) cell->zwt2 = cell->layer[state->options.Nlayer-1].zwt;
+  if (IS_INVALID(cell->zwt2)) cell->zwt2 = cell->layer[state->options.Nlayer-1].zwt;
 
   /** Compute total soil column's zwt3; this will be the zwt of all N layers lumped together. **/
   tmp_moist = 0;
@@ -109,6 +109,6 @@ void wrap_compute_zwt(soil_con_struct  *soil_con,
     tmp_moist += cell->layer[lindex].moist;
   }
   cell->zwt3 = compute_zwt(soil_con, state->options.Nlayer+1, tmp_moist);
-  if (cell->zwt3 == 999) cell->zwt3 = -total_depth*100; // in cm;
+  if (IS_INVALID(cell->zwt3)) cell->zwt3 = -total_depth*100; // in cm;
 
 }
