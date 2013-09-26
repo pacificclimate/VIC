@@ -8,7 +8,7 @@ static char vcid[] = "$Id$";
 #if LINK_DEBUG
 
 WriteDebug::WriteDebug() :
-    FIRST(0), MOIST_ERROR(NULL), INIT_MOIST(NULL), ENERGY_ERROR(NULL), ENERGY_ERROR_CALC(
+    FIRST(true), MOIST_ERROR(NULL), INIT_MOIST(NULL), ENERGY_ERROR(NULL), ENERGY_ERROR_CALC(
         NULL), INFLOW(NULL), RUNOFF(NULL), BASEFLOW(NULL), EVAP(NULL), INSHORT(
         NULL), OUTSHORT(NULL), INLONG(NULL), OUTLONG(NULL), SENSIBLE(NULL), LATENT(
         NULL), GRND_FLUX(NULL), ADVECTION(NULL), DELTA_CC(NULL), SNOW_FLUX(
@@ -387,7 +387,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 
     /***** Moisture Profile Debugging Output *****/
 
-    if(FIRST != -999) {
+    if(FIRST) {
       fprintf(state->debug.fg_moist,"Date - hour(REC)        \tVeg Num\tDist Num");
       fprintf(state->debug.fg_moist,"\tT Air");
       fprintf(state->debug.fg_moist,"\tInflow\tRunoff");
@@ -451,7 +451,7 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
  
   }
 
-  FIRST = -999;
+  FIRST = false;
  
 }
 #endif
