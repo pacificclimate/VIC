@@ -342,7 +342,7 @@ int snow_melt(double latent_heat_Le,
             (double) (snow->surf_temp - SNOW_DT),
             (double) (snow->surf_temp + SNOW_DT), ErrorString);
       
-        if (snow->surf_temp <= -998) {
+        if (snowPackEnergyBalance.resultIsError(snow->surf_temp)) {
           if (state->options.TFALLBACK) {
             snow->surf_temp = *OldTSurf;
             snow->surf_temp_fbflag = 1;
@@ -374,7 +374,7 @@ int snow_melt(double latent_heat_Le,
 //        fprintf(stderr,"Snowpack is too thin to solve separately; it will be solved in conjunction with ground surface energy balance\n");
 	snow->surf_temp = INVALID;
       }
-      if (IS_VALID(snow->surf_temp) && snow->surf_temp > -998) {
+      if (IS_VALID(snow->surf_temp) && RootBrent::resultIsError(snow->surf_temp) == false) {
         SnowPackEnergyBalance snowPackEnergyBalanceSurfTemp(delta_t, aero_resist, aero_resist_used,
 					 displacement, z2, Z0, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,

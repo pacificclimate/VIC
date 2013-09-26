@@ -162,7 +162,7 @@ int initialize_model_state(dist_prcp_struct    *prcp,
   (*init_STILL_STORM) = (char *)malloc((Nveg+1)*sizeof(char));
   (*init_DRY_TIME)    = (int *)malloc((Nveg+1)*sizeof(int));
   for ( veg = 0 ; veg <= Nveg ; veg++ )
-    (*init_DRY_TIME)[veg] = -999;
+    (*init_DRY_TIME)[veg] = INVALID_INT;
   
   /********************************************
     Initialize all snow pack variables 

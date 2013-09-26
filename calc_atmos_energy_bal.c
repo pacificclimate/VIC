@@ -106,7 +106,7 @@ double calc_atmos_energy_bal(double  InOverSensible,
            SensibleHeat);
   Tcanopy = atmosEnergyBalanceIterative.root_brent(T_lower, T_upper, ErrorString);
 
-  if ( Tcanopy <= -998 ) {
+  if ( atmosEnergyBalanceIterative.resultIsError(Tcanopy) ) {
     if (state->options.TFALLBACK) {
       Tcanopy = Tair;
       *Tcanopy_fbflag = 1;

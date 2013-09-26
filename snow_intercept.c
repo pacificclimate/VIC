@@ -377,7 +377,7 @@ int snow_intercept(double  Dt,
 
     *Tfoliage = canopyEnergyBalance.root_brent(Tlower, Tupper, ErrorString);
     
-    if ( *Tfoliage <= -998 ) {
+    if (canopyEnergyBalance.resultIsError(*Tfoliage)) {
       if (state->options.TFALLBACK) {
         *Tfoliage = OldTfoliage;
         *Tfoliage_fbflag = 1;

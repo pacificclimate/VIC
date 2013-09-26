@@ -348,7 +348,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
         &energy->sensible, &energy->snow_flux, &energy->error, state);
     Tsurf = surfEnergyBalIterative.root_brent(T_lower, T_upper, ErrorString);
  
-    if(Tsurf <= -998 ) {  
+    if(surfEnergyBalIterative.resultIsError(Tsurf)) {
       if (state->options.TFALLBACK) {
         Tsurf = Ts_old;
         Tsurf_fbflag = 1;
@@ -438,7 +438,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       Tsurf = surfEnergyBalIter2.root_brent(T_lower, T_upper, ErrorString);
 
 
-      if(Tsurf <=  -998 ) {  
+      if(surfEnergyBalIter2.resultIsError(Tsurf)) {
         if (state->options.TFALLBACK) {
           Tsurf = Ts_old;
           Tsurf_fbflag = 1;

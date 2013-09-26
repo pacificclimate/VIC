@@ -428,7 +428,7 @@ int ice_melt(double            z2,
           (double) (snow->surf_temp + SNOW_DT), ErrorString);
 
 
-      if (snow->surf_temp <= -998) {
+      if (iceEnergyBalanceIteration.resultIsError(snow->surf_temp)) {
         if (state->options.TFALLBACK) {
           snow->surf_temp = OldTSurf;
           snow->surf_temp_fbflag = 1;
@@ -455,7 +455,7 @@ int ice_melt(double            z2,
 //        fprintf(stderr,"Snow/Ice layer is too thin to solve separately \n");
       snow->surf_temp = INVALID;
     }
-    if (IS_VALID(snow->surf_temp) && snow->surf_temp > -998) {
+    if (IS_VALID(snow->surf_temp) && RootBrent::resultIsError(snow->surf_temp) == false) {
       IceEnergyBalance iceEnergyBalSnow((double) delta_t, aero_resist,
           aero_resist_used, z2, displacement, Z0, wind, net_short, longwave,
           density, latent_heat_Le, air_temp, pressure * 1000., vpd * 1000.,

@@ -459,7 +459,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
         T[j] = soilThermalEqnIteration.root_brent(T0[j] - (SOIL_DT),
             T0[j] + (SOIL_DT), ErrorString);
 	
-	if(T[j] <= -998 ) {
+	if(soilThermalEqnIteration.resultIsError(T[j])) {
           if (state->options.TFALLBACK) {
             T[j] = T0[j];
             Tfbflag[j] = 1;
@@ -501,7 +501,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
         T[Nnodes - 1] = soilThermalEqnIteration.root_brent(
             T0[Nnodes - 1] - SOIL_DT, T0[Nnodes - 1] + SOIL_DT, ErrorString);
 	
-	if(T[j] <= -998 ) {
+	if(soilThermalEqnIteration.resultIsError(T[j])) {
           if (state->options.TFALLBACK) {
             T[j] = T0[j];
             Tfbflag[j] = 1;
