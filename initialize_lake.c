@@ -190,7 +190,7 @@ int initialize_lake (lake_var_struct   *lake,
   lake->snow.coverage          = 0.0;
   lake->snow.density           = 0.0;
   lake->snow.depth             = 0.0;
-  lake->snow.last_snow         = MISSING;
+  lake->snow.last_snow         = INVALID_INT;
   lake->snow.max_swq           = 0.0;
   lake->snow.MELTING           = FALSE;
   lake->snow.pack_temp         = 0.0;

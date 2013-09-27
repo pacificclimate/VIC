@@ -150,7 +150,7 @@ void ProgramState::initialize_global() {
   options.PREC_EXPT             = 0.6;
   options.QUICK_FLUX            = TRUE;
   options.QUICK_SOLVE           = FALSE;
-  options.ROOT_ZONES            = MISSING;
+  options.ROOT_ZONES            = INVALID_INT;
   options.SNOW_ALBEDO           = USACE;
   options.SNOW_BAND             = 1;
   options.SNOW_DENSITY          = DENS_BRAS;
@@ -210,10 +210,10 @@ void ProgramState::initialize_global() {
     param_set.TYPE[j].multiplier = 1;
   }
   for(int i=0;i<2;i++) {
-    param_set.FORCE_DT[i] = MISSING;
-    param_set.N_TYPES[i] = MISSING;
-    param_set.FORCE_FORMAT[i] = MISSING;
-    for(int j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = MISSING;
+    param_set.FORCE_DT[i] = INVALID_INT;
+    param_set.N_TYPES[i] = INVALID_INT;
+    param_set.FORCE_FORMAT[i] = INVALID_INT;
+    for(int j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = INVALID_INT;
   }
 
 }

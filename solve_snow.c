@@ -510,7 +510,7 @@ double solve_snow(char                 overstory,
       energy->latent          = 0.;
       energy->latent_sub      = 0.;
       energy->sensible        = 0.;
-      snow->last_snow         = MISSING;
+      snow->last_snow         = INVALID_INT;
       snow->store_swq         = 0;
       snow->store_coverage    = 1;
       snow->MELTING           = FALSE;
@@ -547,7 +547,7 @@ double solve_snow(char                 overstory,
     snow->store_swq      = 0;
     snow->store_coverage = 1;
     snow->MELTING        = FALSE;
-    snow->last_snow      = MISSING;
+    snow->last_snow      = INVALID_INT;
     snow->albedo         = NEW_SNOW_ALB;
   }
 

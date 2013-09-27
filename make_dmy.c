@@ -130,7 +130,7 @@ dmy_struct *make_dmy(global_param_struct *global, const ProgramState* state)
 
   /** Determine number of forcing records to skip before model start time **/
   for ( i = 0; i < 2; i++ ) {
-    if(state->param_set.FORCE_DT[i] != MISSING) {
+    if(IS_VALID(state->param_set.FORCE_DT[i])) {
       if(global->forceyear[i] > 0) {
 	tmpyear  = global->forceyear[i];
 	tmpmonth = global->forcemonth[i];

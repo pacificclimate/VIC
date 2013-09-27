@@ -321,7 +321,7 @@ int snow_intercept(double  Dt,
      temperature.  The outgoing longwave is subtracted twice, because the 
      canopy radiates in two directions */
 
-  Tupper = Tlower = MISSING;
+  Tupper = Tlower = INVALID;
 
   if ( *IntSnow > 0 || *SnowFall > 0 ) {
     /* Snow present or accumulating in the canopy */
@@ -362,7 +362,7 @@ int snow_intercept(double  Dt,
 
   }
 
-  if ( Tupper != MISSING && Tlower != MISSING ) {
+  if ( IS_VALID(Tupper) && IS_VALID(Tlower) ) {
 
     CanopyEnergyBal canopyEnergyBalance(band, month, rec, Dt,
         soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,

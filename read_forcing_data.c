@@ -32,7 +32,7 @@ double **read_forcing_data(FILE                **infile,
 			   sizeof(double));
 
   /** Read First Forcing Data File **/
-  if(state->param_set.FORCE_DT[0] > 0) {
+  if(IS_VALID(state->param_set.FORCE_DT[0]) && state->param_set.FORCE_DT[0] > 0) {
     read_atmos_data(infile[0], ncids[0], 0, global_param.forceskip[0],
 		    forcing_data, soil_con, state);
   }
@@ -42,7 +42,7 @@ double **read_forcing_data(FILE                **infile,
   }
 
   /** Read Second Forcing Data File **/
-  if(state->param_set.FORCE_DT[1] > 0) {
+  if(IS_VALID(state->param_set.FORCE_DT[1]) && state->param_set.FORCE_DT[1] > 0) {
     read_atmos_data(infile[1], ncids[1], 1, global_param.forceskip[1],
 		    forcing_data, soil_con, state);
   }

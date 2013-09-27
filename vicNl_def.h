@@ -132,24 +132,22 @@
 #define HUGE_RESIST  1.e20	/* largest allowable double number */
 #define SPVAL        1.e20	/* largest allowable double number - used to signify missing data */
 #define SMALL        1.e-12	/* smallest allowable double number */
-#define MISSING      -99999.	/* missing value for multipliers in BINARY format */
 #define LITTLE 1		/* little-endian flag */
 #define BIG 2			/* big-endian flag */
 #define ERROR -999              /* Error Flag returned by subroutines */
 
-//Using the C style "Not A Number" conventions, this will not work if -ffast-math is used
+//Using the C style "Not A Number" conventions, this will *not* work if you compile with -ffast-math
+//You cannot check for equality (x == INVALID) as this always returns false for any NAN. Use the IS_VALID() or IS_INVALID() functions below.
 #define INVALID NAN
-//#define IS_INVALID(a) isnan(a)
-//#define IS_VALID(a) !isnan(a)
+#define INVALID_INT INT_MIN
+
+//The compiler will automatically call the correct function based on the (overloaded) input type
 inline bool IS_INVALID(float a) { return isnan(a); }
 inline bool IS_VALID(float a) { return !isnan(a); }
 inline bool IS_INVALID(double a) { return isnan(a); }
 inline bool IS_VALID(double a) { return !isnan(a); }
-#define INVALID_INT INT_MIN
 inline bool IS_INVALID(int a) { return a == INVALID_INT; }
 inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
-//#define IS_INVALID_INT(a) (a == INVALID_INT)
-//#define IS_VALID_INT(a) (!IS_INVALID_INT(a))
 
 /***** Met file formats *****/
 #define ASCII 1

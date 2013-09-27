@@ -161,22 +161,22 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         } ;
 
   /** Initialize global parameters (that aren't part of the options struct) **/
-  global_param.dt            = MISSING;
-  global_param.nrecs         = MISSING;
-  global_param.startyear     = MISSING;
-  global_param.startmonth    = MISSING;
-  global_param.startday      = MISSING;
-  global_param.starthour     = MISSING;
-  global_param.endyear       = MISSING;
-  global_param.endmonth      = MISSING;
-  global_param.endday        = MISSING;
-  global_param.resolution    = MISSING;
+  global_param.dt            = INVALID_INT;
+  global_param.nrecs         = INVALID_INT;
+  global_param.startyear     = INVALID_INT;
+  global_param.startmonth    = INVALID_INT;
+  global_param.startday      = INVALID_INT;
+  global_param.starthour     = INVALID_INT;
+  global_param.endyear       = INVALID_INT;
+  global_param.endmonth      = INVALID_INT;
+  global_param.endday        = INVALID_INT;
+  global_param.resolution    = INVALID;
   global_param.MAX_SNOW_TEMP = 0;
   global_param.MIN_RAIN_TEMP = 0;
   global_param.measure_h     = 2.0;
   global_param.wind_h        = 10.0;
   for(i = 0; i < 2; i++) {
-    global_param.forceyear[i]  = MISSING;
+    global_param.forceyear[i]  = INVALID_INT;
     global_param.forcemonth[i] = 1;
     global_param.forceday[i]   = 1;
     global_param.forcehour[i]  = 0;
@@ -186,9 +186,9 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   file_num             = 0;
   global_param.skipyear      = 0;
   strcpy(names->init_state,   "MISSING");
-  global_param.stateyear     = MISSING;
-  global_param.statemonth    = MISSING;
-  global_param.stateday      = MISSING;
+  global_param.stateyear     = INVALID_INT;
+  global_param.statemonth    = INVALID_INT;
+  global_param.stateday      = INVALID_INT;
   strcpy(names->statefile,    "MISSING");
   strcpy(names->soil,         "MISSING");
   strcpy(names->soil_dir,     "MISSING");
@@ -197,7 +197,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->snowband,     "MISSING");
   strcpy(names->lakeparam,    "MISSING");
   strcpy(names->result_dir,   "MISSING");
-  global_param.out_dt        = MISSING;
+  global_param.out_dt        = INVALID_INT;
 
 
   // Open the file
@@ -757,7 +757,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   ******************************************/
 
   // Validate model time step
-  if (global_param.dt == MISSING)
+  if (IS_INVALID(global_param.dt))
     nrerror("Model time step has not been defined.  Make sure that the global file defines TIME_STEP.");
   else if (global_param.dt < 1) {
     sprintf(ErrStr,"The specified model time step (%d) < 1 hour.  Make sure that the global file defines a positive number of hours for TIME_STEP.",global_param.dt);
@@ -765,7 +765,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   }
 
   // Validate the output step
-  if (global_param.out_dt == 0 || global_param.out_dt == MISSING) {
+  if (global_param.out_dt == 0 || IS_INVALID(global_param.out_dt)) {
     global_param.out_dt = global_param.dt;
   }
   else if (global_param.out_dt < global_param.dt || global_param.out_dt > 24 || (float)global_param.out_dt/(float)global_param.dt != (float)(global_param.out_dt/global_param.dt)){
@@ -784,25 +784,25 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     NR = NF;
 
   // Validate simulation start date
-  if (global_param.startyear == MISSING)
+  if (IS_INVALID(global_param.startyear))
     nrerror("Simulation start year has not been defined.  Make sure that the global file defines STARTYEAR.");
   else if (global_param.startyear < 0) {
     sprintf(ErrStr,"The specified simulation start year (%d) < 0.  Make sure that the global file defines a positive integer for STARTYEAR.",global_param.startyear);
     nrerror(ErrStr);
   }
-  if (global_param.startmonth == MISSING)
+  if (IS_INVALID(global_param.startmonth))
     nrerror("Simulation start month has not been defined.  Make sure that the global file defines STARTMONTH.");
   else if (global_param.startmonth < 0) {
     sprintf(ErrStr,"The specified simulation start month (%d) < 0.  Make sure that the global file defines a positive integer for STARTMONTH.",global_param.startmonth);
     nrerror(ErrStr);
   }
-  if (global_param.startday == MISSING)
+  if (IS_INVALID(global_param.startday))
     nrerror("Simulation start day has not been defined.  Make sure that the global file defines STARTDAY.");
   else if (global_param.startday < 0) {
     sprintf(ErrStr,"The specified simulation start day (%d) < 0.  Make sure that the global file defines a positive integer for STARTDAY.",global_param.startday);
     nrerror(ErrStr);
   }
-  if (global_param.starthour == MISSING) {
+  if (IS_INVALID(global_param.starthour)) {
     if (global_param.dt == 24)
       global_param.starthour = 0;
     else
@@ -814,22 +814,22 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   }
 
   // Validate simulation end date and/or number of timesteps
-  if (global_param.nrecs == MISSING && global_param.endyear == MISSING && global_param.endmonth == MISSING && global_param.endday == MISSING)
+  if (IS_INVALID(global_param.nrecs) && IS_INVALID(global_param.endyear) && IS_INVALID(global_param.endmonth) && IS_INVALID(global_param.endday))
     nrerror("The model global file MUST define EITHER the number of records to simulate (NRECS), or the year (ENDYEAR), month (ENDMONTH), and day (ENDDAY) of the last full simulation day");
-  else if (global_param.nrecs == MISSING) {
-    if (global_param.endyear == MISSING)
+  else if (IS_INVALID(global_param.nrecs)) {
+    if (IS_INVALID(global_param.endyear))
       nrerror("Simulation end year has not been defined.  Make sure that the global file defines ENDYEAR.");
     else if (global_param.endyear < 0) {
       sprintf(ErrStr,"The specified simulation end year (%d) < 0.  Make sure that the global file defines a positive integer for ENDYEAR.",global_param.endyear);
       nrerror(ErrStr);
     }
-    if (global_param.endmonth == MISSING)
+    if (IS_INVALID(global_param.endmonth))
       nrerror("Simulation end month has not been defined.  Make sure that the global file defines ENDMONTH.");
     else if (global_param.endmonth < 0) {
       sprintf(ErrStr,"The specified simulation end month (%d) < 0.  Make sure that the global file defines a positive integer for ENDMONTH.",global_param.endmonth);
       nrerror(ErrStr);
     }
-    if (global_param.endday == MISSING)
+    if (IS_INVALID(global_param.endday))
       nrerror("Simulation end day has not been defined.  Make sure that the global file defines ENDDAY.");
     else if (global_param.endday < 0) {
       sprintf(ErrStr,"The specified simulation end day (%d) < 0.  Make sure that the global file defines a positive integer for ENDDAY.",global_param.endday);
@@ -851,26 +851,26 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   if ( strcmp ( names->f_path_pfx[0], "MISSING" ) == 0 )
     nrerror("No forcing file has been defined.  Make sure that the global file defines FORCING1.");
   for(i=0;i<2;i++) {
-    if ( i == 0 || (i == 1 && param_set.N_TYPES[i] != MISSING) ) {
-      if (param_set.N_TYPES[i] == MISSING) {
+    if ( i == 0 || (i == 1 && IS_VALID(param_set.N_TYPES[i])) ) {
+      if (IS_INVALID(param_set.N_TYPES[i])) {
         sprintf(ErrStr,"Need to specify the number forcing variables types in forcing file %d.", i);
         nrerror(ErrStr);
       }
-      if (param_set.FORCE_FORMAT[i] == MISSING) {
+      if (IS_INVALID(param_set.FORCE_FORMAT[i])) {
         sprintf(ErrStr,"Need to specify the INPUT_FORMAT (ASCII or BINARY) for forcing file %d.",i);
         nrerror(ErrStr);
       }
-      if (param_set.FORCE_INDEX[i][param_set.N_TYPES[i]-1] == MISSING) {
+      if (IS_INVALID(param_set.FORCE_INDEX[i][param_set.N_TYPES[i]-1])) {
         sprintf(ErrStr,"Did not define enough forcing variables in forcing file %d.",i);
         nrerror(ErrStr);
       }
-      if(param_set.FORCE_DT[i] == MISSING ) {
+      if(IS_INVALID(param_set.FORCE_DT[i])) {
         sprintf(ErrStr,"Must define time steps (FORCE_DT <dt>) in control file for focing file %d.",file_num);
         nrerror(ErrStr);
       }
     }
   }
-  if(param_set.N_TYPES[1] != MISSING && global_param.forceyear[1] == MISSING) {
+  if(IS_VALID(param_set.N_TYPES[1]) && IS_INVALID(global_param.forceyear[1])) {
     global_param.forceyear[1] = global_param.forceyear[0];
     global_param.forcemonth[1] = global_param.forcemonth[0];
     global_param.forceday[1] = global_param.forceday[0];
@@ -899,7 +899,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     nrerror("No vegetation parameter file has been defined.  Make sure that the global file defines the vegetation parameter file on the line that begins with \"VEGPARAM\".");
   if ( strcmp ( names->veglib, "MISSING" ) == 0 )
     nrerror("No vegetation library file has been defined.  Make sure that the global file defines the vegetation library file on the line that begins with \"VEGLIB\".");
-  if(options.ROOT_ZONES<0)
+  if(IS_INVALID(options.ROOT_ZONES) || options.ROOT_ZONES<0)
     nrerror("ROOT_ZONES must be defined to a positive integer greater than 0, in the global control file.");
   if (options.LAI_SRC == LAI_FROM_VEGPARAM && !options.VEGPARAM_LAI) {
       sprintf(ErrStr, "\"LAI_SRC\" was specified as \"LAI_FROM_VEGPARAM\", but \"VEGPARAM_LAI\" was set to \"FALSE\" in the global parameter file.  If you want VIC to read LAI values from the vegparam file, you MUST make sure the veg param file contains 1 line of 12 monthly LAI values for EACH veg tile in EACH grid cell, and you MUST specify \"VEGPARAM_LAI\" as \"TRUE\" in the global parameter file.  Alternatively, if you want VIC to read LAI values from the veg library file, set \"LAI_SRC\" ro \"LAI_FROM_VEGLIB\" in the global parameter file.  In either case, the setting of \"VEGPARAM_LAI\" must be consistent with the contents of the veg param file (i.e. whether or not it contains LAI values).");
@@ -932,7 +932,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   if( options.SAVE_STATE ) {
     if ( strcmp ( names->statefile, "MISSING" ) == 0)
       nrerror("\"SAVE_STATE\" was specified, but no output state file has been defined.  Make sure that the global file defines the output state file on the line that begins with \"SAVE_STATE\".");
-    if ( global_param.stateyear == MISSING || global_param.statemonth == MISSING || global_param.stateday == MISSING )  {
+    if ( IS_INVALID(global_param.stateyear) || IS_INVALID(global_param.statemonth) || IS_INVALID(global_param.stateday) )  {
       sprintf(ErrStr,"Incomplete specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
       nrerror(ErrStr);
     }
@@ -1014,7 +1014,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     }
     if ( strcmp ( names->lakeparam, "MISSING" ) == 0 )
       nrerror("\"LAKES\" was specified, but no lake parameter file has been defined.  Make sure that the global file defines the lake parameter file on the line that begins with \"LAKES\".");
-    if (global_param.resolution == 0) {
+    if (IS_INVALID(global_param.resolution) || global_param.resolution == 0) {
       sprintf(ErrStr, "The model grid cell resolution (RESOLUTION) must be defined in the global control file when the lake model is active.");
       nrerror(ErrStr);
     }
@@ -1041,7 +1041,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   fprintf(stderr,"Time Step = %d hour(s)\n",global_param.dt);
   fprintf(stderr,"Simulation start date = %02i/%02i/%04i\n",
 	  global_param.startday, global_param.startmonth, global_param.startyear);
-  if ( global_param.nrecs > 0 )
+  if (IS_VALID(global_param.nrecs) && global_param.nrecs > 0 )
     fprintf(stderr,"Number of Records = %d\n\n",global_param.nrecs);
   else 
     fprintf(stderr,"Simulation end date = %02i/%02i/%04i\n\n",

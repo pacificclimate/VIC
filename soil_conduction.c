@@ -862,8 +862,8 @@ void find_0_degree_fronts(energy_bal_struct *energy,
   /* Initialize parameters */
   Nthaw = Nfrost = 0;
   for(fidx=0;fidx<MAX_FRONTS;fidx++) {
-    fdepth[fidx] = MISSING;
-    tdepth[fidx] = MISSING;
+    fdepth[fidx] = INVALID;
+    tdepth[fidx] = INVALID;
   }
 
   /* find 0 degree fronts */

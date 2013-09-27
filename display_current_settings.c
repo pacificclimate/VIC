@@ -313,7 +313,7 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"\n");
   fprintf(stderr,"Input Forcing Data:\n");
   for (file_num=0; file_num<2; file_num++) {
-    if (global_param.forceyear[file_num] > 0) {
+    if (IS_VALID(global_param.forceyear[file_num]) && global_param.forceyear[file_num] > 0) {
       fprintf(stderr,"Forcing File %d:\t\t%s*\n",file_num+1,names->f_path_pfx[file_num]);
       fprintf(stderr,"FORCEYEAR\t\t%d\n",global_param.forceyear[file_num]);
       fprintf(stderr,"FORCEMONTH\t\t%d\n",global_param.forcemonth[file_num]);

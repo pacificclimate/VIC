@@ -181,11 +181,11 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       }
     }
 
-    veg_class = MISSING;
+    veg_class = INVALID_INT;
     for(j=0;j<Nveg_type;j++)
       if(temp[i].veg_class == state->veg_lib[j].veg_class)
 	veg_class = j;
-    if(veg_class == MISSING) {
+    if(IS_INVALID(veg_class)) {
       sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", temp[i].veg_class, i, gridcel);
       nrerror(ErrStr);
     }
@@ -306,14 +306,14 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       }
 
       // Identify current vegetation class
-      veg_class = MISSING;
+      veg_class = INVALID_INT;
       for ( j = 0; j < Nveg_type; j++ ) {
         if(temp[vegetat_type_num].veg_class == state->veg_lib[j].veg_class) {
           veg_class = j;
           break;
         }
       }
-      if ( veg_class == MISSING ) {
+      if ( IS_INVALID(veg_class) ) {
         sprintf(ErrStr,"The vegetation class id %i defined for above-treeline from cell %i is not defined in the vegetation library file.", temp[vegetat_type_num].veg_class, gridcel);
         nrerror(ErrStr);
       }

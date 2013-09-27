@@ -646,7 +646,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       for(layer = 0; layer < state->options.Nlayer; layer++) {
         temp.bulk_density[layer] = (1-temp.organic[layer])*temp.bulk_dens_min[layer] + temp.organic[layer]*temp.bulk_dens_org[layer];
         temp.soil_density[layer] = (1-temp.organic[layer])*temp.soil_dens_min[layer] + temp.organic[layer]*temp.soil_dens_org[layer];
-        if (temp.resid_moist[layer] == MISSING)
+        if (IS_INVALID(temp.resid_moist[layer]))
             temp.resid_moist[layer] = RESID_MOIST;
         temp.porosity[layer] = 1.0 - temp.bulk_density[layer] / temp.soil_density[layer];
 #if !EXCESS_ICE

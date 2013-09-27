@@ -952,9 +952,9 @@ void collect_eb_terms(energy_bal_struct energy,
   /** record freezing and thawing front depths **/
   if(state->options.FROZEN_SOIL) {
     for(index = 0; index < MAX_FRONTS; index++) {
-      if(energy.fdepth[index] != MISSING)
+      if(IS_VALID(energy.fdepth[index]))
         out_data[OUT_FDEPTH].data[index] += energy.fdepth[index] * AreaFactor * 100.;
-      if(energy.tdepth[index] != MISSING)
+      if(IS_VALID(energy.tdepth[index]))
         out_data[OUT_TDEPTH].data[index] += energy.tdepth[index] * AreaFactor * 100.;
     }
   }

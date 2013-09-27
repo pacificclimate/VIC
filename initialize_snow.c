@@ -68,7 +68,7 @@ void initialize_snow (snow_data_struct **snow,
       snow[i][j].coverage          = 0.0;
       snow[i][j].density           = 0.0;
       snow[i][j].depth             = 0.0;
-      snow[i][j].last_snow         = MISSING;
+      snow[i][j].last_snow         = INVALID_INT;
       snow[i][j].max_swq           = 0.0;
       snow[i][j].MELTING           = FALSE;
       snow[i][j].pack_temp         = 0.0;
