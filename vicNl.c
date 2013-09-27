@@ -5,6 +5,7 @@
 #include <global.h>
 #include <assert.h>
 #include <omp.h>
+#include <unistd.h>
 
 static char vcid[] = "$Id$";
 
@@ -180,6 +181,27 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 } /* End Main Program */
 
+//This method produces a warning based on the number of cells, and the amount of available RAM on the computer
+//This warning is relevant only when running in image mode (where all cells should fit in memory).
+//If the model is just being run sequentially, then only a single cell is in memory at a time so
+//the amount of RAM available shouldn't be an issue (although it may still take a while).
+void sanityCheckNumberOfCells(const int nCells) {
+  long physicalPages = sysconf(_SC_PHYS_PAGES);
+  long pageSize = sysconf(_SC_PAGESIZE);
+  double GigsOfRam = (((double)physicalPages / 1024) * pageSize) / (1024 * 1024); //physicalPages * pageSize / (1024 * 3)
+  const double approxBytesPerCell = 96000; //excluding the atmos forcing data
+  double estimatedGigsOfRamUsed = approxBytesPerCell * nCells / (1024 * 1024 * 1024);
+  fprintf(stderr, "\nAvailable RAM: %f Gb, estimated amount required: %f Gb, for %d cells\n", GigsOfRam, estimatedGigsOfRamUsed, nCells);
+  if (estimatedGigsOfRamUsed > GigsOfRam) {
+    fprintf(stderr, "Only continue if you know what you are doing, or you are not running in image mode.\n");
+    fprintf(stderr, "Otherwise, consider running again using fewer cells.\nContinue anyways? [y/n] ");
+    char c = getchar();
+    if (c != 'y' && c != 'Y') {
+      exit(0);
+    }
+  }
+}
+
 cell_info_struct* readForcingData(int &ncells,
     filep_struct filep, filenames_struct filenames,
     dmy_struct* dmy, ProgramState& state) {
@@ -222,7 +244,7 @@ cell_info_struct* readForcingData(int &ncells,
       continue;
     }
   }
-
+  sanityCheckNumberOfCells(ncells);
   return cell_data_structs;
 }
 
