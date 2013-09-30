@@ -36,53 +36,55 @@ int  initialize_new_storm(cell_data_struct ***cell,
 
   /** Redistribute Soil Moisture **/
   for(layer = 0; layer < state->options.Nlayer; layer++) {
-
     for(band = 0; band < state->options.SNOW_BAND; band++) {
 
-      temp_wet = cell[WET][veg][band].layer[layer].moist;
-      temp_dry = cell[DRY][veg][band].layer[layer].moist;
+      cell_data_struct& cellWet = cell[WET][veg][band];
+      cell_data_struct& cellDry = cell[DRY][veg][band];
+
+      temp_wet = cellWet.layer[layer].moist;
+      temp_dry = cellDry.layer[layer].moist;
       error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu, new_mu);
       if(error) {
 	fprintf(stderr,"moist does not balance before new storm: %f -> %f record %i\n",
-		cell[WET][veg][band].layer[layer].moist * new_mu
-		+ cell[DRY][veg][band].layer[layer].moist * (1. - new_mu),
+		cellWet.layer[layer].moist * new_mu
+		+ cellDry.layer[layer].moist * (1. - new_mu),
 		temp_wet + temp_dry, rec);
 	return( ERROR );
       }
-      cell[WET][veg][band].layer[layer].moist = temp_wet;
-      cell[DRY][veg][band].layer[layer].moist = temp_dry;
+      cellWet.layer[layer].moist = temp_wet;
+      cellDry.layer[layer].moist = temp_dry;
       
 #if SPATIAL_FROST
       for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	temp_wet = cell[WET][veg][band].layer[layer].soil_ice[frost_area];
-	temp_dry = cell[DRY][veg][band].layer[layer].soil_ice[frost_area];
+	temp_wet = cellWet.layer[layer].soil_ice[frost_area];
+	temp_dry = cellDry.layer[layer].soil_ice[frost_area];
 #else
-	temp_wet = cell[WET][veg][band].layer[layer].soil_ice;
-	temp_dry = cell[DRY][veg][band].layer[layer].soil_ice;
+	temp_wet = cellWet.layer[layer].soil_ice;
+	temp_dry = cellDry.layer[layer].soil_ice;
 #endif
 	error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu, 
 					   new_mu);
 	if(error) {
 #if SPATIAL_FROST
 	  fprintf(stderr,"ice does not balance before new storm: %f -> %f record %i\n",
-		  cell[WET][veg][band].layer[layer].soil_ice[frost_area] * new_mu
-		  + cell[DRY][veg][band].layer[layer].soil_ice[frost_area] 
+		  cellWet.layer[layer].soil_ice[frost_area] * new_mu
+		  + cellDry.layer[layer].soil_ice[frost_area]
 	    * (1. - new_mu), temp_wet + temp_dry, rec);
 #else
 	  fprintf(stderr,"ice does not balance before new storm: %f -> %f record %i\n",
-		  cell[WET][veg][band].layer[layer].soil_ice * new_mu
-		  + cell[DRY][veg][band].layer[layer].soil_ice * (1. - new_mu),
+		  cellWet.layer[layer].soil_ice * new_mu
+		  + cellDry.layer[layer].soil_ice * (1. - new_mu),
 		  temp_wet + temp_dry, rec);
 #endif
 	  return( ERROR );
 	}
 #if SPATIAL_FROST
-	cell[WET][veg][band].layer[layer].soil_ice[frost_area] = temp_wet;
-	cell[DRY][veg][band].layer[layer].soil_ice[frost_area] = temp_dry;
+	cellWet.layer[layer].soil_ice[frost_area] = temp_wet;
+	cellDry.layer[layer].soil_ice[frost_area] = temp_dry;
       }
 #else
-	cell[WET][veg][band].layer[layer].soil_ice = temp_wet;
-	cell[DRY][veg][band].layer[layer].soil_ice = temp_dry;
+	cellWet.layer[layer].soil_ice = temp_wet;
+	cellDry.layer[layer].soil_ice = temp_dry;
 #endif 
     }
   }

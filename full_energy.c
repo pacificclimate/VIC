@@ -355,9 +355,10 @@ int  full_energy(char                 NEWCELL,
 
       /* Initialize final aerodynamic resistance values */
       for (band = 0; band < Nbands; band++) {
+        cell_data_struct& cellRef = prcp->cell[WET][iveg][band];
         if (soil_con->AreaFract[band] > 0) {
-          prcp->cell[WET][iveg][band].aero_resist[0] = aero_resist[N_PET_TYPES][0];
-          prcp->cell[WET][iveg][band].aero_resist[1] = aero_resist[N_PET_TYPES][1];
+          cellRef.aero_resist[0] = aero_resist[N_PET_TYPES][0];
+          cellRef.aero_resist[1] = aero_resist[N_PET_TYPES][1];
         }
       }
 
@@ -423,22 +424,22 @@ int  full_energy(char                 NEWCELL,
            ********************************************************/
           // Loop through distributed precipitation fractions
           for (dist = 0; dist < Ndist; dist++) {
-            prcp->cell[dist][iveg][band].rootmoist = 0;
-            prcp->cell[dist][iveg][band].wetness = 0;
+            cell_data_struct& cellRef = prcp->cell[dist][iveg][band];
+            cellRef.rootmoist = 0;
+            cellRef.wetness = 0;
             for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
               if (veg_con->root[lidx] > 0) {
-                prcp->cell[dist][iveg][band].rootmoist +=
-                    prcp->cell[dist][iveg][band].layer[lidx].moist;
+                cellRef.rootmoist += cellRef.layer[lidx].moist;
               }
 #if EXCESS_ICE
-              prcp->cell[dist][iveg][band].wetness += (prcp->cell[dist][iveg][band].layer[lidx].moist - soil_con->Wpwp[lidx])/(soil_con->effective_porosity[lidx]*soil_con->depth[lidx]*1000 - soil_con->Wpwp[lidx]);
+              cellRef.wetness += (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])/(soil_con->effective_porosity[lidx]*soil_con->depth[lidx]*1000 - soil_con->Wpwp[lidx]);
 #else
-              prcp->cell[dist][iveg][band].wetness +=
-                  (prcp->cell[dist][iveg][band].layer[lidx].moist - soil_con->Wpwp[lidx])
+              cellRef.wetness +=
+                  (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])
                       / (soil_con->porosity[lidx] * soil_con->depth[lidx] * 1000 - soil_con->Wpwp[lidx]);
 #endif
             }
-            prcp->cell[dist][iveg][band].wetness /= state->options.Nlayer;
+            cellRef.wetness /= state->options.Nlayer;
           }
         } /** End Loop Through Elevation Bands **/
       } /** End Full Energy Balance Model **/
@@ -507,6 +508,7 @@ int  full_energy(char                 NEWCELL,
             Nbands = 1;
           }
           for(band = 0; band < Nbands; band++) { //band
+            cell_data_struct& cellRef = prcp->cell[dist][iveg][band];
             if(soil_con->AreaFract[band] > 0) {
               for ( dist = 0; dist < Ndist; dist++ ) { // wet/dry
                 if(dist==0)
@@ -516,15 +518,15 @@ int  full_energy(char                 NEWCELL,
 #if SPATIAL_FROST
                 tmp_ice = 0;
                 for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) { //frost area
-                  tmp_ice += (prcp->cell[dist][iveg][band].layer[lidx].ice[frost_area]
+                  tmp_ice += (cellRef.layer[lidx].ice[frost_area]
                       * soil_con->frost_fract[frost_area]);
-                  ice_layer = prcp->cell[dist][iveg][band].layer[lidx].ice[frost_area];
+                  ice_layer = cellRef.layer[lidx].ice[frost_area];
                   if(ice_layer>=max_ice_layer)
                   max_ice_layer = ice_layer;
                 } // frost area
 #else //SPATIAL_FROST
-                tmp_ice = prcp->cell[dist][iveg][band].layer[lidx].soil_ice;
-                ice_layer = prcp->cell[dist][iveg][band].layer[lidx].soil_ice;
+                tmp_ice = cellRef.layer[lidx].soil_ice;
+                ice_layer = cellRef.layer[lidx].soil_ice;
                 if(ice_layer>=max_ice_layer)
                 max_ice_layer = ice_layer;
 #endif //SPATIAL_FROST
@@ -722,26 +724,26 @@ int  full_energy(char                 NEWCELL,
 
             // Loop through distributed precipitation fractions
             for (dist = 0; dist < 2; dist++) {
-
+              cell_data_struct& cellRef = prcp->cell[dist][iveg][band];
               if (dist == 0)
                 tmp_mu = prcp->mu[iveg];
               else
                 tmp_mu = 1. - prcp->mu[iveg];
 
               if (veg_con[iveg].LAKE) {
-                wetland_runoff += (prcp->cell[dist][iveg][band].runoff * tmp_mu * Cv
+                wetland_runoff += (cellRef.runoff * tmp_mu * Cv
                     * soil_con->AreaFract[band]);
-                wetland_baseflow += (prcp->cell[dist][iveg][band].baseflow * tmp_mu
+                wetland_baseflow += (cellRef.baseflow * tmp_mu
                     * Cv * soil_con->AreaFract[band]);
-                prcp->cell[dist][iveg][band].runoff = 0;
-                prcp->cell[dist][iveg][band].baseflow = 0;
+                cellRef.runoff = 0;
+                cellRef.baseflow = 0;
               } else {
-                sum_runoff += (prcp->cell[dist][iveg][band].runoff * tmp_mu * Cv
+                sum_runoff += (cellRef.runoff * tmp_mu * Cv
                     * soil_con->AreaFract[band]);
-                sum_baseflow += (prcp->cell[dist][iveg][band].baseflow * tmp_mu * Cv
+                sum_baseflow += (cellRef.baseflow * tmp_mu * Cv
                     * soil_con->AreaFract[band]);
-                prcp->cell[dist][iveg][band].runoff *= (1 - lake_con->rpercent);
-                prcp->cell[dist][iveg][band].baseflow *= (1 - lake_con->rpercent);
+                cellRef.runoff *= (1 - lake_con->rpercent);
+                cellRef.baseflow *= (1 - lake_con->rpercent);
               }
             }
           }

@@ -257,63 +257,61 @@ void read_initial_model_state(FILE    *init_state,
       
       // Read both wet and dry fractions if using distributed precipitation
       for ( dist = 0; dist < Ndist; dist ++ ) {
-	
-	/* Read total soil moisture */
-	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
-	  if ( state->options.BINARY_STATE_FILE ) {
-	    if ( fread( &prcp->cell[dist][veg][band].layer[lidx].moist,
-			sizeof(double), 1, init_state ) != 1 )
-	      nrerror("End of model state file found unexpectedly");
-	  }
-	  else {
-	    if ( fscanf(init_state," %lf", 
-			&prcp->cell[dist][veg][band].layer[lidx].moist) == EOF ) 
-	      nrerror("End of model state file found unexpectedly");
-	  }
-	}
-	
+        cell_data_struct& cellRef = prcp->cell[dist][veg][band];
+        /* Read total soil moisture */
+        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+          if (state->options.BINARY_STATE_FILE) {
+            if (fread(&cellRef.layer[lidx].moist,
+                sizeof(double), 1, init_state) != 1)
+              nrerror("End of model state file found unexpectedly");
+          } else {
+            if (fscanf(init_state, " %lf",
+                &cellRef.layer[lidx].moist) == EOF)
+              nrerror("End of model state file found unexpectedly");
+          }
+        }
+
         /* Read average ice content */
-        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
 #error // SPATIAL_FROST is an untested code path. Continue at your own risk!
-	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    if ( state->options.BINARY_STATE_FILE ) {
-	      if ( fread( &prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area],
-			  sizeof(double), 1, init_state ) != 1 )
-		nrerror("End of model state file found unexpectedly");
-	    }
-	    else {
-	      if ( fscanf(init_state," %lf", 
-			  &prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area]) == EOF ) 
-	        nrerror("End of model state file found unexpectedly");
-	    }
-	  }
+          for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+            if ( state->options.BINARY_STATE_FILE ) {
+              if ( fread( &cellRef.layer[lidx].soil_ice[frost_area],
+                      sizeof(double), 1, init_state ) != 1 )
+              nrerror("End of model state file found unexpectedly");
+            }
+            else {
+              if ( fscanf(init_state," %lf",
+                      &cellRef.layer[lidx].soil_ice[frost_area]) == EOF )
+              nrerror("End of model state file found unexpectedly");
+            }
+          }
 #else
-	  if ( state->options.BINARY_STATE_FILE ) {
-	    if ( fread( &prcp->cell[dist][veg][band].layer[lidx].soil_ice, 
-			sizeof(double), 1, init_state ) != 1 )
-	      nrerror("End of model state file found unexpectedly");
-	  }
-	  else {
-	    if ( fscanf(init_state," %lf", 
-			&prcp->cell[dist][veg][band].layer[lidx].soil_ice) == EOF ) 
-	      nrerror("End of model state file found unexpectedly");
-	  }
+          if (state->options.BINARY_STATE_FILE) {
+            if (fread(&cellRef.layer[lidx].soil_ice,
+                sizeof(double), 1, init_state) != 1)
+              nrerror("End of model state file found unexpectedly");
+          } else {
+            if (fscanf(init_state, " %lf",
+                &cellRef.layer[lidx].soil_ice) == EOF)
+              nrerror("End of model state file found unexpectedly");
+          }
 #endif // SPATIAL_FROST
-	}
-	
-	/* Read dew storage */
-	if ( veg < Nveg ) {
-	  if ( state->options.BINARY_STATE_FILE ) {
-	    if ( fread( &prcp->veg_var[dist][veg][band].Wdew, sizeof(double), 1,
-			init_state ) != 1 ) 
-	      nrerror("End of model state file found unexpectedly");
-	  }
-	  else {
-	    if ( fscanf(init_state," %lf", &prcp->veg_var[dist][veg][band].Wdew) == EOF )
-	      nrerror("End of model state file found unexpectedly");
-	  }
-	}
+        }
+
+        /* Read dew storage */
+        if (veg < Nveg) {
+          if (state->options.BINARY_STATE_FILE) {
+            if (fread(&prcp->veg_var[dist][veg][band].Wdew, sizeof(double), 1,
+                init_state) != 1)
+              nrerror("End of model state file found unexpectedly");
+          } else {
+            if (fscanf(init_state, " %lf",
+                &prcp->veg_var[dist][veg][band].Wdew) == EOF)
+              nrerror("End of model state file found unexpectedly");
+          }
+        }
       }
       
       /* Read snow data */

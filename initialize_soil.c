@@ -35,23 +35,28 @@ void initialize_soil (cell_data_struct **cell,
   
   for ( veg = 0 ; veg <= veg_num ; veg++) {
     for(band=0;band < state->options.SNOW_BAND;band++) {
-      cell[veg][band].baseflow = 0;
-      cell[veg][band].runoff = 0;
-      for(lindex=0;lindex < state->options.Nlayer;lindex++) {
-	cell[veg][band].layer[lindex].evap = 0;
-	cell[veg][band].layer[lindex].moist = soil_con->init_moist[lindex];
-        if (cell[veg][band].layer[lindex].moist > soil_con->max_moist[lindex]) cell[veg][band].layer[lindex].moist = soil_con->max_moist[ lindex];
-        tmp_moist[lindex] = cell[veg][band].layer[lindex].moist;
+
+      cell_data_struct& cellRef = cell[veg][band];
+
+      cellRef.baseflow = 0;
+      cellRef.runoff = 0;
+      for (lindex = 0; lindex < state->options.Nlayer; lindex++) {
+        cellRef.layer[lindex].evap = 0;
+        cellRef.layer[lindex].moist = soil_con->init_moist[lindex];
+        if (cellRef.layer[lindex].moist > soil_con->max_moist[lindex])
+          cellRef.layer[lindex].moist = soil_con->max_moist[lindex];
+        tmp_moist[lindex] = cellRef.layer[lindex].moist;
 #if SPATIAL_FROST
         for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
-          cell[veg][band].layer[lindex].soil_ice[frost_area] = 0;
+          cellRef.layer[lindex].soil_ice[frost_area] = 0;
         }
 #else
-        cell[veg][band].layer[lindex].soil_ice = 0;
+        cellRef.layer[lindex].soil_ice = 0;
 #endif
       }
-      compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cell[veg][band].asat), &tmp_runoff, state);
-      wrap_compute_zwt(soil_con, &(cell[veg][band]), state);
+      compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cellRef.asat),
+          &tmp_runoff, state);
+      wrap_compute_zwt(soil_con, &(cellRef), state);
     }
   }
 

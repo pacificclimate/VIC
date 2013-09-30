@@ -250,11 +250,10 @@ void write_model_state(dist_prcp_struct    *prcp,
       }
       
       for ( dist = 0; dist < Ndist; dist ++ ) {
-	// Store both wet and dry fractions if using distributed precipitation
-
+        cell_data_struct& cellRef = prcp->cell[dist][veg][band];
 	/* Write total soil moisture */
 	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
-	  tmpval = prcp->cell[dist][veg][band].layer[lidx].moist; /* MPN */
+	  tmpval = cellRef.layer[lidx].moist; /* MPN */
 	  if ( state->options.BINARY_STATE_FILE )
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  else
@@ -266,7 +265,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 #if SPATIAL_FROST
 #error
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice[frost_area];
+	    tmpval = cellRef.layer[lidx].soil_ice[frost_area];
 	    if ( state->options.BINARY_STATE_FILE ) {
 	      fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	    }
@@ -275,7 +274,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 	    }
 	  }
 #else
-	  tmpval = prcp->cell[dist][veg][band].layer[lidx].soil_ice;
+	  tmpval = cellRef.layer[lidx].soil_ice;
 	  if ( state->options.BINARY_STATE_FILE ) {
 	    fwrite( &tmpval, sizeof(double), 1, filep->statefile );
 	  }
