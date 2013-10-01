@@ -125,6 +125,7 @@
 #include <cmath>
 #include <limits>
 #include <climits>
+#include <vector>
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -1253,19 +1254,38 @@ typedef struct {
 } lake_var_struct;
 
 /*****************************************************************
+  This structure joins together data which was accessed in the
+  same way (as a 2d array [veg][band]). Since the data is specific
+  to a certain veg/band index, it has been joined together in a unified
+  structure. For compatibility, vegIndex, and bandIndex are also stored.
+*****************************************************************/
+struct HRUElement {
+  cell_data_struct cell[2]; /* Stores soil layer variables (wet and dry) */
+  energy_bal_struct energy; /* Stores energy balance variables */
+  snow_data_struct snow; /* Stores snow variables */
+  veg_var_struct veg_var[2]; /* Stores vegetation variables (wet and dry) */
+  int vegIndex;
+  int bandIndex;
+};
+
+/*****************************************************************
   This structure stores all variables needed to solve, or save 
   solututions for all versions of this model.  Vegetation and soil
   variables are created for both wet and dry fractions of the grid
   cell (for use with the distributed precipitation model).
 *****************************************************************/
-typedef struct {
-  cell_data_struct  **cell[2];    /* Stores soil layer variables (wet and dry) */
+struct dist_prcp_struct{
+  dist_prcp_struct(int nBands) : NUM_BANDS(nBands) {}
   double             *mu;         /* fraction of grid cell that receives precipitation */
-  energy_bal_struct **energy;     /* Stores energy balance variables */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
-  snow_data_struct  **snow;       /* Stores snow variables */
-  veg_var_struct    **veg_var[2]; /* Stores vegetation variables (wet and dry) */
-} dist_prcp_struct;
+  std::vector<HRUElement> hruElements;
+  const int NUM_BANDS;
+
+  HRUElement* getHRUElement(int veg, int band) {
+    int index = (veg * NUM_BANDS) + band;
+    return &hruElements[index];
+  }
+};
 
 /*******************************************************
   This structure stores moisture state information for

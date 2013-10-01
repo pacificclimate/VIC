@@ -341,26 +341,21 @@ int initialize_model_state(dist_prcp_struct *, const dmy_struct, filep_struct,
     int, int, int, int, double, soil_con_struct *, veg_con_struct *,
     lake_con_struct, char **, int **, const ProgramState*);
 
-int    initialize_new_storm(cell_data_struct ***, veg_var_struct ***,
+int    initialize_new_storm(std::vector<HRUElement>&,
 			    int, int, int, double, double, const ProgramState *);
-void   initialize_snow(snow_data_struct **, int, int, const ProgramState*);
-void   initialize_soil(cell_data_struct **, soil_con_struct *, veg_con_struct *, int, const ProgramState*);
-void initialize_veg(veg_var_struct **, veg_con_struct *, int,
-    const ProgramState*);
+void   initialize_snow(std::vector<HRUElement>&);
+void   initialize_soil(std::vector<HRUElement>&, int, soil_con_struct *, veg_con_struct *, int, const ProgramState*);
+void initialize_veg(std::vector<HRUElement>&, int);
 
 void   latent_heat_from_snow(double, double, double, double, double, 
                              double, double, double *, double *, 
                              double *, double *, double *);
 double linear_interp(double,double,double,double,double);
 
-cell_data_struct **make_cell_data(int, int, const int);
 dist_prcp_struct make_dist_prcp(int, const int, const int);
 dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
-energy_bal_struct **make_energy_bal(int, const int);
 void make_in_files(filep_struct *, filenames_struct *, soil_con_struct *, const ProgramState*);
 void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, out_data_file_struct *, const ProgramState*);
-snow_data_struct **make_snow_data(int, const int);
-veg_var_struct **make_veg_var(int, const int);
 void   MassRelease(double *,double *,double *,double *);
 double maximum_unfrozen_water(double, double, double, double, double, double);
 double maximum_unfrozen_water_quick(double, double, double **);
@@ -398,7 +393,7 @@ soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
 veg_con_struct *read_vegparam(FILE *, int, int, const ProgramState*);
-int redistribute_during_storm(cell_data_struct ***, veg_var_struct ***, int,
+int redistribute_during_storm(std::vector<HRUElement>&, int,
       int, int, double, double, double, double *, const ProgramState*);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
 			     double *, double *, double *, int);

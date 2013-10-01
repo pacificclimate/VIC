@@ -26,18 +26,22 @@ dist_prcp_struct make_dist_prcp(int  nveg, const int NUM_LAYERS, const int NUM_S
 **********************************************************************/
 {
   dist_prcp_struct temp;
-  int              i;
   int              Nitems;
 
   Nitems = nveg + 1;
 
   temp.mu     = (double *)calloc(Nitems,sizeof(double));
-  for ( i = 0; i < Nitems; i++ ) temp.mu[i] = 1;
-  temp.snow   = make_snow_data(Nitems, NUM_SNOW_BAND);
-  temp.energy = make_energy_bal(Nitems, NUM_SNOW_BAND);
-  for ( i = 0; i < 2; i++ ) {
-    temp.veg_var[i]  = make_veg_var(Nitems, NUM_SNOW_BAND);
-    temp.cell[i]     = make_cell_data(Nitems,NUM_LAYERS, NUM_SNOW_BAND);
+  for (int i = 0; i < Nitems; i++ ) temp.mu[i] = 1;
+
+  temp.hruElements.reserve(Nitems * NUM_SNOW_BAND);
+  for (int i = 0; i < Nitems; i++) {
+    for (int j = 0; j < NUM_SNOW_BAND; j++) {
+      HRUElement e;
+      e.vegIndex = i;
+      e.bandIndex = j;
+      e.energy.frozen = FALSE;
+      temp.hruElements.push_back(e);
+    }
   }
 
   return (temp);

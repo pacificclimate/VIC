@@ -22,28 +22,9 @@ void free_dist_prcp(dist_prcp_struct *prcp,
 
 **********************************************************************/
 {
-  int Ndist;
-  int i, j, Nitems;
+  int Ndist = 2;
+  int Nitems = Nveg + 1;
 
-  Ndist = 2;
-  Nitems = Nveg + 1;
-
-  for(i=0;i<Ndist;i++) {
-    for(j=0;j<Nitems;j++) {
-      free((char *)prcp[0].cell[i][j]);
-    }
-    free((char *)prcp[0].cell[i]);
-    for(j=0;j<Nitems;j++) 
-      free((char *)(*prcp).veg_var[i][j]);
-    free((char *)(*prcp).veg_var[i]);
-  }
-  for(j=0;j<Nitems;j++) {
-    free((char *)prcp[0].energy[j]);
-  }
-  free((char *)prcp[0].energy);
-  for(i=0;i<Nitems;i++)
-    free((char *)prcp[0].snow[i]);
-  free((char *)prcp[0].snow);
-  free((char *)prcp[0].mu);
+  free((char *)prcp->mu);
 
 }

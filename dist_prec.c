@@ -69,8 +69,7 @@ int  dist_prec(cell_info_struct* cell,
 
 **********************************************************************/
 
-  char ANY_SNOW[MAX_VEG];
-  int veg, i;
+  bool ANY_SNOW[MAX_VEG];
   int month;
   int ErrorFlag, ErrorFlag2;
   double Wdmax;
@@ -83,12 +82,26 @@ int  dist_prec(cell_info_struct* cell,
      *******************************************/
 
     NEW_MU = 1.0 - exp(-state->options.PREC_EXPT * cell->atmos[time_step_record].prec[state->NR]);
-    for (veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
-      ANY_SNOW[veg] = FALSE;
-      for (i = 0; i < state->options.SNOW_BAND; i++)
-        /* Check for snow on ground or falling */
-        if (cell->prcp.snow[veg][i].swq > 0 || cell->prcp.snow[veg][i].snow_canopy > 0.)
-          ANY_SNOW[veg] = TRUE;
+
+    // Set up defaults of any snow to be false.
+    for (int i = 0; i < MAX_VEG; i++) {
+      ANY_SNOW[i] = false;
+    }
+    // If any band in a vegetation index contains snow then set ANY_SNOW to be true.
+    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+      /* Check for snow on ground or falling */
+      if (it->snow.swq > 0 || it->snow.snow_canopy > 0.) {
+        ANY_SNOW[it->vegIndex] = true;
+      }
+    }
+
+    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+      int veg = it->vegIndex;
+      //only loop over veg here (skipping bands)
+      if (it->bandIndex != 0) {
+        continue;
+      }
+
       if (ANY_SNOW[veg] || cell->atmos[time_step_record].snowflag[state->NR]) {
         /* If snow present, mu must be set to 1. */
         NEW_MU = 1.;
@@ -101,7 +114,7 @@ int  dist_prec(cell_info_struct* cell,
             cell->init_STILL_STORM[veg] = FALSE;
           cell->init_DRY_TIME[veg] = 0;
         }
-        ANY_SNOW[veg] = TRUE;
+        ANY_SNOW[veg] = true;
       } else {
         if (time_step_record == 0) {
           if (cell->atmos[time_step_record].prec[state->NR] == 0) {
@@ -128,10 +141,9 @@ int  dist_prec(cell_info_struct* cell,
         }
       }
 
-      if (!cell->init_STILL_STORM[veg]
-          && (cell->atmos[time_step_record].prec[state->NR] > STORM_THRES || ANY_SNOW[veg])) {
+      if (!cell->init_STILL_STORM[veg] && (cell->atmos[time_step_record].prec[state->NR] > STORM_THRES || ANY_SNOW[veg])) {
         /** Average soil moisture before a new storm **/
-        ErrorFlag = initialize_new_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
+        ErrorFlag = initialize_new_storm(cell->prcp.hruElements, veg,
             cell->veg_con[0].vegetat_type_num, time_step_record, cell->prcp.mu[veg], NEW_MU, state);
         if (ErrorFlag == ERROR)
           return (ERROR);
@@ -150,7 +162,7 @@ int  dist_prec(cell_info_struct* cell,
           Wdmax = state->veg_lib[cell->veg_con[veg].veg_class].Wdmax[month];
         else
           Wdmax = 0;
-        redistribute_during_storm(cell->prcp.cell, cell->prcp.veg_var, veg,
+        redistribute_during_storm(cell->prcp.hruElements, veg,
             cell->veg_con[0].vegetat_type_num, time_step_record, Wdmax, cell->prcp.mu[veg], NEW_MU,
             cell->soil_con.max_moist, state);
         cell->prcp.mu[veg] = NEW_MU;

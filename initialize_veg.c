@@ -4,10 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_veg(veg_var_struct      **veg_var,
-		    veg_con_struct       *veg_con,
-		    int                    Nveg,
-		    const ProgramState    *state)
+void initialize_veg(std::vector<HRUElement>& elements, int dist)
 /**********************************************************************
   initialize_veg		Dag Lohmann	 January 1996
 
@@ -23,10 +20,8 @@ void initialize_veg(veg_var_struct      **veg_var,
 
 **********************************************************************/
 {
-  for (int i = 0 ; i < Nveg ; i++) {
-    for (int j = 0 ; j < state->options.SNOW_BAND ; j++ ) {
-      veg_var[i][j].Wdew = 0.0;
-      veg_var[i][j].throughfall = 0.0;
-    }
+  for (std::vector<HRUElement>::iterator it = elements.begin(); it != elements.end(); ++it) {
+    it->veg_var[dist].Wdew = 0.0;
+    it->veg_var[dist].throughfall = 0.0;
   }
 }

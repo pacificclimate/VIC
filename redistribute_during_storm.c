@@ -5,8 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-int  redistribute_during_storm(cell_data_struct ***cell,
-			       veg_var_struct   ***veg_var,
+int  redistribute_during_storm(std::vector<HRUElement>& hruElements,
 			       int                 veg,
 			       int                 Nveg,
 			       int                 rec,
@@ -36,87 +35,89 @@ int  redistribute_during_storm(cell_data_struct ***cell,
   unsigned char error;
   char          ErrorString[MAXSTRING];
   int           layer;
-  int           band;
   int           frost_area;
   double        temp_wet;
   double        temp_dry;
 
   /** Redistribute Soil Moisture **/
-  for(layer = 0; layer < state->options.Nlayer; layer++) {
-    for(band = 0; band < state->options.SNOW_BAND; band++) {
+  for (std::vector<HRUElement>::iterator it = hruElements.begin(); it != hruElements.end(); ++it) {
+    // Only loop over bands for this specific veg index.
+    if (it->vegIndex == veg) {
+      for (layer = 0; layer < state->options.Nlayer; layer++) {
 
-      cell_data_struct& cellWet = cell[WET][veg][band];
-      cell_data_struct& cellDry = cell[DRY][veg][band];
+        cell_data_struct& cellWet = it->cell[WET];
+        cell_data_struct& cellDry = it->cell[DRY];
 
-      temp_wet = cellWet.layer[layer].moist;
-      temp_dry = cellDry.layer[layer].moist;
-      error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, 
-					      max_moist[layer], old_mu, 
-					      new_mu);
-      if(error) {
-	fprintf(stderr,"%s: Error in moist accounting %f -> %f record %i\n",
-		__FILE__,cellWet.layer[layer].moist*old_mu
-		+ cellDry.layer[layer].moist*(1.-old_mu),
-		temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
-	return( ERROR );
-      }
-      cellWet.layer[layer].moist = temp_wet;
-      cellDry.layer[layer].moist = temp_dry;
-      
-#if SPATIAL_FROST
-      for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	temp_wet = cellWet.layer[layer].soil_ice[frost_area];
-	temp_dry = cellDry.layer[layer].soil_ice[frost_area];
-#else
-	temp_wet = cellWet.layer[layer].soil_ice;
-	temp_dry = cellDry.layer[layer].soil_ice;
-#endif
-	error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, 
-						max_moist[layer], old_mu, 
-						new_mu);
-	if(error) {
-#if SPATIAL_FROST
-	  fprintf(stderr,"%s: Error in ice accounting %f -> %f record %i\n",
-		  __FILE__,cellWet.layer[layer].soil_ice[frost_area]
-		  *old_mu + cellDry.layer[layer].soil_ice[frost_area]
-		  *(1.-old_mu), temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
-#else
-	  fprintf(stderr,"%s: Error in ice accounting %f -> %f record %i\n",
-		  __FILE__,cellWet.layer[layer].soil_ice*old_mu
-		  + cellDry.layer[layer].soil_ice*(1.-old_mu),
-		  temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
-#endif
-	  return( ERROR );
-	}
-#if SPATIAL_FROST
-	cellWet.layer[layer].soil_ice[frost_area] = temp_wet;
-	cellDry.layer[layer].soil_ice[frost_area] = temp_dry;
-      }
-#else
-      cellWet.layer[layer].soil_ice = temp_wet;
-      cellDry.layer[layer].soil_ice = temp_dry;
-#endif
-    }
-  }
+        temp_wet = cellWet.layer[layer].moist;
+        temp_dry = cellDry.layer[layer].moist;
+        error = redistribute_moisture_for_storm(&temp_wet, &temp_dry,
+            max_moist[layer], old_mu, new_mu);
+        if (error) {
+          fprintf(stderr, "%s: Error in moist accounting %f -> %f record %i\n",
+              __FILE__,
+              cellWet.layer[layer].moist * old_mu
+                  + cellDry.layer[layer].moist * (1. - old_mu),
+              temp_wet * new_mu + temp_dry * (1. - new_mu), rec);
+          return (ERROR);
+        }
+        cellWet.layer[layer].moist = temp_wet;
+        cellDry.layer[layer].moist = temp_dry;
 
-  /****************************************
-    Redistribute Stored Water in Vegetation
-  ****************************************/
-  if(veg < Nveg) {
-    for(band = 0; band < state->options.SNOW_BAND; band++) {
-      temp_wet = veg_var[WET][veg][band].Wdew;
-      temp_dry = veg_var[DRY][veg][band].Wdew;
-      error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, Wdmax, 
-					      old_mu, new_mu);
-      if(error) {
-	fprintf(stderr,"%s: Error in Wdew accounting %f -> %f record %i\n",
-		__FILE__, veg_var[WET][veg][band].Wdew * old_mu
-		+ veg_var[DRY][veg][band].Wdew * (1. - old_mu),
-		temp_wet * new_mu + temp_dry * (1. - new_mu), rec);
-	return( ERROR );
+#if SPATIAL_FROST
+        for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+          temp_wet = cellWet.layer[layer].soil_ice[frost_area];
+          temp_dry = cellDry.layer[layer].soil_ice[frost_area];
+#else
+        temp_wet = cellWet.layer[layer].soil_ice;
+        temp_dry = cellDry.layer[layer].soil_ice;
+#endif
+        error = redistribute_moisture_for_storm(&temp_wet, &temp_dry,
+            max_moist[layer], old_mu, new_mu);
+        if (error) {
+#if SPATIAL_FROST
+          fprintf(stderr,"%s: Error in ice accounting %f -> %f record %i\n",
+              __FILE__,cellWet.layer[layer].soil_ice[frost_area]
+              *old_mu + cellDry.layer[layer].soil_ice[frost_area]
+              *(1.-old_mu), temp_wet*new_mu+temp_dry*(1.-new_mu),rec);
+#else
+          fprintf(stderr, "%s: Error in ice accounting %f -> %f record %i\n",
+              __FILE__,
+              cellWet.layer[layer].soil_ice * old_mu
+                  + cellDry.layer[layer].soil_ice * (1. - old_mu),
+              temp_wet * new_mu + temp_dry * (1. - new_mu), rec);
+#endif
+          return (ERROR);
+        }
+#if SPATIAL_FROST
+        cellWet.layer[layer].soil_ice[frost_area] = temp_wet;
+        cellDry.layer[layer].soil_ice[frost_area] = temp_dry;
       }
-      veg_var[WET][veg][band].Wdew = temp_wet;
-      veg_var[DRY][veg][band].Wdew = temp_dry;
+#else
+        cellWet.layer[layer].soil_ice = temp_wet;
+        cellDry.layer[layer].soil_ice = temp_dry;
+#endif
+      }
+
+      /****************************************
+       Redistribute Stored Water in Vegetation
+       ****************************************/
+      if (veg < Nveg) {
+        temp_wet = it->veg_var[WET].Wdew;
+        temp_dry = it->veg_var[DRY].Wdew;
+        error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, Wdmax,
+            old_mu, new_mu);
+        if (error) {
+          fprintf(stderr, "%s: Error in Wdew accounting %f -> %f record %i\n",
+              __FILE__,
+              it->veg_var[WET].Wdew * old_mu
+                  + it->veg_var[DRY].Wdew * (1. - old_mu),
+              temp_wet * new_mu + temp_dry * (1. - new_mu), rec);
+          return (ERROR);
+        }
+        it->veg_var[WET].Wdew = temp_wet;
+        it->veg_var[DRY].Wdew = temp_dry;
+      }
+
     }
   }
   return(0);

@@ -4,10 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_snow (snow_data_struct **snow, 
-		      int                veg_num,
-		      int                cellnum,
-		      const ProgramState* state)
+void initialize_snow (std::vector<HRUElement>& elements)
 /**********************************************************************
 	initialize_snow		Keith Cherkauer		January 22, 1997
 
@@ -59,41 +56,39 @@ void initialize_snow (snow_data_struct **snow,
 
 **********************************************************************/
 {
-  for (int i = 0 ; i <= veg_num ; i++ ) {
-    for (int j = 0 ; j < state->options.SNOW_BAND ; j++ ) {
+  for (std::vector<HRUElement>::iterator it = elements.begin(); it != elements.end(); ++it) {
       // State vars
-      snow[i][j].albedo            = 0.0;
-      snow[i][j].canopy_albedo     = 0.0;
-      snow[i][j].coldcontent       = 0.0;
-      snow[i][j].coverage          = 0.0;
-      snow[i][j].density           = 0.0;
-      snow[i][j].depth             = 0.0;
-      snow[i][j].last_snow         = INVALID_INT;
-      snow[i][j].max_swq           = 0.0;
-      snow[i][j].MELTING           = FALSE;
-      snow[i][j].pack_temp         = 0.0;
-      snow[i][j].pack_water        = 0.0;
-      snow[i][j].snow              = FALSE;
-      snow[i][j].snow_canopy       = 0.0;
-      snow[i][j].store_coverage    = 0.0;
-      snow[i][j].store_snow        = FALSE;
-      snow[i][j].store_swq         = 0.0;
-      snow[i][j].surf_temp         = 0.0;
-      snow[i][j].surf_temp_fbflag  = 0;
-      snow[i][j].surf_temp_fbcount = 0;
-      snow[i][j].surf_water        = 0.0;
-      snow[i][j].swq               = 0.0;
-      snow[i][j].swq_slope         = 0.0;
-      snow[i][j].tmp_int_storage   = 0.0;
+      it->snow.albedo            = 0.0;
+      it->snow.canopy_albedo     = 0.0;
+      it->snow.coldcontent       = 0.0;
+      it->snow.coverage          = 0.0;
+      it->snow.density           = 0.0;
+      it->snow.depth             = 0.0;
+      it->snow.last_snow         = INVALID_INT;
+      it->snow.max_swq           = 0.0;
+      it->snow.MELTING           = FALSE;
+      it->snow.pack_temp         = 0.0;
+      it->snow.pack_water        = 0.0;
+      it->snow.snow              = FALSE;
+      it->snow.snow_canopy       = 0.0;
+      it->snow.store_coverage    = 0.0;
+      it->snow.store_snow        = FALSE;
+      it->snow.store_swq         = 0.0;
+      it->snow.surf_temp         = 0.0;
+      it->snow.surf_temp_fbflag  = 0;
+      it->snow.surf_temp_fbcount = 0;
+      it->snow.surf_water        = 0.0;
+      it->snow.swq               = 0.0;
+      it->snow.swq_slope         = 0.0;
+      it->snow.tmp_int_storage   = 0.0;
       // Fluxes
-      snow[i][j].blowing_flux      = 0.0;
-      snow[i][j].canopy_vapor_flux = 0.0;
-      snow[i][j].mass_error        = 0.0;
-      snow[i][j].melt              = 0.0;
-      snow[i][j].Qnet              = 0.0;
-      snow[i][j].surface_flux      = 0.0;
-      snow[i][j].transport         = 0.0;
-      snow[i][j].vapor_flux        = 0.0;
-    }
+      it->snow.blowing_flux      = 0.0;
+      it->snow.canopy_vapor_flux = 0.0;
+      it->snow.mass_error        = 0.0;
+      it->snow.melt              = 0.0;
+      it->snow.Qnet              = 0.0;
+      it->snow.surface_flux      = 0.0;
+      it->snow.transport         = 0.0;
+      it->snow.vapor_flux        = 0.0;
   }
 }

@@ -87,8 +87,8 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	initialize_atmos.o initialize_model_state.o \
 	initialize_global.o initialize_new_storm.o initialize_snow.o \
 	initialize_soil.o initialize_veg.o latent_heat_from_snow.o \
-	make_cell_data.o make_dist_prcp.o make_dmy.o make_energy_bal.o \
-	make_in_and_outfiles.o make_snow_data.o make_veg_var.o massrelease.o \
+	make_dist_prcp.o make_dmy.o \
+	make_in_and_outfiles.o massrelease.o \
 	modify_Ksat.o mtclim_vic.o mtclim_wrapper.o newt_raph_func_fast.o nrerror.o \
 	open_debug.o open_file.o open_state_file.o \
 	output_list_utils.o parse_output_info.o penman.o \

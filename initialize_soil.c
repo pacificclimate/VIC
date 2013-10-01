@@ -4,7 +4,8 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_soil (cell_data_struct **cell, 
+void initialize_soil (std::vector<HRUElement>& elements,
+                      int                dist,
                       soil_con_struct   *soil_con,
                       veg_con_struct    *veg_con,
                       int                veg_num,
@@ -29,35 +30,33 @@ void initialize_soil (cell_data_struct **cell,
 	      asat and zwt.						TJB
 **********************************************************************/
 {
-  int veg, band, lindex, frost_area;
+  int lindex, frost_area;
   double tmp_moist[MAX_LAYERS];
   double tmp_runoff;
   
-  for ( veg = 0 ; veg <= veg_num ; veg++) {
-    for(band=0;band < state->options.SNOW_BAND;band++) {
+  for (std::vector<HRUElement>::iterator it = elements.begin();
+      it != elements.end(); ++it) {
 
-      cell_data_struct& cellRef = cell[veg][band];
+    cell_data_struct& cellRef = it->cell[dist];
 
-      cellRef.baseflow = 0;
-      cellRef.runoff = 0;
-      for (lindex = 0; lindex < state->options.Nlayer; lindex++) {
-        cellRef.layer[lindex].evap = 0;
-        cellRef.layer[lindex].moist = soil_con->init_moist[lindex];
-        if (cellRef.layer[lindex].moist > soil_con->max_moist[lindex])
-          cellRef.layer[lindex].moist = soil_con->max_moist[lindex];
-        tmp_moist[lindex] = cellRef.layer[lindex].moist;
+    cellRef.baseflow = 0;
+    cellRef.runoff = 0;
+    for (lindex = 0; lindex < state->options.Nlayer; lindex++) {
+      cellRef.layer[lindex].evap = 0;
+      cellRef.layer[lindex].moist = soil_con->init_moist[lindex];
+      if (cellRef.layer[lindex].moist > soil_con->max_moist[lindex])
+        cellRef.layer[lindex].moist = soil_con->max_moist[lindex];
+      tmp_moist[lindex] = cellRef.layer[lindex].moist;
 #if SPATIAL_FROST
-        for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
-          cellRef.layer[lindex].soil_ice[frost_area] = 0;
-        }
-#else
-        cellRef.layer[lindex].soil_ice = 0;
-#endif
+      for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
+        cellRef.layer[lindex].soil_ice[frost_area] = 0;
       }
-      compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cellRef.asat),
-          &tmp_runoff, state);
-      wrap_compute_zwt(soil_con, &(cellRef), state);
+#else
+      cellRef.layer[lindex].soil_ice = 0;
+#endif
     }
+    compute_runoff_and_asat(soil_con, tmp_moist, 0, &(cellRef.asat),
+        &tmp_runoff, state);
+    wrap_compute_zwt(soil_con, &(cellRef), state);
   }
-
 }

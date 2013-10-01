@@ -254,10 +254,10 @@ void read_initial_model_state(FILE    *init_state,
 	fprintf(stderr,"The vegetation and snow band indices in the model state file (veg = %d, band = %d) do not match those currently requested (veg = %d , band = %d).  Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n", iveg, iband, veg, band);
 	nrerror(ErrStr);
       }
-      
+      HRUElement* element = prcp->getHRUElement(veg, band);
       // Read both wet and dry fractions if using distributed precipitation
       for ( dist = 0; dist < Ndist; dist ++ ) {
-        cell_data_struct& cellRef = prcp->cell[dist][veg][band];
+        cell_data_struct& cellRef = element->cell[dist];
         /* Read total soil moisture */
         for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
           if (state->options.BINARY_STATE_FILE) {
@@ -303,12 +303,12 @@ void read_initial_model_state(FILE    *init_state,
         /* Read dew storage */
         if (veg < Nveg) {
           if (state->options.BINARY_STATE_FILE) {
-            if (fread(&prcp->veg_var[dist][veg][band].Wdew, sizeof(double), 1,
+            if (fread(&element->veg_var[dist].Wdew, sizeof(double), 1,
                 init_state) != 1)
               nrerror("End of model state file found unexpectedly");
           } else {
             if (fscanf(init_state, " %lf",
-                &prcp->veg_var[dist][veg][band].Wdew) == EOF)
+                &element->veg_var[dist].Wdew) == EOF)
               nrerror("End of model state file found unexpectedly");
           }
         }
@@ -316,67 +316,64 @@ void read_initial_model_state(FILE    *init_state,
       
       /* Read snow data */
       if ( state->options.BINARY_STATE_FILE ) {
-	if ( fread( &prcp->snow[veg][band].last_snow, sizeof(int), 1, 
+	if ( fread( &element->snow.last_snow, sizeof(int), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].MELTING, sizeof(char), 1, 
+	if ( fread( &element->snow.MELTING, sizeof(char), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].coverage, sizeof(double), 1, 
+	if ( fread( &element->snow.coverage, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].swq, sizeof(double), 1, 
+	if ( fread( &element->snow.swq, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].surf_temp, sizeof(double), 1, 
+	if ( fread( &element->snow.surf_temp, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].surf_water, sizeof(double), 1, 
+	if ( fread( &element->snow.surf_water, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].pack_temp, sizeof(double), 1, 
+	if ( fread( &element->snow.pack_temp, sizeof(double), 1,
 		    init_state ) != 1 ) 
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].pack_water, sizeof(double), 1, 
+	if ( fread( &element->snow.pack_water, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].density, sizeof(double), 1, 
+	if ( fread( &element->snow.density, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].coldcontent, sizeof(double), 1, 
+	if ( fread( &element->snow.coldcontent, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
-	if ( fread( &prcp->snow[veg][band].snow_canopy, sizeof(double), 1, 
+	if ( fread( &element->snow.snow_canopy, sizeof(double), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
       }
       else {
-	if ( fscanf(init_state," %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf", 
-		    &prcp->snow[veg][band].last_snow, &tmp_char,
-		    &prcp->snow[veg][band].coverage, &prcp->snow[veg][band].swq, 
-		    &prcp->snow[veg][band].surf_temp, &prcp->snow[veg][band].surf_water, 
-		    &prcp->snow[veg][band].pack_temp, &prcp->snow[veg][band].pack_water, 
-		    &prcp->snow[veg][band].density, &prcp->snow[veg][band].coldcontent, 
-		    &prcp->snow[veg][band].snow_canopy) 
-	     == EOF ) 
-	  nrerror("End of model state file found unexpectedly");
-	prcp->snow[veg][band].MELTING = (char)tmp_char;
+        if (fscanf(init_state, " %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+            &element->snow.last_snow, &tmp_char, &element->snow.coverage,
+            &element->snow.swq, &element->snow.surf_temp,
+            &element->snow.surf_water, &element->snow.pack_temp,
+            &element->snow.pack_water, &element->snow.density,
+            &element->snow.coldcontent, &element->snow.snow_canopy) == EOF)
+          nrerror("End of model state file found unexpectedly");
+        element->snow.MELTING = (char) tmp_char;
       }
-      if(prcp->snow[veg][band].density > 0.) 
-	prcp->snow[veg][band].depth = 1000. * prcp->snow[veg][band].swq 
-	  / prcp->snow[veg][band].density;
+      if (element->snow.density > 0.)
+        element->snow.depth = 1000. * element->snow.swq / element->snow.density;
       
       /* Read soil thermal node temperatures */
-      for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
-	if ( state->options.BINARY_STATE_FILE ) {
-	  if ( fread( &prcp->energy[veg][band].T[nidx], sizeof(double), 1,
-		      init_state ) != 1 )
-	    nrerror("End of model state file found unexpectedly");
-	}
-	else {
-	  if ( fscanf(init_state," %lf", &prcp->energy[veg][band].T[nidx]) == EOF )
-	    nrerror("End of model state file found unexpectedly");
-	}
+      for (nidx = 0; nidx < state->options.Nnode; nidx++) {
+        if (state->options.BINARY_STATE_FILE) {
+          if (fread(&element->energy.T[nidx], sizeof(double), 1,
+              init_state) != 1)
+            nrerror("End of model state file found unexpectedly");
+        } else {
+          if (fscanf(init_state, " %lf",
+              &element->energy.T[nidx]) == EOF)
+            nrerror("End of model state file found unexpectedly");
+        }
       }
     }
   }
@@ -386,24 +383,26 @@ void read_initial_model_state(FILE    *init_state,
       for ( dist = 0; dist < Ndist; dist ++ ) {
 	
 	/* Read total soil moisture */
-	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
-	  if ( fread( &prcp->lake_var.soil.layer[lidx].moist, sizeof(double), 1, init_state ) != 1 )
-	    nrerror("End of model state file found unexpectedly");
-	}
-	
+        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+          if (fread(&prcp->lake_var.soil.layer[lidx].moist, sizeof(double), 1,
+              init_state) != 1)
+            nrerror("End of model state file found unexpectedly");
+        }
+
         /* Read average ice content */
-        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
-	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-	    if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, init_state ) != 1 )
-		nrerror("End of model state file found unexpectedly");
-	  }
+          for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+            if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, init_state ) != 1 )
+            nrerror("End of model state file found unexpectedly");
+          }
 #else
-	  if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice, sizeof(double), 1, init_state ) != 1 )
-	    nrerror("End of model state file found unexpectedly");
+          if (fread(&prcp->lake_var.soil.layer[lidx].soil_ice, sizeof(double),
+              1, init_state) != 1)
+            nrerror("End of model state file found unexpectedly");
 #endif // SPATIAL_FROST
-	}
-	
+        }
+
       }
       
       /* Read snow data */
