@@ -12,7 +12,7 @@ int  full_energy(char                 NEWCELL,
                  dist_prcp_struct    *prcp,
                  const dmy_struct    *dmy,
                  lake_con_struct     *lake_con,
-                 soil_con_struct     *soil_con,
+                 soil_con_struct     *soil_con, //TODO: make this const
                  veg_con_struct      *veg_con,
                  WriteDebug          *writeDebug,
                  const ProgramState  *state)
@@ -222,15 +222,15 @@ int  full_energy(char                 NEWCELL,
    Solve Energy and/or Water Balance for Each
    Vegetation Type
    **************************************************/
-  for (iveg = 0; iveg <= Nveg; iveg++) {
+  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
 
     /** Solve Veg Type only if Coverage Greater than 0% **/
-    if (veg_con[iveg].Cv > 0.0) {
-      Cv = veg_con[iveg].Cv;
+    if (veg_con[it->vegIndex].Cv > 0.0) {
+      Cv = veg_con[it->vegIndex].Cv;
       Nbands = state->options.SNOW_BAND;
 
       /** Lake-specific processing **/
-      if (veg_con[iveg].LAKE) {
+      if (veg_con[it->vegIndex].LAKE) {
 
         /* Update areai to equal new ice area from previous time step. */
         prcp->lake_var.areai = prcp->lake_var.new_ice_area;
@@ -258,104 +258,110 @@ int  full_energy(char                 NEWCELL,
        Initialize Model Parameters
        **************************************************/
 
-      for (band = 0; band < Nbands; band++) {
-        if (soil_con->AreaFract[band] > 0) {
+      if (soil_con->AreaFract[it->bandIndex] > 0) {
 
-          /* Initialize prcp->energy balance variables */
-          prcp->energy[iveg][band].shortwave = 0;
-          prcp->energy[iveg][band].longwave = 0.;
+        /* Initialize prcp->energy balance variables */
+        it->energy.shortwave = 0;
+        it->energy.longwave = 0.;
 
-          /* Initialize snow variables */
-          prcp->snow[iveg][band].vapor_flux = 0.;
-          prcp->snow[iveg][band].canopy_vapor_flux = 0.;
-          snow_inflow[band] = 0.;
-          Melt[band * 2] = 0.;
+        /* Initialize snow variables */
+        it->snow.vapor_flux = 0.;
+        it->snow.canopy_vapor_flux = 0.;
+        snow_inflow[it->bandIndex] = 0.;
+        Melt[it->bandIndex * 2] = 0.;
 
-        }
       }
 
-      /* Initialize precipitation storage */
-      for (int j = 0; j < 2 * MAX_BANDS; j++) {
-        out_prec[j] = 0;
-        out_rain[j] = 0;
-        out_snow[j] = 0;
-      }
-
-      /** Define vegetation class number **/
-      veg_class = veg_con[iveg].veg_class;
-
-      /** Assign wind_h **/
-      /** Note: this is ignored below **/
-      wind_h = state->veg_lib[veg_class].wind_h;
-
-      /** Compute Surface Attenuation due to Vegetation Coverage **/
-      surf_atten = exp(
-          -state->veg_lib[veg_class].rad_atten
-              * state->veg_lib[veg_class].LAI[dmy[time_step_record].month - 1]);
-
-      /* Initialize soil thermal properties for the top two layers */
-      prepare_full_energy(iveg, Nveg, state->options.Nnode, prcp, soil_con, moist0, ice0, state);
-
-      /** Compute Bare (free of snow) Albedo **/
-      bare_albedo = state->veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
-
-      /*************************************
-       Compute the aerodynamic resistance
-       for current veg cover and various
-       types of potential evap
-       *************************************/
-
-      /* Loop over types of potential evap, plus current veg */
-      /* Current veg will be last */
-      for (int p = 0; p < N_PET_TYPES + 1; p++) {
-
-        /* Initialize wind speeds */
-        tmp_wind[0] = atmos->wind[state->NR];
-        tmp_wind[1] = INVALID;
-        tmp_wind[2] = INVALID;
-
-        /* Set surface descriptive variables */
-        if (p < N_PET_TYPES_NON_NAT) {
-          pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
-        } else {
-          pet_veg_class = veg_class;
+      if (it->bandIndex == 0) {
+        /* Initialize precipitation storage */
+        for (int j = 0; j < 2 * MAX_BANDS; j++) {
+          out_prec[j] = 0;
+          out_rain[j] = 0;
+          out_snow[j] = 0;
         }
-        displacement[0] =
-            state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
-        roughness[0] = state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month - 1];
-        overstory = state->veg_lib[pet_veg_class].overstory;
-        if (p >= N_PET_TYPES_NON_NAT)
-          if (roughness[0] == 0)
-            roughness[0] = soil_con->rough;
 
-        /* Estimate vegetation height */
-        height = calc_veg_height(displacement[0]);
+        /** Define vegetation class number **/
+        veg_class = veg_con[it->vegIndex].veg_class;
 
-        /* Estimate reference height */
-        if (displacement[0] < wind_h)
-          ref_height[0] = wind_h;
-        else
-          ref_height[0] = displacement[0] + wind_h + roughness[0];
+        /** Assign wind_h **/
+        /** Note: this is ignored below **/
+        wind_h = state->veg_lib[veg_class].wind_h;
 
-        /* Compute aerodynamic resistance over various surface types */
-        /* Do this not only for current veg but also all types of PET */
-        ErrorFlag = CalcAerodynamic(overstory, height,
-            state->veg_lib[pet_veg_class].trunk_ratio, soil_con->snow_rough,
-            soil_con->rough, state->veg_lib[pet_veg_class].wind_atten, aero_resist[p],
-            tmp_wind, displacement, ref_height, roughness);
-        if (ErrorFlag == ERROR)
-          return (ERROR);
+        /** Compute Surface Attenuation due to Vegetation Coverage **/
+        surf_atten =
+            exp(
+                -state->veg_lib[veg_class].rad_atten
+                    * state->veg_lib[veg_class].LAI[dmy[time_step_record].month
+                        - 1]);
+
+        /* Initialize soil thermal properties for the top two layers */
+        prepare_full_energy(it->vegIndex, Nveg, state->options.Nnode, prcp, soil_con,
+            moist0, ice0, state);
+
+        /** Compute Bare (free of snow) Albedo **/
+        bare_albedo =
+            state->veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
+
+        /*************************************
+         Compute the aerodynamic resistance
+         for current veg cover and various
+         types of potential evap
+         *************************************/
+
+        /* Loop over types of potential evap, plus current veg */
+        /* Current veg will be last */
+        for (int p = 0; p < N_PET_TYPES + 1; p++) {
+
+          /* Initialize wind speeds */
+          tmp_wind[0] = atmos->wind[state->NR];
+          tmp_wind[1] = INVALID;
+          tmp_wind[2] = INVALID;
+
+          /* Set surface descriptive variables */
+          if (p < N_PET_TYPES_NON_NAT) {
+            pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
+          } else {
+            pet_veg_class = veg_class;
+          }
+          displacement[0] =
+              state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month
+                  - 1];
+          roughness[0] =
+              state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month
+                  - 1];
+          overstory = state->veg_lib[pet_veg_class].overstory;
+          if (p >= N_PET_TYPES_NON_NAT)
+            if (roughness[0] == 0)
+              roughness[0] = soil_con->rough;
+
+          /* Estimate vegetation height */
+          height = calc_veg_height(displacement[0]);
+
+          /* Estimate reference height */
+          if (displacement[0] < wind_h)
+            ref_height[0] = wind_h;
+          else
+            ref_height[0] = displacement[0] + wind_h + roughness[0];
+
+          /* Compute aerodynamic resistance over various surface types */
+          /* Do this not only for current veg but also all types of PET */
+          int ErrorFlag = CalcAerodynamic(overstory, height,
+              state->veg_lib[pet_veg_class].trunk_ratio, soil_con->snow_rough,
+              soil_con->rough, state->veg_lib[pet_veg_class].wind_atten,
+              aero_resist[p], tmp_wind, displacement, ref_height, roughness);
+          if (ErrorFlag == ERROR)
+            return (ERROR);
+
+        }
 
       }
 
       /* Initialize final aerodynamic resistance values */
-      for (band = 0; band < Nbands; band++) {
-        cell_data_struct& cellRef = prcp->cell[WET][iveg][band];
-        if (soil_con->AreaFract[band] > 0) {
-          cellRef.aero_resist[0] = aero_resist[N_PET_TYPES][0];
-          cellRef.aero_resist[1] = aero_resist[N_PET_TYPES][1];
-        }
+      if (soil_con->AreaFract[it->bandIndex] > 0) {
+        it->cell[WET].aero_resist[0] = aero_resist[N_PET_TYPES][0];
+        it->cell[WET].aero_resist[1] = aero_resist[N_PET_TYPES][1];
       }
+
 
       /**************************************************
        Store Water Balance Terms for Debugging
@@ -364,17 +370,17 @@ int  full_energy(char                 NEWCELL,
 #if LINK_DEBUG
       if(state->debug.DEBUG || state->debug.PRT_MOIST || state->debug.PRT_BALANCE) {
         /** Compute current total moisture for water balance check **/
-        store_moisture_for_debug(iveg, Nveg, prcp->mu, prcp->cell,
-            prcp->veg_var, prcp->snow, soil_con, state);
-        if(state->debug.PRT_BALANCE) {
-          for(int j=0; j<Ndist; j++) {
-            for(band=0; band<Nbands; band++) {
-              if(soil_con->AreaFract[band] > 0) {
-                for(i=0; i<state->options.Nlayer+3; i++) {
-                  state->debug.inflow[j][band][i] = 0;
-                  state->debug.outflow[j][band][i] = 0;
-                }
+        if (it->bandIndex == 0) {
+          store_moisture_for_debug(it->vegIndex, Nveg, prcp->mu, prcp->hruElements, soil_con, state);
+        }
+        if (state->debug.PRT_BALANCE) {
+          for (int j = 0; j < Ndist; j++) {
+            if (soil_con->AreaFract[it->bandIndex] > 0) {
+              for (int i = 0; i < state->options.Nlayer + 3; i++) {
+                state->debug.inflow[j][it->bandIndex][i] = 0;
+                state->debug.outflow[j][it->bandIndex][i] = 0;
               }
+
             }
           }
         }
@@ -384,60 +390,61 @@ int  full_energy(char                 NEWCELL,
        Solve ground surface fluxes
        ******************************/
 
-      for (band = 0; band < Nbands; band++) {
-        if (soil_con->AreaFract[band] > 0) {
+      if (soil_con->AreaFract[it->bandIndex] > 0) {
 
-          lag_one = veg_con[iveg].lag_one;
-          sigma_slope = veg_con[iveg].sigma_slope;
-          fetch = veg_con[iveg].fetch;
+        lag_one = veg_con[it->vegIndex].lag_one;
+        sigma_slope = veg_con[it->vegIndex].sigma_slope;
+        fetch = veg_con[it->vegIndex].fetch;
 
-          /* Initialize pot_evap */
-          for (int p = 0; p < N_PET_TYPES; p++)
-            prcp->cell[WET][iveg][band].pot_evap[p] = 0;
+        /* Initialize pot_evap */
+        for (int p = 0; p < N_PET_TYPES; p++)
+          it->cell[WET].pot_evap[p] = 0;
 
-          ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[band], moist0[band],
-              SubsidenceUpdate, evap_prior[DRY][iveg][band],
-              evap_prior[WET][iveg][band],
-              prcp->mu[iveg], surf_atten, &(Melt[band * 2]), &latent_heat_Le, aero_resist,
-              displacement, gauge_correction, &out_prec[band * 2],
-              &out_rain[band * 2], &out_snow[band * 2], ref_height, roughness,
-              &snow_inflow[band], tmp_wind, veg_con[iveg].root, Nbands, Ndist,
-              state->options.Nlayer, Nveg, band, dp, iveg, time_step_record, veg_class, atmos, dmy,
-              &(prcp->energy[iveg][band]), &(prcp->cell[DRY][iveg][band]),
-              &(prcp->cell[WET][iveg][band]), &(prcp->snow[iveg][band]), soil_con,
-              &(prcp->veg_var[DRY][iveg][band]), &(prcp->veg_var[WET][iveg][band]), lag_one, sigma_slope, fetch, state);
+        ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[it->bandIndex],
+            moist0[it->bandIndex], SubsidenceUpdate, evap_prior[DRY][it->vegIndex][it->bandIndex],
+            evap_prior[WET][it->vegIndex][it->bandIndex], prcp->mu[it->vegIndex], surf_atten,
+            &(Melt[it->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
+            gauge_correction, &out_prec[it->bandIndex * 2], &out_rain[it->bandIndex * 2],
+            &out_snow[it->bandIndex * 2], ref_height, roughness, &snow_inflow[it->bandIndex],
+            tmp_wind, veg_con[it->vegIndex].root, Nbands, Ndist, state->options.Nlayer,
+            Nveg, it->bandIndex, dp, it->vegIndex, time_step_record, veg_class, atmos, dmy,
+            &(it->energy), &(it->cell[DRY]),
+            &(it->cell[WET]), &(it->snow), soil_con,
+            &(it->veg_var[DRY]),
+            &(it->veg_var[WET]), lag_one, sigma_slope, fetch,
+            state);
 
-          if (ErrorFlag == ERROR)
-            return (ERROR);
+        if (ErrorFlag == ERROR)
+          return (ERROR);
 
-          atmos->out_prec += out_prec[band * 2] * Cv * soil_con->AreaFract[band];
-          atmos->out_rain += out_rain[band * 2] * Cv * soil_con->AreaFract[band];
-          atmos->out_snow += out_snow[band * 2] * Cv * soil_con->AreaFract[band];
+        atmos->out_prec += out_prec[it->bandIndex * 2] * Cv * soil_con->AreaFract[it->bandIndex];
+        atmos->out_rain += out_rain[it->bandIndex * 2] * Cv * soil_con->AreaFract[it->bandIndex];
+        atmos->out_snow += out_snow[it->bandIndex * 2] * Cv * soil_con->AreaFract[it->bandIndex];
 
-          /********************************************************
-           Compute soil wetness and root zone soil moisture
-           ********************************************************/
-          // Loop through distributed precipitation fractions
-          for (dist = 0; dist < Ndist; dist++) {
-            cell_data_struct& cellRef = prcp->cell[dist][iveg][band];
-            cellRef.rootmoist = 0;
-            cellRef.wetness = 0;
-            for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
-              if (veg_con->root[lidx] > 0) {
-                cellRef.rootmoist += cellRef.layer[lidx].moist;
-              }
-#if EXCESS_ICE
-              cellRef.wetness += (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])/(soil_con->effective_porosity[lidx]*soil_con->depth[lidx]*1000 - soil_con->Wpwp[lidx]);
-#else
-              cellRef.wetness +=
-                  (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])
-                      / (soil_con->porosity[lidx] * soil_con->depth[lidx] * 1000 - soil_con->Wpwp[lidx]);
-#endif
+        /********************************************************
+         Compute soil wetness and root zone soil moisture
+         ********************************************************/
+        // Loop through distributed precipitation fractions
+        for (dist = 0; dist < Ndist; dist++) {
+          cell_data_struct& cellRef = it->cell[dist];
+          cellRef.rootmoist = 0;
+          cellRef.wetness = 0;
+          for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+            if (veg_con->root[lidx] > 0) {
+              cellRef.rootmoist += cellRef.layer[lidx].moist;
             }
-            cellRef.wetness /= state->options.Nlayer;
+#if EXCESS_ICE
+            cellRef.wetness += (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])/(soil_con->effective_porosity[lidx]*soil_con->depth[lidx]*1000 - soil_con->Wpwp[lidx]);
+#else
+            cellRef.wetness +=
+                (cellRef.layer[lidx].moist - soil_con->Wpwp[lidx])
+                    / (soil_con->porosity[lidx] * soil_con->depth[lidx] * 1000
+                        - soil_con->Wpwp[lidx]);
+#endif
           }
-        } /** End Loop Through Elevation Bands **/
-      } /** End Full Energy Balance Model **/
+          cellRef.wetness /= state->options.Nlayer;
+        }
+      }
 
       /****************************
        Controls Debugging Output
@@ -446,31 +453,34 @@ int  full_energy(char                 NEWCELL,
 
       for(int j = 0; j < Ndist; j++) {
         if(j == 0)
-        tmp_mu = prcp->mu[iveg];
+        tmp_mu = prcp->mu[it->vegIndex];
         else
-        tmp_mu = 1. - prcp->mu[iveg];
+        tmp_mu = 1. - prcp->mu[it->vegIndex];
         /** for debugging water balance: [0] = vegetation,
          [1] = ground prcp->snow, [2..Nlayer+1] = soil layers **/
-        if(state->debug.PRT_BALANCE) {
-          for(band = 0; band < Nbands; band++) {
-            if(soil_con->AreaFract[band] > 0) {
-              state->debug.inflow[j][band][state->options.Nlayer+2] += out_prec[j+band*2] * soil_con->Pfactor[band];
-              state->debug.inflow[j][band][0] = 0.;
-              state->debug.inflow[j][band][1] = 0.;
-              state->debug.outflow[j][band][0] = 0.;
-              state->debug.outflow[j][band][1] = 0.;
-              state->debug.inflow[j][band][0] += out_prec[j+band*2] * soil_con->Pfactor[band];
-              state->debug.outflow[j][band][0] += prcp->veg_var[j][iveg][band].throughfall;
-              if(j == 0)
-              state->debug.inflow[j][band][1] += snow_inflow[band];
-              state->debug.outflow[j][band][1] += Melt[band*2+j];
-            }
-          } /** End loop through elevation bands **/
+        if (state->debug.PRT_BALANCE) {
+          if (soil_con->AreaFract[it->bandIndex] > 0) {
+            state->debug.inflow[j][it->bandIndex][state->options.Nlayer + 2] +=
+                out_prec[j + it->bandIndex * 2] * soil_con->Pfactor[it->bandIndex];
+            state->debug.inflow[j][it->bandIndex][0] = 0.;
+            state->debug.inflow[j][it->bandIndex][1] = 0.;
+            state->debug.outflow[j][it->bandIndex][0] = 0.;
+            state->debug.outflow[j][it->bandIndex][1] = 0.;
+            state->debug.inflow[j][it->bandIndex][0] += out_prec[j + it->bandIndex * 2]
+                * soil_con->Pfactor[it->bandIndex];
+            state->debug.outflow[j][it->bandIndex][0] +=
+                it->veg_var[j].throughfall;
+            if (j == 0)
+              state->debug.inflow[j][it->bandIndex][1] += snow_inflow[it->bandIndex];
+            state->debug.outflow[j][it->bandIndex][1] += Melt[it->bandIndex * 2 + j];
+          }
+
         }
 
-        writeDebug->write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
-            prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[time_step_record]), out_short,
-            tmp_mu, Nveg, iveg, time_step_record, gridcell, j, NEWCELL, state);
+        //TODO: convert debug struct into local per element information!
+        //writeDebug->write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
+        //prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[time_step_record]), out_short,
+        //tmp_mu, Nveg, iveg, time_step_record, gridcell, j, NEWCELL, state);
       }
 #endif // LINK_DEBUG
     } /** end current vegetation type **/
@@ -703,23 +713,21 @@ int  full_energy(char                 NEWCELL,
     // Loop through all vegetation tiles
     for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
 
-      if (it->bandIndex == 0) {
-        /** Solve Veg Tile only if Coverage Greater than 0% **/
-        if (veg_con[it->vegIndex].Cv > 0.) {
+      /** Solve Veg Tile only if Coverage Greater than 0% **/
+      if (veg_con[it->vegIndex].Cv > 0.) {
 
-          Cv = veg_con[it->vegIndex].Cv;
-          Nbands = state->options.SNOW_BAND;
-          if (veg_con[it->vegIndex].LAKE) {
-            Cv *= (1 - lakefrac);
-            Nbands = 1;
-          }
+        Cv = veg_con[it->vegIndex].Cv;
+        Nbands = state->options.SNOW_BAND;
+        if (veg_con[it->vegIndex].LAKE) {
+          Cv *= (1 - lakefrac);
+          Nbands = 1;
         }
 
         // For each of the prcp->snow elevation bands
         if (soil_con->AreaFract[it->bandIndex] > 0) {
 
           // Loop through distributed precipitation fractions
-          for (dist = 0; dist < Ndist; dist++) {
+          for (dist = 0; dist < 2; dist++) {
             cell_data_struct& cellRef = it->cell[dist];
             if (dist == 0)
               tmp_mu = prcp->mu[it->vegIndex];
@@ -779,7 +787,9 @@ int  full_energy(char                 NEWCELL,
        Solve the water budget for the lake.
      **********************************************************************/
 
-    ErrorFlag = water_balance(&(prcp->lake_var), *lake_con, state->global_param.dt, prcp, time_step_record, lake_con->lake_idx, 0, lakefrac, *soil_con,
+    ErrorFlag = water_balance(&(prcp->lake_var), *lake_con,
+        state->global_param.dt, prcp, time_step_record,
+        prcp->getHRUElement(lake_con->lake_idx, 0), lakefrac, *soil_con,
         *veg_con, SubsidenceUpdate, total_meltwater, state);
     if (ErrorFlag == ERROR)
       return (ERROR);

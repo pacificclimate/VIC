@@ -25,7 +25,7 @@ dist_prcp_struct make_dist_prcp(int  nveg, const int NUM_LAYERS, const int NUM_S
   2009-Jul-31 Removed extra lake/wetland tile.			TJB
 **********************************************************************/
 {
-  dist_prcp_struct temp;
+  dist_prcp_struct temp(NUM_SNOW_BAND);
   int              Nitems;
 
   Nitems = nveg + 1;

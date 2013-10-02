@@ -9,7 +9,7 @@ void prepare_full_energy(int               iveg,
 			 int               Nveg,
 			 int               Nnodes,
 			 dist_prcp_struct *prcp,
-			 soil_con_struct  *soil_con,
+			 soil_con_struct  *soil_con, //TODO: make this const since it is read only
 			 double           *moist0,
 			 double           *ice0,
 			 const ProgramState* state) {
@@ -42,21 +42,24 @@ void prepare_full_energy(int               iveg,
 
 *******************************************************************/
 
-  int                i, band;
   layer_data_struct *layer;
 
   layer = (layer_data_struct *)calloc(state->options.Nlayer,
 				      sizeof(layer_data_struct));
+  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
 
-  for(band=0;band<state->options.SNOW_BAND;band++) {
+    // Only apply this function to the specified vegetation type.
+    if (it->vegIndex != iveg) continue;
+
+    int band = it->bandIndex;
 
     if (soil_con->AreaFract[band] > 0.0) {
 
       /* Compute average soil moisture values for distributed precipitation */
 
-      for(i=0;i<state->options.Nlayer;i++)
-        layer[i] = find_average_layer(&(prcp->cell[WET][iveg][band].layer[i]),
-				      &(prcp->cell[DRY][iveg][band].layer[i]),
+      for(int i=0;i<state->options.Nlayer;i++)
+        layer[i] = find_average_layer(&(it->cell[WET].layer[i]),
+				      &(it->cell[DRY].layer[i]),
 				      soil_con->depth[i], prcp->mu[iveg], state);
     
       /* Compute top soil layer moisture content (mm/mm) */
@@ -66,11 +69,11 @@ void prepare_full_energy(int               iveg,
       /* Compute top soil layer ice content (mm/mm) */
 
       if(state->options.FROZEN_SOIL && soil_con->FS_ACTIVE){
-        if((prcp->energy[iveg][band].T[0] 
-	    + prcp->energy[iveg][band].T[1])/2.<0.) {
+        if((it->energy.T[0]
+	    + it->energy.T[1])/2.<0.) {
 	  ice0[band] = moist0[band] 
-	    - maximum_unfrozen_water((prcp->energy[iveg][band].T[0]
-				      + prcp->energy[iveg][band].T[1]) / 2.,
+	    - maximum_unfrozen_water((it->energy.T[0]
+				      + it->energy.T[1]) / 2.,
 				     soil_con->porosity[0], soil_con->effective_porosity[0],
 				     soil_con->max_moist[0]
 				     / (soil_con->depth[0] * 1000.),
@@ -95,17 +98,13 @@ void prepare_full_energy(int               iveg,
 					    state->options.Nlayer);
     
       /** Save Thermal Conductivities for Energy Balance **/
-      prcp->energy[iveg][band].kappa[0] = layer[0].kappa; 
-      prcp->energy[iveg][band].Cs[0]    = layer[0].Cs; 
-      prcp->energy[iveg][band].kappa[1] = layer[1].kappa; 
-      prcp->energy[iveg][band].Cs[1]    = layer[1].Cs; 
+      it->energy.kappa[0] = layer[0].kappa;
+      it->energy.Cs[0]    = layer[0].Cs;
+      it->energy.kappa[1] = layer[1].kappa;
+      it->energy.Cs[1]    = layer[1].Cs;
 
-    }
-
-    else {
-
+    } else {
       ice0[band] = 0.;
-
     }
 
   }

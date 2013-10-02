@@ -1279,12 +1279,13 @@ struct dist_prcp_struct{
   double             *mu;         /* fraction of grid cell that receives precipitation */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
   std::vector<HRUElement> hruElements;
-  const int NUM_BANDS;
 
   HRUElement* getHRUElement(int veg, int band) {
     int index = (veg * NUM_BANDS) + band;
     return &hruElements[index];
   }
+private:
+  int NUM_BANDS;
 };
 
 /*******************************************************

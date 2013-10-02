@@ -136,11 +136,7 @@ int  put_data(cell_info_struct* cell,
   2011-Nov-04 Added OUT_TSKC.						TJB
 **********************************************************************/
 {
-  int                     veg;
-  int                     index;
   int                     Ndist;
-  int                     dist;
-  int                     band;
   int                     Nbands;
   int                     overstory;
   int                     HasVeg;
@@ -188,28 +184,29 @@ int  put_data(cell_info_struct* cell,
     Ndist = 1;
 
   // Compute treeline adjustment factors
-  for ( band = 0; band < state->options.SNOW_BAND; band++ ) {
-    if ( cell->soil_con.AboveTreeLine[band] ) {
+  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+    int band = it->bandIndex;
+    int veg = it->vegIndex;
+    if (cell->soil_con.AboveTreeLine[band]) {
       Cv = 0;
-      for ( veg = 0 ; veg < cell->veg_con[0].vegetat_type_num ; veg++ ) {
-	if ( state->veg_lib[cell->veg_con[veg].veg_class].overstory ) {
-          if (state->options.LAKES && cell->veg_con[veg].LAKE) {
-            if (band == 0) {
-              // Fraction of tile that is flooded
-              Clake = cell->prcp.lake_var.sarea/cell->lake_con.basin[0];
-	      Cv += cell->veg_con[veg].Cv*(1-Clake);
-            }
+      if (state->veg_lib[cell->veg_con[veg].veg_class].overstory) {
+        if (state->options.LAKES && cell->veg_con[veg].LAKE) {
+          if (band == 0) {
+            // Fraction of tile that is flooded
+            Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
+            Cv += cell->veg_con[veg].Cv * (1 - Clake);
           }
-          else {
-	    Cv += cell->veg_con[veg].Cv;
-          }
+        } else {
+          Cv += cell->veg_con[veg].Cv;
         }
       }
-      TreeAdjustFactor[band] = 1. / ( 1. - Cv );
-    }
-    else TreeAdjustFactor[band] = 1.;
-    if ( TreeAdjustFactor[band] != 1 && rec == 0 )
-      fprintf( stderr, "WARNING: Tree adjust factor for band %i is equal to %f.\n", band, TreeAdjustFactor[band] );
+      TreeAdjustFactor[band] = 1. / (1. - Cv);
+    } else
+      TreeAdjustFactor[band] = 1.;
+    if (TreeAdjustFactor[band] != 1 && rec == 0)
+      fprintf(stderr,
+          "WARNING: Tree adjust factor for band %i is equal to %f.\n", band,
+          TreeAdjustFactor[band]);
   }
 
   cv_baresoil = 0;
@@ -246,17 +243,17 @@ int  put_data(cell_info_struct* cell,
     out_data[OUT_VPD].data[0] = cell->atmos[rec].vpd[state->NR] / kPa2Pa;
     out_data[OUT_WIND].data[0] = cell->atmos[rec].wind[state->NR];
   }
-    /****************************************
-    Store Output for all Vegetation Types (except lakes)
-  ****************************************/
-  for ( veg = 0 ; veg <= cell->veg_con[0].vegetat_type_num ; veg++) {
+  /****************************************
+   Store Output for all Vegetation Types (except lakes)
+   ****************************************/
+  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
 
-    Cv = cell->veg_con[veg].Cv;
+    Cv = cell->veg_con[it->vegIndex].Cv;
     Clake = 0;
     Nbands = state->options.SNOW_BAND;
     IsWet = 0;
 
-    if (veg < cell->veg_con[0].vegetat_type_num)
+    if (it->vegIndex < cell->veg_con[0].vegetat_type_num)
       HasVeg = 1;
     else
       HasVeg = 0;
@@ -264,37 +261,36 @@ int  put_data(cell_info_struct* cell,
     if ( Cv > 0) {
 
       // Check if this is lake/wetland tile
-      if (state->options.LAKES && cell->veg_con[veg].LAKE) {
+      if (state->options.LAKES && cell->veg_con[it->vegIndex].LAKE) {
         Clake = cell->prcp.lake_var.sarea/cell->lake_con.basin[0];
         Nbands = 1;
         IsWet = 1;
       }
 
-      overstory = state->veg_lib[cell->veg_con[veg].veg_class].overstory;
+      overstory = state->veg_lib[cell->veg_con[it->vegIndex].veg_class].overstory;
 
       /*********************************
         Store Output for all Bands 
       *********************************/
-      for(band=0;band<Nbands;band++) {
-
-        ThisAreaFract = cell->soil_con.AreaFract[band];
+        int band = it->bandIndex;
+        ThisAreaFract = cell->soil_con.AreaFract[it->bandIndex];
         ThisTreeAdjust = TreeAdjustFactor[band];
         if (IsWet) {
           ThisAreaFract = 1;
           ThisTreeAdjust = 1;
         }
 
-        if(ThisAreaFract > 0. && ( veg == cell->veg_con[0].vegetat_type_num
+        if(ThisAreaFract > 0. && ( it->vegIndex == cell->veg_con[0].vegetat_type_num
            || ( !cell->soil_con.AboveTreeLine[band] || (cell->soil_con.AboveTreeLine[band] && !overstory)))) {
 
           /*******************************************************
             Store Output for Wet and Dry Fractions
           *******************************************************/
-          for ( dist = 0; dist < Ndist; dist++ ) {
+          for (int dist = 0; dist < Ndist; dist++ ) {
             if(dist==0) 
-              precipitation_mu = cell->prcp.mu[veg];
+              precipitation_mu = cell->prcp.mu[it->vegIndex];
             else 
-              precipitation_mu = 1. - cell->prcp.mu[veg];
+              precipitation_mu = 1. - cell->prcp.mu[it->vegIndex];
 
             /** compute running totals of various landcovers **/
             if (HasVeg)
@@ -303,15 +299,15 @@ int  put_data(cell_info_struct* cell,
               cv_baresoil += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
             if (overstory)
               cv_overstory += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
-            if (cell->prcp.snow[veg][band].swq> 0.0)
+            if (it->snow.swq > 0.0)
               cv_snow += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
 
 	    /*********************************
               Record Water Balance Terms 
 	    *********************************/
-            collect_wb_terms(cell->prcp.cell[dist][veg][band],
-                             cell->prcp.veg_var[dist][veg][band],
-                             cell->prcp.snow[veg][band],
+            collect_wb_terms(it->cell[dist],
+                             it->veg_var[dist],
+                             it->snow,
                              cell->prcp.lake_var,
                              precipitation_mu,
                              Cv,
@@ -330,9 +326,9 @@ int  put_data(cell_info_struct* cell,
 	  /**********************************
 	    Record Energy Balance Terms
 	  **********************************/
-          collect_eb_terms(cell->prcp.energy[veg][band],
-                           cell->prcp.snow[veg][band],
-                           cell->prcp.cell[WET][veg][band],
+          collect_eb_terms(it->energy,
+                           it->snow,
+                           it->cell[WET],
                            &cell->fallBackStats,
                            Cv,
                            ThisAreaFract,
@@ -352,8 +348,8 @@ int  put_data(cell_info_struct* cell,
 
           if (IsWet) {
             // Wetland soil temperatures
-            for(i=0;i<state->options.Nnode;i++) {
-              out_data[OUT_SOIL_TNODE_WL].data[i] = cell->prcp.energy[veg][band].T[i];
+            for(int i=0;i < state->options.Nnode; i++) {
+              out_data[OUT_SOIL_TNODE_WL].data[i] = it->energy.T[i];
             }
           }
 
@@ -367,28 +363,27 @@ int  put_data(cell_info_struct* cell,
             // in grid cell average
             // Note: doing this for eb terms will lead to reporting of eb errors 
             // this should be fixed when we implement full thermal solution beneath lake
-            for (i=0; i<MAX_FRONTS; i++) {
-              cell->prcp.lake_var.energy.fdepth[i]      = cell->prcp.energy[veg][band].fdepth[i];
-              cell->prcp.lake_var.energy.tdepth[i]      = cell->prcp.energy[veg][band].fdepth[i];
-            }
-            for (i=0; i<state->options.Nnode; i++) {
-              cell->prcp.lake_var.energy.ice_content[i]         = cell->prcp.energy[veg][band].ice_content[i];
-              cell->prcp.lake_var.energy.T[i]           = cell->prcp.energy[veg][band].T[i];
-            }
-            for (i=0; i<N_PET_TYPES; i++) {
-              cell->prcp.lake_var.soil.pot_evap[i]      = cell->prcp.cell[WET][veg][band].pot_evap[i];
-            }
-            cell->prcp.lake_var.soil.rootmoist          = cell->prcp.cell[WET][veg][band].rootmoist;
-            cell->prcp.lake_var.energy.deltaH           = cell->prcp.energy[veg][band].deltaH;
-            cell->prcp.lake_var.energy.fusion           = cell->prcp.energy[veg][band].fusion;
-            cell->prcp.lake_var.energy.grnd_flux        = cell->prcp.energy[veg][band].grnd_flux;
+          for (int i = 0; i < MAX_FRONTS; i++) {
+            cell->prcp.lake_var.energy.fdepth[i] = it->energy.fdepth[i];
+            cell->prcp.lake_var.energy.tdepth[i] = it->energy.fdepth[i];
+          }
+          for (int i = 0; i < state->options.Nnode; i++) {
+            cell->prcp.lake_var.energy.ice_content[i] = it->energy.ice_content[i];
+            cell->prcp.lake_var.energy.T[i] = it->energy.T[i];
+          }
+          for (int i = 0; i < N_PET_TYPES; i++) {
+            cell->prcp.lake_var.soil.pot_evap[i] = it->cell[WET].pot_evap[i];
+          }
+          cell->prcp.lake_var.soil.rootmoist = it->cell[WET].rootmoist;
+          cell->prcp.lake_var.energy.deltaH = it->energy.deltaH;
+          cell->prcp.lake_var.energy.fusion = it->energy.fusion;
+          cell->prcp.lake_var.energy.grnd_flux = it->energy.grnd_flux;
 
-
-  	    /*********************************
-              Record Water Balance Terms 
-	    *********************************/
+          /*********************************
+           Record Water Balance Terms
+           *********************************/
             collect_wb_terms(cell->prcp.lake_var.soil,
-                             cell->prcp.veg_var[WET][0][0],
+                             cell->prcp.getHRUElement(0, 0)->veg_var[WET],
                              cell->prcp.lake_var.snow,
                              cell->prcp.lake_var,
                              1.0,
@@ -403,9 +398,9 @@ int  put_data(cell_info_struct* cell,
                              frost_fract,
                              out_data, state);
 
-	    /**********************************
-	      Record Energy Balance Terms
-	    **********************************/
+          /**********************************
+           Record Energy Balance Terms
+           **********************************/
             collect_eb_terms(cell->prcp.lake_var.energy,
                              cell->prcp.lake_var.snow,
                              cell->prcp.lake_var.soil,
@@ -425,7 +420,7 @@ int  put_data(cell_info_struct* cell,
                              out_data, state);
 
             // Store Lake-Specific Variables
-
+            //TODO: move this lake stuff outside of the for loop since it doesn't depend on veg or band
             // Lake ice
             if (cell->prcp.lake_var.new_ice_area > 0.0) {
               out_data[OUT_LAKE_ICE].data[0]   = (cell->prcp.lake_var.ice_water_eq/cell->prcp.lake_var.new_ice_area) * ice_density / RHO_W;
@@ -488,8 +483,6 @@ int  put_data(cell_info_struct* cell,
           } // End if options.LAKES etc.
 
 	} // End if ThisAreaFract etc.
-
-      } // End loop over bands
 
     } // End if Cv > 0
 
@@ -556,7 +549,7 @@ int  put_data(cell_info_struct* cell,
    *****************************************/
   // Water balance terms
   out_data[OUT_DELSOILMOIST].data[0] = 0;
-  for (index=0; index<state->options.Nlayer; index++) {
+  for (int index=0; index<state->options.Nlayer; index++) {
     out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
     out_data[OUT_DELSOILMOIST].data[0] += out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMLIQFRAC].data[index] = out_data[OUT_SOIL_LIQ].data[index]/out_data[OUT_SOIL_MOIST].data[index];
@@ -575,7 +568,7 @@ int  put_data(cell_info_struct* cell,
 
   // Save current moisture state for use in next time step
   cell->save_data.total_soil_moist = 0;
-  for (index=0; index<state->options.Nlayer; index++) {
+  for (int index=0; index<state->options.Nlayer; index++) {
     cell->save_data.total_soil_moist += out_data[OUT_SOIL_MOIST].data[index];
   }
   cell->save_data.surfstor = out_data[OUT_SURFSTOR].data[0];
@@ -588,7 +581,7 @@ int  put_data(cell_info_struct* cell,
   inflow  = out_data[OUT_PREC].data[0] + out_data[OUT_LAKE_CHAN_IN].data[0]; // mm over grid cell
   outflow = out_data[OUT_EVAP].data[0] + out_data[OUT_RUNOFF].data[0] + out_data[OUT_BASEFLOW].data[0]; // mm over grid cell
   storage = 0.;
-  for(index=0;index<state->options.Nlayer;index++)
+  for(int index=0;index<state->options.Nlayer;index++)
     if(state->options.MOISTFRACT)
       storage += (out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index]) 
 	* cell->soil_con.depth[index] * 1000;
@@ -706,10 +699,10 @@ int  put_data(cell_info_struct* cell,
       out_data[OUT_BARESOILT].aggdata[0] += KELVIN;
       out_data[OUT_SNOW_PACK_TEMP].aggdata[0] += KELVIN;
       out_data[OUT_SNOW_SURF_TEMP].aggdata[0] += KELVIN;
-      for (index=0; index<state->options.Nlayer; index++) {
+      for (int index=0; index<state->options.Nlayer; index++) {
         out_data[OUT_SOIL_TEMP].aggdata[index] += KELVIN;
       }
-      for (index=0; index<state->options.Nnode; index++) {
+      for (int index=0; index<state->options.Nnode; index++) {
         out_data[OUT_SOIL_TNODE].aggdata[index] += KELVIN;
         out_data[OUT_SOIL_TNODE_WL].aggdata[index] += KELVIN;
       }

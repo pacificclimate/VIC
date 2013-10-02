@@ -457,8 +457,7 @@ int solve_T_profile_implicit(double *, double *, double *, double *, double *,
           int, double *, double *, double *, double *, double *, double *, double *, const ProgramState*);
 
 double StabilityCorrection(double, double, double, double, double, double);
-void   store_moisture_for_debug(int,int,double *,cell_data_struct ***,
-				veg_var_struct ***,snow_data_struct **,
+void   store_moisture_for_debug(int,int,double *, std::vector<HRUElement>&,
 				soil_con_struct *, const ProgramState*);
 int surface_fluxes(char, double, double, double, double, int, double *,
         double *, double, double, double *, double *, double **, double *, double *,
