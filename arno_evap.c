@@ -71,7 +71,7 @@ double arno_evap(layer_data_struct *layer_wet,
 		 double             delta_t,
 		 double             precipitation_mu,
 		 double             moist_resid,
-		 double            *frost_fract,
+		 const double      *frost_fract,
 		 const ProgramState*state)
 {
   int    num_term;

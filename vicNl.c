@@ -328,28 +328,23 @@ int initializeCell(cell_info_struct* cell_data_structs, const int cellidx,
   #if VERBOSE
       fprintf(stderr, "Model State Initialization\n");
   #endif /* VERBOSE */
-      //TODO: just pass in cell_data_structs[cellidx] not all its members individually
-      int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx].prcp, dmy[0], filep,
-          cell_data_structs[cellidx].soil_con.gridcel,
-          cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state->options.Nnode, Ndist,
-          cell_data_structs[cellidx].atmos[0].air_temp[state->NR], &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].veg_con,
-          cell_data_structs[cellidx].lake_con, &cell_data_structs[cellidx].init_STILL_STORM,
-          &cell_data_structs[cellidx].init_DRY_TIME, state);
-      if (ErrorFlag == ERROR) {
-        if (state->options.CONTINUEONERROR == TRUE) {
-          // Handle grid cell solution error
-          fprintf(stderr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
-              cell_data_structs[cellidx].soil_con.gridcel, cellidx);
-          return ERROR;
-        } else {
-          // Else exit program on cell solution error as in previous versions
-          sprintf(cell_data_structs[cellidx].ErrStr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
-              cell_data_structs[cellidx].soil_con.gridcel, cellidx);
-          vicerror(cell_data_structs[cellidx].ErrStr);
-        }
-      }
+  int ErrorFlag = initialize_model_state(&cell_data_structs[cellidx], dmy[0], filep, Ndist, state);
+
+  if (ErrorFlag == ERROR) {
+    if (state->options.CONTINUEONERROR == TRUE) {
+      // Handle grid cell solution error
+      fprintf(stderr,
+          "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
+          cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+      return ERROR;
+    } else {
+      // Else exit program on cell solution error as in previous versions
+      sprintf(cell_data_structs[cellidx].ErrStr,
+          "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
+          cell_data_structs[cellidx].soil_con.gridcel, cellidx);
+      vicerror(cell_data_structs[cellidx].ErrStr);
+    }
+  }
 
   #if VERBOSE
       fprintf(stderr, "Running Model\n");
@@ -394,11 +389,21 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 
     printThreadInformation();
 
+    int initError = 0;
     #pragma omp critical(initCells)
     {
-      //TODO: check and handle error flag
-    int initError = initializeCell(cell_data_structs, cellidx, filep, dmy,
-            filenames, num_veg_types, state);
+      initError = initializeCell(cell_data_structs, cellidx, filep, dmy,
+          filenames, num_veg_types, state);
+    }
+    // Skip to the next cell if unable to initialize the current cell.
+    if (initError == ERROR) {
+      if (state->options.CONTINUEONERROR == TRUE) {
+        fprintf(stderr, "An error occurred when initializing this cell (index: %d), skipping it...\n", cellidx);
+        continue;
+      } else {
+        sprintf(cell_data_structs[cellidx].ErrStr, "Error initializing cell (method initializeCell) for cellidx: %d\n", cellidx);
+        vicerror(cell_data_structs[cellidx].ErrStr);
+      }
     }
     //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
     out_data_file_struct* out_data_files = copy_data_file_format(out_data_files_template, state);
@@ -424,9 +429,18 @@ void runModel(const int ncells, cell_info_struct * cell_data_structs,
 #endif
 
     /** Initialize the storage terms in the water and energy balances **/
-    //TODO: check error flag here
-    put_data(&cell_data_structs[cellidx], out_data_files, current_output_data, &dmy[0],
+    int putDataError = put_data(&cell_data_structs[cellidx], out_data_files, current_output_data, &dmy[0],
         -state->global_param.nrecs, state);
+    // Skip the rest of this cell if there is an error here.
+    if (putDataError == ERROR) {
+      if (state->options.CONTINUEONERROR == TRUE) {
+        fprintf(stderr, "An error occurred when initializing this cell (index = %d), skipping...\n", cellidx);
+        continue;
+      } else {
+        sprintf(cell_data_structs[cellidx].ErrStr, "Error initialising storage terms (in method put_data) for cell %d\n", cellidx);
+        vicerror(cell_data_structs[cellidx].ErrStr);
+      }
+    }
 
     /******************************************
      Run Model in Grid Cell for all Time Steps

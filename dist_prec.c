@@ -169,23 +169,16 @@ int  dist_prec(cell_info_struct* cell,
         cell->prcp.mu[veg] = NEW_MU;
       }
     }
-
-    /** Solve model time step **/
-    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
-        &cell->lake_con, &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
-
   }
 
-  else { /* FIXME dumb flow control */
+  /**************************************************
+   Controls Grid Cell Averaged Precipitation Model
+   **************************************************/
 
-    /**************************************************
-     Controls Grid Cell Averaged Precipitation Model
-     **************************************************/
-
-    ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record, &cell->atmos[time_step_record], &cell->prcp, dmy,
-        &cell->lake_con, &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
-
-  }
+  /** Solve model time step **/
+  ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record,
+      &cell->atmos[time_step_record], &cell->prcp, dmy, &cell->lake_con,
+      &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
 
   /**************************************************
    Write cell average values for current time step

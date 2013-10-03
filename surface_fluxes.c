@@ -36,7 +36,7 @@ int surface_fluxes(char                 overstory,
 		   double              *roughness,
 		   double              *snow_inflow,
 		   double              *wind,
-		   float               *root,
+		   const float         *root,
 		   int                  Nbands,
 		   int                  Ndist,
 		   int                  Nlayers,
@@ -52,7 +52,7 @@ int surface_fluxes(char                 overstory,
 		   cell_data_struct    *cell_dry,
 		   cell_data_struct    *cell_wet,
 		   snow_data_struct    *snow,
-		   soil_con_struct     *soil_con,
+		   const soil_con_struct *soil_con,
 		   veg_var_struct      *veg_var_dry,
 		   veg_var_struct      *veg_var_wet,
 		   float              lag_one,
@@ -958,9 +958,7 @@ int surface_fluxes(char                 overstory,
   cell_dry->inflow = ppt[DRY];
 
   ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
-      SubsidenceUpdate,
-      soil_con->frost_fract,
-      current_prcp_mu, state->global_param.dt, state->options.Nnode, band, rec, iveg, state);
+      SubsidenceUpdate, current_prcp_mu, band, rec, iveg, state);
 
   return (ErrorFlag);
 #if EXCESS_ICE

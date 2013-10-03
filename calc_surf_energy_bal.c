@@ -41,7 +41,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    double            *roughness,
 			    double            *snowfall,
 			    double            *wind,
-			    float             *root,
+			    const float       *root,
 			    int                INCLUDE_SNOW,
 			    int                UnderStory,
 			    int                Nnodes,
@@ -60,7 +60,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    layer_data_struct *layer_dry,
 			    layer_data_struct *layer_wet,
 			    snow_data_struct  *snow,
-			    soil_con_struct   *soil_con,
+			    const soil_con_struct *soil_con,
 			    veg_var_struct    *veg_var_dry,
 			    veg_var_struct    *veg_var_wet,
 			    int                nrecs,
@@ -338,8 +338,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
         &energy->deltaCC, &energy->refreeze_energy,
         &snow->vapor_flux, &snow->blowing_flux, &snow->surface_flux,
         tmpNnodes, energy->Cs_node, energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount,
-        soil_con->alpha, soil_con->beta, soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node, soil_con->gamma,
-        energy->ice_content, energy->kappa_node, soil_con->max_moist_node, energy->moist,
+        energy->ice_content, energy->kappa_node, energy->moist,
         soil_con, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
         INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow,
         FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1,
@@ -359,16 +358,13 @@ double calc_surf_energy_bal(double             latent_heat_Le,
         error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
 					   veg_class, delta_t, Cs1, Cs2, D1, D2, 
 					   T1_old, T2, Ts_old, 
-					   soil_con->b_infilt, bubble, dp, 
+					   bubble, dp,
 					   expt, ice0, kappa1, kappa2, 
-					   soil_con->max_infil, max_moist, 
-					   moist, soil_con->Wcr, soil_con->Wpwp, 
-					   soil_con->depth, 
-					   soil_con->resid_moist, root, 
+					   max_moist,
+					   moist, root,
 					   UnderStory, overstory, NetShortBare, 
 					   NetShortGrnd, TmpNetShortSnow, Tair, 
 					   atmos_density, atmos_pressure, 
-					   (double)soil_con->elevation, 
 					   emissivity, LongBareIn, LongSnowIn, 
 					   precipitation_mu, surf_atten, VPcanopy, VPDcanopy, 
 					   Wdew, displacement, aero_resist, aero_resist_used, 
@@ -382,16 +378,11 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					   &energy->deltaCC, 
 					   &energy->refreeze_energy, 
 					   &snow->vapor_flux, Nnodes, energy->Cs_node, 
-					   energy->T, Tnew_node, soil_con->alpha, soil_con->beta,
-					   soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
-					   soil_con->gamma, energy->ice_content, energy->kappa_node,
-					   soil_con->max_moist_node, energy->moist,
-					   soil_con->frost_fract, 
-					   soil_con->ufwc_table_layer[0], 
-					   soil_con->ufwc_table_node, 
+					   energy->T, Tnew_node, energy->ice_content, energy->kappa_node,
+					   energy->moist,
 					   layer_wet, layer_dry, veg_var_wet, 
 					   veg_var_dry, 
-					   INCLUDE_SNOW, soil_con->FS_ACTIVE, 
+					   INCLUDE_SNOW,
 					   NOFLUX, EXP_TRANS,
 					   snow->snow, FIRST_SOLN, &NetLongBare, 
 					   &TmpNetLongSnow, &T1, &energy->deltaH, 
@@ -399,7 +390,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					   &energy->latent, 
 					   &energy->latent_sub, 
 					   &energy->sensible, 
-					   &energy->snow_flux, &energy->error, ErrorString, state);
+					   &energy->snow_flux, &energy->error, ErrorString, soil_con, state);
         return ( ERROR );
       }
     }
@@ -425,15 +416,12 @@ double calc_surf_energy_bal(double             latent_heat_Le,
           snow->swq, snow->surf_water, &energy->deltaCC,
           &energy->refreeze_energy, &snow->vapor_flux, &snow->blowing_flux,
           &snow->surface_flux, tmpNnodes, energy->Cs_node, energy->T, Tnew_node,
-          Tnew_fbflag, Tnew_fbcount, soil_con->alpha, soil_con->beta,
-          soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
-          soil_con->gamma, energy->ice_content, energy->kappa_node,
-          soil_con->max_moist_node, energy->moist, soil_con, layer_wet,
-          layer_dry, veg_var_wet, veg_var_dry, INCLUDE_SNOW, NOFLUX, EXP_TRANS,
-          snow->snow, FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1,
-          &energy->deltaH, &energy->fusion, &energy->grnd_flux, &energy->latent,
-          &energy->latent_sub, &energy->sensible, &energy->snow_flux,
-          &energy->error, state);
+          Tnew_fbflag, Tnew_fbcount, energy->ice_content, energy->kappa_node,
+          energy->moist, soil_con, layer_wet, layer_dry, veg_var_wet,
+          veg_var_dry, INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow, FIRST_SOLN,
+          &NetLongBare, &TmpNetLongSnow, &T1, &energy->deltaH, &energy->fusion,
+          &energy->grnd_flux, &energy->latent, &energy->latent_sub,
+          &energy->sensible, &energy->snow_flux, &energy->error, state);
       
       Tsurf = surfEnergyBalIter2.root_brent(T_lower, T_upper, ErrorString);
 
@@ -448,17 +436,14 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 	  error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
 					     veg_class, delta_t, Cs1, Cs2, D1, 
 					     D2, T1_old, T2, Ts_old, 
-					     soil_con->b_infilt, bubble, dp, 
+					     bubble, dp,
 					     expt, ice0, kappa1, kappa2, 
-					     soil_con->max_infil, max_moist, 
-					     moist, soil_con->Wcr, 
-					     soil_con->Wpwp, soil_con->depth, 
-					     soil_con->resid_moist, root, 
+					     max_moist,
+					     moist, root,
 					     UnderStory, overstory, 
 					     NetShortBare, NetShortGrnd, 
 					     TmpNetShortSnow, Tair, 
-					     atmos_density, atmos_pressure, 
-					     (double)soil_con->elevation, 
+					     atmos_density, atmos_pressure,
 					     emissivity, LongBareIn, LongSnowIn, 
 					     precipitation_mu, surf_atten, VPcanopy, 
 					     VPDcanopy, Wdew, displacement, 
@@ -473,16 +458,11 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					     &energy->deltaCC, 
 					     &energy->refreeze_energy, 
 					     &snow->vapor_flux, Nnodes, energy->Cs_node, 
-					     energy->T, Tnew_node, soil_con->alpha, soil_con->beta,
-					     soil_con->bubble_node, soil_con->Zsum_node, soil_con->expt_node,
-					     soil_con->gamma, energy->ice_content, energy->kappa_node,
-					     soil_con->max_moist_node, energy->moist,
-					     soil_con->frost_fract, 
-					     soil_con->ufwc_table_layer[0], 
-					     soil_con->ufwc_table_node, 
+					     energy->T, Tnew_node, energy->ice_content, energy->kappa_node,
+					     energy->moist,
 					     layer_wet, layer_dry, veg_var_wet, 
 					     veg_var_dry, INCLUDE_SNOW, 
-					     soil_con->FS_ACTIVE, NOFLUX, EXP_TRANS,
+					     NOFLUX, EXP_TRANS,
 					     snow->snow, FIRST_SOLN, &NetLongBare, 
 					     &TmpNetLongSnow, &T1, 
 					     &energy->deltaH, &energy->fusion, 
@@ -490,7 +470,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					     &energy->latent, 
 					     &energy->latent_sub, 
 					     &energy->sensible, 
-					     &energy->snow_flux, &energy->error, ErrorString, state);
+					     &energy->snow_flux, &energy->error, ErrorString, soil_con, state);
           return ( ERROR );
         }
       }
@@ -519,15 +499,12 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       melt_energy, snow_coverage, snow->density, snow->swq, snow->surf_water,
       &energy->deltaCC, &energy->refreeze_energy, &snow->vapor_flux,
       &snow->blowing_flux, &snow->surface_flux, Nnodes, energy->Cs_node,
-      energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount, soil_con->alpha,
-      soil_con->beta, soil_con->bubble_node, soil_con->Zsum_node,
-      soil_con->expt_node, soil_con->gamma, energy->ice_content,
-      energy->kappa_node, soil_con->max_moist_node, energy->moist, soil_con,
-      layer_wet, layer_dry, veg_var_wet, veg_var_dry, INCLUDE_SNOW, NOFLUX,
-      EXP_TRANS, snow->snow, FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1,
-      &energy->deltaH, &energy->fusion, &energy->grnd_flux, &energy->latent,
-      &energy->latent_sub, &energy->sensible, &energy->snow_flux,
-      &energy->error, state);
+      energy->T, Tnew_node, Tnew_fbflag, Tnew_fbcount, energy->ice_content,
+      energy->kappa_node, energy->moist, soil_con, layer_wet, layer_dry,
+      veg_var_wet, veg_var_dry, INCLUDE_SNOW, NOFLUX, EXP_TRANS, snow->snow,
+      FIRST_SOLN, &NetLongBare, &TmpNetLongSnow, &T1, &energy->deltaH,
+      &energy->fusion, &energy->grnd_flux, &energy->latent, &energy->latent_sub,
+      &energy->sensible, &energy->snow_flux, &energy->error, state);
   error = surfEnergyBal.calculate(Tsurf);
 
   if(error == ERROR)
@@ -721,17 +698,16 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     double delta_t,
     /* soil layer terms */
     double Cs1, double Cs2, double D1, double D2, double T1_old, double T2,
-    double Ts_old, double b_infilt, double bubble, double dp, double expt,
-    double ice0, double kappa1, double kappa2, double max_infil,
+    double Ts_old, double bubble, double dp, double expt,
+    double ice0, double kappa1, double kappa2,
     double max_moist, double moist,
-    double *Wcr, double *Wpwp, double *depth, double *resid_moist,
-    float *root,
+    const float *root,
     /* meteorological forcing terms */
     int UnderStory, int overstory,
     double NetShortBare,  // net SW that reaches bare ground
     double NetShortGrnd,  // net SW that penetrates snowpack
     double NetShortSnow,  // net SW that reaches snow surface
-    double Tair, double atmos_density, double atmos_pressure, double elevation,
+    double Tair, double atmos_density, double atmos_pressure,
     double emissivity, double LongBareIn, double LongSnowIn,
     double precipitation_mu, double surf_atten, double vp, double vpd,
     double *Wdew, double *displacement, double *ra, double *ra_used,
@@ -745,19 +721,13 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     double *deltaCC, double *refreeze_energy, double *VaporMassFlux,
     /* soil node terms */
     int Nnodes,
-    double *Cs_node, double *T_node, double *Tnew_node, double *alpha,
-    double *beta, double *bubble_node, double *Zsum_node, double *expt_node,
-    double *gamma, double *ice_node, double *kappa_node, double *max_moist_node,
+    double *Cs_node, double *T_node, double *Tnew_node, double *ice_node, double *kappa_node,
     double *moist_node,
-    /* spatial frost terms */
-    double *frost_fract,
-    /* quick solution frozen soils terms */
-    double **ufwc_table_layer, double ***ufwc_table_node,
     /* model structures */
     layer_data_struct *layer_wet, layer_data_struct *layer_dry,
     veg_var_struct *veg_var_wet, veg_var_struct *veg_var_dry,
     /* control flags */
-    int INCLUDE_SNOW, int FS_ACTIVE, int NOFLUX, int EXP_TRANS,
+    int INCLUDE_SNOW, int NOFLUX, int EXP_TRANS,
     int SNOWING,
     int *FIRST_SOLN,
     /* returned energy balance terms */
@@ -765,7 +735,7 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     double *NetLongSnow, // net longwave from snow surface - if INCLUDE_SNOW
     double *T1, double *deltaH, double *fusion, double *grnd_flux,
     double *latent_heat, double *latent_heat_sub, double *sensible_heat,
-    double *snow_flux, double *store_error, char *ErrorString,
+    double *snow_flux, double *store_error, char *ErrorString, const soil_con_struct* soil_con,
     const ProgramState* state) {
 /**********************************************************************
   Modifications:
@@ -795,21 +765,21 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
   fprintf(stderr, "T1_old = %f\n",  T1_old);
   fprintf(stderr, "T2 = %f\n",  T2);
   fprintf(stderr, "Ts_old = %f\n",  Ts_old);
-  fprintf(stderr, "b_infilt = %f\n",  b_infilt);
+  fprintf(stderr, "b_infilt = %f\n",  soil_con->b_infilt);
   fprintf(stderr, "bubble = %f\n",  bubble);
   fprintf(stderr, "dp = %f\n",  dp);
   fprintf(stderr, "expt = %f\n",  expt);
   fprintf(stderr, "ice0 = %f\n",  ice0);
   fprintf(stderr, "kappa1 = %f\n",  kappa1);
   fprintf(stderr, "kappa2 = %f\n",  kappa2);
-  fprintf(stderr, "max_infil = %f\n",  max_infil);
+  fprintf(stderr, "max_infil = %f\n",  soil_con->max_infil);
   fprintf(stderr, "max_moist = %f\n",  max_moist);
   fprintf(stderr, "moist = %f\n",  moist);
 
-  fprintf(stderr, "*Wcr = %f\n",  *Wcr);
-  fprintf(stderr, "*Wpwp = %f\n",  *Wpwp);
-  fprintf(stderr, "*depth = %f\n",  *depth);
-  fprintf(stderr, "*resid_moist = %f\n",  *resid_moist);
+  fprintf(stderr, "*Wcr = %f\n",  *soil_con->Wcr);
+  fprintf(stderr, "*Wpwp = %f\n",  *soil_con->Wpwp);
+  fprintf(stderr, "*depth = %f\n",  *soil_con->depth);
+  fprintf(stderr, "*resid_moist = %f\n",  *soil_con->resid_moist);
 
   fprintf(stderr, "*root = %f\n",  *root);
 
@@ -823,7 +793,7 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
   fprintf(stderr, "Tair = %f\n",  Tair);
   fprintf(stderr, "atmos_density = %f\n",  atmos_density);
   fprintf(stderr, "atmos_pressure = %f\n",  atmos_pressure);
-  fprintf(stderr, "elevation = %f\n",  elevation);
+  fprintf(stderr, "elevation = %f\n",  soil_con->elevation);
   fprintf(stderr, "emissivity = %f\n",  emissivity);
   fprintf(stderr, "LongBareIn = %f\n",  LongBareIn); 
   fprintf(stderr, "LongSnowIn = %f\n",  LongSnowIn); 
@@ -870,7 +840,7 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
 
   /* control flags */
   fprintf(stderr, "INCLUDE_SNOW = %i\n", INCLUDE_SNOW);
-  fprintf(stderr, "FS_ACTIVE = %i\n", FS_ACTIVE);
+  fprintf(stderr, "FS_ACTIVE = %i\n", soil_con->FS_ACTIVE);
   fprintf(stderr, "NOFLUX = %i\n", NOFLUX);
   fprintf(stderr, "EXP_TRANS = %i\n", EXP_TRANS);
   fprintf(stderr, "SNOWING = %i\n", SNOWING);
@@ -890,10 +860,10 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
   fprintf(stderr, "*snow_flux = %f\n",  *snow_flux);
   fprintf(stderr, "*store_error = %f\n",  *store_error);
 
-  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract, depth);
+  write_layer(layer_wet, iveg, state->options.Nlayer, soil_con->frost_fract);
 
   if(state->options.DIST_PRCP)
-    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract, depth);
+    write_layer(layer_dry, iveg, state->options.Nlayer, soil_con->frost_fract);
 
   write_vegvar(&(veg_var_wet[0]),iveg);
   if(state->options.DIST_PRCP)
@@ -903,9 +873,9 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     fprintf(stderr,"Node\tT\tTnew\tZsum\tkappa\tCs\tmoist\tbubble\texpt\tmax_moist\tice\n");
     for(int i=0;i<Nnodes;i++)
       fprintf(stderr,"%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
-	      i, T_node[i], Tnew_node[i], Zsum_node[i], kappa_node[i], 
-	      Cs_node[i], moist_node[i], bubble_node[i], expt_node[i], 
-	      max_moist_node[i], ice_node[i]);
+	      i, T_node[i], Tnew_node[i], soil_con->Zsum_node[i], kappa_node[i],
+	      Cs_node[i], moist_node[i], soil_con->bubble_node[i], soil_con->expt_node[i],
+	      soil_con->max_moist_node[i], ice_node[i]);
   }
   
   fprintf(stderr,"**********\n**********\nFinished writing calc_surf_energy_bal variables.\nTry increasing SURF_DT to get model to complete cell.\nThen check output for instabilities.\n**********\n**********\n");

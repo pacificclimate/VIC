@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-double compute_zwt(soil_con_struct  *soil_con,
+double compute_zwt(const soil_con_struct  *soil_con,
                    int               lindex,
                    double            moist)
 /****************************************************************************
@@ -43,7 +43,7 @@ double compute_zwt(soil_con_struct  *soil_con,
 }
 
 
-void wrap_compute_zwt(soil_con_struct  *soil_con,
+void wrap_compute_zwt(const soil_con_struct  *soil_con,
                       cell_data_struct *cell,
                       const ProgramState* state)
 /****************************************************************************

@@ -112,13 +112,6 @@ double SurfEnergyBal::calculate(double Ts)
   int i;
   int Error;
 
-  /* spatial frost terms */
-  double *frost_fract;
-
-  /* quick solution frozen soils terms */
-  double ***ufwc_table_layer;
-  double ***ufwc_table_node;
-
   /* excess ice terms */
   double porosity = 0; //top layer
   double effective_porosity = 0; //top layer
@@ -141,10 +134,6 @@ double SurfEnergyBal::calculate(double Ts)
   double BlowingMassFlux;
   double SurfaceMassFlux;
 
-  frost_fract = soil_con->frost_fract;
-
-  ufwc_table_layer = soil_con->ufwc_table_layer;
-  ufwc_table_node = soil_con->ufwc_table_node;
 #if EXCESS_ICE
   porosity = soil_con->porosity[0];
   effective_porosity = soil_con->effective_porosity[0];
@@ -211,13 +200,9 @@ double SurfEnergyBal::calculate(double Ts)
       
     /* IMPLICIT Solution */
     if(state->options.IMPLICIT) {
-      Error = solve_T_profile_implicit(Tnew_node, T_node, Zsum_node, kappa_node,
-          Cs_node, moist_node, delta_t, max_moist_node, bubble_node, expt_node,
-          porosity_node, effective_porosity_node, ice_node, alpha, beta, gamma,
-          dp, Nnodes, FIRST_SOLN, soil_con->FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class,
-          soil_con->bulk_dens_min, soil_con->soil_dens_min, soil_con->quartz,
-          soil_con->bulk_density, soil_con->soil_density, soil_con->organic,
-          soil_con->depth, state);
+      Error = solve_T_profile_implicit(Tnew_node, T_node, kappa_node, Cs_node,
+          moist_node, delta_t, ice_node, dp, Nnodes, FIRST_SOLN, NOFLUX,
+          EXP_TRANS, veg_class, soil_con, state);
       
       /* print out error information for IMPLICIT solution */
       if(Error==0)
@@ -238,11 +223,10 @@ double SurfEnergyBal::calculate(double Ts)
       if(state->options.IMPLICIT)
         FIRST_SOLN[0] = TRUE;
 
-      Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount, Zsum_node, kappa_node, Cs_node,
-			      moist_node, delta_t, max_moist_node, bubble_node,
-			      expt_node, ice_node, alpha, beta, gamma, dp, soil_con->depth, ufwc_table_node,
-			      porosity_node, effective_porosity_node,
-			      Nnodes, FIRST_SOLN, soil_con->FS_ACTIVE, NOFLUX, EXP_TRANS, veg_class, state);
+      Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount,
+          kappa_node, Cs_node, moist_node, delta_t, ice_node, dp,
+          soil_con->ufwc_table_node, porosity_node, effective_porosity_node, Nnodes,
+          FIRST_SOLN, NOFLUX, EXP_TRANS, veg_class, soil_con, state);
     }
       
     if ( (int)Error == ERROR ) {
@@ -348,13 +332,13 @@ double SurfEnergyBal::calculate(double Ts)
 		       NetShortBare, Tair, Ra_used[1], 
 		       displacement[1], roughness[1], ref_height[1], 
 		       (double)soil_con->elevation, rainfall, soil_con->depth, soil_con->Wcr, soil_con->Wpwp,
-		       frost_fract, root, state);
+		       soil_con->frost_fract, root, state);
   }
   else if(!SNOWING) {
     Evap = arno_evap(layer_wet, layer_dry, NetBareRad, Tair, vpd, 
 		     soil_con->depth[0], max_moist * soil_con->depth[0] * 1000., 
 		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, precipitation_mu,
-		     soil_con->resid_moist[0], frost_fract, state);
+		     soil_con->resid_moist[0], soil_con->frost_fract, state);
 
   }
   else Evap = 0.;

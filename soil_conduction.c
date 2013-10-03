@@ -301,30 +301,8 @@ void set_node_parameters(double   *dz_node,
 
 #define N_INTS 5
 
-int distribute_node_moisture_properties(double *moist_node,
-					double *ice_node,
-					double *kappa_node,
-					double *Cs_node,
-					double *Zsum_node,
-					double *T_node,
-					double *max_moist_node,
-					double ***ufwc_table_node,
-					double *expt_node,
-					double *bubble_node,
-					double *porosity_node,
-					double *effective_porosity_node,
-					double *moist,
-					double *depth,
-					double *soil_dens_min,
-					double *bulk_dens_min,
-					double *quartz,
-					double *soil_density,
-					double *bulk_density,
-					double *organic,
-					int     Nnodes,
-					int     Nlayers,
-					char    FS_ACTIVE,
-					const ProgramState* state) {
+int distribute_node_moisture_properties(energy_bal_struct* energy, const soil_con_struct* soil_con,
+    double *moist, const ProgramState* state) {
   /*********************************************************************
   This subroutine determines the moisture and ice contents of each 
   soil thermal node based on the current node temperature and layer
@@ -388,19 +366,19 @@ int distribute_node_moisture_properties(double *moist_node,
   PAST_BOTTOM = FALSE;
 
   /* node estimates */
-  for(nidx=0;nidx<Nnodes;nidx++) {
+  for(nidx=0;nidx<state->options.Nnode;nidx++) {
  
-    if(Zsum_node[nidx] == Lsum + depth[lidx] && nidx != 0 && lidx != Nlayers-1) {
+    if(soil_con->Zsum_node[nidx] == Lsum + soil_con->depth[lidx] && nidx != 0 && lidx != state->options.Nlayer-1) {
       /* node on layer boundary */
-      moist_node[nidx] = (moist[lidx] / depth[lidx] 
-			      + moist[lidx+1] / depth[lidx+1]) / 1000 / 2.;
-      soil_fract = (bulk_density[lidx] / soil_density[lidx] 
-		    + bulk_density[lidx+1] / soil_density[lidx+1]) / 2.;
+      energy->moist[nidx] = (moist[lidx] / soil_con->depth[lidx]
+			      + moist[lidx+1] / soil_con->depth[lidx+1]) / 1000 / 2.;
+      soil_fract = (soil_con->bulk_density[lidx] / soil_con->soil_density[lidx]
+		    + soil_con->bulk_density[lidx+1] / soil_con->soil_density[lidx+1]) / 2.;
     }
     else { 
       /* node completely in layer */
-      moist_node[nidx] = moist[lidx] / depth[lidx] / 1000;
-      soil_fract = (bulk_density[lidx] / soil_density[lidx]);
+      energy->moist[nidx] = moist[lidx] / soil_con->depth[lidx] / 1000;
+      soil_fract = (soil_con->bulk_density[lidx] / soil_con->soil_density[lidx]);
     }      
 
 
@@ -410,9 +388,9 @@ int distribute_node_moisture_properties(double *moist_node,
 //	       moist_node[nidx], max_moist_node[nidx] );
 //      return( ERROR );
 //    }
-    if (moist_node[nidx]-max_moist_node[nidx] > 0) moist_node[nidx] = max_moist_node[nidx]; // HACK!!!!!!!!!!!
+    if (energy->moist[nidx]-soil_con->max_moist_node[nidx] > 0) energy->moist[nidx] = soil_con->max_moist_node[nidx]; // HACK!!!!!!!!!!!
 
-    if(T_node[nidx] < 0 && (FS_ACTIVE && state->options.FROZEN_SOIL)) {
+    if(energy->T[nidx] < 0 && (soil_con->FS_ACTIVE && state->options.FROZEN_SOIL)) {
       /* compute moisture and ice contents */
 #if QUICK_FS
       ice_node[nidx] 
@@ -420,42 +398,42 @@ int distribute_node_moisture_properties(double *moist_node,
 						   max_moist_node[nidx], 
 						   ufwc_table_node[nidx]);
 #else
-      ice_node[nidx] 
-	= moist_node[nidx] - maximum_unfrozen_water(T_node[nidx],
-						    porosity_node[nidx],
-						    effective_porosity_node[nidx],
-						    max_moist_node[nidx], 
-						    bubble_node[nidx],
-						    expt_node[nidx]);
+      energy->ice_content[nidx]
+	= energy->moist[nidx] - maximum_unfrozen_water(energy->T[nidx],
+	    soil_con->porosity_node[nidx],
+	    soil_con->effective_porosity_node[nidx],
+	    soil_con->max_moist_node[nidx],
+	    soil_con->bubble_node[nidx],
+	    soil_con->expt_node[nidx]);
 #endif
-      if(ice_node[nidx]<0) ice_node[nidx]=0;
+      if(energy->ice_content[nidx]<0) energy->ice_content[nidx]=0;
 
       /* compute thermal conductivity */
-      kappa_node[nidx] 
-	= soil_conductivity(moist_node[nidx], moist_node[nidx] - ice_node[nidx], 
-			    soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
-			    soil_density[lidx], bulk_density[lidx], organic[lidx]);
+      energy->kappa_node[nidx]
+	= soil_conductivity(energy->moist[nidx], energy->moist[nidx] - energy->ice_content[nidx],
+	    soil_con->soil_dens_min[lidx], soil_con->bulk_dens_min[lidx], soil_con->quartz[lidx],
+	    soil_con->soil_density[lidx], soil_con->bulk_density[lidx], soil_con->organic[lidx]);
 
     }
     else {
       /* compute moisture and ice contents */
-      ice_node[nidx]   = 0;
+      energy->ice_content[nidx]   = 0;
       /* compute thermal conductivity */
-      kappa_node[nidx] 
-	= soil_conductivity(moist_node[nidx], moist_node[nidx], 
-			    soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
-			    soil_density[lidx], bulk_density[lidx], organic[lidx]);
+      energy->kappa_node[nidx]
+	= soil_conductivity(energy->moist[nidx], energy->moist[nidx],
+	    soil_con->soil_dens_min[lidx], soil_con->bulk_dens_min[lidx], soil_con->quartz[lidx],
+	    soil_con->soil_density[lidx], soil_con->bulk_density[lidx], soil_con->organic[lidx]);
     }
     /* compute volumetric heat capacity */
-    Cs_node[nidx] = volumetric_heat_capacity(bulk_density[lidx]/soil_density[lidx],
-					     moist_node[nidx] - ice_node[nidx], ice_node[nidx], organic[lidx]);
+    energy->Cs_node[nidx] = volumetric_heat_capacity(soil_con->bulk_density[lidx]/soil_con->soil_density[lidx],
+        energy->moist[nidx] - energy->ice_content[nidx], energy->ice_content[nidx], soil_con->organic[lidx]);
 
-    if(Zsum_node[nidx] > Lsum + depth[lidx] && !PAST_BOTTOM) {
-      Lsum += depth[lidx];
+    if(soil_con->Zsum_node[nidx] > Lsum + soil_con->depth[lidx] && !PAST_BOTTOM) {
+      Lsum += soil_con->depth[lidx];
       lidx++;
-      if( lidx == Nlayers ) {
+      if( lidx == state->options.Nlayer ) {
 	PAST_BOTTOM = TRUE;
-	lidx = Nlayers-1;
+	lidx = state->options.Nlayer-1;
       }
     }
   }
@@ -466,24 +444,10 @@ int distribute_node_moisture_properties(double *moist_node,
 #undef N_INTS
 
 int estimate_layer_ice_content(layer_data_struct *layer,
-			       double            *Zsum_node,
 			       double            *T,
-			       double            *max_moist_node,
-			       double          ***ufwc_table_node,
-			       double            *expt_node,
-			       double            *bubble_node,
-			       double            *depth,
-			       double            *max_moist,
-			       double          ***ufwc_table_layer,
-			       double            *expt,
-			       double            *bubble,
-			       double            *frost_fract,
-			       double             frost_slope,
-			       double            *porosity,
-			       double            *effective_porosity,
 			       int                Nnodes, 
 			       int                Nlayers,
-			       char               FS_ACTIVE,
+			       const soil_con_struct* soil_con,
 			       const ProgramState* state) {
 /**************************************************************
   This subroutine estimates the ice content of all soil 
@@ -541,7 +505,7 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 
   // compute cumulative layer depths
   Lsum[0] = 0;
-  for ( lidx = 1; lidx <= Nlayers; lidx++ ) Lsum[lidx] = depth[lidx-1] + Lsum[lidx-1];
+  for ( lidx = 1; lidx <= Nlayers; lidx++ ) Lsum[lidx] = soil_con->depth[lidx-1] + Lsum[lidx-1];
 
   // estimate soil layer average variables
   for ( lidx = 0; lidx < Nlayers; lidx++ ) {
@@ -558,25 +522,25 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 
     // Bracket current layer between nodes
     min_nidx = Nnodes-2;
-    while( Lsum[lidx] < Zsum_node[min_nidx] && min_nidx > 0 ) min_nidx --;
+    while( Lsum[lidx] < soil_con->Zsum_node[min_nidx] && min_nidx > 0 ) min_nidx --;
     max_nidx = 1;
-    while( Lsum[lidx+1] > Zsum_node[max_nidx] && max_nidx < Nnodes ) max_nidx ++;
+    while( Lsum[lidx+1] > soil_con->Zsum_node[max_nidx] && max_nidx < Nnodes ) max_nidx ++;
     if ( max_nidx >= Nnodes ) {
       fprintf( stderr, "ERROR: Soil thermal nodes do not extend below bottom soil layer, currently unable to handle this condition.\n" );
       return(ERROR);
     }
 
     // Get soil node temperatures for current layer
-    if ( Zsum_node[min_nidx] < Lsum[lidx] )
-      tmpT[min_nidx][Nfrost] = linear_interp(Lsum[lidx], Zsum_node[min_nidx], Zsum_node[min_nidx+1], T[min_nidx], T[min_nidx+1]);
+    if ( soil_con->Zsum_node[min_nidx] < Lsum[lidx] )
+      tmpT[min_nidx][Nfrost] = linear_interp(Lsum[lidx], soil_con->Zsum_node[min_nidx], soil_con->Zsum_node[min_nidx+1], T[min_nidx], T[min_nidx+1]);
     else tmpT[min_nidx][Nfrost] = T[min_nidx];
     tmpZ[min_nidx] = Lsum[lidx];
     for ( nidx = min_nidx+1; nidx < max_nidx; nidx++ ) {
       tmpT[nidx][Nfrost] = T[nidx];
-      tmpZ[nidx] = Zsum_node[nidx];
+      tmpZ[nidx] = soil_con->Zsum_node[nidx];
     }
-    if ( Zsum_node[max_nidx] > Lsum[lidx+1] )
-      tmpT[max_nidx][Nfrost] = linear_interp(Lsum[lidx+1], Zsum_node[max_nidx-1], Zsum_node[max_nidx], T[max_nidx-1], T[max_nidx]);
+    if ( soil_con->Zsum_node[max_nidx] > Lsum[lidx+1] )
+      tmpT[max_nidx][Nfrost] = linear_interp(Lsum[lidx+1], soil_con->Zsum_node[max_nidx-1], soil_con->Zsum_node[max_nidx], T[max_nidx-1], T[max_nidx]);
     else tmpT[max_nidx][Nfrost] = T[max_nidx];
     tmpZ[max_nidx] = Lsum[lidx+1];
 
@@ -602,7 +566,7 @@ int estimate_layer_ice_content(layer_data_struct *layer,
     }
 
     // Get soil node ice content for current layer
-    if (state->options.FROZEN_SOIL && FS_ACTIVE) {
+    if (state->options.FROZEN_SOIL && soil_con->FS_ACTIVE) {
       for ( nidx = min_nidx; nidx <= max_nidx; nidx++ ) {
         for ( frost_area = 0; frost_area < Nfrost; frost_area++ ) {
 	  tmp_ice[nidx][frost_area] = layer[lidx].moist 
@@ -610,9 +574,9 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 	    - maximum_unfrozen_water_quick(tmpT[nidx][frost_area], max_moist[lidx], 
 					   ufwc_table_layer[lidx]);
 #else
-            - maximum_unfrozen_water(tmpT[nidx][frost_area], porosity[lidx], 
-				     effective_porosity[lidx], max_moist[lidx], 
-				     bubble[lidx], expt[lidx]);
+            - maximum_unfrozen_water(tmpT[nidx][frost_area], soil_con->porosity[lidx],
+                soil_con->effective_porosity[lidx], soil_con->max_moist[lidx],
+                soil_con->bubble[lidx], soil_con->expt[lidx]);
 #endif
 	  if ( tmp_ice[nidx][frost_area] < 0 ) tmp_ice[nidx][frost_area] = 0.;
         }
@@ -641,9 +605,9 @@ int estimate_layer_ice_content(layer_data_struct *layer,
     for ( frost_area = 0; frost_area < Nfrost; frost_area++ )
       layer[lidx].soil_ice[frost_area] /= depth[lidx];
 #else
-    layer[lidx].soil_ice /= depth[lidx];
+    layer[lidx].soil_ice /= soil_con->depth[lidx];
 #endif  // SPATIAL_FROST
-    layer[lidx].T /= depth[lidx];
+    layer[lidx].T /= soil_con->depth[lidx];
 
 
   }
@@ -654,20 +618,9 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 
 
 int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
-			       double            *depth,
-			       double             Dp,
 			       double             Tsurf,
 			       double             T1,
-			       double             Tp,
-			       double            *max_moist,
-			       double          ***ufwc_table_layer,
-			       double            *expt,
-			       double            *bubble,
-			       double            *frost_fract,
-			       double             frost_slope,
-			       double            *porosity,
-			       double            *effective_porosity,
-			       char               FS_ACTIVE,
+			       const soil_con_struct* soil_con,
 			       const ProgramState* state) {
 /**************************************************************
   This subroutine estimates the temperature and ice content of all soil 
@@ -699,12 +652,12 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 
   // compute cumulative layer depths
   Lsum[0] = 0;
-  for ( lidx = 1; lidx <= state->options.Nlayer; lidx++ ) Lsum[lidx] = depth[lidx-1] + Lsum[lidx-1];
+  for ( lidx = 1; lidx <= state->options.Nlayer; lidx++ ) Lsum[lidx] = soil_con->depth[lidx-1] + Lsum[lidx-1];
 
   // estimate soil layer average temperatures
   layer[0].T = 0.5*(Tsurf+T1); // linear profile in topmost layer
   for ( lidx = 1; lidx < state->options.Nlayer; lidx++ ) {
-    layer[lidx].T = Tp - Dp/(depth[lidx])*(T1-Tp)*(exp(-(Lsum[lidx+1]-Lsum[1])/Dp)-exp(-(Lsum[lidx]-Lsum[1])/Dp));
+    layer[lidx].T = soil_con->avg_temp - soil_con->dp/(soil_con->depth[lidx])*(T1-soil_con->avg_temp)*(exp(-(Lsum[lidx+1]-Lsum[1])/soil_con->dp)-exp(-(Lsum[lidx]-Lsum[1])/soil_con->dp));
   }
 
   // estimate soil layer ice contents
@@ -716,7 +669,7 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
     layer[lidx].soil_ice = 0;
 #endif
 
-    if (state->options.FROZEN_SOIL && FS_ACTIVE) {
+    if (state->options.FROZEN_SOIL && soil_con->FS_ACTIVE) {
 
 #if SPATIAL_FROST
 
@@ -728,12 +681,12 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
         tmpT = linear_interp(tmp_fract, 0, 1, min_temp, max_temp);
         tmp_ice = layer[lidx].moist
 #if QUICK_FS
-	    - maximum_unfrozen_water_quick(tmpT, max_moist[lidx], ufwc_table_layer[lidx]);
+	    - maximum_unfrozen_water_quick(tmpT, soil_con->max_moist[lidx], soil_con->ufwc_table_layer[lidx]);
 #else
 #if EXCESS_ICE
-            - maximum_unfrozen_water(tmpT, porosity[lidx], effective_porosity[lidx], max_moist[lidx], bubble[lidx], expt[lidx]);
+            - maximum_unfrozen_water(tmpT, soil_con->porosity[lidx], soil_con->effective_porosity[lidx], soil_con->max_moist[lidx], soil_con->bubble[lidx], soil_con->expt[lidx]);
 #else
-	    - maximum_unfrozen_water(tmpT, max_moist[lidx], bubble[lidx], expt[lidx]);
+	    - maximum_unfrozen_water(tmpT, soil_con->max_moist[lidx], soil_con->bubble[lidx], soil_con->expt[lidx]);
 #endif
 #endif
         layer[lidx].soil_ice[frost_area] = frost_fract[frost_area] * tmp_ice;
@@ -750,9 +703,9 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 
       layer[lidx].soil_ice = layer[lidx].moist
 #if QUICK_FS
-	    - maximum_unfrozen_water_quick(layer[lidx].T, max_moist[lidx], ufwc_table_layer[lidx]);
+	    - maximum_unfrozen_water_quick(layer[lidx].T, soil_con->max_moist[lidx], soil_con->ufwc_table_layer[lidx]);
 #else
-      - maximum_unfrozen_water(layer[lidx].T, porosity[lidx], effective_porosity[lidx], max_moist[lidx], bubble[lidx], expt[lidx]);
+      - maximum_unfrozen_water(layer[lidx].T, soil_con->porosity[lidx], soil_con->effective_porosity[lidx], soil_con->max_moist[lidx], soil_con->bubble[lidx], soil_con->expt[lidx]);
 #endif
 
       if (layer[lidx].soil_ice < 0) {
@@ -772,17 +725,7 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 
 }
 
-
-void compute_soil_layer_thermal_properties(layer_data_struct *layer,
-					   double            *depth,
-					   double            *bulk_dens_min,
-					   double            *soil_dens_min,
-					   double            *quartz,
-					   double            *bulk_density,
-					   double            *soil_density,
-					   double            *organic,
-					   double            *frost_fract,
-					   int                Nlayers) {
+void compute_soil_layer_thermal_properties(layer_data_struct *layer, const soil_con_struct* soil_con, int Nlayers) {
 /********************************************************************
   This subroutine computes the thermal conductivity and volumetric
   heat capacity of each soil layer based on its current moisture
@@ -814,26 +757,26 @@ void compute_soil_layer_thermal_properties(layer_data_struct *layer,
 
   /* compute layer thermal properties */
   for(lidx=0;lidx<Nlayers;lidx++) {
-    moist = layer[lidx].moist / depth[lidx] / 1000;
+    moist = layer[lidx].moist / soil_con->depth[lidx] / 1000;
 #if SPATIAL_FROST
     ice = 0;
     for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-      ice += layer[lidx].soil_ice[frost_area] / depth[lidx] / 1000 
+      ice += layer[lidx].soil_ice[frost_area] / soil_con->depth[lidx] / 1000
 	* frost_fract[frost_area];
 #else
-    ice = layer[lidx].soil_ice / depth[lidx] / 1000;
+    ice = layer[lidx].soil_ice / soil_con->depth[lidx] / 1000;
 #endif
     layer[lidx].kappa 
-      = soil_conductivity(moist, moist - ice, 
-			  soil_dens_min[lidx], bulk_dens_min[lidx], quartz[lidx],
-			  soil_density[lidx], bulk_density[lidx], organic[lidx]);
+      = soil_conductivity(moist, moist - ice,
+          soil_con->soil_dens_min[lidx], soil_con->bulk_dens_min[lidx], soil_con->quartz[lidx],
+          soil_con->soil_density[lidx], soil_con->bulk_density[lidx], soil_con->organic[lidx]);
     layer[lidx].Cs 
-      = volumetric_heat_capacity(bulk_density[lidx]/soil_density[lidx], moist-ice, ice, organic[lidx]);
+      = volumetric_heat_capacity(soil_con->bulk_density[lidx]/soil_con->soil_density[lidx], moist-ice, ice, soil_con->organic[lidx]);
   }
 }
 
 void find_0_degree_fronts(energy_bal_struct *energy,
-			  double            *Zsum_node,
+			  const double      *Zsum_node,
 			  double            *T,
 			  int                Nnodes) {
 /***********************************************************************

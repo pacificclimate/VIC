@@ -7,13 +7,10 @@ static char vcid[] = "$Id$";
 int  runoff(cell_data_struct  *cell_wet,
 	    cell_data_struct  *cell_dry,
             energy_bal_struct *energy,
-            soil_con_struct   *soil_con,
+      const soil_con_struct   *soil_con,
 	    double            *ppt, 
 	    int                SubsidenceUpdate,
-	    double            *frost_fract,
 	    double             precipitation_mu,
-	    int                dt,
-      int                Nnodes,
 	    int                band,
 	    int                rec,
 	    int                iveg,
@@ -312,7 +309,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #else
       // store current evaporation
       for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
-        evap[lindex][0] = cell->layer[lindex].evap/(double)dt;
+        evap[lindex][0] = cell->layer[lindex].evap/(double)state->global_param.dt;
 
       frost_area = 0;
 
@@ -462,16 +459,16 @@ int  runoff(cell_data_struct  *cell_wet,
 
           // save dt_runoff based on initial runoff estimate,
           // since we will modify total runoff below for the case of completely saturated soil
-          tmp_dt_runoff[frost_area] = runoff[frost_area] / (double) dt;
+          tmp_dt_runoff[frost_area] = runoff[frost_area] / (double) state->global_param.dt;
 	  
 	  /**************************************************
 	  Compute Flow Between Soil Layers (using an hourly time step)
 	  **************************************************/
 	  
-	  dt_inflow  =  inflow / (double) dt;
+	  dt_inflow  =  inflow / (double) state->global_param.dt;
 	  dt_outflow =  0.0;
 	  
-	  for (time_step = 0; time_step < dt; time_step++) {
+	  for (time_step = 0; time_step < state->global_param.dt; time_step++) {
 	    inflow   = dt_inflow;
 	    last_cnt = 0;
 	    
@@ -788,23 +785,7 @@ int  runoff(cell_data_struct  *cell_wet,
 #if EXCESS_ICE     
     if(SubsidenceUpdate == 0 ){
 #endif
-      ErrorFlag = distribute_node_moisture_properties(energy->moist, energy->ice_content,
-						      energy->kappa_node, energy->Cs_node,
-						      soil_con->Zsum_node, energy->T,
-						      soil_con->max_moist_node,
-						      soil_con->ufwc_table_node,
-						      soil_con->expt_node,
-						      soil_con->bubble_node, 
-						      soil_con->porosity_node,
-						      soil_con->effective_porosity_node,
-						      moist, soil_con->depth, 
-						      soil_con->soil_dens_min,
-						      soil_con->bulk_dens_min,
-						      soil_con->quartz, 
-						      soil_con->soil_density,
-						      soil_con->bulk_density,
-						      soil_con->organic, Nnodes, 
-						      state->options.Nlayer, soil_con->FS_ACTIVE, state);
+    ErrorFlag = distribute_node_moisture_properties(energy, soil_con, moist, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
 #if EXCESS_ICE
     }
@@ -814,7 +795,7 @@ int  runoff(cell_data_struct  *cell_wet,
 
 }
 
-void compute_runoff_and_asat(soil_con_struct *soil_con, double *moist, double inflow, double *A, double *runoff, const ProgramState* state)
+void compute_runoff_and_asat(const soil_con_struct *soil_con, double *moist, double inflow, double *A, double *runoff, const ProgramState* state)
 {
   double top_moist;
   double top_max_moist;

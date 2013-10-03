@@ -10,7 +10,7 @@ void store_moisture_for_debug(int                       iveg,
 		                          int                       Nveg,
                               double                    *mu,
                               std::vector<HRUElement>&  hruElements,
-                              soil_con_struct           *soil_con,
+                              const soil_con_struct           *soil_con,
                               const ProgramState*       state) {
 /****************************************************************
   This subroutine was written to save the current water storage

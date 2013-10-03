@@ -12,8 +12,8 @@ int  full_energy(char                 NEWCELL,
                  dist_prcp_struct    *prcp,
                  const dmy_struct    *dmy,
                  lake_con_struct     *lake_con,
-                 soil_con_struct     *soil_con, //TODO: make this const
-                 veg_con_struct      *veg_con,
+                 const soil_con_struct     *soil_con,
+                 const veg_con_struct      *veg_con,
                  WriteDebug          *writeDebug,
                  const ProgramState  *state)
 /**********************************************************************

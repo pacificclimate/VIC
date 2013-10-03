@@ -114,7 +114,7 @@ int snow_intercept(double  Dt,
 		   double *displacement,
 		   double *ref_height,
 		   double *roughness,
-		   float  *root, 
+		   const float  *root,
 		   int     UnderStory,
 		   int     band, 
 		   int     hour, 
@@ -126,7 +126,7 @@ int snow_intercept(double  Dt,
 		   const atmos_data_struct &atmos,
 		   layer_data_struct *layer_dry,
 		   layer_data_struct *layer_wet,
-		   soil_con_struct   *soil_con,
+		   const soil_con_struct   *soil_con,
 		   veg_var_struct    *veg_var_dry,
 		   veg_var_struct    *veg_var_wet,
 		   const ProgramState* state)
@@ -589,11 +589,11 @@ double error_print_canopy_energy_bal(double Tfoliage,
     int     month,
     int     rec,
     double  delta_t,
-    double  elevation,
-    double *Wcr,
-    double *Wpwp,
-    double *depth,
-    double *frost_fract,
+    const double  elevation,
+    const double *Wcr,
+    const double *Wpwp,
+    const double *depth,
+    const double *frost_fract,
     /* Atmopheric Condition and Forcings */
     double  AirDens,
     double  EactAir,
@@ -614,7 +614,7 @@ double error_print_canopy_energy_bal(double Tfoliage,
     double *displacement,
     double *ref_height,
     double *roughness,
-    float  *root,
+    const float  *root,
     /* Water Flux Terms */
     double  IntRain,
     double  IntSnow,
@@ -690,10 +690,10 @@ double error_print_canopy_energy_bal(double Tfoliage,
 
   printf("Wdew = %f\n", *Wdew);
 
-  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract, depth);
+  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract);
 
   if(state->options.DIST_PRCP)
-    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract, depth);
+    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract);
 
   write_vegvar(&(veg_var_wet[0]),iveg);
   if(state->options.DIST_PRCP)

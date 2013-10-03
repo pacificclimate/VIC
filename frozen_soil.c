@@ -13,7 +13,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 				     layer_data_struct *layer_wet,
 				     layer_data_struct *layer_dry,
 				     layer_data_struct *layer,
-				     soil_con_struct   *soil_con,
+				     const soil_con_struct   *soil_con,
 				     int                Nnodes,
 				     int                veg,
 				     double            *T,
@@ -71,53 +71,22 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 
   /** Compute Soil Layer average  properties **/
   if (state->options.QUICK_FLUX) {
-    ErrorFlag = estimate_layer_ice_content_quick_flux(layer_wet, soil_con->depth, soil_con->dp,
-					   energy->T[0], energy->T[1], soil_con->avg_temp,
-					   soil_con->max_moist, 
-					   soil_con->ufwc_table_layer,
-					   soil_con->expt, soil_con->bubble, 
-					   soil_con->frost_fract, soil_con->frost_slope, 
-					   soil_con->porosity,
-					   soil_con->effective_porosity,
-					   soil_con->FS_ACTIVE, state);
+    ErrorFlag = estimate_layer_ice_content_quick_flux(layer_wet,
+					   energy->T[0], energy->T[1], soil_con, state);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(state->options.DIST_PRCP) {
-      ErrorFlag = estimate_layer_ice_content_quick_flux(layer_dry, soil_con->depth, soil_con->dp,
-					     energy->T[0], energy->T[1], soil_con->avg_temp,
-					     soil_con->max_moist, 
-					     soil_con->ufwc_table_layer,
-					     soil_con->expt, soil_con->bubble, 
-					     soil_con->frost_fract, soil_con->frost_slope, 
-					     soil_con->porosity,
-					     soil_con->effective_porosity,
-					     soil_con->FS_ACTIVE, state);
+      ErrorFlag = estimate_layer_ice_content_quick_flux(layer_dry, energy->T[0],
+          energy->T[1], soil_con, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
   }
   else {
-    ErrorFlag = estimate_layer_ice_content(layer_wet, soil_con->Zsum_node, energy->T,
-					   soil_con->max_moist_node, 
-					   soil_con->ufwc_table_node,
-					   soil_con->expt_node, soil_con->bubble_node, 
-					   soil_con->depth, soil_con->max_moist, 
-					   soil_con->ufwc_table_layer,
-					   soil_con->expt, soil_con->bubble, 
-					   soil_con->frost_fract, soil_con->frost_slope, 
-					   soil_con->porosity,
-					   soil_con->effective_porosity,
-					   Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
+    ErrorFlag = estimate_layer_ice_content(layer_wet, energy->T, Nnodes,
+        state->options.Nlayer, soil_con, state);
     if ( ErrorFlag == ERROR ) return (ERROR);
     if(state->options.DIST_PRCP) {
-      ErrorFlag = estimate_layer_ice_content(layer_dry, soil_con->Zsum_node, energy->T,
-					     soil_con->max_moist_node, 
-					     soil_con->ufwc_table_node,
-					     soil_con->expt_node, soil_con->bubble_node, 
-					     soil_con->depth, soil_con->max_moist, 
-					     soil_con->ufwc_table_layer,
-					     soil_con->expt, soil_con->bubble, 
-					     soil_con->frost_fract, soil_con->frost_slope, 
-					     soil_con->porosity, soil_con->effective_porosity,
-					     Nnodes, state->options.Nlayer, soil_con->FS_ACTIVE, state);
+      ErrorFlag = estimate_layer_ice_content(layer_dry, energy->T, Nnodes,
+          state->options.Nlayer, soil_con, state);
       if ( ErrorFlag == ERROR ) return (ERROR);
     }
   }
@@ -125,7 +94,7 @@ int calc_layer_average_thermal_props(energy_bal_struct *energy,
 #if LINK_DEBUG
   if(state->debug.PRT_BALANCE && state->debug.DEBUG) {
     printf("After Moisture Redistribution\n");
-    write_layer(layer, veg, state->options.Nlayer, soil_con->frost_fract, soil_con->depth);
+    write_layer(layer, veg, state->options.Nlayer, soil_con->frost_fract);
   } 
 #endif
 
@@ -137,29 +106,21 @@ int  solve_T_profile(double *T,
 		     double *T0,
 		     char   *Tfbflag,
 		     int    *Tfbcount,
-		     double *Zsum,
 		     double *kappa,
 		     double *Cs,
 		     double *moist,
 		     double  deltat,
-		     double *max_moist,
-		     double *bubble,
-		     double *expt,
 		     double *ice,
-		     double *alpha,
-		     double *beta,
-		     double *gamma,
 		     double Dp,
-		     double *depth,
-		     double ***ufwc_table_node,
+		     double **const* ufwc_table_node,
 		     double *porosity,
 		     double *effective_porosity,
 		     int     Nnodes,
 		     int    *FIRST_SOLN,
-		     int     FS_ACTIVE,
 		     int     NOFLUX,
 		     int     EXP_TRANS, 
 		     int veg_class,
+		     const soil_con_struct* soil_con,
 		     const ProgramState* state) {
 /**********************************************************************
   This subroutine was written to iteratively solve the soil temperature
@@ -208,47 +169,47 @@ int  solve_T_profile(double *T,
     FIRST_SOLN[0] = FALSE;
     if (!EXP_TRANS) {
       for (j = 1; j < Nnodes - 1; j++) {
-        A[j] = Cs[j] * alpha[j - 1] * alpha[j - 1];
+        A[j] = Cs[j] * soil_con->alpha[j - 1] * soil_con->alpha[j - 1];
         B[j] = (kappa[j + 1] - kappa[j - 1]) * deltat;
 
         //C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
         //D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
 
-        C[j] = 2 * deltat * kappa[j] * alpha[j - 1] / gamma[j - 1]; // new formulation
-        D[j] = 2 * deltat * kappa[j] * alpha[j - 1] / beta[j - 1]; // new formulation
+        C[j] = 2 * deltat * kappa[j] * soil_con->alpha[j - 1] / soil_con->gamma[j - 1]; // new formulation
+        D[j] = 2 * deltat * kappa[j] * soil_con->alpha[j - 1] / soil_con->beta[j - 1]; // new formulation
 
-        E[j] = ice_density * Lf * alpha[j - 1] * alpha[j - 1];
+        E[j] = ice_density * Lf * soil_con->alpha[j - 1] * soil_con->alpha[j - 1];
       }
       if (NOFLUX) {
         j = Nnodes - 1;
-        A[j] = Cs[j] * alpha[j - 1] * alpha[j - 1];
+        A[j] = Cs[j] * soil_con->alpha[j - 1] * soil_con->alpha[j - 1];
         B[j] = (kappa[j] - kappa[j - 1]) * deltat;
 
         //C[j] = 2*deltat*kappa[j]*powf(alpha[j-1],2.)/(powf(gamma[j-1],2.)+powf(beta[j-1],2.)); // old formulation
         //D[j] = 2*deltat*kappa[j]*(gamma[j-1]-beta[j-1])/(powf(gamma[j-1],2.)+powf(beta[j-1],2.));  // old formulation
 
-        C[j] = 2 * deltat * kappa[j] * alpha[j - 1] / gamma[j - 1]; //new formulation
-        D[j] = 2 * deltat * kappa[j] * alpha[j - 1] / beta[j - 1]; //new formulation
+        C[j] = 2 * deltat * kappa[j] * soil_con->alpha[j - 1] / soil_con->gamma[j - 1]; //new formulation
+        D[j] = 2 * deltat * kappa[j] * soil_con->alpha[j - 1] / soil_con->beta[j - 1]; //new formulation
 
-        E[j] = ice_density * Lf * alpha[j - 1] * alpha[j - 1];
+        E[j] = ice_density * Lf * soil_con->alpha[j - 1] * soil_con->alpha[j - 1];
       }
     } else { //grid transformation terms
       for (j = 1; j < Nnodes - 1; j++) {
-        A[j] = 4 * Bexp * Bexp * Cs[j] * (Zsum[j] + 1) * (Zsum[j] + 1);
+        A[j] = 4 * Bexp * Bexp * Cs[j] * (soil_con->Zsum_node[j] + 1) * (soil_con->Zsum_node[j] + 1);
         B[j] = (kappa[j + 1] - kappa[j - 1]) * deltat;
         C[j] = 4 * deltat * kappa[j];
         D[j] = 2 * deltat * kappa[j] * Bexp;
-        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (Zsum[j] + 1)
-            * (Zsum[j] + 1);
+        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (soil_con->Zsum_node[j] + 1)
+            * (soil_con->Zsum_node[j] + 1);
       }
       if (NOFLUX) {
         j = Nnodes - 1;
-        A[j] = 4 * Bexp * Bexp * Cs[j] * (Zsum[j] + 1) * (Zsum[j] + 1);
+        A[j] = 4 * Bexp * Bexp * Cs[j] * (soil_con->Zsum_node[j] + 1) * (soil_con->Zsum_node[j] + 1);
         B[j] = (kappa[j] - kappa[j - 1]) * deltat;
         C[j] = 4 * deltat * kappa[j];
         D[j] = 2 * deltat * kappa[j] * Bexp;
-        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (Zsum[j] + 1)
-            * (Zsum[j] + 1);
+        E[j] = 4 * Bexp * Bexp * ice_density * Lf * (soil_con->Zsum_node[j] + 1)
+            * (soil_con->Zsum_node[j] + 1);
       }
     }
   }
@@ -257,8 +218,8 @@ int  solve_T_profile(double *T,
     T[j] = T0[j];
 
   Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist,
-      max_moist, ice, bubble, expt, alpha, gamma, A, B, C, D, E,
-      ufwc_table_node, porosity, effective_porosity, FS_ACTIVE, NOFLUX,
+      soil_con->max_moist, ice, soil_con->bubble, soil_con->expt, soil_con->alpha, soil_con->gamma, A, B, C, D, E,
+      soil_con->ufwc_table_node, porosity, effective_porosity, soil_con->FS_ACTIVE, NOFLUX,
       EXP_TRANS, veg_class, state);
 
   return (Error);
@@ -269,34 +230,18 @@ int  solve_T_profile(double *T,
 
 int solve_T_profile_implicit(double *T,                           // update
 			     double *T0,                    // keep
-			     double *Zsum,                  // soil parameter
 			     double *kappa,                 // update if necessary
 			     double *Cs,                    // update if necessary
 			     double *moist,                 // keep
 			     double  deltat,                // model parameter
-			     double *max_moist,             // soil parameter
-			     double *bubble,                // soil parameter
-			     double *expt,                  // soil parameter
-			     double *porosity,              // soil parameter
-			     double *effective_porosity,     // soil parameter
 			     double *ice,                   // update if necessary
-			     double *alpha,                 // soil parameter
-			     double *beta,                  // soil parameter
-			     double *gamma,                 // soil parameter
 			     double Dp,                     // soil parameter
 			     int     Nnodes,               // model parameter
 			     int   *FIRST_SOLN,            // update
-			     int     FS_ACTIVE,
 			     int  NOFLUX,
 			     int EXP_TRANS,
 			     int veg_class,                // model parameter
-			     double *bulk_dens_min,          // soil parameter
-			     double *soil_dens_min,          // soil parameter
-			     double *quartz,                // soil parameter
-			     double *bulk_density,          // soil parameter
-			     double *soil_density,          // soil parameter
-			     double *organic,                // soil parameter
-			     double *depth,                 // soil parameter
+			     const soil_con_struct* soil_con,
 			     const ProgramState* state)
 {    
   /**********************************************************************
@@ -336,10 +281,13 @@ int solve_T_profile_implicit(double *T,                           // update
   else
     n = Nnodes-1;
   
-  NewtonRaphsonMethod nrMethod(&T[1], res, n, deltat, FS_ACTIVE, NOFLUX,
-      EXP_TRANS, T0, moist, ice, kappa, Cs, max_moist, bubble, expt, porosity,
-      effective_porosity, alpha, beta, gamma, Zsum, Dp, bulk_dens_min,
-      soil_dens_min, quartz, bulk_density, soil_density, organic, depth,
+  NewtonRaphsonMethod nrMethod(&T[1], res, n, deltat, soil_con->FS_ACTIVE,
+      NOFLUX, EXP_TRANS, T0, moist, ice, kappa, Cs, soil_con->max_moist,
+      soil_con->bubble, soil_con->expt, soil_con->porosity,
+      soil_con->effective_porosity, soil_con->alpha, soil_con->beta,
+      soil_con->gamma, soil_con->Zsum_node, Dp, soil_con->bulk_dens_min,
+      soil_con->soil_dens_min, soil_con->quartz, soil_con->bulk_density,
+      soil_con->soil_density, soil_con->organic, soil_con->depth,
       state->options.Nlayer);
   // modified Newton-Raphson to solve for new T
   Error = nrMethod.compute(&T[1], n);
@@ -363,18 +311,18 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			     char   *Tfbflag,
 			     int    *Tfbcount,
 			     double *moist,
-			     double *max_moist,
+			     const double *max_moist,
 			     double *ice,
-			     double *bubble,
-			     double *expt,
-			     double *alpha,
-			     double *gamma,
+			     const double *bubble,
+			     const double *expt,
+			     const double *alpha,
+			     const double *gamma,
 			     double *A, 
 			     double *B, 
 			     double *C, 
 			     double *D, 
 			     double *E,
-			     double ***ufwc_table_node,
+			     double **const *ufwc_table_node,
 			     double *porosity,
 			     double *effective_porosity,
 			     int    FS_ACTIVE, 

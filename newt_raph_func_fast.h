@@ -6,11 +6,11 @@ class NewtonRaphsonMethod {
 public:
   NewtonRaphsonMethod(double T_2[], double res[], int n, double deltat, int FS_ACTIVE,
       int NOFLUX, int EXP_TRANS, double *T0, double *moist, double *ice,
-      double *kappa, double *Cs, double *max_moist, double *bubble, double *expt,
-      double *porosity, double *effective_porosity, double *alpha, double *beta,
-      double *gamma, double *Zsum, double Dp, double *bulk_dens_min,
-      double *soil_dens_min, double *quartz, double *bulk_density,
-      double *soil_density, double *organic, double *depth, int Nlayers);
+      double *kappa, double *Cs, const double *max_moist, const double *bubble, const double *expt,
+      const double *porosity, const double *effective_porosity, const double *alpha, const double *beta,
+      const double *gamma, const double *Zsum, double Dp, const double *bulk_dens_min,
+      const double *soil_dens_min, const double *quartz, const double *bulk_density,
+      const double *soil_density, const double *organic, const double *depth, int Nlayers);
   virtual ~NewtonRaphsonMethod() {}
   int compute(double x[], int n);
 private:
@@ -26,23 +26,23 @@ private:
   double *ice;
   double *kappa;
   double *Cs;
-  double *max_moist;
-  double *bubble;
-  double *expt;
-  double *porosity;
-  double *effective_porosity;
-  double *alpha;
-  double *beta;
-  double *gamma;
-  double *Zsum;
+  const double *max_moist;
+  const double *bubble;
+  const double *expt;
+  const double *porosity;
+  const double *effective_porosity;
+  const double *alpha;
+  const double *beta;
+  const double *gamma;
+  const double *Zsum;
   double Dp;
-  double *bulk_dens_min;
-  double *soil_dens_min;
-  double *quartz;
-  double *bulk_density;
-  double *soil_density;
-  double *organic;
-  double *depth;
+  const double *bulk_dens_min;
+  const double *soil_dens_min;
+  const double *quartz;
+  const double *bulk_density;
+  const double *soil_density;
+  const double *organic;
+  const double *depth;
   int Nlayers;
 
   double Bexp;

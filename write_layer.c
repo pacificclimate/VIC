@@ -8,8 +8,7 @@ static char vcid[] = "$Id$";
 void write_layer(layer_data_struct *layer,
                  int                veg,
                  int                Nlayer,
-                 double            *frost_fract,
-                 double            *depth)
+                 const double*      frost_fract)
 /**********************************************************************
 	write_soilvar		Keith Cherkauer		July 17, 1997
 

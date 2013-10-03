@@ -135,7 +135,7 @@ int snow_melt(double latent_heat_Le,
     double *save_deltaCC, double *save_grnd_flux, double *save_latent,
     double *save_latent_sub, double *save_refreeze_energy,
     double *save_sensible, int UNSTABLE_SNOW, int rec, int iveg, int band,
-    snow_data_struct *snow, soil_con_struct *soil_con,
+    snow_data_struct *snow, const soil_con_struct *soil_con,
     const ProgramState* state)
 {
   int    Twidth;

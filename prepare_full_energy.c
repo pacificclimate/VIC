@@ -9,7 +9,7 @@ void prepare_full_energy(int               iveg,
 			 int               Nveg,
 			 int               Nnodes,
 			 dist_prcp_struct *prcp,
-			 soil_con_struct  *soil_con, //TODO: make this const since it is read only
+			 const soil_con_struct  *soil_con,
 			 double           *moist0,
 			 double           *ice0,
 			 const ProgramState* state) {
@@ -87,15 +87,7 @@ void prepare_full_energy(int               iveg,
       }
 
       /** Compute Soil Thermal Properties **/
-      compute_soil_layer_thermal_properties(layer,soil_con->depth,
-					    soil_con->bulk_dens_min,
-					    soil_con->soil_dens_min,
-					    soil_con->quartz,
-					    soil_con->bulk_density,
-					    soil_con->soil_density,
-					    soil_con->organic,
-					    soil_con->frost_fract,
-					    state->options.Nlayer);
+      compute_soil_layer_thermal_properties(layer, soil_con, state->options.Nlayer);
     
       /** Save Thermal Conductivities for Energy Balance **/
       it->energy.kappa[0] = layer[0].kappa;
