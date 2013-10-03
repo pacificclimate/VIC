@@ -6,12 +6,12 @@
 class CanopyEnergyBal : public RootBrent {
 public:
   CanopyEnergyBal(int band, int month, int rec, double delta_t,
-      double elevation, double* Wcr, double* Wpwp, double* depth,
-      double* frost_fract, double AirDens, double EactAir, double Press,
+      const double elevation, const double* Wcr, const double* Wpwp, const double* depth,
+      const double* frost_fract, double AirDens, double EactAir, double Press,
       double latent_heat_Le, double Tcanopy, double Vpd,
       double precipitation_mu, double* Evap, double* Ra, double* Ra_used,
       double* Rainfall, double* Wind, int UnderStory, int iveg, int veg_class,
-      double* displacement, double* ref_height, double* roughness, float* root,
+      double* displacement, double* ref_height, double* roughness, const float* root,
       double IntRain, double IntSnow, double* Wdew,
       layer_data_struct* layer_wet, layer_data_struct * layer_dry,
       veg_var_struct * veg_var_wet, veg_var_struct * veg_var_dry,
@@ -37,11 +37,11 @@ private:
   int month;
   int rec;
   double delta_t;
-  double elevation;
-  double* Wcr;
-  double* Wpwp;
-  double* depth;
-  double* frost_fract;
+  const double elevation;
+  const double* Wcr;
+  const double* Wpwp;
+  const double* depth;
+  const double* frost_fract;
   double AirDens;
   double EactAir;
   double Press;
@@ -60,7 +60,7 @@ private:
   double* displacement;
   double* ref_height;
   double* roughness;
-  float* root;
+  const float* root;
   double IntRain;
   double IntSnow;
   double* Wdew;

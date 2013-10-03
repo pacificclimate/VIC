@@ -2301,25 +2301,10 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     advect_snow_storage(lakefrac, max_newfraction, newfraction, &(hruElement->snow));
     rescale_snow_energy_fluxes((1-lakefrac), (1-newfraction), &(hruElement->snow), &(hruElement->energy));
     for (j=0; j<state->options.Nlayer; j++) moist[j] = hruElement->cell[WET].layer[j].moist;
-    ErrorFlag = distribute_node_moisture_properties(hruElement->energy.moist,
-                                                    hruElement->energy.ice_content,
-                                                    hruElement->energy.kappa_node,
-                                                    hruElement->energy.Cs_node,
-                                                    soil_con.Zsum_node, hruElement->energy.T,
-                                                    soil_con.max_moist_node,
-                                                    soil_con.ufwc_table_node,
-                                                    soil_con.expt_node,
-                                                    soil_con.bubble_node,
-                                                    soil_con.porosity_node,
-                                                    soil_con.effective_porosity_node,
-                                                    moist, soil_con.depth,
-                                                    soil_con.soil_dens_min,
-                                                    soil_con.bulk_dens_min,
-                                                    soil_con.quartz,
-                                                    soil_con.soil_density,
-                                                    soil_con.bulk_density,
-                                                    soil_con.organic, state->options.Nnode,
-                                                    state->options.Nlayer, soil_con.FS_ACTIVE, state);
+
+    ErrorFlag = distribute_node_moisture_properties(&hruElement->energy,
+        &soil_con, moist, state);
+
     if ( ErrorFlag == ERROR ) return (ERROR);
   }
   else if (lakefrac < 1.0) { // wetland is gone at end of time step, but existed at beginning of step
