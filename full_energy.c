@@ -6,7 +6,6 @@
 static char vcid[] = "$Id$";
 
 int  full_energy(char                 NEWCELL,
-		             const int            gridcell,
                  int                  time_step_record,
                  atmos_data_struct   *atmos,
                  dist_prcp_struct    *prcp,
@@ -480,7 +479,7 @@ int  full_energy(char                 NEWCELL,
         //TODO: convert debug struct into local per element information!
         //writeDebug->write_debug(atmos, soil_con, prcp->cell[j][iveg], prcp->energy[iveg],
         //prcp->snow[iveg], prcp->veg_var[j][iveg], &(dmy[time_step_record]), out_short,
-        //tmp_mu, Nveg, iveg, time_step_record, gridcell, j, NEWCELL, state);
+        //tmp_mu, Nveg, iveg, time_step_record, j, NEWCELL, state);
       }
 #endif // LINK_DEBUG
     } /** end current vegetation type **/

@@ -16,22 +16,78 @@ WriteDebug::WriteDebug() :
 {
 }
 
+void WriteDebug::initialize(int Nveg, const ProgramState* state) {
+  if(state->debug.PRT_FLUX && state->options.FULL_ENERGY) {
+    ENERGY_ERROR      = (double *)calloc(Nveg+1,sizeof(double));
+    ENERGY_ERROR_CALC = (double *)calloc(Nveg+1,sizeof(double));
+    INSHORT           = (double *)calloc(Nveg+1,sizeof(double));
+    OUTSHORT          = (double *)calloc(Nveg+1,sizeof(double));
+    INLONG            = (double *)calloc(Nveg+1,sizeof(double));
+    OUTLONG           = (double *)calloc(Nveg+1,sizeof(double));
+    SENSIBLE          = (double *)calloc(Nveg+1,sizeof(double));
+    LATENT            = (double *)calloc(Nveg+1,sizeof(double));
+    GRND_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
+    ADVECTION         = (double *)calloc(Nveg+1,sizeof(double));
+    DELTA_H           = (double *)calloc(Nveg+1,sizeof(double));
+    DELTA_CC          = (double *)calloc(Nveg+1,sizeof(double));
+    SNOW_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
+    REFREEZEENERGY    = (double *)calloc(Nveg+1,sizeof(double));
+  }
+  if(state->debug.PRT_BALANCE) {
+    INIT_MOIST  = (double *)calloc(Nveg+1,sizeof(double));
+    MOIST_ERROR = (double **)calloc(Nveg+1,sizeof(double*));
+    INFLOW      = (double *)calloc(Nveg+1,sizeof(double));
+    RUNOFF      = (double *)calloc(Nveg+1,sizeof(double));
+    BASEFLOW    = (double *)calloc(Nveg+1,sizeof(double));
+    EVAP        = (double *)calloc(Nveg+1,sizeof(double));
+    for(int i=0;i<=Nveg;i++)
+      MOIST_ERROR[i] = (double *)calloc(state->options.Nlayer+3,sizeof(double));
+  }
+}
+
+void WriteDebug::cleanup(int Nveg, const ProgramState* state) {
+  if(state->debug.PRT_FLUX && state->options.FULL_ENERGY) {
+    free((char *)ENERGY_ERROR);
+    free((char *)ENERGY_ERROR_CALC);
+    free((char *)INSHORT);
+    free((char *)OUTSHORT);
+    free((char *)INLONG);
+    free((char *)OUTLONG);
+    free((char *)SENSIBLE);
+    free((char *)LATENT);
+    free((char *)GRND_FLUX);
+    free((char *)ADVECTION);
+    free((char *)DELTA_H);
+    free((char *)DELTA_CC);
+    free((char *)SNOW_FLUX);
+    free((char *)REFREEZEENERGY);
+  }
+  if(state->debug.PRT_BALANCE) {
+    for(int i=0;i<=Nveg;i++) free((char *)MOIST_ERROR[i]);
+    free((char *)INIT_MOIST);
+    free((char *)MOIST_ERROR);
+    free((char *)INFLOW);
+    free((char *)RUNOFF);
+    free((char *)BASEFLOW);
+    free((char *)EVAP);
+  }
+}
+
 void WriteDebug::write_debug(atmos_data_struct    *atmos,
-                 soil_con_struct      *soil_con,
-                 cell_data_struct     *cell,
-                 energy_bal_struct    *energy,
-                 snow_data_struct     *snow,
-                 veg_var_struct       *veg_var,
-                 const dmy_struct     *dmy,
-                 double                out_short,
-                 double                precipitation_mu,
-                 int                   Nveg,
-                 int                   veg,
-                 int                   rec,
-                 const int             gridcell,
-                 int                   dist,
-                 char                  NEWCELL,
-                 const ProgramState   *state) {
+                             soil_con_struct      *soil_con,
+                             cell_data_struct     *cell,
+                             energy_bal_struct    *energy,
+                             snow_data_struct     *snow,
+                             veg_var_struct       *veg_var,
+                             const dmy_struct     *dmy,
+                             double                out_short,
+                             double                precipitation_mu,
+                             int                   Nveg,
+                             int                   veg,
+                             int                   rec,
+                             int                   dist,
+                             char                  NEWCELL,
+                             const ProgramState   *state) {
 /**********************************************************************
   write_debug		Keith Cherkauer		October 8, 1997
 
@@ -72,38 +128,6 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
 
     /***** Record Hourly Energy Balance Terms *****/
 
-    if(NEWCELL && dist==0) {
-      if(gridcell>0) {
-        free((char *)ENERGY_ERROR);
-        free((char *)ENERGY_ERROR_CALC);
-        free((char *)INSHORT);
-        free((char *)OUTSHORT);
-        free((char *)INLONG);
-        free((char *)OUTLONG);
-        free((char *)SENSIBLE);
-        free((char *)LATENT);
-        free((char *)GRND_FLUX);
-        free((char *)ADVECTION);
-        free((char *)DELTA_H);
-        free((char *)DELTA_CC);
-        free((char *)SNOW_FLUX);
-        free((char *)REFREEZEENERGY);
-      }
-      ENERGY_ERROR      = (double *)calloc(Nveg+1,sizeof(double));
-      ENERGY_ERROR_CALC = (double *)calloc(Nveg+1,sizeof(double));
-      INSHORT           = (double *)calloc(Nveg+1,sizeof(double));
-      OUTSHORT          = (double *)calloc(Nveg+1,sizeof(double));
-      INLONG            = (double *)calloc(Nveg+1,sizeof(double));
-      OUTLONG           = (double *)calloc(Nveg+1,sizeof(double));
-      SENSIBLE          = (double *)calloc(Nveg+1,sizeof(double));
-      LATENT            = (double *)calloc(Nveg+1,sizeof(double));
-      GRND_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
-      ADVECTION         = (double *)calloc(Nveg+1,sizeof(double));
-      DELTA_H           = (double *)calloc(Nveg+1,sizeof(double));
-      DELTA_CC          = (double *)calloc(Nveg+1,sizeof(double));
-      SNOW_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
-      REFREEZEENERGY    = (double *)calloc(Nveg+1,sizeof(double));
-    }
     if(rec==0 && dist==0) {
       ENERGY_ERROR[veg]      = 0.;
       ENERGY_ERROR_CALC[veg] = 0.;
@@ -219,25 +243,6 @@ void WriteDebug::write_debug(atmos_data_struct    *atmos,
  
     /***** Compute Water Balance Error *****/
 
-    if(NEWCELL && dist==0) {
-      if(gridcell>0) {
-        for(i=0;i<=Nveg;i++) free((char *)MOIST_ERROR[i]);
-        free((char *)INIT_MOIST);
-        free((char *)MOIST_ERROR);
-        free((char *)INFLOW);
-        free((char *)RUNOFF);
-        free((char *)BASEFLOW);
-        free((char *)EVAP);
-      }
-      INIT_MOIST  = (double *)calloc(Nveg+1,sizeof(double));
-      MOIST_ERROR = (double **)calloc(Nveg+1,sizeof(double*));
-      INFLOW      = (double *)calloc(Nveg+1,sizeof(double));
-      RUNOFF      = (double *)calloc(Nveg+1,sizeof(double));
-      BASEFLOW    = (double *)calloc(Nveg+1,sizeof(double));
-      EVAP        = (double *)calloc(Nveg+1,sizeof(double));
-      for(i=0;i<=Nveg;i++)
-        MOIST_ERROR[i] = (double *)calloc(state->options.Nlayer+3,sizeof(double));
-    }
     if(rec==0 && dist==0) {
       for(band = 0; band < Nbands; band++) {
 	INIT_MOIST[veg] = state->debug.store_moist[WET][band][state->options.Nlayer+2] * precipitation_mu;

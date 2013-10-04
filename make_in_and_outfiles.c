@@ -58,6 +58,7 @@ void make_in_files(filep_struct         *filep,
     strcat(filenames->forcing[0], lngchar);
   }
 
+  filep->forcing[0] = NULL;
   if (state->param_set.FORCE_FORMAT[0] == NETCDF)
     assert(nc_open(filenames->forcing[0], NC_NOWRITE, &filep->forcing_ncid[0]) == NC_NOERR); /* TODO proper error handling */
   else if(state->param_set.FORCE_FORMAT[0] == BINARY)

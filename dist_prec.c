@@ -11,7 +11,6 @@ int  dist_prec(cell_info_struct* cell,
                out_data_file_struct *out_data_files,
                out_data_struct     *out_data,
                int                  time_step_record,
-               const int            cellnum,
                char                 NEWCELL,
                const ProgramState  *state) {
 /**********************************************************************
@@ -176,7 +175,7 @@ int  dist_prec(cell_info_struct* cell,
    **************************************************/
 
   /** Solve model time step **/
-  ErrorFlag = full_energy(NEWCELL, cellnum, time_step_record,
+  ErrorFlag = full_energy(NEWCELL, time_step_record,
       &cell->atmos[time_step_record], &cell->prcp, dmy, &cell->lake_con,
       &cell->soil_con, cell->veg_con, &cell->writeDebug, state);
 

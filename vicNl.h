@@ -210,7 +210,7 @@ out_data_struct* copy_output_data(out_data_struct* out_data, const ProgramState*
 out_data_struct *create_output_list(const ProgramState*);
 
 int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, out_data_file_struct *,
-    out_data_struct *, int, int, char, const ProgramState*);
+    out_data_struct *, int, char, const ProgramState*);
 
 int distribute_node_moisture_properties(energy_bal_struct*,
     const soil_con_struct*, double *, const ProgramState*);
@@ -310,7 +310,7 @@ void   free_vegcon(veg_con_struct **);
 void   free_veglib(veg_lib_struct **);
 void   free_out_data_files(out_data_file_struct *, const ProgramState*);
 void   free_out_data(out_data_struct **);
-int    full_energy(char, int, int, atmos_data_struct *, dist_prcp_struct *,
+int    full_energy(char, int, atmos_data_struct *, dist_prcp_struct *,
 		     const dmy_struct *, lake_con_struct *, const soil_con_struct *,
 		     const veg_con_struct *, WriteDebug*, const ProgramState*);
 double func_aero_resist(double,double,double,double,double);
@@ -343,7 +343,6 @@ void   latent_heat_from_snow(double, double, double, double, double,
                              double *, double *, double *);
 double linear_interp(double,double,double,double,double);
 
-dist_prcp_struct make_dist_prcp(int, const int, const int);
 dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
 void make_in_files(filep_struct *, filenames_struct *, soil_con_struct *, const ProgramState*);
 void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, out_data_file_struct *, const ProgramState*);
@@ -476,9 +475,6 @@ double volumetric_heat_capacity(double,double,double,double);
 void wrap_compute_zwt(const soil_con_struct *, cell_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_data(out_data_file_struct *, out_data_struct *, const dmy_struct *, int, const ProgramState*);
-void write_debug(atmos_data_struct *, soil_con_struct *, cell_data_struct *,
-                 energy_bal_struct *, snow_data_struct *, veg_var_struct *,
-                 const dmy_struct *, double, double, int, int, int, int, int, char, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
 void write_forcing_file(atmos_data_struct *, int, out_data_file_struct *, out_data_struct *, const ProgramState*);
 void write_header(out_data_file_struct *, out_data_struct *, const dmy_struct *, const ProgramState*);

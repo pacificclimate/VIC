@@ -1276,10 +1276,10 @@ struct HRU {
   cell (for use with the distributed precipitation model).
 *****************************************************************/
 struct dist_prcp_struct{
-  dist_prcp_struct(int nBands) : NUM_BANDS(nBands) {}
+  void make_dist_prcp(int  nveg, const int NUM_SNOW_BAND);
   double             *mu;         /* fraction of grid cell that receives precipitation */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
-  std::vector<HRU> hruList;
+  std::vector<HRU>    hruList;
 
   HRU* getHRUElement(int veg, int band) {
     int index = (veg * NUM_BANDS) + band;
@@ -1399,8 +1399,10 @@ struct WriteDebug {
   void write_debug(atmos_data_struct *atmos, soil_con_struct *soil_con,
       cell_data_struct *cell, energy_bal_struct *energy, snow_data_struct *snow,
       veg_var_struct *veg_var, const dmy_struct *dmy, double out_short,
-      double precipitation_mu, int Nveg, int veg, int rec, const int gridcell,
+      double precipitation_mu, int Nveg, int veg, int rec,
       int dist, char NEWCELL, const ProgramState *state);
+  void initialize(int Nveg, const ProgramState* state);
+  void cleanup(int Nveg, const ProgramState* state);
 private:
   bool        FIRST;
   double    **MOIST_ERROR;
@@ -1431,7 +1433,8 @@ private:
   eventually must contain state to be affected by glacier
   dynamics model. Previously "cell_data_struct" in vicNL.c
   ***********************************************************/
-typedef struct {
+struct cell_info_struct {
+  cell_info_struct() : init_STILL_STORM(NULL), init_DRY_TIME(NULL), veg_con(NULL), atmos(NULL) {}
   soil_con_struct  soil_con;
   char            *init_STILL_STORM;
   int             *init_DRY_TIME;
@@ -1444,7 +1447,7 @@ typedef struct {
   atmos_data_struct *atmos;
   CellBalanceErrors cellErrors;
   FallBackStats fallBackStats;
-} cell_info_struct;
+};
 
 /********************************************************
   This structure holds all the meta state of the program.
