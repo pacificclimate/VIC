@@ -1258,8 +1258,9 @@ typedef struct {
   same way (as a 2d array [veg][band]). Since the data is specific
   to a certain veg/band index, it has been joined together in a unified
   structure. For compatibility, vegIndex, and bandIndex are also stored.
+  HRU = Hydrologic Response Unit.
 *****************************************************************/
-struct HRUElement {
+struct HRU {
   cell_data_struct cell[2]; /* Stores soil layer variables (wet and dry) */
   energy_bal_struct energy; /* Stores energy balance variables */
   snow_data_struct snow; /* Stores snow variables */
@@ -1278,11 +1279,11 @@ struct dist_prcp_struct{
   dist_prcp_struct(int nBands) : NUM_BANDS(nBands) {}
   double             *mu;         /* fraction of grid cell that receives precipitation */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
-  std::vector<HRUElement> hruElements;
+  std::vector<HRU> hruList;
 
-  HRUElement* getHRUElement(int veg, int band) {
+  HRU* getHRUElement(int veg, int band) {
     int index = (veg * NUM_BANDS) + band;
-    return &hruElements[index];
+    return &hruList[index];
   }
 private:
   int NUM_BANDS;

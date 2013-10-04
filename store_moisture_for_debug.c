@@ -9,8 +9,8 @@ static char vcid[] = "$Id$";
 void store_moisture_for_debug(int                       iveg,
 		                          int                       Nveg,
                               double                    *mu,
-                              std::vector<HRUElement>&  hruElements,
-                              const soil_con_struct           *soil_con,
+                              std::vector<HRU>&         hruList,
+                              const soil_con_struct     *soil_con,
                               const ProgramState*       state) {
 /****************************************************************
   This subroutine was written to save the current water storage
@@ -28,7 +28,7 @@ void store_moisture_for_debug(int                       iveg,
     Ndist = 1;
   Nbands = state->options.SNOW_BAND;
 
-  for (std::vector<HRUElement>::iterator it = hruElements.begin(); it != hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
 
     if (it->vegIndex != iveg) continue;
     int band = it->bandIndex;

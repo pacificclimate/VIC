@@ -33,14 +33,14 @@ dist_prcp_struct make_dist_prcp(int  nveg, const int NUM_LAYERS, const int NUM_S
   temp.mu     = (double *)calloc(Nitems,sizeof(double));
   for (int i = 0; i < Nitems; i++ ) temp.mu[i] = 1;
 
-  temp.hruElements.reserve(Nitems * NUM_SNOW_BAND);
+  temp.hruList.reserve(Nitems * NUM_SNOW_BAND);
   for (int i = 0; i < Nitems; i++) {
     for (int j = 0; j < NUM_SNOW_BAND; j++) {
-      HRUElement e;
+      HRU e;
       e.vegIndex = i;
       e.bandIndex = j;
       e.energy.frozen = FALSE;
-      temp.hruElements.push_back(e);
+      temp.hruList.push_back(e);
     }
   }
 

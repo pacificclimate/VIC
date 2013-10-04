@@ -332,11 +332,11 @@ void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *n
 int initialize_model_state(cell_info_struct*, dmy_struct,
     filep_struct, int, const ProgramState *);
 
-int    initialize_new_storm(std::vector<HRUElement>&,
+int    initialize_new_storm(std::vector<HRU>&,
 			    int, int, int, double, double, const ProgramState *);
-void   initialize_snow(std::vector<HRUElement>&);
-void   initialize_soil(std::vector<HRUElement>&, int, soil_con_struct *, veg_con_struct *, int, const ProgramState*);
-void initialize_veg(std::vector<HRUElement>&, int);
+void   initialize_snow(std::vector<HRU>&);
+void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, veg_con_struct *, int, const ProgramState*);
+void initialize_veg(std::vector<HRU>&, int);
 
 void   latent_heat_from_snow(double, double, double, double, double, 
                              double, double, double *, double *, 
@@ -384,7 +384,7 @@ soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
 veg_con_struct *read_vegparam(FILE *, int, int, const ProgramState*);
-int redistribute_during_storm(std::vector<HRUElement>&, int,
+int redistribute_during_storm(std::vector<HRU>&, int,
       int, int, double, double, double, double *, const ProgramState*);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
 			     double *, double *, double *, int);
@@ -449,7 +449,7 @@ int solve_T_profile_implicit(double *, double *, double *, double *,
     const soil_con_struct*, const ProgramState*);
 
 double StabilityCorrection(double, double, double, double, double, double);
-void   store_moisture_for_debug(int,int,double *, std::vector<HRUElement>&,
+void   store_moisture_for_debug(int,int,double *, std::vector<HRU>&,
 				const soil_con_struct *, const ProgramState*);
 int surface_fluxes(char, double, double, double, double, int, double *,
         double *, double, double, double *, double *, double **, double *, double *,

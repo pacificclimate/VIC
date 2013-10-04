@@ -184,7 +184,7 @@ int  put_data(cell_info_struct* cell,
     Ndist = 1;
 
   // Compute treeline adjustment factors
-  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
     int band = it->bandIndex;
     int veg = it->vegIndex;
     if (cell->soil_con.AboveTreeLine[band]) {
@@ -246,7 +246,7 @@ int  put_data(cell_info_struct* cell,
   /****************************************
    Store Output for all Vegetation Types (except lakes)
    ****************************************/
-  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
 
     Cv = cell->veg_con[it->vegIndex].Cv;
     Clake = 0;

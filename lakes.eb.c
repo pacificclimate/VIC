@@ -1867,7 +1867,7 @@ void energycalc (double *finaltemp, double *sumjoule, int numnod, double dz, dou
 }
 
 int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist_prcp_struct *prcp,
-		    int rec, HRUElement* hruElement, double lakefrac, soil_con_struct soil_con,
+		    int rec, HRU* hruElement, double lakefrac, soil_con_struct soil_con,
 		    veg_con_struct veg_con, int SubsidenceUpdate, double total_meltwater, const ProgramState* state)
 
 /**********************************************************************

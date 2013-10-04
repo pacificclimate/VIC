@@ -46,7 +46,7 @@ void prepare_full_energy(int               iveg,
 
   layer = (layer_data_struct *)calloc(state->options.Nlayer,
 				      sizeof(layer_data_struct));
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
 
     // Only apply this function to the specified vegetation type.
     if (it->vegIndex != iveg) continue;

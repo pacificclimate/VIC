@@ -160,25 +160,25 @@ int initialize_model_state(cell_info_struct* cell,
     - some may be reset if state file present
   ********************************************/
 
-  initialize_snow(cell->prcp.hruElements);
+  initialize_snow(cell->prcp.hruList);
 
   /********************************************
     Initialize all soil layer variables 
     - some may be reset if state file present
   ********************************************/
 
-  initialize_soil(cell->prcp.hruElements, WET, &cell->soil_con, cell->veg_con, Nveg, state);
+  initialize_soil(cell->prcp.hruList, WET, &cell->soil_con, cell->veg_con, Nveg, state);
   if ( state->options.DIST_PRCP )
-    initialize_soil(cell->prcp.hruElements, DRY, &cell->soil_con, cell->veg_con, Nveg, state);
+    initialize_soil(cell->prcp.hruList, DRY, &cell->soil_con, cell->veg_con, Nveg, state);
 
   /********************************************
     Initialize all vegetation variables 
     - some may be reset if state file present
   ********************************************/
 
-  initialize_veg(cell->prcp.hruElements, WET);
+  initialize_veg(cell->prcp.hruList, WET);
   if ( state->options.DIST_PRCP )
-    initialize_veg(cell->prcp.hruElements, DRY);
+    initialize_veg(cell->prcp.hruList, DRY);
 
   /********************************************
     Initialize all lake variables 
@@ -332,8 +332,8 @@ int initialize_model_state(cell_info_struct* cell,
 #endif //EXCESS_ICE
 
     /******Check that soil moisture does not exceed maximum allowed************/
-    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin();
-        it != cell->prcp.hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin();
+        it != cell->prcp.hruList.end(); ++it) {
 
       for (int dist = 0; dist < Ndist; dist++) {
         cell_data_struct& cellRef = it->cell[dist];
@@ -393,7 +393,7 @@ int initialize_model_state(cell_info_struct* cell,
 
     /****** initialize moist and ice ************/
 
-    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
 
       // Initialize soil for existing vegetation types
       Cv = cell->veg_con[it->vegIndex].Cv;
@@ -415,7 +415,7 @@ int initialize_model_state(cell_info_struct* cell,
 
     /******Check that snow pack terms are self-consistent************/
 
-    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       if (it->snow.swq > MAX_SURFACE_SWE) {
         pack_swq = it->snow.swq - MAX_SURFACE_SWE;
         surf_swq = MAX_SURFACE_SWE;
@@ -451,7 +451,7 @@ int initialize_model_state(cell_info_struct* cell,
     cell->soil_con.Zsum_node[1] = cell->soil_con.depth[0];
     cell->soil_con.Zsum_node[2] = dp;
 
-    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       // Initialize soil for existing vegetation types
       Cv = cell->veg_con[it->vegIndex].Cv;
 
@@ -481,7 +481,7 @@ int initialize_model_state(cell_info_struct* cell,
     ground heat flux, and no Initial Condition File Given 
   *****************************************************************/
   else if(!state->options.QUICK_FLUX) {
-    for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       // Initialize soil for existing vegetation types
       Cv = cell->veg_con[it->vegIndex].Cv;
 
@@ -627,7 +627,7 @@ int initialize_model_state(cell_info_struct* cell,
   ******************************************/
 
   FIRST_VEG = TRUE;
-  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
     // Initialize soil for existing vegetation types
     Cv = cell->veg_con[it->vegIndex].Cv;
 
@@ -689,7 +689,7 @@ int initialize_model_state(cell_info_struct* cell,
   }	
 
   // initialize miscellaneous energy balance terms
-  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       /* Set fluxes to 0 */
       it->energy.advected_sensible = 0.0;
       it->energy.advection         = 0.0;
@@ -737,7 +737,7 @@ int initialize_model_state(cell_info_struct* cell,
   }
 
   // initialize Tfallback counters
-  for (std::vector<HRUElement>::iterator it = cell->prcp.hruElements.begin(); it != cell->prcp.hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
     it->energy.Tfoliage_fbcount = 0;
     it->energy.Tcanopy_fbcount = 0;
     it->energy.Tsurf_fbcount = 0;
@@ -872,7 +872,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
   /******************************************
     Update soil thermal node temperatures via linear interpolation.
   ******************************************/
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
     if (veg_con[it->vegIndex].Cv > 0) {
       if (soil_con->AreaFract[it->bandIndex] > 0.) {
         //set previous temperatures
@@ -893,7 +893,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
     Update soil thermal node properties 
   ******************************************/  
   FIRST_VEG = TRUE;
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
     if (veg_con[it->vegIndex].Cv > 0) {
       // Initialize soil for existing snow elevation bands
       if (soil_con->AreaFract[it->bandIndex] > 0.) {

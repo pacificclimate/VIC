@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_veg(std::vector<HRUElement>& elements, int dist)
+void initialize_veg(std::vector<HRU>& elements, int dist)
 /**********************************************************************
   initialize_veg		Dag Lohmann	 January 1996
 
@@ -20,7 +20,7 @@ void initialize_veg(std::vector<HRUElement>& elements, int dist)
 
 **********************************************************************/
 {
-  for (std::vector<HRUElement>::iterator it = elements.begin(); it != elements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = elements.begin(); it != elements.end(); ++it) {
     it->veg_var[dist].Wdew = 0.0;
     it->veg_var[dist].throughfall = 0.0;
   }

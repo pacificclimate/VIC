@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_soil (std::vector<HRUElement>& elements,
+void initialize_soil (std::vector<HRU>& elements,
                       int                dist,
                       soil_con_struct   *soil_con,
                       veg_con_struct    *veg_con,
@@ -34,7 +34,7 @@ void initialize_soil (std::vector<HRUElement>& elements,
   double tmp_moist[MAX_LAYERS];
   double tmp_runoff;
   
-  for (std::vector<HRUElement>::iterator it = elements.begin();
+  for (std::vector<HRU>::iterator it = elements.begin();
       it != elements.end(); ++it) {
 
     cell_data_struct& cellRef = it->cell[dist];

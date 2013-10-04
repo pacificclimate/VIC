@@ -213,7 +213,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 #endif
   
   /* Output for all vegetation types */
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
     
     // Do the following only once per vegetation type
     if (it->bandIndex == 0) {

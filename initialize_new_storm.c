@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-int  initialize_new_storm(std::vector<HRUElement>& hruElements,
+int  initialize_new_storm(std::vector<HRU>& hruList,
 			  int                 veg,
 			  int                 Nveg,
 			  int                 rec,
@@ -32,7 +32,7 @@ int  initialize_new_storm(std::vector<HRUElement>& hruElements,
   double        temp_dry;
 
   /** Redistribute Soil Moisture **/
-  for (std::vector<HRUElement>::iterator it = hruElements.begin(); it != hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
     // Only loop over bands for this veg index.
     if (it->vegIndex == veg) {
       for (int layer = 0; layer < state->options.Nlayer; layer++) {

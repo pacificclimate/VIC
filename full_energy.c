@@ -208,7 +208,7 @@ int  full_energy(char                 NEWCELL,
 
   /* initialize prior moist and ice for subsidence calculations */
 #if EXCESS_ICE
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
     for ( dist = 0; dist < Ndist; dist++ ) {
       for(lidx=0;lidx<state->options.Nlayer;lidx++) {
         moist_prior[dist][it->vegIndex][it->bandIndex][lidx] = it->cell[dist].layer[lidx].moist;
@@ -222,7 +222,7 @@ int  full_energy(char                 NEWCELL,
    Solve Energy and/or Water Balance for Each
    Vegetation Type
    **************************************************/
-  for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
 
     /** Solve Veg Type only if Coverage Greater than 0% **/
     if (veg_con[it->vegIndex].Cv > 0.0) {
@@ -371,7 +371,7 @@ int  full_energy(char                 NEWCELL,
       if(state->debug.DEBUG || state->debug.PRT_MOIST || state->debug.PRT_BALANCE) {
         /** Compute current total moisture for water balance check **/
         if (it->bandIndex == 0) {
-          store_moisture_for_debug(it->vegIndex, Nveg, prcp->mu, prcp->hruElements, soil_con, state);
+          store_moisture_for_debug(it->vegIndex, Nveg, prcp->mu, prcp->hruList, soil_con, state);
         }
         if (state->debug.PRT_BALANCE) {
           for (int j = 0; j < Ndist; j++) {
@@ -711,7 +711,7 @@ int  full_energy(char                 NEWCELL,
     sum_runoff = sum_baseflow = 0;
 
     // Loop through all vegetation tiles
-    for (std::vector<HRUElement>::iterator it = prcp->hruElements.begin(); it != prcp->hruElements.end(); ++it) {
+    for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
 
       /** Solve Veg Tile only if Coverage Greater than 0% **/
       if (veg_con[it->vegIndex].Cv > 0.) {

@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void initialize_snow (std::vector<HRUElement>& elements)
+void initialize_snow (std::vector<HRU>& elements)
 /**********************************************************************
 	initialize_snow		Keith Cherkauer		January 22, 1997
 
@@ -56,7 +56,7 @@ void initialize_snow (std::vector<HRUElement>& elements)
 
 **********************************************************************/
 {
-  for (std::vector<HRUElement>::iterator it = elements.begin(); it != elements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = elements.begin(); it != elements.end(); ++it) {
       // State vars
       it->snow.albedo            = 0.0;
       it->snow.canopy_albedo     = 0.0;

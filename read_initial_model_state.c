@@ -254,7 +254,7 @@ void read_initial_model_state(FILE    *init_state,
 	fprintf(stderr,"The vegetation and snow band indices in the model state file (veg = %d, band = %d) do not match those currently requested (veg = %d , band = %d).  Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n", iveg, iband, veg, band);
 	nrerror(ErrStr);
       }
-      HRUElement* element = prcp->getHRUElement(veg, band);
+      HRU* element = prcp->getHRUElement(veg, band);
       // Read both wet and dry fractions if using distributed precipitation
       for ( dist = 0; dist < Ndist; dist ++ ) {
         cell_data_struct& cellRef = element->cell[dist];
