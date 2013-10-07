@@ -32,7 +32,6 @@ void write_header(out_data_file_struct *out_data_files,
   char                tmp_ALMA_OUTPUT;
   char                Nvars;
   char                tmp_len;
-  char               *tmp_str;
   char                tmp_type;
   float               tmp_mult;
 
@@ -43,7 +42,7 @@ void write_header(out_data_file_struct *out_data_files,
 
   if(state->options.BINARY_OUTPUT) {  // BINARY
 
-    tmp_str = (char *)calloc(256, sizeof(char));
+    char tmp_str[256];
 
     // Binary header format:
     //
