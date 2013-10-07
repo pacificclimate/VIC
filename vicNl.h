@@ -335,7 +335,7 @@ int initialize_model_state(cell_info_struct*, dmy_struct,
 int    initialize_new_storm(std::vector<HRU>&,
 			    int, int, int, double, double, const ProgramState *);
 void   initialize_snow(std::vector<HRU>&);
-void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, veg_con_struct *, int, const ProgramState*);
+void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, veg_con_struct *, const ProgramState*);
 void initialize_veg(std::vector<HRU>&, int);
 
 void   latent_heat_from_snow(double, double, double, double, double, 

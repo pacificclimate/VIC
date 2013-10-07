@@ -25,11 +25,6 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
   6-8-2000 modified to work with spatially distributed frost       KAC
   2007-Apr-04 Modified to return to main subroutine on cell error GCT/KAC
 **********************************************************************/
-  unsigned char error;
-  char          ErrorString[MAXSTRING];
-  int           frost_area;
-  double        temp_wet;
-  double        temp_dry;
 
   /** Redistribute Soil Moisture **/
   for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
@@ -40,9 +35,9 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
         cell_data_struct& cellWet = it->cell[WET];
         cell_data_struct& cellDry = it->cell[DRY];
 
-        temp_wet = cellWet.layer[layer].moist;
-        temp_dry = cellDry.layer[layer].moist;
-        error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
+        double temp_wet = cellWet.layer[layer].moist;
+        double temp_dry = cellDry.layer[layer].moist;
+        unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
             new_mu);
         if (error) {
           fprintf(stderr,
@@ -56,7 +51,7 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
         cellDry.layer[layer].moist = temp_dry;
 
 #if SPATIAL_FROST
-        for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           temp_wet = cellWet.layer[layer].soil_ice[frost_area];
           temp_dry = cellDry.layer[layer].soil_ice[frost_area];
 #else
@@ -94,9 +89,9 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
        Redistribute Stored Water in Vegetation
        ****************************************/
       if (veg < Nveg) {
-        temp_wet = it->veg_var[WET].Wdew;
-        temp_dry = it->veg_var[DRY].Wdew;
-        error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
+        double temp_wet = it->veg_var[WET].Wdew;
+        double temp_dry = it->veg_var[DRY].Wdew;
+        unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
             new_mu);
         if (error) {
           fprintf(stderr, "Wdew does not balance before new storm: %f -> %f record %i\n",

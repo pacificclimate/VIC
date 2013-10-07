@@ -159,9 +159,6 @@ int  put_data(cell_info_struct* cell,
   double                  TreeAdjustFactor[MAX_BANDS];
   double                  ThisAreaFract;
   double                  ThisTreeAdjust;
-  int                     n;
-  int                     v;
-  int                     i;
   int                     dt_sec;
   int                     out_dt_sec;
   int                     out_step_ratio;
@@ -184,20 +181,20 @@ int  put_data(cell_info_struct* cell,
     Ndist = 1;
 
   // Compute treeline adjustment factors
-  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
-    int band = it->bandIndex;
-    int veg = it->vegIndex;
+  for (int band = 0; band < state->options.SNOW_BAND; band++) {
     if (cell->soil_con.AboveTreeLine[band]) {
       Cv = 0;
-      if (state->veg_lib[cell->veg_con[veg].veg_class].overstory) {
-        if (state->options.LAKES && cell->veg_con[veg].LAKE) {
-          if (band == 0) {
-            // Fraction of tile that is flooded
-            Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
-            Cv += cell->veg_con[veg].Cv * (1 - Clake);
+      for (int veg = 0; veg < cell->veg_con[0].vegetat_type_num; veg++) {
+        if (state->veg_lib[cell->veg_con[veg].veg_class].overstory) {
+          if (state->options.LAKES && cell->veg_con[veg].LAKE) {
+            if (band == 0) {
+              // Fraction of tile that is flooded
+              Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
+              Cv += cell->veg_con[veg].Cv * (1 - Clake);
+            }
+          } else {
+            Cv += cell->veg_con[veg].Cv;
           }
-        } else {
-          Cv += cell->veg_con[veg].Cv;
         }
       }
       TreeAdjustFactor[band] = 1. / (1. - Cv);
@@ -420,7 +417,7 @@ int  put_data(cell_info_struct* cell,
                              out_data, state);
 
             // Store Lake-Specific Variables
-            //TODO: move this lake stuff outside of the for loop since it doesn't depend on veg or band
+            //TODO: move this lake stuff outside of the for loop since it doesn't depend on veg or band (for improved efficiency)
             // Lake ice
             if (cell->prcp.lake_var.new_ice_area > 0.0) {
               out_data[OUT_LAKE_ICE].data[0]   = (cell->prcp.lake_var.ice_water_eq/cell->prcp.lake_var.new_ice_area) * ice_density / RHO_W;
@@ -439,17 +436,17 @@ int  put_data(cell_info_struct* cell,
             out_data[OUT_LAKE_DSWE_V].data[0] = cell->prcp.lake_var.swe - cell->prcp.lake_var.swe_save; // m3
             out_data[OUT_LAKE_DSWE].data[0] = (cell->prcp.lake_var.swe - cell->prcp.lake_var.swe_save)*1000/cell->soil_con.cell_area; // mm over gridcell
 
-            // Lake dimensions
-            out_data[OUT_LAKE_AREA_FRAC].data[0] = Cv*Clake;
-            out_data[OUT_LAKE_DEPTH].data[0] = cell->prcp.lake_var.ldepth;
-	    out_data[OUT_LAKE_SURF_AREA].data[0]  = cell->prcp.lake_var.sarea;
-	    if (out_data[OUT_LAKE_SURF_AREA].data[0] > 0)
-	      out_data[OUT_LAKE_ICE_FRACT].data[0]  = cell->prcp.lake_var.new_ice_area/out_data[OUT_LAKE_SURF_AREA].data[0];
-	    else
-	      out_data[OUT_LAKE_ICE_FRACT].data[0]  = 0.;
-            out_data[OUT_LAKE_VOLUME].data[0]     = cell->prcp.lake_var.volume;
-            out_data[OUT_LAKE_DSTOR_V].data[0]    = cell->prcp.lake_var.volume - cell->prcp.lake_var.volume_save;
-            out_data[OUT_LAKE_DSTOR].data[0]      = (cell->prcp.lake_var.volume - cell->prcp.lake_var.volume_save)*1000/cell->soil_con.cell_area; // mm over gridcell
+          // Lake dimensions
+          out_data[OUT_LAKE_AREA_FRAC].data[0] = Cv * Clake;
+          out_data[OUT_LAKE_DEPTH].data[0] = cell->prcp.lake_var.ldepth;
+          out_data[OUT_LAKE_SURF_AREA].data[0] = cell->prcp.lake_var.sarea;
+          if (out_data[OUT_LAKE_SURF_AREA].data[0] > 0)
+            out_data[OUT_LAKE_ICE_FRACT].data[0] = cell->prcp.lake_var.new_ice_area / out_data[OUT_LAKE_SURF_AREA].data[0];
+          else
+            out_data[OUT_LAKE_ICE_FRACT].data[0] = 0.;
+          out_data[OUT_LAKE_VOLUME].data[0] = cell->prcp.lake_var.volume;
+          out_data[OUT_LAKE_DSTOR_V].data[0] = cell->prcp.lake_var.volume - cell->prcp.lake_var.volume_save;
+          out_data[OUT_LAKE_DSTOR].data[0] = (cell->prcp.lake_var.volume - cell->prcp.lake_var.volume_save)*1000/cell->soil_con.cell_area; // mm over gridcell
 
             // Other lake characteristics
             out_data[OUT_LAKE_SURF_TEMP].data[0]  = cell->prcp.lake_var.temp[0];
@@ -482,7 +479,7 @@ int  put_data(cell_info_struct* cell,
 
           } // End if options.LAKES etc.
 
-	} // End if ThisAreaFract etc.
+      } // End if ThisAreaFract etc.
 
     } // End if Cv > 0
 
@@ -625,19 +622,19 @@ int  put_data(cell_info_struct* cell,
   /********************
     Temporal Aggregation 
     ********************/
-  for (v=0; v<N_OUTVAR_TYPES; v++) {
+  for (int v=0; v<N_OUTVAR_TYPES; v++) {
     if (out_data[v].aggtype == AGG_TYPE_END) {
-      for (i=0; i<out_data[v].nelem; i++) {
+      for (int i=0; i<out_data[v].nelem; i++) {
         out_data[v].aggdata[i] = out_data[v].data[i];
       }
     }
     else if (out_data[v].aggtype == AGG_TYPE_SUM) {
-      for (i=0; i<out_data[v].nelem; i++) {
+      for (int i=0; i<out_data[v].nelem; i++) {
         out_data[v].aggdata[i] += out_data[v].data[i];
       }
     }
     else if (out_data[v].aggtype == AGG_TYPE_AVG) {
-      for (i=0; i<out_data[v].nelem; i++) {
+      for (int i=0; i<out_data[v].nelem; i++) {
         out_data[v].aggdata[i] += out_data[v].data[i]/out_step_ratio;
       }
     }
@@ -723,8 +720,8 @@ int  put_data(cell_info_struct* cell,
     *************/
     if(rec >= skipyear) {
       if (state->options.BINARY_OUTPUT) {
-        for (v=0; v<N_OUTVAR_TYPES; v++) {
-          for (i=0; i<out_data[v].nelem; i++) {
+        for (int v=0; v<N_OUTVAR_TYPES; v++) {
+          for (int i=0; i<out_data[v].nelem; i++) {
             out_data[v].aggdata[i] *= out_data[v].mult;
           }
         }
@@ -736,8 +733,8 @@ int  put_data(cell_info_struct* cell,
     cell->fallBackStats.step_count = 0;
 
     // Reset the agg data
-    for (v=0; v<N_OUTVAR_TYPES; v++) {
-      for (i=0; i<out_data[v].nelem; i++) {
+    for (int v=0; v<N_OUTVAR_TYPES; v++) {
+      for (int i=0; i<out_data[v].nelem; i++) {
         out_data[v].aggdata[i] = 0;
       }
     }

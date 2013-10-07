@@ -18,8 +18,6 @@ void store_moisture_for_debug(int                       iveg,
 ****************************************************************/
 
   int               Ndist;
-  int               i;
-  int               dist;
   int               Nbands;
 
   if (state->options.DIST_PRCP)
@@ -34,25 +32,25 @@ void store_moisture_for_debug(int                       iveg,
     int band = it->bandIndex;
 
     if (soil_con->AreaFract[band] > 0) {
-      for (dist = 0; dist < Ndist; dist++)
-        for (i = 0; i < state->options.Nlayer + 3; i++)
+      for (int dist = 0; dist < Ndist; dist++)
+        for (int i = 0; i < state->options.Nlayer + 3; i++)
           state->debug.store_moist[dist][band][i] = 0.;
       if (iveg < Nveg) {
-        for (dist = 0; dist < Ndist; dist++)
+        for (int dist = 0; dist < Ndist; dist++)
           state->debug.store_moist[dist][band][0] +=
               it->veg_var[dist].Wdew;
         state->debug.store_moist[WET][band][0] += (it->snow.snow_canopy)
             * 1000.;
       }
-      for (dist = 0; dist < Ndist; dist++)
+      for (int dist = 0; dist < Ndist; dist++)
         state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
             state->debug.store_moist[dist][band][0];
       state->debug.store_moist[WET][band][1] += (it->snow.swq * 1000.);
-      for (dist = 0; dist < Ndist; dist++)
+      for (int dist = 0; dist < Ndist; dist++)
         state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
             state->debug.store_moist[dist][band][1];
-      for (i = 0; i < state->options.Nlayer; i++) {
-        for (dist = 0; dist < Ndist; dist++) {
+      for (int i = 0; i < state->options.Nlayer; i++) {
+        for (int dist = 0; dist < Ndist; dist++) {
           state->debug.store_moist[dist][band][i + 2] =
               it->cell[dist].layer[i].moist;
           state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=

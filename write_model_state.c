@@ -82,8 +82,6 @@ void write_model_state(dist_prcp_struct    *prcp,
   int    byte, Nbytes;
   int    frost_area;
 
-  int    node;
-
   if(state->options.DIST_PRCP)
     Ndist = 2;
   else 
@@ -366,13 +364,13 @@ void write_model_state(dist_prcp_struct    *prcp,
       fwrite(&prcp->lake_var.dz, sizeof(double), 1, filep->statefile);
       fwrite(&prcp->lake_var.surfdz, sizeof(double), 1, filep->statefile);
       fwrite(&prcp->lake_var.ldepth, sizeof(double), 1, filep->statefile);
-      for (node = 0; node <= prcp->lake_var.activenod; node++) {
+      for (int node = 0; node <= prcp->lake_var.activenod; node++) {
         fwrite(&prcp->lake_var.surface[node], sizeof(double), 1,
             filep->statefile);
       }
       fwrite( &prcp->lake_var.sarea, sizeof(double), 1, filep->statefile );
       fwrite( &prcp->lake_var.volume, sizeof(double), 1, filep->statefile );
-      for ( node = 0; node < prcp->lake_var.activenod; node++ ) {
+      for (int node = 0; node < prcp->lake_var.activenod; node++ ) {
         fwrite( &prcp->lake_var.temp[node], sizeof(double), 1, filep->statefile );
       }
       fwrite( &prcp->lake_var.tempavg, sizeof(double), 1, filep->statefile );
@@ -432,12 +430,12 @@ void write_model_state(dist_prcp_struct    *prcp,
       fprintf( filep->statefile, " %f", prcp->lake_var.dz );
       fprintf( filep->statefile, " %f", prcp->lake_var.surfdz );
       fprintf( filep->statefile, " %f", prcp->lake_var.ldepth );
-      for ( node = 0; node <= prcp->lake_var.activenod; node++ ) {
+      for (int node = 0; node <= prcp->lake_var.activenod; node++ ) {
         fprintf( filep->statefile, " %f", prcp->lake_var.surface[node] );
       }
       fprintf( filep->statefile, " %f", prcp->lake_var.sarea );
       fprintf( filep->statefile, " %f", prcp->lake_var.volume );
-      for ( node = 0; node < prcp->lake_var.activenod; node++ ) {
+      for (int node = 0; node < prcp->lake_var.activenod; node++ ) {
         fprintf( filep->statefile, " %f", prcp->lake_var.temp[node] );
       }
       fprintf( filep->statefile, " %f", prcp->lake_var.tempavg );

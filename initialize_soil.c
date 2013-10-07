@@ -8,7 +8,6 @@ void initialize_soil (std::vector<HRU>& elements,
                       int                dist,
                       soil_con_struct   *soil_con,
                       veg_con_struct    *veg_con,
-                      int                veg_num,
                       const ProgramState *state)
 /**********************************************************************
 	initialize_soil		Keith Cherkauer		July 31, 1996
@@ -30,25 +29,23 @@ void initialize_soil (std::vector<HRU>& elements,
 	      asat and zwt.						TJB
 **********************************************************************/
 {
-  int lindex, frost_area;
   double tmp_moist[MAX_LAYERS];
   double tmp_runoff;
   
-  for (std::vector<HRU>::iterator it = elements.begin();
-      it != elements.end(); ++it) {
+  for (std::vector<HRU>::iterator it = elements.begin(); it != elements.end(); ++it) {
 
     cell_data_struct& cellRef = it->cell[dist];
 
     cellRef.baseflow = 0;
     cellRef.runoff = 0;
-    for (lindex = 0; lindex < state->options.Nlayer; lindex++) {
+    for (int lindex = 0; lindex < state->options.Nlayer; lindex++) {
       cellRef.layer[lindex].evap = 0;
       cellRef.layer[lindex].moist = soil_con->init_moist[lindex];
       if (cellRef.layer[lindex].moist > soil_con->max_moist[lindex])
         cellRef.layer[lindex].moist = soil_con->max_moist[lindex];
       tmp_moist[lindex] = cellRef.layer[lindex].moist;
 #if SPATIAL_FROST
-      for (frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
+      for (int frost_area=0; frost_area<FROST_SUBAREAS; frost_area++) {
         cellRef.layer[lindex].soil_ice[frost_area] = 0;
       }
 #else

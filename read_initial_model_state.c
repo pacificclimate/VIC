@@ -93,11 +93,6 @@ void read_initial_model_state(FILE    *init_state,
   char   tmpchar;
   double tmpval;
   double depth_node[MAX_NODES];
-  int    veg, iveg;
-  int    band, iband;
-  int    lidx;
-  int    nidx;
-  int    dist;
   int    tmp_cellnum;
   int    tmp_Nveg;
   int    tmp_Nband;
@@ -147,9 +142,9 @@ void read_initial_model_state(FILE    *init_state,
 #if EXCESS_ICE      
       fgets(tmpstr, MAXSTRING, init_state); //excess ice info
 #endif
-      for ( veg = 0; veg <= tmp_Nveg; veg++ ) {
+      for (int veg = 0; veg <= tmp_Nveg; veg++ ) {
 	fgets(tmpstr, MAXSTRING, init_state); // skip dist precip info
-	for ( band = 0; band < tmp_Nband; band++ )
+	for (int band = 0; band < tmp_Nband; band++ )
 	  fgets(tmpstr, MAXSTRING, init_state); // skip snowband info
       }
       if ( state->options.LAKES ) {
@@ -176,7 +171,7 @@ void read_initial_model_state(FILE    *init_state,
   }
  
   /* Read soil thermal node deltas */
-  for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+  for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
     if ( state->options.BINARY_STATE_FILE )
       fread( &soil_con->dz_node[nidx], sizeof(double), 1, init_state );
     else 
@@ -185,7 +180,7 @@ void read_initial_model_state(FILE    *init_state,
   if ( state->options.Nnode == 1 ) soil_con->dz_node[0] = 0;
   
   /* Read soil thermal node depths */
-  for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+  for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
     if ( state->options.BINARY_STATE_FILE )
       fread( &soil_con->Zsum_node[nidx], sizeof(double), 1, init_state );
     else 
@@ -200,7 +195,7 @@ void read_initial_model_state(FILE    *init_state,
   /* Read dynamic soil properties */
 #if EXCESS_ICE
   /* Read soil depth */
-  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+  for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
     if ( state->options.BINARY_STATE_FILE )
       fread( &soil_con->depth[lidx], sizeof(double), 1, init_state );
     else 
@@ -208,7 +203,7 @@ void read_initial_model_state(FILE    *init_state,
   }
   
   /* Read effective porosity */
-  for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+  for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
     if ( state->options.BINARY_STATE_FILE )
       fread( &soil_con->effective_porosity[lidx], sizeof(double), 1, init_state );
     else 
@@ -223,7 +218,7 @@ void read_initial_model_state(FILE    *init_state,
 #endif //EXCESS_ICE
   
   /* Input for all vegetation types */
-  for ( veg = 0; veg <= Nveg; veg++ ) {
+  for (int veg = 0; veg <= Nveg; veg++ ) {
     
     // read distributed precipitation variables
     if ( state->options.BINARY_STATE_FILE ) {
@@ -238,8 +233,10 @@ void read_initial_model_state(FILE    *init_state,
     }
  
     /* Input for all snow bands */
-    for ( band = 0; band < Nbands; band++ ) {
+    for (int band = 0; band < Nbands; band++ ) {
       /* Read cell identification information */
+      int iveg = 0;
+      int iband = 0;
       if ( state->options.BINARY_STATE_FILE ) {
 	if ( fread( &iveg, sizeof(int), 1, init_state) != 1 ) 
 	  nrerror("End of model state file found unexpectedly");
@@ -256,10 +253,10 @@ void read_initial_model_state(FILE    *init_state,
       }
       HRU* element = prcp->getHRUElement(veg, band);
       // Read both wet and dry fractions if using distributed precipitation
-      for ( dist = 0; dist < Ndist; dist ++ ) {
+      for (int dist = 0; dist < Ndist; dist ++ ) {
         cell_data_struct& cellRef = element->cell[dist];
         /* Read total soil moisture */
-        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
           if (state->options.BINARY_STATE_FILE) {
             if (fread(&cellRef.layer[lidx].moist,
                 sizeof(double), 1, init_state) != 1)
@@ -272,7 +269,7 @@ void read_initial_model_state(FILE    *init_state,
         }
 
         /* Read average ice content */
-        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
 #error // SPATIAL_FROST is an untested code path. Continue at your own risk!
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
@@ -364,7 +361,7 @@ void read_initial_model_state(FILE    *init_state,
         element->snow.depth = 1000. * element->snow.swq / element->snow.density;
       
       /* Read soil thermal node temperatures */
-      for (nidx = 0; nidx < state->options.Nnode; nidx++) {
+      for (int nidx = 0; nidx < state->options.Nnode; nidx++) {
         if (state->options.BINARY_STATE_FILE) {
           if (fread(&element->energy.T[nidx], sizeof(double), 1,
               init_state) != 1)
@@ -380,17 +377,17 @@ void read_initial_model_state(FILE    *init_state,
   if ( state->options.LAKES ) {
     if ( state->options.BINARY_STATE_FILE ) {
       // Read both wet and dry fractions if using distributed precipitation
-      for ( dist = 0; dist < Ndist; dist ++ ) {
+      for (int dist = 0; dist < Ndist; dist ++ ) {
 	
 	/* Read total soil moisture */
-        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
           if (fread(&prcp->lake_var.soil.layer[lidx].moist, sizeof(double), 1,
               init_state) != 1)
             nrerror("End of model state file found unexpectedly");
         }
 
         /* Read average ice content */
-        for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
             if ( fread( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, init_state ) != 1 )
@@ -432,7 +429,7 @@ void read_initial_model_state(FILE    *init_state,
 	prcp->lake_var.snow.depth = 1000. * prcp->lake_var.snow.swq / prcp->lake_var.snow.density;
       
       /* Read soil thermal node temperatures */
-      for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+      for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
 	if ( fread( &prcp->lake_var.energy.T[nidx], sizeof(double), 1, init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
       }
@@ -490,16 +487,16 @@ void read_initial_model_state(FILE    *init_state,
     }
     else {
       // Read both wet and dry fractions if using distributed precipitation
-      for ( dist = 0; dist < Ndist; dist ++ ) {
+      for (int dist = 0; dist < Ndist; dist ++ ) {
 	
 	/* Read total soil moisture */
-	for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+	for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 	  if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].moist) == EOF )
 	    nrerror("End of model state file found unexpectedly");
 	}
 	
         /* Read average ice content */
-        for ( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
+        for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
 #if SPATIAL_FROST
 	  for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
 	    if ( fscanf(init_state," %lf", &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area]) == EOF )
@@ -528,7 +525,7 @@ void read_initial_model_state(FILE    *init_state,
 	prcp->lake_var.snow.depth = 1000. * prcp->lake_var.snow.swq / prcp->lake_var.snow.density;
       
       /* Read soil thermal node temperatures */
-      for ( nidx = 0; nidx < state->options.Nnode; nidx++ ) {
+      for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
 	if ( fscanf(init_state," %lf", &prcp->lake_var.energy.T[nidx]) == EOF )
 	  nrerror("End of model state file found unexpectedly");
       }

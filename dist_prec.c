@@ -94,13 +94,7 @@ int  dist_prec(cell_info_struct* cell,
       }
     }
 
-    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
-      //only loop over veg here (skipping bands)
-      if (it->bandIndex != 0) {
-        continue;
-      }
-
-      int veg = it->vegIndex;
+    for (int veg = 0; veg <= cell->veg_con[0].vegetat_type_num; veg++) {
 
       if (ANY_SNOW[veg] || cell->atmos[time_step_record].snowflag[state->NR]) {
         /* If snow present, mu must be set to 1. */

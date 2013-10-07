@@ -107,9 +107,7 @@ int  full_energy(char                 NEWCELL,
 **********************************************************************/
 {
   char                   overstory;
-  int                    lidx;
   int                    Ndist;
-  int                    dist;
   int                    Nveg;
   int                    veg_class;
   int                    Nbands;
@@ -424,11 +422,11 @@ int  full_energy(char                 NEWCELL,
          Compute soil wetness and root zone soil moisture
          ********************************************************/
         // Loop through distributed precipitation fractions
-        for (dist = 0; dist < Ndist; dist++) {
+        for (int dist = 0; dist < Ndist; dist++) {
           cell_data_struct& cellRef = it->cell[dist];
           cellRef.rootmoist = 0;
           cellRef.wetness = 0;
-          for (lidx = 0; lidx < state->options.Nlayer; lidx++) {
+          for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
             if (veg_con->root[lidx] > 0) {
               cellRef.rootmoist += cellRef.layer[lidx].moist;
             }
@@ -726,7 +724,7 @@ int  full_energy(char                 NEWCELL,
         if (soil_con->AreaFract[it->bandIndex] > 0) {
 
           // Loop through distributed precipitation fractions
-          for (dist = 0; dist < 2; dist++) {
+          for (int dist = 0; dist < 2; dist++) {
             cell_data_struct& cellRef = it->cell[dist];
             if (dist == 0)
               tmp_mu = prcp->mu[it->vegIndex];

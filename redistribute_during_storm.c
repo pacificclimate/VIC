@@ -32,25 +32,18 @@ int  redistribute_during_storm(std::vector<HRU>& hruList,
 
 **********************************************************************/
  
-  unsigned char error;
-  char          ErrorString[MAXSTRING];
-  int           layer;
-  int           frost_area;
-  double        temp_wet;
-  double        temp_dry;
-
   /** Redistribute Soil Moisture **/
   for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
     // Only loop over bands for this specific veg index.
     if (it->vegIndex == veg) {
-      for (layer = 0; layer < state->options.Nlayer; layer++) {
+      for (int layer = 0; layer < state->options.Nlayer; layer++) {
 
         cell_data_struct& cellWet = it->cell[WET];
         cell_data_struct& cellDry = it->cell[DRY];
 
-        temp_wet = cellWet.layer[layer].moist;
-        temp_dry = cellDry.layer[layer].moist;
-        error = redistribute_moisture_for_storm(&temp_wet, &temp_dry,
+        double temp_wet = cellWet.layer[layer].moist;
+        double temp_dry = cellDry.layer[layer].moist;
+        unsigned char error = redistribute_moisture_for_storm(&temp_wet, &temp_dry,
             max_moist[layer], old_mu, new_mu);
         if (error) {
           fprintf(stderr, "%s: Error in moist accounting %f -> %f record %i\n",
@@ -64,7 +57,7 @@ int  redistribute_during_storm(std::vector<HRU>& hruList,
         cellDry.layer[layer].moist = temp_dry;
 
 #if SPATIAL_FROST
-        for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           temp_wet = cellWet.layer[layer].soil_ice[frost_area];
           temp_dry = cellDry.layer[layer].soil_ice[frost_area];
 #else
@@ -102,9 +95,9 @@ int  redistribute_during_storm(std::vector<HRU>& hruList,
        Redistribute Stored Water in Vegetation
        ****************************************/
       if (veg < Nveg) {
-        temp_wet = it->veg_var[WET].Wdew;
-        temp_dry = it->veg_var[DRY].Wdew;
-        error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, Wdmax,
+        double temp_wet = it->veg_var[WET].Wdew;
+        double temp_dry = it->veg_var[DRY].Wdew;
+        unsigned char error = redistribute_moisture_for_storm(&temp_wet, &temp_dry, Wdmax,
             old_mu, new_mu);
         if (error) {
           fprintf(stderr, "%s: Error in Wdew accounting %f -> %f record %i\n",
