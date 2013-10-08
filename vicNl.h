@@ -145,11 +145,10 @@ double calc_snow_ground_flux(int, int, int, int, double, double, double,
 			     snow_data_struct *, layer_data_struct *,
                              layer_data_struct *, soil_con_struct *, char *);
 
-int    calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *, const double *,
-				double *, const double *, const double *, const double *,
-				const double *, double *, double *,
-				double *, double *, double *, double **const*,
-        double *, double *, int, int, int, int, const ProgramState*);
+int calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *,
+    const double *, double *, const double *, const double *, const double *,
+    const double *, double *, double *, double *, double *, double *,
+    double ** const *, int, int, int, int, const ProgramState*);
 
 double CalcBlowingSnow(double, double, int, double, double, double, double, 
                        double, double, double, double, double, float, 
@@ -347,7 +346,7 @@ dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
 void make_in_files(filep_struct *, filenames_struct *, soil_con_struct *, const ProgramState*);
 void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, out_data_file_struct *, const ProgramState*);
 void   MassRelease(double *,double *,double *,double *);
-double maximum_unfrozen_water(double, double, double, double, double, double);
+double maximum_unfrozen_water(double, double, double, double);
 double maximum_unfrozen_water_quick(double, double, double **);
 double modify_Ksat(double, const ProgramState*);
 void mtclim_wrapper(int, int, double, double, double, double,
@@ -438,9 +437,8 @@ double solve_snow(char, double, double, double, double, double, double,
 
 int solve_T_profile(double *T, double *T0, char *Tfbflag, int *Tfbcount,
     double *kappa, double *Cs, double *moist, double deltat, double *ice,
-    double Dp, double **const* ufwc_table_node, double *porosity,
-    double *effective_porosity, int Nnodes, int *FIRST_SOLN, int NOFLUX,
-    int EXP_TRANS, int veg_class, const soil_con_struct* soil_con,
+    double Dp, double ** const * ufwc_table_node, int Nnodes, int *FIRST_SOLN,
+    int NOFLUX, int EXP_TRANS, int veg_class, const soil_con_struct* soil_con,
     const ProgramState* state);
 
 int solve_T_profile_implicit(double *, double *, double *, double *,

@@ -17,14 +17,12 @@ void write_atmosdata(atmos_data_struct *atmos, int nrecs, const ProgramState* st
 **********************************************************************/
 {
 #if LINK_DEBUG
-  int i;
-  int j;
 
   /*  first write all the SNOW_STEP data  - only write if the modelstep !=
       SNOWSTEP */
   if (state->NR > 0) {
-    for (i = 0; i < nrecs; i++) {
-      for (j = 0; j < state->NF; j++) {
+    for (int i = 0; i < nrecs; i++) {
+      for (int j = 0; j < state->NF; j++) {
 	fprintf(state->debug.fg_snowstep_atmos,"%d\t%d",  i, j);
 	fprintf(state->debug.fg_snowstep_atmos,"\t%f", atmos[i].prec[j]);
 	fprintf(state->debug.fg_snowstep_atmos,"\t%f", atmos[i].air_temp[j]);
@@ -43,7 +41,7 @@ void write_atmosdata(atmos_data_struct *atmos, int nrecs, const ProgramState* st
   }
   
   /* then write all the dt data */
-  for (i = 0; i < nrecs; i++) {
+  for (int i = 0; i < nrecs; i++) {
     fprintf(state->debug.fg_modelstep_atmos,"%d",  i);
     fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].prec[state->NR]);
     fprintf(state->debug.fg_modelstep_atmos,"\t%f", atmos[i].air_temp[state->NR]);

@@ -24,15 +24,12 @@ void calc_forcing_stats(int                Nrecs,
 
 **********************************************************************/
 
-  int rec, i;
-  double *values;
-
-  values = (double *) calloc ( Nrecs, sizeof(double) );
+  double *values = (double *) calloc ( Nrecs, sizeof(double) );
 
   printf("Variable\tMean\tStd. Dev.\tSum\tMaximum\tMinimum\n");
 
   /** Air Temperature **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].air_temp[NR];
   printf("air temp (C):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -41,7 +38,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Density **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].density[NR];
   printf("Density (kg/m^3):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -50,7 +47,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Longwave **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].longwave[NR];
   printf("Longwave (W/m^2):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -59,7 +56,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Precipitation **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].prec[NR];
   printf("Precip (mm):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -68,7 +65,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Pressure **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].pressure[NR];
   printf("Pressure (Pa):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -77,7 +74,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Shortwave **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].shortwave[NR];
   printf("Shortwave (W/m^2):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -86,7 +83,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Vapor Pressure **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].vp[NR];
   printf("vp (Pa):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -95,7 +92,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Vapor Pressure Deficit **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].vpd[NR];
   printf("vpd (Pa):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -104,7 +101,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   /** Wind Speed **/
-  for ( rec = 0; rec < Nrecs; rec ++ )
+  for (int rec = 0; rec < Nrecs; rec ++ )
     values[rec] = atmos[rec].wind[NR];
   printf("wind speed (m/s):\t%f\t%f\t%f\t%f\t%f\n", 
 	 get_mean(values, Nrecs, INVALID),
@@ -113,6 +110,7 @@ void calc_forcing_stats(int                Nrecs,
 	 get_min(values, Nrecs, INVALID) );
 
   fflush(stdout);
+  free(values);
 
 }
 

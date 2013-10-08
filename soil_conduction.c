@@ -400,8 +400,6 @@ int distribute_node_moisture_properties(energy_bal_struct* energy, const soil_co
 #else
       energy->ice_content[nidx]
 	= energy->moist[nidx] - maximum_unfrozen_water(energy->T[nidx],
-	    soil_con->porosity_node[nidx],
-	    soil_con->effective_porosity_node[nidx],
 	    soil_con->max_moist_node[nidx],
 	    soil_con->bubble_node[nidx],
 	    soil_con->expt_node[nidx]);
@@ -574,8 +572,7 @@ int estimate_layer_ice_content(layer_data_struct *layer,
 	    - maximum_unfrozen_water_quick(tmpT[nidx][frost_area], max_moist[lidx], 
 					   ufwc_table_layer[lidx]);
 #else
-            - maximum_unfrozen_water(tmpT[nidx][frost_area], soil_con->porosity[lidx],
-                soil_con->effective_porosity[lidx], soil_con->max_moist[lidx],
+            - maximum_unfrozen_water(tmpT[nidx][frost_area], soil_con->max_moist[lidx],
                 soil_con->bubble[lidx], soil_con->expt[lidx]);
 #endif
 	  if ( tmp_ice[nidx][frost_area] < 0 ) tmp_ice[nidx][frost_area] = 0.;
@@ -705,7 +702,7 @@ int estimate_layer_ice_content_quick_flux(layer_data_struct *layer,
 #if QUICK_FS
 	    - maximum_unfrozen_water_quick(layer[lidx].T, soil_con->max_moist[lidx], soil_con->ufwc_table_layer[lidx]);
 #else
-      - maximum_unfrozen_water(layer[lidx].T, soil_con->porosity[lidx], soil_con->effective_porosity[lidx], soil_con->max_moist[lidx], soil_con->bubble[lidx], soil_con->expt[lidx]);
+      - maximum_unfrozen_water(layer[lidx].T, soil_con->max_moist[lidx], soil_con->bubble[lidx], soil_con->expt[lidx]);
 #endif
 
       if (layer[lidx].soil_ice < 0) {
@@ -831,8 +828,6 @@ void find_0_degree_fronts(energy_bal_struct *energy,
 }
 
 double maximum_unfrozen_water(double T,
-                              double porosity,
-                              double effective_porosity,
                               double max_moist,
                               double bubble,
                               double expt) {

@@ -68,19 +68,16 @@ void prepare_full_energy(int               iveg,
 
       /* Compute top soil layer ice content (mm/mm) */
 
-      if(state->options.FROZEN_SOIL && soil_con->FS_ACTIVE){
-        if((it->energy.T[0]
-	    + it->energy.T[1])/2.<0.) {
-	  ice0[band] = moist0[band] 
-	    - maximum_unfrozen_water((it->energy.T[0]
-				      + it->energy.T[1]) / 2.,
-				     soil_con->porosity[0], soil_con->effective_porosity[0],
-				     soil_con->max_moist[0]
-				     / (soil_con->depth[0] * 1000.),
-				     soil_con->bubble[0], soil_con->expt[0]);
-	  if(ice0[band]<0.) ice0[band]=0.;
-        }
-        else ice0[band]=0.;
+      if (state->options.FROZEN_SOIL && soil_con->FS_ACTIVE) {
+        if ((it->energy.T[0] + it->energy.T[1]) / 2. < 0.) {
+          ice0[band] = moist0[band]
+              - maximum_unfrozen_water((it->energy.T[0] + it->energy.T[1]) / 2.,
+                  soil_con->max_moist[0] / (soil_con->depth[0] * 1000.),
+                  soil_con->bubble[0], soil_con->expt[0]);
+          if (ice0[band] < 0.)
+            ice0[band] = 0.;
+        } else
+          ice0[band] = 0.;
       }
       else {
         ice0[band] = 0.;

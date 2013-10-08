@@ -161,27 +161,20 @@ int  runoff(cell_data_struct  *cell_wet,
 	      organic fraction into account.					TJB
 **********************************************************************/
 {  
-  char               ErrStr[MAXSTRING];
-  int                firstlayer, lindex, sub;
+  int                firstlayer, lindex;
   int                i;
   int                last_layer[MAX_LAYERS*3];
-  int                last_sub[MAX_LAYERS*3];
-  int                froz_solid[MAX_LAYERS*3];
   int                last_index;
   int                last_cnt;
-  int                tmp_index;
   int                time_step;
   int                Ndist;
   int                dist;
-  int                storesub;
-  int                tmpsub;
   int                tmplayer;
   int                frost_area;
   int                ErrorFlag;
   double             A, frac;
   double             tmp_runoff;
   double             inflow;
-  double             last_liq;
   double             resid_moist[MAX_LAYERS]; // residual moisture (mm)
   double             org_moist[MAX_LAYERS];   // total soil moisture (liquid and frozen) at beginning of this function (mm)
   double             avail_liq[MAX_LAYERS][FROST_SUBAREAS]; // liquid soil moisture available for evap/drainage (mm)
@@ -189,32 +182,22 @@ int  runoff(cell_data_struct  *cell_wet,
   double             ice[MAX_LAYERS];         // current frozen soil moisture (mm)
   double             moist[MAX_LAYERS];       // current total soil moisture (liquid and frozen) (mm)
   double             max_moist[MAX_LAYERS];   // maximum storable moisture (liquid and frozen) (mm)
-  double             max_infil;
   double             Ksat[MAX_LAYERS];
   double             Q12[MAX_LAYERS-1];
   double             Dsmax;
-  double             top_moist;     // total moisture (liquid and frozen) in topmost soil layers (mm)
-  double             top_max_moist; // maximum storable moisture (liquid and frozen) in topmost soil layers (mm)
   double             tmp_inflow;
   double             tmp_moist;
   double             tmp_moist_for_runoff[MAX_LAYERS];
   double             tmp_liq;
-  double             dt_inflow, dt_outflow;
+  double             dt_inflow;
   double             dt_runoff;
   double             runoff[FROST_SUBAREAS];
   double             tmp_dt_runoff[FROST_SUBAREAS];
   double             baseflow[FROST_SUBAREAS];
-  double             actual_frost_fract[FROST_SUBAREAS];
   double             tmp_mu;
   double             dt_baseflow;
   double             rel_moist;
   double             evap[MAX_LAYERS][FROST_SUBAREAS];
-  double             sum_liq;
-  double             evap_percent;
-  double             evap_sum;
-  double             min_temp;
-  double             max_temp;
-  double             tmp_fract;
   double             Tlayer_spatial[MAX_LAYERS][FROST_SUBAREAS];
   double             Tlayer;
 #if LOW_RES_MOIST
@@ -225,8 +208,6 @@ int  runoff(cell_data_struct  *cell_wet,
 #endif // LOW_RES_MOIST
   double             excess_water;
   double             net_excess_water;
-  double             liq_prior;
-  double             total_evap;
   cell_data_struct  *cell;
 
   /** Set Residual Moisture **/
@@ -266,7 +247,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	org_moist[lindex] = cell->layer[lindex].moist;
 	cell->layer[lindex].moist = 0;
         if ( evap[lindex][0] != 0 ) { // if there is evaporation
-          sum_liq = 0;
+          double sum_liq = 0;
           // compute available soil moisture for each frost sub area.
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
             avail_liq[lindex][frost_area] = (org_moist[lindex] - cell->layer[lindex].soil_ice[frost_area] - resid_moist[lindex]);
@@ -274,9 +255,9 @@ int  runoff(cell_data_struct  *cell_wet,
             sum_liq += avail_liq[lindex][frost_area]*frost_fract[frost_area];
           }
           // compute fraction of available soil moisture that is evaporated
-          evap_percent = evap[lindex][0] / sum_liq;
+          double evap_percent = evap[lindex][0] / sum_liq;
           // distribute evaporation between frost sub areas by percentage
-          evap_sum = evap[lindex][0];
+          double evap_sum = evap[lindex][0];
           for ( frost_area = FROST_SUBAREAS - 1; frost_area >= 0; frost_area-- ) {
             evap[lindex][frost_area] = avail_liq[lindex][frost_area] * evap_percent;
             evap_sum -= evap[lindex][frost_area] * frost_fract[frost_area];
@@ -293,8 +274,9 @@ int  runoff(cell_data_struct  *cell_wet,
 
       // compute temperatures of frost subareas
       for ( lindex = 0; lindex < state->options.Nlayer; lindex++ ) {
-        min_temp = cell->layer[lindex].T - soil_con->frost_slope / 2.;
-        max_temp = min_temp + soil_con->frost_slope;
+        double min_temp = cell->layer[lindex].T - soil_con->frost_slope / 2.;
+        double max_temp = min_temp + soil_con->frost_slope;
+        double tmp_fract;
         for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           if ( FROST_SUBAREAS > 1 ) {
             if ( frost_area == 0 ) tmp_fract = frost_fract[0] / 2.;
@@ -400,7 +382,7 @@ int  runoff(cell_data_struct  *cell_wet,
 	  }
 	  
 	  /*calculate total evap*/
-	  total_evap = 0;
+	  double total_evap = 0;
 	  for ( lindex = 0; lindex < state->options.Nlayer; lindex++ )
 	    total_evap += evap[lindex][frost_area]*(double)dt;
 
@@ -427,14 +409,14 @@ int  runoff(cell_data_struct  *cell_wet,
 	      if(max_moist[lindex] > (liq[lindex] + ice[lindex])) {//if not a subsidence layer
 		if((max_moist[lindex] - (liq[lindex] + ice[lindex])) <= excess_water){//can't take all excess
 		  if(excess_water > 0){
-		    liq_prior = liq[lindex];
+		    double liq_prior = liq[lindex];
 		    liq[lindex] = max_moist[lindex] - ice[lindex];//set to saturation
 		    excess_water -= (liq[lindex]-liq_prior);
 		  }
 		}
 		else {//can take all excess
 		  if(excess_water > 0){
-		    liq_prior = liq[lindex];
+		    double liq_prior = liq[lindex];
 		    liq[lindex] += excess_water;//take-up all excess
 		    excess_water -= (liq[lindex]-liq_prior);
 		  }
@@ -466,7 +448,6 @@ int  runoff(cell_data_struct  *cell_wet,
 	  **************************************************/
 	  
 	  dt_inflow  =  inflow / (double) state->global_param.dt;
-	  dt_outflow =  0.0;
 	  
 	  for (time_step = 0; time_step < state->global_param.dt; time_step++) {
 	    inflow   = dt_inflow;
@@ -570,10 +551,6 @@ int  runoff(cell_data_struct  *cell_wet,
 #endif // LINK_DEBUG
 	      
 	      /* transport moisture for all sublayers **/
-#if LINK_DEBUG
-	      if(state->debug.DEBUG || state->debug.PRT_BALANCE)
-		last_liq = liq[lindex];
-#endif // LINK_DEBUG
 	      
 	      tmp_inflow = 0.;
 	      
@@ -648,7 +625,6 @@ int  runoff(cell_data_struct  *cell_wet,
 	    
 #if LINK_DEBUG
 	    if(state->debug.DEBUG || state->debug.PRT_BALANCE) {
-	      last_liq = liq[lindex];
 	      /** Update debugging storage terms **/
 	      state->debug.outflow[dist][band][lindex+1] += Q12[lindex-1];
 	      state->debug.inflow[dist][band][lindex+2]  += Q12[lindex-1];

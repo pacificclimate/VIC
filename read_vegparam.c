@@ -50,12 +50,9 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 **********************************************************************/
 {
   veg_con_struct *temp;
-  int             vegcel, i, j, k, vegetat_type_num, skip, veg_class;
+  int             vegcel, vegetat_type_num, skip, veg_class;
   int             MaxVeg;
-  int             Nfields, NfieldsMax;
   int             NoOverstory;
-  float           depth_sum;
-  float           sum;
   char            str[500];
   char            ErrStr[MAXSTRING];
   char            line[MAXSTRING];
@@ -79,7 +76,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       sprintf(ErrStr,"ERROR number of vegetation tiles (%i) given for cell %i is < 0.\n",vegetat_type_num,vegcel);
       nrerror(ErrStr);
     }
-    for (i = 0; i <= vegetat_type_num * skip; i++){
+    for (int i = 0; i <= vegetat_type_num * skip; i++){
       if ( fgets(str, 500, vegparam) == NULL ){
         sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading root zones and LAI\n",vegcel);
         nrerror(ErrStr);
@@ -107,7 +104,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   temp = (veg_con_struct*) calloc( MaxVeg, sizeof(veg_con_struct));
   temp[0].Cv_sum = 0.0;
 
-  for (i = 0; i < vegetat_type_num; i++) {
+  for (int i = 0; i < vegetat_type_num; i++) {
     temp[i].zone_depth = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
     temp[i].zone_fract = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
     temp[i].vegetat_type_num = vegetat_type_num;
@@ -120,7 +117,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     strcpy(tmpline, line);
     ttrim( tmpline );
     token = strtok (tmpline, delimiters);    /*  token => veg_class, move 'line' pointer to next field */  
-    Nfields = 0;
+    int Nfields = 0;
     vegarr[Nfields] = (char*)calloc( 500, sizeof(char));
     strcpy(vegarr[Nfields],token);
     Nfields++;
@@ -135,7 +132,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
     }
 
-    NfieldsMax = 2 + 2 * state->options.ROOT_ZONES;  /* Number of expected fields this line */
+    int NfieldsMax = 2 + 2 * state->options.ROOT_ZONES;  /* Number of expected fields this line */
     if( state->options.BLOWING ){
       NfieldsMax += 3;
     }
@@ -147,9 +144,9 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     temp[i].LAKE = 0;
     temp[i].veg_class = atoi( vegarr[0] );
     temp[i].Cv = atof( vegarr[1] );
-    depth_sum = 0;
-    sum = 0.;
-    for(j=0;j<state->options.ROOT_ZONES;j++) {
+    float depth_sum = 0;
+    float sum = 0.;
+    for(int j=0;j<state->options.ROOT_ZONES;j++) {
       temp[i].zone_depth[j] = atof( vegarr[2 + j*2] );
       temp[i].zone_fract[j] = atof( vegarr[3 + j*2] );
       depth_sum += temp[i].zone_depth[j];
@@ -159,15 +156,15 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       sprintf(str,"Root zone depths must sum to a value greater than 0.");
       nrerror(str);
     }
-    if(sum != 1.) {
-      fprintf(stderr,"WARNING: Root zone fractions sum to more than 1 ( = %f), normalizing fractions.  If the sum is large, check that your vegetation parameter file is in the form - <zone 1 depth> <zone 1 fract> <zone 2 depth> <zone 2 fract> ...\n", sum);
-      for(j=0;j<state->options.ROOT_ZONES;j++) {
-	temp[i].zone_fract[j] /= sum;
+    if (sum != 1.) {
+      fprintf(stderr, "WARNING: Root zone fractions sum to more than 1 ( = %f), normalizing fractions.  If the sum is large, check that your vegetation parameter file is in the form - <zone 1 depth> <zone 1 fract> <zone 2 depth> <zone 2 fract> ...\n", sum);
+      for (int j = 0; j < state->options.ROOT_ZONES; j++) {
+        temp[i].zone_fract[j] /= sum;
       }
     }
 
     if(state->options.BLOWING) {
-      j = 2 * state->options.ROOT_ZONES;
+      int j = 2 * state->options.ROOT_ZONES;
       temp[i].sigma_slope = atof( vegarr[2 + j] );
       temp[i].lag_one = atof( vegarr[3 + j] );
       temp[i].fetch = atof( vegarr[4 + j]) ;
@@ -182,7 +179,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     }
 
     veg_class = INVALID_INT;
-    for(j=0;j<Nveg_type;j++)
+    for(int j=0;j<Nveg_type;j++)
       if(temp[i].veg_class == state->veg_lib[j].veg_class)
 	veg_class = j;
     if(IS_INVALID(veg_class)) {
@@ -194,7 +191,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 
     temp[0].Cv_sum += temp[i].Cv;
 
-    for(k=0; k<Nfields; k++)
+    for(int k=0; k<Nfields; k++)
       free(vegarr[k]);
 
     if ( state->options.VEGPARAM_LAI ) {
@@ -222,7 +219,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
         nrerror(ErrStr);
       }
 
-      for ( j = 0; j < 12; j++ ) {
+      for (int j = 0; j < 12; j++ ) {
         if (state->options.LAI_SRC == LAI_FROM_VEGPARAM) {
           state->veg_lib[temp[i].veg_class].LAI[j] = atof( vegarr[j] );
           if (state->veg_lib[temp[i].veg_class].overstory && state->veg_lib[temp[i].veg_class].LAI[j] == 0) {
@@ -233,7 +230,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 	    LAI_WATER_FACTOR * state->veg_lib[temp[i].veg_class].LAI[j];
         }
       }
-      for(k=0; k<Nfields; k++)
+      for(int k=0; k<Nfields; k++)
         free(vegarr[k]);
     }
 
@@ -246,13 +243,13 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   // Determine if we have bare soil
   if(temp[0].Cv_sum>1.0){
     fprintf(stderr,"WARNING: Cv exceeds 1.0 at grid cell %d, fractions being adjusted to equal 1\n", gridcel);
-    for(j=0;j<vegetat_type_num;j++)
+    for(int j=0;j<vegetat_type_num;j++)
       temp[j].Cv = temp[j].Cv / temp[0].Cv_sum;
     temp[0].Cv_sum = 1.;
   }
   else if(temp[0].Cv_sum>0.99 && temp[0].Cv_sum<1.0){
     fprintf(stderr,"WARNING: Cv > 0.99 and Cv < 1.0 at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", gridcel);
-    for(j=0;j<vegetat_type_num;j++)
+    for(int j=0;j<vegetat_type_num;j++)
       temp[j].Cv = temp[j].Cv / temp[0].Cv_sum;
     temp[0].Cv_sum = 1.;
   }
@@ -268,7 +265,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     if ( state->options.AboveTreelineVeg < 0 ) {
 
       // Above treeline snowband should be treated as bare soil
-      for ( j = 0; j < vegetat_type_num; j++ )
+      for (int j = 0; j < vegetat_type_num; j++ )
         temp[j].Cv -= ( 0.001 / (float)vegetat_type_num );
       temp[0].Cv_sum -= 0.001;
 
@@ -280,7 +277,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       // check that veg type exists in library and does not have overstory
       if(vegetat_type_num > 0) {
 
-        for ( j = 0; j < vegetat_type_num; j++ ) {
+        for (int j = 0; j < vegetat_type_num; j++ ) {
           temp[j].Cv -= ( 0.001 / (float)vegetat_type_num );
           temp[j].vegetat_type_num++;
         }
@@ -296,7 +293,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 
         // Since root zones are not defined they are copied from the last
         // vegetation type.
-        for ( j = 0; j < state->options.ROOT_ZONES; j++ ) {
+        for (int j = 0; j < state->options.ROOT_ZONES; j++ ) {
           temp[vegetat_type_num].zone_depth[j]
             = temp[vegetat_type_num-1].zone_depth[j];
           temp[vegetat_type_num].zone_fract[j]
@@ -307,7 +304,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 
       // Identify current vegetation class
       veg_class = INVALID_INT;
-      for ( j = 0; j < Nveg_type; j++ ) {
+      for (int j = 0; j < Nveg_type; j++ ) {
         if(temp[vegetat_type_num].veg_class == state->veg_lib[j].veg_class) {
           veg_class = j;
           break;
@@ -332,7 +329,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
 
   // Bare soil tile
   if (temp[0].Cv_sum < 1.) {
-    j = vegetat_type_num;
+    int j = vegetat_type_num;
     temp[j].veg_class = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
     temp[j].Cv = 1.0 - temp[0].Cv_sum;
     // Don't allocate any root-zone-related arrays

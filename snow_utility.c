@@ -143,7 +143,7 @@ double snow_density(snow_data_struct *snow, double new_snow, double sswq, double
 
   }
 
-  else if (state->options.SNOW_DENSITY == DENS_BRAS) {
+  else {  //if (state->options.SNOW_DENSITY == DENS_BRAS) {   // Default to this option rather than returning an uninitialised value for density.
 
     depth = snow->depth;
     swq = sswq;
@@ -214,7 +214,7 @@ double new_snow_density(double air_temp, const ProgramState* state) {
   if (state->options.SNOW_DENSITY == DENS_SNTHRM) {
     density_new = 67.9 + 51.3 * exp(air_temp/2.6);
   }
-  else if (state->options.SNOW_DENSITY == DENS_BRAS) {
+  else {  //if (state->options.SNOW_DENSITY == DENS_BRAS) {   //default to this option rather than returning an uninitialised value
     air_temp = air_temp * 9. / 5. + 32.;
     if(air_temp > 0) density_new = (double)NEW_SNOW_DENSITY + 1000.
 		     * (air_temp / 100.) * (air_temp / 100.);

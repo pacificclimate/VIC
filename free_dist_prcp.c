@@ -25,6 +25,6 @@ void free_dist_prcp(dist_prcp_struct *prcp,
   int Ndist = 2;
   int Nitems = Nveg + 1;
 
-  free((char *)prcp->mu);
+  free(prcp->mu);
 
 }

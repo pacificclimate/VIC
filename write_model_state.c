@@ -79,8 +79,7 @@ void write_model_state(dist_prcp_struct    *prcp,
 {
   int    Ndist;
   int    Nbands;
-  int    byte, Nbytes;
-  int    frost_area;
+  int    Nbytes;
 
   if(state->options.DIST_PRCP)
     Ndist = 2;
@@ -256,7 +255,7 @@ void write_model_state(dist_prcp_struct    *prcp,
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
 #error
-        for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           tmpval = cellRef.layer[lidx].soil_ice[frost_area];
           if ( state->options.BINARY_STATE_FILE ) {
             fwrite( &tmpval, sizeof(double), 1, filep->statefile );
@@ -333,7 +332,7 @@ void write_model_state(dist_prcp_struct    *prcp,
         /* Write average ice content */
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
-          for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+          for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
             fwrite( &prcp->lake_var.soil.layer[lidx].soil_ice[frost_area], sizeof(double), 1, filep->statefile );
           }
 #else
@@ -402,7 +401,7 @@ void write_model_state(dist_prcp_struct    *prcp,
         /* Write average ice content */
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
-          for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+          for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
             fprintf( filep->statefile, " %f", prcp->lake_var.soil.layer[lidx].soil_ice[frost_area] );
           }
 #else

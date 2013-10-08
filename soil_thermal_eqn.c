@@ -32,7 +32,7 @@ double SoilThermalEqn::calculate(double T) {
     ice = moist - maximum_unfrozen_water_quick(T, max_moist,
 					       ufwc_table);
 #else
-    ice = moist - maximum_unfrozen_water(T,porosity,effective_porosity,max_moist,bubble,expt);
+    ice = moist - maximum_unfrozen_water(T,max_moist,bubble,expt);
 #endif
     if(ice<0.) ice=0.;
     if(ice>max_moist) ice=max_moist;

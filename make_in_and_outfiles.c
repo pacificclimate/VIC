@@ -42,7 +42,6 @@ void make_in_files(filep_struct         *filep,
 **********************************************************************/
 {
   char   latchar[20], lngchar[20], junk[6];
-  int filenum;
 
   sprintf(junk, "%%.%if", state->options.GRID_DECIMAL);
   sprintf(latchar, junk, soil->lat);

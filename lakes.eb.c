@@ -1954,15 +1954,10 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   double Dsmax, resid_moist, liq, rel_moist;
   double *frost_fract;
   double volume_save;
-  double *delta_moist;
-  double *moist;
   double max_newfraction;
   double depth_in_save;
 
   frost_fract = soil_con.frost_fract;
-
-  delta_moist = (double*)calloc(state->options.Nlayer,sizeof(double));
-  moist = (double*)calloc(state->options.Nlayer,sizeof(double));
 
   /**********************************************************************
    * 1. Preliminary stuff
@@ -2043,6 +2038,9 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   // snow to run off and the soil to moisten, but not being
   // inundated).  However, lake dimensions will be recalculated
   // after runoff and baseflow are subtracted from the lake.
+
+  double* delta_moist = (double*)calloc(state->options.Nlayer,sizeof(double));
+  double* moist = (double*)calloc(state->options.Nlayer,sizeof(double));
 
   lake->recharge = 0.0;
   for(j=0; j<state->options.Nlayer; j++) {
@@ -2130,11 +2128,15 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   ErrorFlag = get_depth(lake_con, lake->volume-lake->ice_water_eq, &ldepth);
   if ( ErrorFlag == ERROR ) {
     fprintf(stderr, "Something went wrong in get_depth; record = %d, volume = %f, depth = %e\n",rec,lake->volume,ldepth);
+    free(delta_moist);
+    free(moist);
     return ( ErrorFlag );
   }
   ErrorFlag = get_sarea(lake_con, ldepth, &surfacearea);
   if ( ErrorFlag == ERROR ) {
     fprintf(stderr, "Error in get_sarea; record = %d, depth = %f, sarea = %e\n",rec,ldepth,surfacearea);
+    free(delta_moist);
+    free(moist);
     return ( ErrorFlag );
   }
   lake->baseflow_out = baseflow_out_mm*surfacearea/1000.;
@@ -2149,6 +2151,8 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   ErrorFlag = get_depth(lake_con, lake->volume-lake->ice_water_eq, &ldepth);
   if ( ErrorFlag == ERROR ) {
     fprintf(stderr, "Something went wrong in get_depth; record = %d, volume = %f, depth = %e\n",rec,lake->volume,ldepth);
+    free(delta_moist);
+    free(moist);
     return ( ErrorFlag );
   }
 
@@ -2204,6 +2208,8 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   ErrorFlag = get_depth(lake_con, lake->volume-lake->ice_water_eq, &(lake->ldepth));
   if ( ErrorFlag == ERROR ) {
     fprintf(stderr, "Something went wrong in get_depth; record = %d, volume = %f, depth = %e\n",rec,lake->volume,lake->ldepth);
+    free(delta_moist);
+    free(moist);
     return ( ErrorFlag );
   }
 
@@ -2253,6 +2259,8 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     ErrorFlag = get_sarea(lake_con, ldepth, &(lake->surface[k]));
     if ( ErrorFlag == ERROR ) {
       fprintf(stderr, "Something went wrong in get_sarea; record = %d, depth = %f, sarea = %e\n",rec,ldepth,lake->surface[k]);
+      free(delta_moist);
+      free(moist);
       return ( ErrorFlag );
     }
   }
@@ -2305,7 +2313,11 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     ErrorFlag = distribute_node_moisture_properties(&hruElement->energy,
         &soil_con, moist, state);
 
-    if ( ErrorFlag == ERROR ) return (ERROR);
+    if ( ErrorFlag == ERROR ) {
+      free(delta_moist);
+      free(moist);
+      return (ERROR);
+    }
   }
   else if (lakefrac < 1.0) { // wetland is gone at end of time step, but existed at beginning of step
     if (lakefrac > 0.0) { // lake also existed at beginning of step
@@ -2351,8 +2363,8 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     }
   }
 
-  free((char*)delta_moist);
-  free((char*)moist);
+  free(delta_moist);
+  free(moist);
 
   return(0);
 

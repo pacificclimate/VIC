@@ -91,8 +91,6 @@ int water_energy_balance(int     numnod,
   double jouleold;
   double joulenew;
   double error;
-  double Told;
-  double Tupper, Tlower;
   
   double de[MAX_LAKE_NODES]; 
   double epsilon = 0.0001;

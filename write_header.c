@@ -24,7 +24,6 @@ void write_header(out_data_file_struct *out_data_files,
   int                 file_idx;
   int                 var_idx;
   int                 elem_idx;
-  int                 i;
   unsigned short      Identifier;
   unsigned short      Nbytes;
   unsigned short      Nbytes1;
@@ -131,7 +130,7 @@ void write_header(out_data_file_struct *out_data_files,
       // ***** Write the header *****
 
       // 4 instances of Identifier
-      for (i=0; i<4; i++)
+      for (int i=0; i<4; i++)
         fwrite(&Identifier, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
 
       // Nbytes

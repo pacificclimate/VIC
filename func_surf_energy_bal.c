@@ -109,14 +109,7 @@ double SurfEnergyBal::calculate(double Ts)
   /* define routine input variables */
 
   /* general model terms */
-  int i;
   int Error;
-
-  /* excess ice terms */
-  double porosity = 0; //top layer
-  double effective_porosity = 0; //top layer
-  double *porosity_node = NULL;
-  double *effective_porosity_node = NULL;
 
   /* Define internal routine variables */
   double Evap;		/** Total evap in m/s **/
@@ -126,8 +119,6 @@ double SurfEnergyBal::calculate(double Ts)
   double Tmp;
   double error;
   double ice;
-/*   double             kappa_snow; */
-  double out_long;
   double temp_latent_heat;
   double temp_latent_heat_sub;
   double VaporMassFlux;
@@ -223,9 +214,10 @@ double SurfEnergyBal::calculate(double Ts)
       if(state->options.IMPLICIT)
         FIRST_SOLN[0] = TRUE;
 
+
       Error = solve_T_profile(Tnew_node, T_node, Tnew_fbflag, Tnew_fbcount,
           kappa_node, Cs_node, moist_node, delta_t, ice_node, dp,
-          soil_con->ufwc_table_node, porosity_node, effective_porosity_node, Nnodes,
+          soil_con->ufwc_table_node,Nnodes,
           FIRST_SOLN, NOFLUX, EXP_TRANS, veg_class, soil_con, state);
     }
       
@@ -266,10 +258,8 @@ double SurfEnergyBal::calculate(double Ts)
     (this will correspond to top soil layer for the default (non-exponential) node spacing)
   ******************************************************/
   if (soil_con->FS_ACTIVE && state->options.FROZEN_SOIL) {
-
     if((TMean+ *T1)/2.<0.) {
       ice = moist - maximum_unfrozen_water((TMean+ *T1)/2.,
-					   porosity,effective_porosity,
 					   max_moist,bubble,expt);
       if(ice<0.) ice=0.;
     }

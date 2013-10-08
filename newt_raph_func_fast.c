@@ -14,19 +14,22 @@
 #define RELAX2   0.7
 #define RELAX3   0.2
 
-NewtonRaphsonMethod::NewtonRaphsonMethod(double T_2[], double res[], int n, double deltat, int FS_ACTIVE,
-    int NOFLUX, int EXP_TRANS, double *T0, double *moist, double *ice,
-    double *kappa, double *Cs, const double *max_moist, const double *bubble, const double *expt,
-    const double *porosity, const double *effective_porosity, const double *alpha, const double *beta,
-    const double *gamma, const double *Zsum, double Dp, const double *bulk_dens_min,
-    const double *soil_dens_min, const double *quartz, const double *bulk_density,
-    const double *soil_density, const double *organic, const double *depth, int Nlayers) :
+NewtonRaphsonMethod::NewtonRaphsonMethod(double T_2[], double res[], int n,
+    double deltat, int FS_ACTIVE, int NOFLUX, int EXP_TRANS, double *T0,
+    double *moist, double *ice, double *kappa, double *Cs,
+    const double *max_moist, const double *bubble, const double *expt,
+    const double *alpha, const double *beta, const double *gamma,
+    const double *Zsum, double Dp, const double *bulk_dens_min,
+    const double *soil_dens_min, const double *quartz,
+    const double *bulk_density, const double *soil_density,
+    const double *organic, const double *depth, int Nlayers) :
 
-    deltat(deltat), FS_ACTIVE(FS_ACTIVE), NOFLUX(NOFLUX), EXP_TRANS(EXP_TRANS), T0(T0), moist(moist),
-    ice(ice), kappa(kappa), Cs(Cs), max_moist(max_moist), bubble(bubble), expt(expt),
-    porosity(porosity), effective_porosity(effective_porosity), alpha(alpha), beta(beta), gamma(gamma),
-    Zsum(Zsum), Dp(Dp), bulk_dens_min(bulk_dens_min), soil_dens_min(soil_dens_min), quartz(quartz),
-    bulk_density(bulk_density), soil_density(soil_density), organic(organic), depth(depth), Nlayers(Nlayers) {
+    deltat(deltat), FS_ACTIVE(FS_ACTIVE), NOFLUX(NOFLUX), EXP_TRANS(EXP_TRANS), T0(
+        T0), moist(moist), ice(ice), kappa(kappa), Cs(Cs), max_moist(max_moist), bubble(
+        bubble), expt(expt), alpha(alpha), beta(beta), gamma(gamma), Zsum(Zsum), Dp(
+        Dp), bulk_dens_min(bulk_dens_min), soil_dens_min(soil_dens_min), quartz(
+        quartz), bulk_density(bulk_density), soil_density(soil_density), organic(
+        organic), depth(depth), Nlayers(Nlayers) {
 
   if (EXP_TRANS) {
     if (!NOFLUX)

@@ -113,8 +113,6 @@ int  solve_T_profile(double *T,
 		     double *ice,
 		     double Dp,
 		     double **const* ufwc_table_node,
-		     double *porosity,
-		     double *effective_porosity,
 		     int     Nnodes,
 		     int    *FIRST_SOLN,
 		     int     NOFLUX,
@@ -219,7 +217,7 @@ int  solve_T_profile(double *T,
 
   Error = calc_soil_thermal_fluxes(Nnodes, T, T0, Tfbflag, Tfbcount, moist,
       soil_con->max_moist, ice, soil_con->bubble, soil_con->expt, soil_con->alpha, soil_con->gamma, A, B, C, D, E,
-      soil_con->ufwc_table_node, porosity, effective_porosity, soil_con->FS_ACTIVE, NOFLUX,
+      soil_con->ufwc_table_node, soil_con->FS_ACTIVE, NOFLUX,
       EXP_TRANS, veg_class, state);
 
   return (Error);
@@ -283,8 +281,7 @@ int solve_T_profile_implicit(double *T,                           // update
   
   NewtonRaphsonMethod nrMethod(&T[1], res, n, deltat, soil_con->FS_ACTIVE,
       NOFLUX, EXP_TRANS, T0, moist, ice, kappa, Cs, soil_con->max_moist,
-      soil_con->bubble, soil_con->expt, soil_con->porosity,
-      soil_con->effective_porosity, soil_con->alpha, soil_con->beta,
+      soil_con->bubble, soil_con->expt, soil_con->alpha, soil_con->beta,
       soil_con->gamma, soil_con->Zsum_node, Dp, soil_con->bulk_dens_min,
       soil_con->soil_dens_min, soil_con->quartz, soil_con->bulk_density,
       soil_con->soil_density, soil_con->organic, soil_con->depth,
@@ -323,8 +320,6 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 			     double *D, 
 			     double *E,
 			     double **const *ufwc_table_node,
-			     double *porosity,
-			     double *effective_porosity,
 			     int    FS_ACTIVE, 
 			     int    NOFLUX,
 			     int EXP_TRANS,
@@ -401,8 +396,7 @@ int calc_soil_thermal_fluxes(int     Nnodes,
 
         SoilThermalEqn soilThermalEqnIteration(T[j + 1], T[j - 1], T0[j],
             moist[j], max_moist[j], ufwc_table_node[j], bubble[j], expt[j],
-            porosity[j], effective_porosity[j], ice[j], gamma[j - 1], A[j],
-            B[j], C[j], D[j], E[j], EXP_TRANS, j);
+            ice[j], gamma[j - 1], A[j], B[j], C[j], D[j], E[j], EXP_TRANS, j);
 
         T[j] = soilThermalEqnIteration.root_brent(T0[j] - (SOIL_DT),
             T0[j] + (SOIL_DT), ErrorString);
@@ -442,7 +436,6 @@ int calc_soil_thermal_fluxes(int     Nnodes,
         SoilThermalEqn soilThermalEqnIteration(T[Nnodes - 1], T[Nnodes - 2],
             T0[Nnodes - 1], moist[Nnodes - 1], max_moist[Nnodes - 1],
             ufwc_table_node[Nnodes - 1], bubble[j], expt[Nnodes - 1],
-            porosity[Nnodes - 1], effective_porosity[Nnodes - 1],
             ice[Nnodes - 1], gamma[Nnodes - 2], A[j], B[j], C[j], D[j], E[j],
             EXP_TRANS, j);
 
@@ -592,9 +585,7 @@ void NewtonRaphsonMethod::fda_heat_eqn(double T_2[], double res[], int n, int fo
       if (i >= 1) {  //all but surface node
         // update ice contents
         if (T_2[i - 1] < 0) {
-          ice_new[i] = moist[i]
-              - maximum_unfrozen_water(T_2[i - 1], porosity[i],
-                  effective_porosity[i], max_moist[i], bubble[i], expt[i]);
+          ice_new[i] = moist[i] - maximum_unfrozen_water(T_2[i - 1], max_moist[i], bubble[i], expt[i]);
           if (ice_new[i] < 0)
             ice_new[i] = 0;
         } else
@@ -705,9 +696,7 @@ void NewtonRaphsonMethod::fda_heat_eqn(double T_2[], double res[], int n, int fo
     // update ice content for node focus and its adjacents
     for (i = left; i <= right; i++) {
       if (T_2[i] < 0) {
-        ice_new[i + 1] = moist[i + 1]
-            - maximum_unfrozen_water(T_2[i], porosity[i + 1],
-                effective_porosity[i + 1], max_moist[i + 1], bubble[i + 1],
+        ice_new[i + 1] = moist[i + 1] - maximum_unfrozen_water(T_2[i], max_moist[i + 1], bubble[i + 1],
                 expt[i + 1]);
         if (ice_new[i + 1] < 0)
           ice_new[i + 1] = 0;

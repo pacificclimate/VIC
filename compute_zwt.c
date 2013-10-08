@@ -20,11 +20,10 @@ double compute_zwt(const soil_con_struct  *soil_con,
 ****************************************************************************/
 
 {
-  int    i;
-  double zwt;
+  double zwt = INVALID;
 
   /** Compute zwt using soil moisture v zwt curve **/
-  i = MAX_ZWTVMOIST-1;
+  int i = MAX_ZWTVMOIST-1;
   while (i>=1 && moist > soil_con->zwtvmoist_moist[lindex][i]) {
     i--;
   }
@@ -59,7 +58,6 @@ void wrap_compute_zwt(const soil_con_struct  *soil_con,
 ****************************************************************************/
 
 {
-  int    i;
   int    lindex;
   double total_depth;
   double tmp_depth;
