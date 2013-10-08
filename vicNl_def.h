@@ -694,6 +694,8 @@ typedef struct {
   char   BINARY_STATE_FILE; /* TRUE = model state file is binary (default) */
   char   INIT_STATE;     /* TRUE = initialize model state from file */
   char   SAVE_STATE;     /* TRUE = save state file */       
+  double MAX_MEMORY;     /* Amount of RAM (in Gb) available to run the model with. The user will be warned if the projected memory use exceeds this limit.
+                            If MAX_MEMORY is set to zero (which is the default if not explicitly set in the global options file) then unlimited memory is assumed.*/
 
   // output options
   char   ALMA_OUTPUT;    /* TRUE = output variables are in ALMA-compliant units; FALSE = standard VIC units */

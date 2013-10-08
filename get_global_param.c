@@ -420,31 +420,32 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       /*************************************
        Define state files
       *************************************/
-      else if(strcasecmp("INIT_STATE",optstr)==0) {
-        sscanf(cmdstr,"%*s %s",flgstr);
-        if(strcasecmp("FALSE",flgstr)==0) options.INIT_STATE=FALSE;
+      else if (strcasecmp("INIT_STATE", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp("FALSE", flgstr) == 0)
+          options.INIT_STATE = FALSE;
         else {
-	  options.INIT_STATE = TRUE;
-	  strcpy(names->init_state,flgstr);
-	}
-      }
-      else if(strcasecmp("STATENAME",optstr)==0) {
-        sscanf(cmdstr,"%*s %s",names->statefile);
+          options.INIT_STATE = TRUE;
+          strcpy(names->init_state, flgstr);
+        }
+      } else if (strcasecmp("STATENAME", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", names->statefile);
         options.SAVE_STATE = TRUE;
-      }
-      else if(strcasecmp("STATEYEAR",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global_param.stateyear);
-      }
-      else if(strcasecmp("STATEMONTH",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global_param.statemonth);
-      }
-      else if(strcasecmp("STATEDAY",optstr)==0) {
-        sscanf(cmdstr,"%*s %d",&global_param.stateday);
-      }
-      else if(strcasecmp("BINARY_STATE_FILE",optstr)==0) {
-        sscanf(cmdstr,"%*s %s",flgstr);
-        if(strcasecmp("FALSE",flgstr)==0) options.BINARY_STATE_FILE=FALSE;
-	else options.BINARY_STATE_FILE=TRUE;
+      } else if (strcasecmp("STATEYEAR", optstr) == 0) {
+        sscanf(cmdstr, "%*s %d", &global_param.stateyear);
+      } else if (strcasecmp("STATEMONTH", optstr) == 0) {
+        sscanf(cmdstr, "%*s %d", &global_param.statemonth);
+      } else if (strcasecmp("STATEDAY", optstr) == 0) {
+        sscanf(cmdstr, "%*s %d", &global_param.stateday);
+      } else if (strcasecmp("BINARY_STATE_FILE", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp("FALSE", flgstr) == 0)
+          options.BINARY_STATE_FILE = FALSE;
+        else
+          options.BINARY_STATE_FILE = TRUE;
+      } else if (strcasecmp("MAX_MEMORY", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        options.MAX_MEMORY = atof(flgstr);  // Conversion atof defaults to 0.0 on error (which is consistent with our default value).
       }
 
       /*************************************

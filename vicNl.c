@@ -181,17 +181,19 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 } /* End Main Program */
 
-//This method produces a warning based on the number of cells, and the amount of available RAM on the computer
+//This method produces a warning based on the number of cells, and the specified RAM limit of the computer
 //This warning is relevant only when running in image mode (where all cells should fit in memory).
 //If the model is just being run sequentially, then only a single cell is in memory at a time so
 //the amount of RAM available shouldn't be an issue (although it may still take a while).
-void sanityCheckNumberOfCells(const int nCells) {
-  long physicalPages = sysconf(_SC_PHYS_PAGES);
-  long pageSize = sysconf(_SC_PAGESIZE);
-  double GigsOfRam = (((double)physicalPages / 1024) * pageSize) / (1024 * 1024); //physicalPages * pageSize / (1024 * 3)
+void sanityCheckNumberOfCells(const int nCells, const ProgramState* state) {
+  double GigsOfRam = state->options.MAX_MEMORY;
   const double approxBytesPerCell = 96000; //excluding the atmos forcing data
   double estimatedGigsOfRamUsed = approxBytesPerCell * nCells / (1024 * 1024 * 1024);
-  fprintf(stderr, "\nAvailable RAM: %f Gb, estimated amount required: %f Gb, for %d cells\n", GigsOfRam, estimatedGigsOfRamUsed, nCells);
+  if (GigsOfRam == 0.0) {
+    fprintf(stderr, "Unlimited memory assumed.\n");
+    return;
+  }
+  fprintf(stderr, "\nRAM limitation: %f Gb, estimated amount required: %f Gb, for %d cells\n", GigsOfRam, estimatedGigsOfRamUsed, nCells);
   if (estimatedGigsOfRamUsed > GigsOfRam) {
     fprintf(stderr, "Only continue if you know what you are doing, or you are not running in image mode.\n");
     fprintf(stderr, "Otherwise, consider running again using fewer cells.\nContinue anyways? [y/n] ");
@@ -234,7 +236,7 @@ void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
       cell_data_structs.push_back(currentCell);
     }
   }
-  sanityCheckNumberOfCells(cell_data_structs.size());
+  sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
 int initializeCell(cell_info_struct& cell,
