@@ -241,7 +241,7 @@ void write_model_state(dist_prcp_struct    *prcp,
     }
 
     for (int dist = 0; dist < Ndist; dist++) {
-      cell_data_struct& cellRef = it->cell[dist];
+      hru_data_struct& cellRef = it->cell[dist];
       /* Write total soil moisture */
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         double tmpval = cellRef.layer[lidx].moist; /* MPN */

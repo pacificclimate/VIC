@@ -332,7 +332,7 @@ int initialize_model_state(cell_info_struct* cell,
     for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
 
       for (int dist = 0; dist < Ndist; dist++) {
-        cell_data_struct& cellRef = it->cell[dist];
+        hru_data_struct& cellRef = it->cell[dist];
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 
           if (cellRef.layer[lidx].moist > cell->soil_con.max_moist[lidx]) {
@@ -390,7 +390,7 @@ int initialize_model_state(cell_info_struct* cell,
       double Cv = cell->veg_con[it->vegIndex].Cv;
 
       if (Cv > 0) {
-        cell_data_struct& cellRef = it->cell[WET];
+        hru_data_struct& cellRef = it->cell[WET];
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
           moist[it->vegIndex][it->bandIndex][lidx] = cellRef.layer[lidx].moist;
 
@@ -647,7 +647,7 @@ int initialize_model_state(cell_info_struct* cell,
 
         /* initialize layer moistures and ice contents */
         for (int curDist = 0; curDist < Ndist; curDist++) {
-          cell_data_struct& cellRef = it->cell[curDist];
+          hru_data_struct& cellRef = it->cell[curDist];
           for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
             cellRef.layer[lidx].moist = moist[it->vegIndex][it->bandIndex][lidx];
 #if SPATIAL_FROST
@@ -906,7 +906,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
 
         /* initialize layer moistures and ice contents */
         for (int curDist = 0; curDist < Ndist; curDist++) {
-          cell_data_struct& cellRef = it->cell[curDist];
+          hru_data_struct& cellRef = it->cell[curDist];
           if (!(state->options.LAKES && veg_con->LAKE != 0)) {
             if (state->options.QUICK_FLUX) {
               ErrorFlag = estimate_layer_ice_content_quick_flux(cellRef.layer,

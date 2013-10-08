@@ -745,7 +745,7 @@ int  put_data(cell_info_struct* cell,
 
 }
 
-void collect_wb_terms(const cell_data_struct&  cell,
+void collect_wb_terms(const hru_data_struct&  cell,
                       const veg_var_struct&    veg_var,
                       const snow_data_struct&  snow,
                       const lake_var_struct&   lake_var,
@@ -908,7 +908,7 @@ void collect_wb_terms(const cell_data_struct&  cell,
 
 void collect_eb_terms(const energy_bal_struct& energy,
                       const snow_data_struct&  snow,
-                      const cell_data_struct&  cell_wet,
+                      const hru_data_struct&  cell_wet,
                       FallBackStats     *fallBackStats,
                       double            Cv,
                       double            AreaFract,

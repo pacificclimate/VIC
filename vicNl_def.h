@@ -1022,7 +1022,7 @@ typedef struct {
 
 /******************************************************************
   This structure stores soil variables for the complete soil column 
-  for each grid cell.
+  for each grid cell. HRU = Hydrologic Response Unit.
   ******************************************************************/
 typedef struct {
   double aero_resist[2];               /* The (stability-corrected) aerodynamic
@@ -1046,7 +1046,7 @@ typedef struct {
   double zwt;                          /* average water table position [cm] - method 1 */
   double zwt2;                         /* average water table position [cm] - method 2 */
   double zwt3;                         /* average water table position [cm] - method 3 */
-} cell_data_struct;
+} hru_data_struct;
 
 /***********************************************************************
   This structure stores energy balance components, and variables used to
@@ -1252,7 +1252,7 @@ typedef struct {
   // Some of this information is currently redundant with other variables in the lake_var structure
   snow_data_struct  snow;         /* Snow pack on top of lake ice */
   energy_bal_struct energy;       /* Energy fluxes and soil temperatures */
-  cell_data_struct  soil;         /* Soil column below lake */
+  hru_data_struct  soil;         /* Soil column below lake */
 } lake_var_struct;
 
 /*****************************************************************
@@ -1263,7 +1263,7 @@ typedef struct {
   HRU = Hydrologic Response Unit.
 *****************************************************************/
 struct HRU {
-  cell_data_struct cell[2]; /* Stores soil layer variables (wet and dry) */
+  hru_data_struct cell[2]; /* Stores soil layer variables (wet and dry) */
   energy_bal_struct energy; /* Stores energy balance variables */
   snow_data_struct snow; /* Stores snow variables */
   veg_var_struct veg_var[2]; /* Stores vegetation variables (wet and dry) */
@@ -1399,7 +1399,7 @@ class ProgramState;
 struct WriteDebug {
   WriteDebug();
   void write_debug(atmos_data_struct *atmos, soil_con_struct *soil_con,
-      cell_data_struct *cell, energy_bal_struct *energy, snow_data_struct *snow,
+      hru_data_struct *cell, energy_bal_struct *energy, snow_data_struct *snow,
       veg_var_struct *veg_var, const dmy_struct *dmy, double out_short,
       double precipitation_mu, int Nveg, int veg, int rec,
       int dist, char NEWCELL, const ProgramState *state);

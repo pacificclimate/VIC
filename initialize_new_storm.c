@@ -32,8 +32,8 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
     if (it->vegIndex == veg) {
       for (int layer = 0; layer < state->options.Nlayer; layer++) {
 
-        cell_data_struct& cellWet = it->cell[WET];
-        cell_data_struct& cellDry = it->cell[DRY];
+        hru_data_struct& cellWet = it->cell[WET];
+        hru_data_struct& cellDry = it->cell[DRY];
 
         double temp_wet = cellWet.layer[layer].moist;
         double temp_dry = cellDry.layer[layer].moist;

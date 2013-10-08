@@ -189,12 +189,12 @@ filep_struct   get_files(const filenames_struct *, const ProgramState*);
 FILE  *check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, out_data_file_struct *, filenames_struct *, bool, const ProgramState*);
 void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);
-void   collect_eb_terms(const energy_bal_struct&, const snow_data_struct&, const cell_data_struct&,
+void   collect_eb_terms(const energy_bal_struct&, const snow_data_struct&, const hru_data_struct&,
                         FallBackStats*, double, double, double,
                         int, int, double, int, int, double *, double *,
                         double *, double,
                         out_data_struct *, const ProgramState*);
-void   collect_wb_terms(const cell_data_struct&, const veg_var_struct&, const snow_data_struct&, const lake_var_struct&,
+void   collect_wb_terms(const hru_data_struct&, const veg_var_struct&, const snow_data_struct&, const lake_var_struct&,
                         double, double, double, double, int, int, double, int, double *,
                         double *, out_data_struct *, const ProgramState*);
 void   compress_files(char string[]);
@@ -388,7 +388,7 @@ void   redistribute_moisture(layer_data_struct *, double *, double *,
 			     double *, double *, double *, int);
 unsigned char redistribute_moisture_for_storm(double *, double *, double, 
 					      double, double);
-int    runoff(cell_data_struct *, cell_data_struct *,
+int    runoff(hru_data_struct *, hru_data_struct *,
               energy_bal_struct *, const soil_con_struct *, double *,
               int, double, int, int, int, const ProgramState*);
 
@@ -452,8 +452,8 @@ int surface_fluxes(char, double, double, double, double, int, double *,
         double *, double, double, double *, double *, double **, double *, double *,
         double *, double *, double *, double *, double *, double *, double *,
         const float *, int, int, int, int, int, int, int, int, int, atmos_data_struct *,
-        const dmy_struct *, energy_bal_struct *, cell_data_struct *,
-        cell_data_struct *, snow_data_struct *, const soil_con_struct *, veg_var_struct *,
+        const dmy_struct *, energy_bal_struct *, hru_data_struct *,
+        hru_data_struct *, snow_data_struct *, const soil_con_struct *, veg_var_struct *,
         veg_var_struct *, float, float, float, const ProgramState*);
 double svp(double);
 double svp_slope(double);
@@ -470,7 +470,7 @@ void usage(char *);
 void   vicerror(const char *);
 double volumetric_heat_capacity(double,double,double,double);
 
-void wrap_compute_zwt(const soil_con_struct *, cell_data_struct *, const ProgramState*);
+void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_data(out_data_file_struct *, out_data_struct *, const dmy_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);

@@ -43,7 +43,7 @@ double compute_zwt(const soil_con_struct  *soil_con,
 
 
 void wrap_compute_zwt(const soil_con_struct  *soil_con,
-                      cell_data_struct *cell,
+                      hru_data_struct *cell,
                       const ProgramState* state)
 /****************************************************************************
 

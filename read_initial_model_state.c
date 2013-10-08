@@ -254,7 +254,7 @@ void read_initial_model_state(FILE    *init_state,
       HRU* element = prcp->getHRUElement(veg, band);
       // Read both wet and dry fractions if using distributed precipitation
       for (int dist = 0; dist < Ndist; dist ++ ) {
-        cell_data_struct& cellRef = element->cell[dist];
+        hru_data_struct& cellRef = element->cell[dist];
         /* Read total soil moisture */
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
           if (state->options.BINARY_STATE_FILE) {

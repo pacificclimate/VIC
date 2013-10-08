@@ -70,7 +70,7 @@
 
 double adjflux(double, double, double ,double, double, double, double,
 	       double, double, double, double *, double *);
-void advect_soil_veg_storage(double, double, double, double *, soil_con_struct *, veg_con_struct *, cell_data_struct *, veg_var_struct *, lake_con_struct, const ProgramState*);
+void advect_soil_veg_storage(double, double, double, double *, soil_con_struct *, veg_con_struct *, hru_data_struct *, veg_var_struct *, lake_con_struct, const ProgramState*);
 void advect_snow_storage(double, double, double, snow_data_struct *);
 void alblake(double, double, double *, double *, float *, float *, double, double, 
 	     int, int *, double, double, char *, int, double, const ProgramState*);
@@ -102,14 +102,14 @@ int ice_melt(double, double, double *, double, snow_data_struct *,
     double, double, double, double, double, double, double, double, double *,
     double *, double *, double *, double *, double *, double *, double *,
     double *, double, const ProgramState*);
-int initialize_lake(lake_var_struct *, lake_con_struct, soil_con_struct *, cell_data_struct *, double, int);
+int initialize_lake(lake_var_struct *, lake_con_struct, soil_con_struct *, hru_data_struct *, double, int);
 int lakeice(double *, double, double, double, double, int, 
 	    double, double, double *, double, double, int, dmy_struct, double *, double *, double, double);
 void latsens(double,double, double, double, double, double, double, double,
 	     double *, double *, double);
 float lkdrag(float, double, double, double, double);
 lake_con_struct read_lakeparam(FILE *, soil_con_struct, veg_con_struct *, const ProgramState*);
-void rescale_soil_veg_fluxes(double, double, cell_data_struct *, veg_var_struct *, const ProgramState*);
+void rescale_soil_veg_fluxes(double, double, hru_data_struct *, veg_var_struct *, const ProgramState*);
 void rescale_snow_energy_fluxes(double, double, snow_data_struct *, energy_bal_struct *);
 void rescale_snow_storage(double, double, snow_data_struct *);
 void rhoinit(double *, double);

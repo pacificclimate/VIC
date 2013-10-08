@@ -75,7 +75,7 @@ void WriteDebug::cleanup(int Nveg, const ProgramState* state) {
 
 void WriteDebug::write_debug(atmos_data_struct    *atmos,
                              soil_con_struct      *soil_con,
-                             cell_data_struct     *cell,
+                             hru_data_struct     *cell,
                              energy_bal_struct    *energy,
                              snow_data_struct     *snow,
                              veg_var_struct       *veg_var,

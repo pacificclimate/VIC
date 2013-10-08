@@ -423,7 +423,7 @@ int  full_energy(char                 NEWCELL,
          ********************************************************/
         // Loop through distributed precipitation fractions
         for (int dist = 0; dist < Ndist; dist++) {
-          cell_data_struct& cellRef = it->cell[dist];
+          hru_data_struct& cellRef = it->cell[dist];
           cellRef.rootmoist = 0;
           cellRef.wetness = 0;
           for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
@@ -510,7 +510,7 @@ int  full_energy(char                 NEWCELL,
             Nbands = 1;
           }
           for(band = 0; band < Nbands; band++) { //band
-            cell_data_struct& cellRef = prcp->cell[dist][iveg][band];
+            hru_data_struct& cellRef = prcp->cell[dist][iveg][band];
             if(soil_con->AreaFract[band] > 0) {
               for ( dist = 0; dist < Ndist; dist++ ) { // wet/dry
                 if(dist==0)
@@ -725,7 +725,7 @@ int  full_energy(char                 NEWCELL,
 
           // Loop through distributed precipitation fractions
           for (int dist = 0; dist < 2; dist++) {
-            cell_data_struct& cellRef = it->cell[dist];
+            hru_data_struct& cellRef = it->cell[dist];
             if (dist == 0)
               tmp_mu = prcp->mu[it->vegIndex];
             else

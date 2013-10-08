@@ -34,7 +34,7 @@ void initialize_soil (std::vector<HRU>& elements,
   
   for (std::vector<HRU>::iterator it = elements.begin(); it != elements.end(); ++it) {
 
-    cell_data_struct& cellRef = it->cell[dist];
+    hru_data_struct& cellRef = it->cell[dist];
 
     cellRef.baseflow = 0;
     cellRef.runoff = 0;

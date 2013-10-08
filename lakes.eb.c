@@ -2376,7 +2376,7 @@ void advect_soil_veg_storage(double lakefrac,
                              double *delta_moist,
                              soil_con_struct  *soil_con,
                              veg_con_struct   *veg_con,
-                             cell_data_struct *cell,
+                             hru_data_struct *cell,
                              veg_var_struct   *veg_var,
                              lake_con_struct   lake_con,
                              const ProgramState *state)
@@ -2509,7 +2509,7 @@ void advect_soil_veg_storage(double lakefrac,
 
 void rescale_soil_veg_fluxes(double oldfrac,
                              double newfrac,
-                             cell_data_struct *cell,
+                             hru_data_struct *cell,
                              veg_var_struct   *veg_var,
                              const ProgramState* state)
 /**********************************************************************

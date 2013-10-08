@@ -7,7 +7,7 @@ static char vcid[] = "$Id$";
 int initialize_lake (lake_var_struct   *lake, 
 		      lake_con_struct   lake_con,
 		      soil_con_struct  *soil_con,
-		      cell_data_struct *cell,
+		      hru_data_struct *cell,
 		      double            airtemp,
 		      int               skip_hydro)
 
