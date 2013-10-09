@@ -65,7 +65,7 @@ void MassRelease(double *InterceptedSnow, double *TempInterceptionStorage,
       if (*InterceptedSnow < MIN_INTERCEPTION_STORAGE)
         TempReleasedMass = 0.0;
       else
-        TempReleasedMass = min((*InterceptedSnow - MIN_INTERCEPTION_STORAGE),
+        TempReleasedMass = std::min((*InterceptedSnow - MIN_INTERCEPTION_STORAGE),
                                MaxRelease); 
       *ReleasedMass += TempReleasedMass;
       *InterceptedSnow -= TempReleasedMass;
@@ -74,7 +74,7 @@ void MassRelease(double *InterceptedSnow, double *TempInterceptionStorage,
     }
 
     else {
-      TempDrip = min(*TempInterceptionStorage, *InterceptedSnow);
+      TempDrip = std::min(*TempInterceptionStorage, *InterceptedSnow);
       *Drip += TempDrip;
       *InterceptedSnow -= TempDrip;
     }
@@ -85,7 +85,7 @@ void MassRelease(double *InterceptedSnow, double *TempInterceptionStorage,
      then only melt can occur and there is no mass release. */
 
   else {
-    TempDrip = min(*TempInterceptionStorage, *InterceptedSnow);
+    TempDrip = std::min(*TempInterceptionStorage, *InterceptedSnow);
     *Drip += TempDrip;
     *InterceptedSnow -= TempDrip;
     *TempInterceptionStorage = 0.0;

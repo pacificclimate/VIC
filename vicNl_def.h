@@ -316,10 +316,6 @@ extern const char ref_veg_ref_crop[];
 #define SNOW 1
 #endif
 
-#define min(a,b) (a < b) ? a : b
-#define max(a,b) (a > b) ? a : b
-
-
 /***** Forcing Variable Types *****/
 #define N_FORCING_TYPES 24
 #define AIR_TEMP   0 /* air temperature per time step [C] (ALMA_INPUT: [K]) */

@@ -166,10 +166,10 @@ double canopy_evap(layer_data_struct *layer_wet,
 
       if (canopyevap > 0.0 && delta_t == SEC_PER_DAY)
 	/** If daily time step, evap can include current precipitation **/
-	f = min(1.0,((tmp_Wdew + ppt) / canopyevap));
+	f = std::min(1.0,((tmp_Wdew + ppt) / canopyevap));
       else if (canopyevap > 0.0)
 	/** If sub-daily time step, evap can not exceed current storage **/
-	f = min(1.0,((tmp_Wdew) / canopyevap));
+	f = std::min(1.0,((tmp_Wdew) / canopyevap));
       else
 	f = 1.0;
       canopyevap *= f;

@@ -80,7 +80,7 @@ int initialize_lake (lake_var_struct   *lake,
   /*  Assume no ice present, lake completely equilibrated with atmosphere. */
 
   for ( i = 0 ; i < MAX_LAKE_NODES; i++ ) {      
-    lake->temp[i] = max(airtemp,0.0);
+    lake->temp[i] = std::max(airtemp,0.0);
   }
 
   lake->areai = 0.0;

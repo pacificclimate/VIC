@@ -447,7 +447,7 @@ int snow_intercept(double  Dt,
 
     if ( RefreezeEnergy < 0 ) {
       /* intercepted snow is ripe, melt can occur */
-      PotSnowMelt = min((-RefreezeEnergy/Lf/RHO_W), *IntSnow);
+      PotSnowMelt = std::min((-RefreezeEnergy/Lf/RHO_W), *IntSnow);
       *MeltEnergy -= (Lf * PotSnowMelt * RHO_W) / (Dt);
     }
     else {
