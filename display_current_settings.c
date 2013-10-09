@@ -432,10 +432,10 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     fprintf(stderr,"ALMA_OUTPUT\t\tTRUE\n");
   else
     fprintf(stderr,"ALMA_OUTPUT\t\tFALSE\n");
-  if (options.BINARY_OUTPUT)
-    fprintf(stderr,"BINARY_OUTPUT\t\tTRUE\n");
-  else
-    fprintf(stderr,"BINARY_OUTPUT\t\tFALSE\n");
+
+  WriteOutputContext context(options.OUTPUT_FORMAT);
+  fprintf(stderr, "OUTPUT_FORMAT\t\t%s\n", context.outputFormat->getDescriptionOfOutputType());
+
   if (options.COMPRESS)
     fprintf(stderr,"COMPRESS\t\tTRUE\n");
   else

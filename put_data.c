@@ -719,14 +719,8 @@ int  put_data(cell_info_struct* cell,
       Write Data
     *************/
     if(rec >= skipyear) {
-      if (state->options.BINARY_OUTPUT) {
-        for (int v=0; v<N_OUTVAR_TYPES; v++) {
-          for (int i=0; i<out_data[v].nelem; i++) {
-            out_data[v].aggdata[i] *= out_data[v].mult;
-          }
-        }
-      }
-      write_data(out_data_files, out_data, dmy, state->global_param.out_dt, state);
+      WriteOutputContext context(state->options.OUTPUT_FORMAT);
+      context.outputFormat->write_data(out_data_files, out_data, dmy, state->global_param.out_dt, state);
     }
 
     // Reset the step count

@@ -174,7 +174,7 @@ void ProgramState::initialize_global() {
   options.MAX_MEMORY            = 0.0;    // Assume no restrictions on memory if none are given.
   // output options
   options.ALMA_OUTPUT           = FALSE;
-  options.BINARY_OUTPUT         = FALSE;
+  options.OUTPUT_FORMAT         = OutputFormat::ASCII_FORMAT;
   options.COMPRESS              = FALSE;
   options.MOISTFRACT            = FALSE;
   options.Noutfiles             = 2;

@@ -98,6 +98,8 @@ void make_out_files(filep_struct         *filep,
   sprintf(latchar, junk, soil->lat);
   sprintf(lngchar, junk, soil->lng);
 
+  WriteOutputContext context(state->options.OUTPUT_FORMAT);
+
   for (int filenum=0; filenum < state->options.Noutfiles; filenum++) {
     strcpy(out_data_files[filenum].filename, filenames->result_dir);
     strcat(out_data_files[filenum].filename, "/");
@@ -106,8 +108,7 @@ void make_out_files(filep_struct         *filep,
     strcat(out_data_files[filenum].filename, latchar);
     strcat(out_data_files[filenum].filename, "_");
     strcat(out_data_files[filenum].filename, lngchar);
-    if(state->options.BINARY_OUTPUT)
-      out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "wb");
-    else out_data_files[filenum].fh = open_file(out_data_files[filenum].filename, "w");
+
+    out_data_files[filenum].fh = context.outputFormat->openFile(out_data_files[filenum].filename);
   }
 }

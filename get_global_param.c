@@ -642,9 +642,24 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         else options.COMPRESS = FALSE;
       }
       else if(strcasecmp("BINARY_OUTPUT",optstr)==0) {
+        fprintf(stderr, "Warning: the BINARY_OUTPUT option is now deprecated. Instead, use OUTPUT_FORMAT set to BINARY, ASCII, or NETCDF\n");
         sscanf(cmdstr,"%*s %s",flgstr);
-        if(strcasecmp("TRUE",flgstr)==0) options.BINARY_OUTPUT=TRUE;
-        else options.BINARY_OUTPUT = FALSE;
+        if(strcasecmp("TRUE",flgstr)==0) options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
+        else options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+      }
+      else if (strcasecmp("OUTPUT_FORMAT", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp("BINARY", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
+        } else if (strcasecmp("ASCII", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+        } else if (strcasecmp("NETCDF", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
+        } else {
+          fprintf(stderr, "Warning, input for option OUTPUT_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n", optstr);
+          fprintf(stderr, "OUTPUT_FORMAT will default to ASCII\n");
+          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+        }
       }
       else if(strcasecmp("ALMA_OUTPUT",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -1080,10 +1095,15 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   if ( options.SAVE_STATE )
     fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
 	    global_param.stateday, global_param.statemonth, global_param.stateyear);
-  if ( options.BINARY_OUTPUT ) 
+  if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
     fprintf(stderr,"Model output is in standard BINARY format.\n");
-  else 
+  } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
     fprintf(stderr,"Model output is in standard ASCII format.\n");
+  } else if (options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+    fprintf(stderr, "Model output is in NETCDF format.\n");
+  } else {
+    fprintf(stderr, "Warning: model output is undefined (should be either BINARY, ASCII, or NETCDF).\n");
+  }
   if ( LINK_DEBUG ) 
     fprintf(stderr,"Debugging code has been included in the executable.\n");
   else 

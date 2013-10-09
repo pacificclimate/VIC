@@ -100,7 +100,8 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	snow_utility.o soil_conduction.o \
 	soil_thermal_eqn.o solve_snow.o store_moisture_for_debug.o \
 	surface_fluxes.o svp.o vicNl.o vicerror.o write_atmosdata.o \
-	write_data.o write_debug.o write_forcing_file.o write_header.o write_layer.o \
+	write_debug.o write_forcing_file.o write_layer.o \
+	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o \
 	write_model_state.o write_snow_data.o write_soilparam.o \
 	write_vegparam.o write_vegvar.o lakes.eb.o initialize_lake.o \
 	read_lakeparam.o ice_melt.o IceEnergyBalance.o water_energy_balance.o \

@@ -114,6 +114,7 @@
 #include "IceEnergyBalance.h"
 #include "canopy_energy_bal.h"
 #include "SnowPackEnergyBalance.h"
+#include "WriteOutputContext.h"
 
 /*** SubRoutine Prototypes ***/
 
@@ -472,10 +473,8 @@ double volumetric_heat_capacity(double,double,double,double);
 
 void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
-void write_data(out_data_file_struct *, out_data_struct *, const dmy_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
 void write_forcing_file(atmos_data_struct *, int, out_data_file_struct *, out_data_struct *, const ProgramState*);
-void write_header(out_data_file_struct *, out_data_struct *, const dmy_struct *, const ProgramState*);
 void write_layer(layer_data_struct *, int, int, const double*);
 void write_model_state(dist_prcp_struct *, int, int, filep_struct *,
       soil_con_struct *, char *, int *, lake_con_struct, const ProgramState*);

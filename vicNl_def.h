@@ -119,6 +119,8 @@
   2011-Nov-04 Added options to handle new forcing estimation features.	TJB
   2012-Jan-02 Removed wetland_veg_class from lake_con_struct.		TJB
 *********************************************************************/
+#ifndef VICNL_DEF_H
+#define VICNL_DEF_H
 
 #include <user_def.h>
 #include <snow.h>
@@ -570,6 +572,12 @@ typedef struct {
   char  veglib[MAXSTRING];      /* vegetation parameter library file */
 } filenames_struct;
 
+namespace OutputFormat {
+enum Type {
+  BINARY_FORMAT, ASCII_FORMAT, NETCDF_FORMAT
+};
+}
+
 typedef struct {
 
   // simulation modes
@@ -699,7 +707,7 @@ typedef struct {
 
   // output options
   char   ALMA_OUTPUT;    /* TRUE = output variables are in ALMA-compliant units; FALSE = standard VIC units */
-  char   BINARY_OUTPUT;  /* TRUE = output files are in binary, not ASCII */
+  OutputFormat::Type OUTPUT_FORMAT;  /* Format of output files, see OutputFormat enum for values */
   char   COMPRESS;       /* TRUE = Compress all output files */
   char   MOISTFRACT;     /* TRUE = output soil moisture as fractional moisture content */
   int    Noutfiles;      /* Number of output files (not including state files) */
@@ -1474,3 +1482,4 @@ public:
   void open_debug();
 };
 
+#endif

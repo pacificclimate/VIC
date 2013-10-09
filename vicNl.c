@@ -400,7 +400,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     if (state->options.PRT_HEADER) {
       /** Write output file headers **/
-      write_header(out_data_files, current_output_data, dmy, state);
+      WriteOutputContext context(state->options.OUTPUT_FORMAT);
+      context.outputFormat->write_header(out_data_files, current_output_data, dmy, state);
     }
 
     //TODO: These error files should not be global like this

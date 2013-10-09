@@ -83,14 +83,8 @@ void write_forcing_file(atmos_data_struct *atmos,
         out_data[OUT_VPD].aggdata[0] *= 1000;
       }
 
-      if (state->options.BINARY_OUTPUT) {
-        for (v=0; v<N_OUTVAR_TYPES; v++) {
-          for (i=0; i<out_data[v].nelem; i++) {
-            out_data[v].aggdata[i] *= out_data[v].mult;
-          }
-        }
-      }
-      write_data(out_data_files, out_data, dummy_dmy, dummy_dt, state);
+      WriteOutputContext context(state->options.OUTPUT_FORMAT);
+      context.outputFormat->write_data(out_data_files, out_data, dummy_dmy, dummy_dt, state);
     }
   }
 
