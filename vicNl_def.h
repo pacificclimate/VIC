@@ -535,6 +535,7 @@ extern const char ref_veg_ref_crop[];
 #define DISP_ALL 3
 
 /***** Data Structures *****/
+class WriteOutputFormat;
 
 /** file structures **/
 typedef struct {
@@ -1336,7 +1337,9 @@ typedef struct {
   This structure stores output information for one output file.
   *******************************************************/
 #define OUT_DATA_FILE_STRUCT_PREFIX_LENGTH 20
-typedef struct {
+struct out_data_file_struct {
+  out_data_file_struct();
+  ~out_data_file_struct();
   char		prefix[OUT_DATA_FILE_STRUCT_PREFIX_LENGTH];  /* prefix of the file name, e.g. "fluxes" */
   char		filename[MAXSTRING]; /* complete file name */
   FILE		*fh;         /* filehandle */
@@ -1345,7 +1348,7 @@ typedef struct {
 		                (a variable's id number is its index in the out_data array).
 		                The order of the id numbers in the varid array
 		                is the order in which the variables will be written. */
-} out_data_file_struct;
+};
 
 /********************************************************
   This structure holds all variables needed for the error

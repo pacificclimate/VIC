@@ -6,7 +6,7 @@ static char vcid[] = "$Id$";
 
 void write_forcing_file(atmos_data_struct *atmos,
 			int                nrecs,
-			out_data_file_struct *out_data_files, 
+			WriteOutputFormat *outputFormat,
 			out_data_struct   *out_data,
 			const ProgramState* state)
 /**********************************************************************
@@ -83,8 +83,7 @@ void write_forcing_file(atmos_data_struct *atmos,
         out_data[OUT_VPD].aggdata[0] *= 1000;
       }
 
-      WriteOutputContext context(state->options.OUTPUT_FORMAT);
-      context.outputFormat->write_data(out_data_files, out_data, dummy_dmy, dummy_dt, state);
+      outputFormat->write_data(out_data, dummy_dmy, dummy_dt, state);
     }
   }
 

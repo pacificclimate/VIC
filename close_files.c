@@ -7,7 +7,6 @@
 static char vcid[] = "$Id$";
 
 void close_files(const filep_struct         *filep,
-                 out_data_file_struct *out_data_files,
                  filenames_struct     *fnames,
                  bool                 compress,
                  const ProgramState   *state)
@@ -49,14 +48,6 @@ void close_files(const filep_struct         *filep,
     else
       nc_close(filep->forcing_ncid[1]);      
     if(compress) compress_files(fnames->forcing[1]);
-  }
-
-  /*******************
-    Close Output Files
-    *******************/
-  for (filenum=0; filenum<state->options.Noutfiles; filenum++) {
-    fclose(out_data_files[filenum].fh);
-    if(compress) compress_files(out_data_files[filenum].filename);
   }
 
 #if !OUTPUT_FORCE

@@ -4,8 +4,8 @@
 
 static char vcid[] = "$Id$";
 
-int  put_data(cell_info_struct* cell,
-              out_data_file_struct   *out_data_files,
+int  put_data(cell_info_struct  *cell,
+              WriteOutputFormat *output,
               out_data_struct   *out_data,
               const dmy_struct  *dmy,
               int                rec,
@@ -719,8 +719,7 @@ int  put_data(cell_info_struct* cell,
       Write Data
     *************/
     if(rec >= skipyear) {
-      WriteOutputContext context(state->options.OUTPUT_FORMAT);
-      context.outputFormat->write_data(out_data_files, out_data, dmy, state->global_param.out_dt, state);
+      output->write_data(out_data, dmy, state->global_param.out_dt, state);
     }
 
     // Reset the step count

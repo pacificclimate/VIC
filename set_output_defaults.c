@@ -40,7 +40,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, ProgramStat
 #error // OUTPUT_FORCE is an untested code path. Continue at your own risk!
   // Output files
   state->options.Noutfiles = 1;
-  out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles,sizeof(out_data_file_struct));
+  out_data_files = new out_data_file_struct[state->options.Noutfiles];
   strcpy(out_data_files[0].prefix,"full_data");
   out_data_files[0].nvars = 8;
   out_data_files[0].varid = (int *)calloc(out_data_files[0].nvars, sizeof(int));
@@ -70,7 +70,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, ProgramStat
   if (state->options.LAKES) {
     state->options.Noutfiles++;
   }
-  out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles,sizeof(out_data_file_struct));
+  out_data_files = new out_data_file_struct[state->options.Noutfiles];
   filenum = 0;
   strcpy(out_data_files[filenum].prefix,"fluxes");
   if (state->options.FULL_ENERGY || state->options.FROZEN_SOIL) {

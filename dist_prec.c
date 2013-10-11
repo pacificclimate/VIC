@@ -8,7 +8,7 @@ static char vcid[] = "$Id$";
 int  dist_prec(cell_info_struct* cell,
                const dmy_struct    *dmy,
                filep_struct        *filep,
-               out_data_file_struct *out_data_files,
+               WriteOutputFormat   *outputFormat,
                out_data_struct     *out_data,
                int                  time_step_record,
                char                 NEWCELL,
@@ -177,7 +177,7 @@ int  dist_prec(cell_info_struct* cell,
    Write cell average values for current time step
    **************************************************/
 
-  ErrorFlag2 = put_data(cell, out_data_files, out_data, &dmy[time_step_record],
+  ErrorFlag2 = put_data(cell, outputFormat, out_data, &dmy[time_step_record],
       time_step_record, state);
   if (ErrorFlag2 == ERROR)
     ErrorFlag = ERROR;

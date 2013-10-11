@@ -49,10 +49,10 @@ CC = g++
 
 # Uncomment for normal optimized code flags (fastest run option)
 #CFLAGS  = -I. -O3 -Wall -Wno-unused
-LIBRARY = -lm -lnetcdf
-
+NETCDF_LIBS = $(shell nc-config --libs) -lnetcdf_c++
+LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused -fopenmp
+CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused 
 CXXFLAGS = -I. -g -Wall -Wextra -Werror -Wno-unused
 #LIBRARY = -lm
 

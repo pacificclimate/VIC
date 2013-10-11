@@ -12,7 +12,7 @@ class WriteOutputFormat;
  */
 class WriteOutputContext {
 public:
-  WriteOutputContext(OutputFormat::Type type);
+  WriteOutputContext(const ProgramState* state);
   virtual ~WriteOutputContext();
   WriteOutputFormat* outputFormat;
 };

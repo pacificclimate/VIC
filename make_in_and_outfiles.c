@@ -89,7 +89,7 @@ Output Files
 void make_out_files(filep_struct         *filep,
     filenames_struct     *filenames,
     soil_con_struct      *soil,
-    out_data_file_struct *out_data_files,
+    WriteOutputFormat    *output,
     const ProgramState   *state) {
 
   char   latchar[20], lngchar[20], junk[6];
@@ -98,17 +98,17 @@ void make_out_files(filep_struct         *filep,
   sprintf(latchar, junk, soil->lat);
   sprintf(lngchar, junk, soil->lng);
 
-  WriteOutputContext context(state->options.OUTPUT_FORMAT);
+  output->lat = soil->lat;
+  output->lon = soil->lng;
 
-  for (int filenum=0; filenum < state->options.Noutfiles; filenum++) {
-    strcpy(out_data_files[filenum].filename, filenames->result_dir);
-    strcat(out_data_files[filenum].filename, "/");
-    strcat(out_data_files[filenum].filename, out_data_files[filenum].prefix);
-    strcat(out_data_files[filenum].filename, "_");
-    strcat(out_data_files[filenum].filename, latchar);
-    strcat(out_data_files[filenum].filename, "_");
-    strcat(out_data_files[filenum].filename, lngchar);
-
-    out_data_files[filenum].fh = context.outputFormat->openFile(out_data_files[filenum].filename);
+  for (unsigned int filenum=0; filenum < output->dataFiles.size(); filenum++) {
+    strcpy(output->dataFiles[filenum]->filename, filenames->result_dir);
+    strcat(output->dataFiles[filenum]->filename, "/");
+    strcat(output->dataFiles[filenum]->filename, output->dataFiles[filenum]->prefix);
+    strcat(output->dataFiles[filenum]->filename, "_");
+    strcat(output->dataFiles[filenum]->filename, latchar);
+    strcat(output->dataFiles[filenum]->filename, "_");
+    strcat(output->dataFiles[filenum]->filename, lngchar);
   }
+  output->openFile();
 }

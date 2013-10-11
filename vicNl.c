@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 
   /** cleanup **/
   free_dmy(&dmy);
-  free_out_data_files(out_data_files, &state);
+  delete [] out_data_files;
   free_out_data(&out_data);
 #if !OUTPUT_FORCE
   free_veglib(&state.veg_lib);
@@ -392,16 +392,19 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         vicerror(cell_data_structs[cellidx].ErrStr);
       }
     }
+    //This object takes care of setting up the right output format, and deleting the object when it goes out of scope
+    WriteOutputContext writeOutContext(state);
+    WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
+
     //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
-    out_data_file_struct* out_data_files = copy_data_file_format(out_data_files_template, state);
+    copy_data_file_format(out_data_files_template, outputFormat->dataFiles, state);
     out_data_struct* current_output_data = copy_output_data(out_data, state);
     /** Build Gridded Filenames, and Open **/
-    make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, out_data_files, state);
+    make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
 
     if (state->options.PRT_HEADER) {
       /** Write output file headers **/
-      WriteOutputContext context(state->options.OUTPUT_FORMAT);
-      context.outputFormat->write_header(out_data_files, current_output_data, dmy, state);
+      outputFormat->write_header(current_output_data, dmy, state);
     }
 
     //TODO: These error files should not be global like this
@@ -412,12 +415,12 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
     // forcing data array is dumped into a new set of files.
-    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, out_data_files, out_data);
+    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, outputFormat, out_data);
     continue;
 #endif
 
     /** Initialize the storage terms in the water and energy balances **/
-    int putDataError = put_data(&cell_data_structs[cellidx], out_data_files, current_output_data, &dmy[0],
+    int putDataError = put_data(&cell_data_structs[cellidx], outputFormat, current_output_data, &dmy[0],
         -state->global_param.nrecs, state);
     // Skip the rest of this cell if there is an error here.
     if (putDataError == ERROR) {
@@ -437,7 +440,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
-          out_data_files, current_output_data, rec, NEWCELL, state);
+          outputFormat, current_output_data, rec, NEWCELL, state);
 
       if (ErrorFlag == ERROR) {
         if (state->options.CONTINUEONERROR == TRUE) {
@@ -475,8 +478,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     }
 #endif /* QUICK_FS */
 
-    close_files(&filep, out_data_files, &filenames, state->options.COMPRESS, state);
-    free_out_data_files(out_data_files, state);
+    outputFormat->cleanup();
+    close_files(&filep, &filenames, state->options.COMPRESS, state);
     free_out_data(&current_output_data);
 
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state);

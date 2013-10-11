@@ -1,11 +1,12 @@
 #include "WriteOutputBinary.h"
 
-FILE* WriteOutputBinary::openFile(const char* string) {
-  return open_file(string, "wb");
+void WriteOutputBinary::openFile() {
+  for (unsigned int i = 0; i < dataFiles.size(); i++) {
+    dataFiles[i]->fh = open_file(dataFiles[i]->filename, "wb");
+  }
 }
 
-void WriteOutputBinary::write_data(out_data_file_struct* out_data_files,
-    out_data_struct* out_data, const dmy_struct* dmy, int dt,
+void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt,
     const ProgramState* state) {
   // Initialize pointers
   char               *tmp_cptr = (char *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(char));
@@ -22,59 +23,59 @@ void WriteOutputBinary::write_data(out_data_file_struct* out_data_files,
   tmp_iptr[3] = dmy->hour;
 
   // Loop over output files
-  for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
+  for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
 #if !OUTPUT_FORCE
     // Write the date
     if (dt < 24) {
       // Write year, month, day, and hour
-      fwrite(tmp_iptr, sizeof(int), 4, out_data_files[file_idx].fh);
+      fwrite(tmp_iptr, sizeof(int), 4, dataFiles[file_idx]->fh);
     }
     else {
       // Only write year, month, and day
-      fwrite(tmp_iptr, sizeof(int), 3, out_data_files[file_idx].fh);
+      fwrite(tmp_iptr, sizeof(int), 3, dataFiles[file_idx]->fh);
     }
 #endif
 
     // Loop over this output file's data variables
-    for (int var_idx = 0; var_idx < out_data_files[file_idx].nvars; var_idx++) {
+    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
       int ptr_idx = 0;
-      if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_CHAR) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_cptr[ptr_idx++] = (char)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_CHAR) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_cptr[ptr_idx++] = (char)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_cptr, sizeof(char), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_cptr, sizeof(char), ptr_idx, dataFiles[file_idx]->fh);
       }
-      else if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_SINT) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_siptr[ptr_idx++] = (short int)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      else if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_SINT) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_siptr[ptr_idx++] = (short int)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_siptr, sizeof(short int), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_siptr, sizeof(short int), ptr_idx, dataFiles[file_idx]->fh);
       }
-      else if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_USINT) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_usiptr[ptr_idx++] = (unsigned short int)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      else if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_USINT) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_usiptr[ptr_idx++] = (unsigned short int)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_usiptr, sizeof(unsigned short int), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_usiptr, sizeof(unsigned short int), ptr_idx, dataFiles[file_idx]->fh);
       }
-      else if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_INT) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_iptr[ptr_idx++] = (int)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      else if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_INT) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_iptr[ptr_idx++] = (int)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_iptr, sizeof(int), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_iptr, sizeof(int), ptr_idx, dataFiles[file_idx]->fh);
       }
-      else if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_FLOAT) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_fptr[ptr_idx++] = (float)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      else if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_FLOAT) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_fptr[ptr_idx++] = (float)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_fptr, sizeof(float), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_fptr, sizeof(float), ptr_idx, dataFiles[file_idx]->fh);
       }
-      else if (out_data[out_data_files[file_idx].varid[var_idx]].type == OUT_TYPE_DOUBLE) {
-        for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-          tmp_dptr[ptr_idx++] = (double)out_data[out_data_files[file_idx].varid[var_idx]].aggdata[elem_idx];
+      else if (out_data[dataFiles[file_idx]->varid[var_idx]].type == OUT_TYPE_DOUBLE) {
+        for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+          tmp_dptr[ptr_idx++] = (double)out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx];
         }
-        fwrite(tmp_dptr, sizeof(double), ptr_idx, out_data_files[file_idx].fh);
+        fwrite(tmp_dptr, sizeof(double), ptr_idx, dataFiles[file_idx]->fh);
       }
     }
 
@@ -115,9 +116,7 @@ void WriteOutputBinary::write_data(out_data_file_struct* out_data_files,
    varname   (char)*len          Variable name
    type      (char)*1            Code identifying variable type
    mult      (float)*1           Multiplier for variable*/
-void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
-    out_data_struct* out_data, const dmy_struct* dmy,
-    const ProgramState* state) {
+void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct* dmy, const ProgramState* state) {
   unsigned short      Identifier;
   unsigned short      Nbytes;
   unsigned short      Nbytes1;
@@ -141,7 +140,7 @@ void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
   Identifier = 0xFFFF;
 
   // Loop over output files
-  for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
+  for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
     // ***** Compute the number of bytes in part 1 *****
 
@@ -178,13 +177,13 @@ void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
 #endif
 
     // Loop over this output file's data variables
-    for (int var_idx = 0; var_idx < out_data_files[file_idx].nvars; var_idx++) {
+    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
-      for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-        if (out_data[out_data_files[file_idx].varid[var_idx]].nelem > 1)
-          sprintf(tmp_str, "%s_%d", out_data[out_data_files[file_idx].varid[var_idx]].varname, elem_idx);
+      for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
+          sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
         else
-          strcpy(tmp_str, out_data[out_data_files[file_idx].varid[var_idx]].varname);
+          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
         Nbytes2 += sizeof(char) + strlen(tmp_str)*sizeof(char) + sizeof(char) + sizeof(float);
       }
     }
@@ -198,41 +197,41 @@ void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
 
     // 4 instances of Identifier
     for (int i=0; i<4; i++)
-      fwrite(&Identifier, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
+      fwrite(&Identifier, sizeof(unsigned short), 1, dataFiles[file_idx]->fh);
 
     // Nbytes
-    fwrite(&Nbytes, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
+    fwrite(&Nbytes, sizeof(unsigned short), 1, dataFiles[file_idx]->fh);
 
     // Nbytes1
-    fwrite(&Nbytes1, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
+    fwrite(&Nbytes1, sizeof(unsigned short), 1, dataFiles[file_idx]->fh);
 
     // nrecs
-    fwrite(&(state->global_param.nrecs), sizeof(int), 1, out_data_files[file_idx].fh);
+    fwrite(&(state->global_param.nrecs), sizeof(int), 1, dataFiles[file_idx]->fh);
 
     // dt
-    fwrite(&(state->global_param.out_dt), sizeof(int), 1, out_data_files[file_idx].fh);
+    fwrite(&(state->global_param.out_dt), sizeof(int), 1, dataFiles[file_idx]->fh);
 
     // start date (year, month, day, hour)
-    fwrite(&(dmy->year), sizeof(int), 1, out_data_files[file_idx].fh);
-    fwrite(&(dmy->month), sizeof(int), 1, out_data_files[file_idx].fh);
-    fwrite(&(dmy->day), sizeof(int), 1, out_data_files[file_idx].fh);
-    fwrite(&(dmy->hour), sizeof(int), 1, out_data_files[file_idx].fh);
+    fwrite(&(dmy->year), sizeof(int), 1, dataFiles[file_idx]->fh);
+    fwrite(&(dmy->month), sizeof(int), 1, dataFiles[file_idx]->fh);
+    fwrite(&(dmy->day), sizeof(int), 1, dataFiles[file_idx]->fh);
+    fwrite(&(dmy->hour), sizeof(int), 1, dataFiles[file_idx]->fh);
 
     // ALMA_OUTPUT
-    fwrite(&tmp_ALMA_OUTPUT, sizeof(char), 1, out_data_files[file_idx].fh);
+    fwrite(&tmp_ALMA_OUTPUT, sizeof(char), 1, dataFiles[file_idx]->fh);
 
     // Nvars
-    Nvars = out_data_files[file_idx].nvars;
+    Nvars = dataFiles[file_idx]->nvars;
 #if !OUTPUT_FORCE
     if (state->global_param.out_dt < 24)
       Nvars += 4;
     else
       Nvars += 3;
 #endif
-    fwrite(&Nvars, sizeof(char), 1, out_data_files[file_idx].fh);
+    fwrite(&Nvars, sizeof(char), 1, dataFiles[file_idx]->fh);
 
     // Nbytes2
-    fwrite(&Nbytes2, sizeof(unsigned short), 1, out_data_files[file_idx].fh);
+    fwrite(&Nbytes2, sizeof(unsigned short), 1, dataFiles[file_idx]->fh);
 
 #if !OUTPUT_FORCE
     // Date fields
@@ -242,54 +241,54 @@ void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
     // year
     strcpy(tmp_str,"YEAR");
     tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, out_data_files[file_idx].fh);
-    fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
+    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
 
     // month
     strcpy(tmp_str,"MONTH");
     tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, out_data_files[file_idx].fh);
-    fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
+    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
 
     // day
     strcpy(tmp_str,"DAY");
     tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, out_data_files[file_idx].fh);
-    fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
-    fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
+    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
 
     if (state->global_param.out_dt < 24) {
       // hour
       strcpy(tmp_str,"HOUR");
       tmp_len = strlen(tmp_str);
-      fwrite(&tmp_len, sizeof(char), 1, out_data_files[file_idx].fh);
-      fwrite(tmp_str, sizeof(char), tmp_len, out_data_files[file_idx].fh);
-      fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
-      fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
+      fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+      fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
     }
 
 #endif
 
     // Loop over this output file's data variables
-    for (int var_idx = 0; var_idx < out_data_files[file_idx].nvars; var_idx++) {
+    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
-      for (int elem_idx = 0; elem_idx < out_data[out_data_files[file_idx].varid[var_idx]].nelem; elem_idx++) {
-        if (out_data[out_data_files[file_idx].varid[var_idx]].nelem > 1)
-          sprintf(tmp_str, "%s_%d", out_data[out_data_files[file_idx].varid[var_idx]].varname, elem_idx);
+      for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
+          sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
         else
-          strcpy(tmp_str, out_data[out_data_files[file_idx].varid[var_idx]].varname);
+          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
         tmp_len = strlen(tmp_str);
-        fwrite(&tmp_len, sizeof(char), 1, out_data_files[file_idx].fh);
-        fwrite(tmp_str, sizeof(char), tmp_len, out_data_files[file_idx].fh);
-        tmp_type = out_data[out_data_files[file_idx].varid[var_idx]].type;
-        fwrite(&tmp_type, sizeof(char), 1, out_data_files[file_idx].fh);
-        tmp_mult = out_data[out_data_files[file_idx].varid[var_idx]].mult;
-        fwrite(&tmp_mult, sizeof(float), 1, out_data_files[file_idx].fh);
+        fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+        fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+        tmp_type = out_data[dataFiles[file_idx]->varid[var_idx]].type;
+        fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+        tmp_mult = out_data[dataFiles[file_idx]->varid[var_idx]].mult;
+        fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
       }
     }
   }
@@ -297,6 +296,12 @@ void WriteOutputBinary::write_header(out_data_file_struct* out_data_files,
 
 const char* WriteOutputBinary::getDescriptionOfOutputType() {
   return "BINARY";
+}
+
+void WriteOutputBinary::compressFiles() {
+  for (unsigned int i = 0; i < dataFiles.size(); i++) {
+    compress_files(dataFiles[i]->filename);
+  }
 }
 
 void WriteOutputBinary::prepareDataForWriting(out_data_struct* out_data) {

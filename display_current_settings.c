@@ -433,7 +433,7 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   else
     fprintf(stderr,"ALMA_OUTPUT\t\tFALSE\n");
 
-  WriteOutputContext context(options.OUTPUT_FORMAT);
+  WriteOutputContext context(this);
   fprintf(stderr, "OUTPUT_FORMAT\t\t%s\n", context.outputFormat->getDescriptionOfOutputType());
 
   if (options.COMPRESS)

@@ -62,9 +62,9 @@ void parse_output_info(const char*           input_file_name,
 
       if(strcasecmp("N_OUTFILES",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&tmp_noutfiles);
-        free_out_data_files(out_data_files, state);
+        delete [] out_data_files;
         state->options.Noutfiles = tmp_noutfiles;
-        out_data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
+        out_data_files = new out_data_file_struct [state->options.Noutfiles];
         outfilenum = -1;
         init_output_list(out_data, FALSE, "%.4f", OUT_TYPE_FLOAT, 1);
         // PRT_SNOW_BAND is ignored if N_OUTFILES has been specified

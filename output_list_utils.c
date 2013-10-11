@@ -417,19 +417,29 @@ out_data_struct *create_output_list(const ProgramState* state) {
 
 }
 
-out_data_file_struct* copy_data_file_format(const out_data_file_struct* out_template, const ProgramState* state) {
-  out_data_file_struct* data_files = (out_data_file_struct *)calloc(state->options.Noutfiles, sizeof(out_data_file_struct));
-  for (int i = 0; i < state->options.Noutfiles; i++) {
-    data_files[i].fh = NULL;
-    strncpy(data_files[i].filename, out_template[i].filename, MAXSTRING);
-    strncpy(data_files[i].prefix, out_template[i].prefix, OUT_DATA_FILE_STRUCT_PREFIX_LENGTH);
-    data_files[i].nvars = out_template[i].nvars;
-    data_files[i].varid = (int *)calloc(data_files[i].nvars, sizeof(int));
-    for (int curVar = 0; curVar < data_files[i].nvars; curVar++) {
-      data_files[i].varid[curVar] = out_template[i].varid[curVar];
-    }
+out_data_file_struct::out_data_file_struct() : fh(NULL), varid(NULL) {
+
+}
+
+out_data_file_struct::~out_data_file_struct() {
+  if (varid != NULL) {
+    free(varid);
   }
-  return data_files;
+}
+
+void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state) {
+  for (int i = 0; i < state->options.Noutfiles; i++) {
+    out_data_file_struct* curData = new out_data_file_struct();
+    curData->fh = NULL;
+    strncpy(curData->filename, out_template[i].filename, MAXSTRING);
+    strncpy(curData->prefix, out_template[i].prefix, OUT_DATA_FILE_STRUCT_PREFIX_LENGTH);
+    curData->nvars = out_template[i].nvars;
+    curData->varid = (int *)calloc(curData->nvars, sizeof(int));
+    for (int curVar = 0; curVar < curData->nvars; curVar++) {
+      curData->varid[curVar] = out_template[i].varid[curVar];
+    }
+    list.push_back(curData);
+  }
 }
 
 void init_output_list(out_data_struct *out_data, int write, const char *format, int type, float mult) {
@@ -509,22 +519,6 @@ void zero_output_list(out_data_struct *out_data) {
       out_data[varid].data[i] = 0;
     }
   }
-
-}
-
-void free_out_data_files(out_data_file_struct *out_data_files, const ProgramState* state) {
-/*************************************************************
-  free_out_data_files()      Ted Bohn     September 08, 2006
-
-  This routine frees the memory in the out_data_files array.
-
-*************************************************************/
-  int filenum;
-
-  for (filenum=0; filenum< state->options.Noutfiles; filenum++) {
-    free((char*)out_data_files[filenum].varid);
-  }
-  free((char*)out_data_files);
 
 }
 

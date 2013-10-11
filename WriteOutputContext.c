@@ -3,13 +3,13 @@
 #include "WriteOutputBinary.h"
 #include "WriteOutputNetCDF.h"
 
-WriteOutputContext::WriteOutputContext(OutputFormat::Type type) {
-  if (type == OutputFormat::BINARY_FORMAT) {
-    outputFormat = new WriteOutputBinary();
-  } else if (type == OutputFormat::NETCDF_FORMAT) {
-    outputFormat = new WriteOutputNetCDF();
+WriteOutputContext::WriteOutputContext(const ProgramState* state) {
+  if (state->options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT) {
+    outputFormat = new WriteOutputBinary(state);
+  } else if (state->options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+    outputFormat = new WriteOutputNetCDF(state);
   } else {
-    outputFormat = new WriteOutputAscii();
+    outputFormat = new WriteOutputAscii(state);
   }
 }
 
