@@ -197,6 +197,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->snowband,     "MISSING");
   strcpy(names->lakeparam,    "MISSING");
   strcpy(names->result_dir,   "MISSING");
+  strcpy(names->netCDFOutputFileName, "results.nc");
   global_param.out_dt        = INVALID_INT;
 
 
@@ -629,6 +630,9 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       *************************************/
       else if(strcasecmp("RESULT_DIR",optstr)==0) {
         sscanf(cmdstr,"%*s %s",names->result_dir);
+      }
+      else if (strcasecmp("NETCDF_OUTPUT_FILENAME", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", names->netCDFOutputFileName);
       }
       else if(strcasecmp("OUT_STEP",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.out_dt);

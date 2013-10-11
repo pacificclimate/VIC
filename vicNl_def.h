@@ -567,6 +567,7 @@ typedef struct {
   char  statefile[MAXSTRING];   /* name of file in which to store model state */
   char  veg[MAXSTRING];         /* vegetation grid coverage file */
   char  veglib[MAXSTRING];      /* vegetation parameter library file */
+  char netCDFOutputFileName[MAXSTRING]; /* name of the single output file if options.OUPUT_TYPE==NETCDF */
 } filenames_struct;
 
 namespace OutputFormat {
@@ -713,7 +714,7 @@ typedef struct {
 				   output files are used (for backwards-compatibility); if outfiles and
 				   variables are explicitly mentioned in global parameter file, this option
 				   is ignored. */
-
+  char NETCDF_FULL_FILE_PATH[MAXSTRING]; /* Full file path to the netCDF output file, applies if OUTPUT_FILE == NETCDF */
 } option_struct;
 
 #if LINK_DEBUG

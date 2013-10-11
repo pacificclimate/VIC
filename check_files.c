@@ -1,10 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vicNl.h>
+#include "WriteOutputNetCDF.h"
 
 static char vcid[] = "$Id$";
 
-filep_struct get_files(const filenames_struct *fnames, const ProgramState* state)
+void initializeNetCDFOutput(const filenames_struct *fnames, ProgramState *state) {
+
+  // Initialise the netcdf full path name.
+  strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);
+  strcat(state->options.NETCDF_FULL_FILE_PATH, "/");
+  strcat(state->options.NETCDF_FULL_FILE_PATH, fnames->netCDFOutputFileName);
+
+  if (state->options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+    WriteOutputNetCDF output(state);
+    output.initializeFile();  // This is only done once per invocation of VIC. It creates a fresh netcdf output file.
+  }
+}
+
+filep_struct get_files(const filenames_struct *fnames, ProgramState* state)
 /**********************************************************************
 	check_files		Dag Lohmann		January 1996
 
@@ -29,6 +43,8 @@ filep_struct get_files(const filenames_struct *fnames, const ProgramState* state
   if ( state->options.LAKES )
     file_pointers.lakeparam = open_file(fnames->lakeparam,"r");
 #endif /* !OUTPUT_FORCE */
+
+  initializeNetCDFOutput(fnames, state);
 
   return file_pointers;
 }
