@@ -48,7 +48,57 @@ void finilizeForceTypes(ProgramState* state) {
   } // end if VP not supplied
 
 }
- 
+
+// Calculate the grid cell parameters. This is used for NetCDF outputs
+void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
+  if (cells.size() == 0) {
+    throw VICException("Error: cannot run the model with no cells! Make sure that some cells are enabled.");
+  } else if (cells.size() == 1) {
+    global_param.gridNumLatDivisions = 1;
+    global_param.gridNumLonDivisions = 1;
+    global_param.gridStartLat = cells[0].soil_con.lat;
+    global_param.gridStartLon = cells[0].soil_con.lng;
+    global_param.gridStepLat = 0;
+    global_param.gridStepLon = 0;
+  } else {
+    global_param.gridStartLat = cells[0].soil_con.lat;
+    global_param.gridStartLon = cells[0].soil_con.lng;
+    global_param.gridStepLat = INT_MAX;
+    global_param.gridStepLon = INT_MAX;
+    double largestLat = cells[0].soil_con.lat;
+    double largestLon = cells[0].soil_con.lng;
+
+    for (unsigned int i = 0; i < cells.size(); i++) {
+      // Find the minimum lat and long in the grid, use this as start of indices.
+      if (cells[i].soil_con.lat < global_param.gridStartLat) {
+        global_param.gridStartLat = cells[i].soil_con.lat;
+      }
+      if (cells[i].soil_con.lng < global_param.gridStartLon) {
+        global_param.gridStartLon = cells[i].soil_con.lng;
+      }
+      if (cells[i].soil_con.lat > largestLat) {
+        largestLat = cells[i].soil_con.lat;
+      }
+      if (cells[i].soil_con.lng > largestLon) {
+        largestLon = cells[i].soil_con.lng;
+      }
+      // Find the smallest distance between cells for lat and lon
+      for (unsigned int n = 0; n < cells.size(); n++) {
+        double distLat = std::abs(cells[i].soil_con.lat - cells[n].soil_con.lat);
+        double distLon = std::abs(cells[i].soil_con.lng - cells[n].soil_con.lng);
+        if (distLat != 0 && distLat < global_param.gridStepLat) {
+          global_param.gridStepLat = distLat;
+        }
+        if (distLon != 0 && distLon < global_param.gridStepLon) {
+          global_param.gridStepLon = distLon;
+        }
+      }
+    }
+    global_param.gridNumLatDivisions = (largestLat - global_param.gridStartLat) / global_param.gridStepLat;
+    global_param.gridNumLonDivisions = (largestLon - global_param.gridStartLon) / global_param.gridStepLon;
+  }
+}
+
 void ProgramState::init_global_param(filenames_struct *names, const char* global_file_name)
 /**********************************************************************
   get_global_param	Keith Cherkauer	            March 1998
@@ -1046,6 +1096,18 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       sprintf(ErrStr, "LAKES = TRUE and COMPUTE_TREELINE = TRUE are incompatible options.");
       nrerror(ErrStr);
     }
+  }
+
+  //validate and set Noutfiles based on set options
+  options.Noutfiles = 2;
+  if (options.FROZEN_SOIL) {
+    options.Noutfiles++;
+  }
+  if (options.PRT_SNOW_BAND) {
+    options.Noutfiles++;
+  }
+  if (options.LAKES) {
+    options.Noutfiles++;
   }
 
   /*********************************

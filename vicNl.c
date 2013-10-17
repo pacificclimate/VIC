@@ -236,6 +236,8 @@ void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
       cell_data_structs.push_back(currentCell);
     }
   }
+  state.initGrid(cell_data_structs);
+  initializeNetCDFOutput(&filenames, &state);
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 

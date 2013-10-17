@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-out_data_file_struct *set_output_defaults(out_data_struct *out_data, ProgramState* state) {
+out_data_file_struct *set_output_defaults(out_data_struct *out_data, const ProgramState* state) {
 /*************************************************************
   set_output_defaults.c      Ted Bohn     September 08, 2006
 
@@ -60,16 +60,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, ProgramStat
 #else
 
   // Output files
-  state->options.Noutfiles = 2;
-  if (state->options.FROZEN_SOIL) {
-    state->options.Noutfiles++;
-  }
-  if (state->options.PRT_SNOW_BAND) {
-    state->options.Noutfiles++;
-  }
-  if (state->options.LAKES) {
-    state->options.Noutfiles++;
-  }
+
   out_data_files = new out_data_file_struct[state->options.Noutfiles];
   filenum = 0;
   strcpy(out_data_files[filenum].prefix,"fluxes");

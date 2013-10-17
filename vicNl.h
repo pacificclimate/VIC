@@ -186,6 +186,7 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, const double *,
     const double *, const double *, const double *, const float *, const ProgramState*);
 
+void initializeNetCDFOutput(const filenames_struct *fnames, ProgramState *state);
 filep_struct   get_files(const filenames_struct *, ProgramState*);
 FILE  *check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, filenames_struct *, bool, const ProgramState*);
@@ -396,7 +397,7 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double *, double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
-out_data_file_struct *set_output_defaults(out_data_struct *, ProgramState* state);
+out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);

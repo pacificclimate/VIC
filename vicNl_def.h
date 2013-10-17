@@ -128,6 +128,8 @@
 #include <limits>
 #include <climits>
 #include <vector>
+#include <exception>
+#include <string>
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -805,6 +807,14 @@ typedef struct {
   int    stateday;   /* Day of the simulation at which to save model state */
   int    statemonth; /* Month of the simulation at which to save model state */
   int    stateyear;  /* Year of the simulation at which to save model state */
+
+  // The gridStart variables are defined as the position of the lower left hand corner of the grid.
+  double gridStartLat;
+  double gridStartLon;
+  double gridStepLat;   // The gridSteps are defined by the smallest difference in position between cells.
+  double gridStepLon;
+  double gridNumLatDivisions;
+  double gridNumLonDivisions;
 } global_param_struct;
 
 /***********************************************************
@@ -1477,9 +1487,19 @@ public:
   int NR;  /* array index for atmos struct that indicates the model step avarage or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   void initialize_global();
+  void initGrid(const std::vector<cell_info_struct>& cells);
   void init_global_param(filenames_struct *, const char* global_file_name);
   void display_current_settings(int, filenames_struct *);
   void open_debug();
 };
+
+struct VICException : public std::exception
+{
+   std::string s;
+   VICException(std::string ss) : s(ss) {}
+   ~VICException() throw () {} // Updated
+   const char* what() const throw() { return s.c_str(); }
+};
+
 
 #endif
