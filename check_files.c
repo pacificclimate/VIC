@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-void initializeNetCDFOutput(const filenames_struct *fnames, ProgramState *state) {
+void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, ProgramState *state) {
 
   // Initialise the netcdf full path name.
   strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);
@@ -14,6 +14,7 @@ void initializeNetCDFOutput(const filenames_struct *fnames, ProgramState *state)
 
   if (state->options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
     WriteOutputNetCDF output(state);
+    copy_data_file_format(outFiles, output.dataFiles, state);
     output.initializeFile(state);  // This is only done once per invocation of VIC. It creates a fresh netcdf output file.
   }
 }

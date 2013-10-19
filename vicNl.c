@@ -153,6 +153,8 @@ int main(int argc, char *argv[])
 
   std::vector<cell_info_struct> cell_data_structs;
   readForcingData(cell_data_structs, filep, filenames, dmy, state);
+  state.initGrid(cell_data_structs);
+  initializeNetCDFOutput(&filenames, out_data_files, &state);
 
   runModel(cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, &state);
 
@@ -236,8 +238,7 @@ void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
       cell_data_structs.push_back(currentCell);
     }
   }
-  state.initGrid(cell_data_structs);
-  initializeNetCDFOutput(&filenames, &state);
+
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
