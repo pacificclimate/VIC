@@ -105,8 +105,8 @@
 ************************************************************************/
 
 #include <math.h>
-#include <vicNl_def.h>
-#include <LAKE.h>
+#include "vicNl_def.h"
+#include "LAKE.h"
 #include "root_brent.h"
 #include "atmos_energy_bal.h"
 #include "surf_energy_bal.h"

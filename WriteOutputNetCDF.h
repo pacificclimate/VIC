@@ -32,6 +32,8 @@ public:
   void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state);
   void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state);
 private:
+  void outputGlobalAttributeError(std::string error);
+  void verifyGlobalAttributes(netCDF::NcFile& file);
   std::map<std::string, VariableMetaData> getMapping(bool isHourly = false);
   std::map<std::string, VariableMetaData> mapping;
   std::string netCDFOutputFileName;

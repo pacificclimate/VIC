@@ -122,8 +122,8 @@
 #ifndef VICNL_DEF_H
 #define VICNL_DEF_H
 
-#include <user_def.h>
-#include <snow.h>
+#include "user_def.h"
+#include "snow.h"
 #include <cmath>
 #include <limits>
 #include <climits>
@@ -815,6 +815,7 @@ typedef struct {
   double gridStepLon;
   double gridNumLatDivisions;
   double gridNumLonDivisions;
+  std::vector<std::pair<std::string, std::string> > netCDFGlobalAttributes;
 } global_param_struct;
 
 /***********************************************************

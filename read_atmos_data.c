@@ -103,9 +103,6 @@ void read_atmos_data(FILE                 *infile,
     nrerror(ErrStr);
   }
 
-  if (infile == NULL)
-    fprintf(stderr, "NULL file\n");
-
   if (state->param_set.FORCE_FORMAT[file_num] == NETCDF) {
     /*****************************
      *  Read NetCDF Forcing Data  *

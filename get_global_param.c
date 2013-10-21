@@ -94,8 +94,8 @@ void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
         }
       }
     }
-    global_param.gridNumLatDivisions = (largestLat - global_param.gridStartLat) / global_param.gridStepLat;
-    global_param.gridNumLonDivisions = (largestLon - global_param.gridStartLon) / global_param.gridStepLon;
+    global_param.gridNumLatDivisions = ((largestLat - global_param.gridStartLat) / global_param.gridStepLat) + 1;
+    global_param.gridNumLonDivisions = ((largestLon - global_param.gridStartLon) / global_param.gridStepLon) + 1;
   }
 }
 
@@ -209,6 +209,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
             30, /* NOVEMBER */
             31, /* DECEMBER */
         } ;
+  bool outputTypeSet = false;
 
   /** Initialize global parameters (that aren't part of the options struct) **/
   global_param.dt            = INVALID_INT;
@@ -696,12 +697,20 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         else options.COMPRESS = FALSE;
       }
       else if(strcasecmp("BINARY_OUTPUT",optstr)==0) {
+        if (outputTypeSet) {
+          throw VICException("ERROR: output format specified more than once. Check for multiples of BINARY_OUTPUT and OUTPUT_FORMAT in the global options file.\n");
+        }
+        outputTypeSet = true;
         fprintf(stderr, "Warning: the BINARY_OUTPUT option is now deprecated. Instead, use OUTPUT_FORMAT set to BINARY, ASCII, or NETCDF\n");
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
         else options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
       }
       else if (strcasecmp("OUTPUT_FORMAT", optstr) == 0) {
+        if (outputTypeSet) {
+          throw VICException("ERROR: output format specified more than once. Check for multiples of BINARY_OUTPUT and OUTPUT_FORMAT in the global options file.\n");
+        }
+        outputTypeSet = true;
         sscanf(cmdstr, "%*s %s", flgstr);
         if (strcasecmp("BINARY", flgstr) == 0) {
           options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
@@ -749,9 +758,18 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         ; // do nothing
       }
 
+      /****************************************************
+       Define netCDF output format global attributes files
+       ****************************************************/
+      else if (strcasecmp("NETCDF_ATTRIBUTE", optstr) == 0) {
+        char attributeValue[MAXSTRING];
+        sscanf(cmdstr, "%*s %s %[^\n]", flgstr, attributeValue);
+        global_param.netCDFGlobalAttributes.push_back(std::pair<std::string, std::string>(flgstr, attributeValue));
+      }
+
       /******************************
-        Get Model Debugging Options
-	****************************/
+       Get Model Debugging Options
+       ****************************/
 
 #if LINK_DEBUG
       else if(strcasecmp("PRT_FLUX",optstr)==0) {

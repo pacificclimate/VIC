@@ -48,21 +48,21 @@
 CC = g++
 
 # Uncomment for normal optimized code flags (fastest run option)
-#CFLAGS  = -I. -O3 -Wall -Wno-unused
+SOURCE_VERSION = $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
+COMPILE_TIME = $(date)
+DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\""
 NETCDF_LIBS = -lnetcdf $(shell ncxx4-config --libs)
+
 LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
+
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused 
-CXXFLAGS = -I. -g -Wall -Wextra -Werror -Wno-unused
-#LIBRARY = -lm
+CXXFLAGS = -I. -g -Wall -Wextra -Werror -Wno-unused $(DEFINES)
 
 # Uncomment to include execution profiling information
-#CFLAGS  = -I. -O3 -pg -Wall -Wno-unused
-#LIBRARY = -lm
+#CXXFLAGS  = -I. -O3 -pg -Wall -Wno-unused $(DEFINES)
 
 # Uncomment to debug memory problems using electric fence (man efence)
-#CFLAGS  = -I. -g -Wall -Wno-unused
-#LIBRARY = -lm -lefence -L/usr/local/lib
+#CXXFLAGS  = -I. -g -Wall -Wno-unused $(DEFINES)
 
 # -----------------------------------------------------------------------
 # MOST USERS DO NOT NEED TO MODIFY BELOW THIS LINE
@@ -140,10 +140,10 @@ clean::
 	/bin/rm -f *.o core log *~
 
 model: $(OBJS)
-	$(CC) -o vicNl$(EXT) $(OBJS) $(CFLAGS) $(LIBRARY)
+	$(CC) -o vicNl$(EXT) $(OBJS) $(CXXFLAGS) $(LIBRARY)
 
 vicDisagg: $(OBJS)
-	$(CC) -o vicDisagg $(OBJS) $(CFLAGS) $(LIBRARY)
+	$(CC) -o vicDisagg $(OBJS) $(CXXFLAGS) $(LIBRARY)
 
 # -------------------------------------------------------------
 # tags
@@ -161,7 +161,7 @@ clean::
 # -------------------------------------------------------------
 depend: .depend
 .depend:	$(SRCS) $(HDRS)
-	$(CC) $(CFLAGS) -M $(SRCS) > $@
+	$(CC) $(CXXFLAGS) -M $(SRCS) > $@
 
 clean::
 	\rm -f .depend	     

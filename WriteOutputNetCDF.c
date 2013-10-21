@@ -1,10 +1,11 @@
 #include "WriteOutputNetCDF.h"
-#include <netcdf>
 
+#include <netcdf>
 #include <ctime>
 #include <map>
 #include <sstream>
 
+extern const char* version; // Defined in global.h
 using namespace netCDF;
 
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
@@ -13,8 +14,8 @@ WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFor
 }
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
-  fprintf(stderr, "NetCDF output file closed from destructor\n");
   if (netCDF != NULL) {
+    fprintf(stderr, "NetCDF output file closed from destructor\n");
     delete netCDF;
   }
 }
@@ -105,25 +106,67 @@ std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHou
   return mapping;
 }
 
-//TODO: these attributes should be configurable from the global file.
-// TODO: throw exception on error
+// The source version is set by the makefile dynamically based on the hg version control values.
+std::string getSourceVersion() {
+#ifdef SOURCE_VERSION
+  return std::string(SOURCE_VERSION);
+#else
+  return std::string("No source version specified");
+#endif
+}
+
+// The COMPILE_TIME macro is set by the makefile dynamically.
+std::string getDateOfCompilation() {
+#ifdef COMPILE_TIME
+  return std::string(COMPILE_TIME);
+#else
+  return std::string("No compile time set");
+#endif
+}
+
+void WriteOutputNetCDF::outputGlobalAttributeError(std::string error) {
+  std::string message = "Error: netCDF global attribute not specified: \"" + error + "\"\n";
+  message += "When the output is in NETCDF format, certain global attributes must be specified in the global input file\n";
+  message += "For example, put the following line in the global:\n";
+  message += "NETCDF_ATTRIBUTE\t" + error + "\tSome string that may contain spaces";
+  throw VICException(message);
+}
+
+void WriteOutputNetCDF::verifyGlobalAttributes(NcFile& file) {
+  if (file.getAtt("institution").isNull()) {
+    outputGlobalAttributeError("institution");
+  } else if (file.getAtt("contact").isNull()) {
+    outputGlobalAttributeError("contact");
+  } else if (file.getAtt("references").isNull()) {
+    outputGlobalAttributeError("references");
+  }
+}
+
 // Called automatically only once at the beginning of the program.
 void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
 
-  // Add global attributes here.
+  // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
   ncFile.putAtt("title", "VIC output.");
-  std::string source = "VIC "; //TODO: grab the source version here
-  //source += version;            //TODO: get actual version
+
+  //Add global attributes specified in the global input file.
+  for (std::vector<std::pair<std::string, std::string> >::const_iterator it = state->global_param.netCDFGlobalAttributes.begin();
+      it != state->global_param.netCDFGlobalAttributes.end(); ++it) {
+    ncFile.putAtt(it->first, it->second);
+  }
+
+  std::string source = "VIC " + version + ". ";
+  source += "(Built from source: " + getSourceVersion() + ").";
+  std::string history = "Created by " + source;
+  history += " on " + getDateOfCompilation() + ".";
+
   ncFile.putAtt("source", source.c_str());
-  ncFile.putAtt("history", ("Created by " + source).c_str());//TODO: arguments, creation date and time
-  ncFile.putAtt("references", "http://www.pacificclimate.org");  //TODO: point to an actual page for this source code
-  ncFile.putAtt("institution", "Pacific Climate Impacts Consortium (PCIC), Victoria, BC, www.pacificclimate.org");
-  ncFile.putAtt("contact", "jstone@uvic.ca");
+  ncFile.putAtt("history", history.c_str());//TODO: arguments
   ncFile.putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
   ncFile.putAtt("Conventions", "CF-1.6");
-  // When we create netCDF dimensions, we get back a pointer to an
-  // NcDim for each one.
+
+  verifyGlobalAttributes(ncFile);
+
   // Set up the dimensions and variables.
 
   fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions);
@@ -162,7 +205,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   timeVar.putAtt("axis", "T");
   timeVar.putAtt("standard name", "time");
   timeVar.putAtt("long name", "time");
-  timeVar.putAtt("units", ss.str().c_str());
+  timeVar.putAtt("units", ss.str());
   timeVar.putAtt("bounds", "time_bnds");
   timeVar.putAtt("calendar", "gregorian");
 
@@ -262,11 +305,13 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
   start.push_back(latIndex);
   start.push_back(lonIndex);
   start.push_back(timeIndex);
+  start.push_back(0);
   count.push_back(1);
   count.push_back(1);
   count.push_back(1);
+  count.push_back(0);
 
-  //TODO: optimise for getVar (hash map) rather than getting inside the double loop.
+  std::multimap<std::string, netCDF::NcVar> allVars = netCDF->getVars();
 
   // Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
@@ -274,10 +319,15 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
       //for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
-        //count[0] = out_data[dataFiles[file_idx]->varid[var_idx]].nelem;
-        NcVar variable = netCDF->getVar(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name);
+      count[3] = out_data[dataFiles[file_idx]->varid[var_idx]].nelem;
+      try {
+        NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;//netCDF->getVar(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name);
         variable.putVar(start, count, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
-        //variable.putVar(out_data[dataFiles[file_idx]->varid[var_idx]].aggdata, latIndex, lonIndex, timeIndex);
+      } catch (std::exception& e) {
+        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), latIndex, lonIndex, timeIndex);
+        throw;
+      }
+      //variable.putVar(out_data[dataFiles[file_idx]->varid[var_idx]].aggdata, latIndex, lonIndex, timeIndex);
       //}
     }
   }
