@@ -47,22 +47,28 @@
 # Set CC = your compiler here
 CC = g++
 
+SOURCE_VERSION = $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
+COMPILE_TIME = $(shell date)
+MACHINE_INFO = $(shell uname -a)
+DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\"" -DMACHINE_INFO="\"${MACHINE_INFO}\""
+
 # Uncomment for normal optimized code flags (fastest run option)
-SOURCE_VERSION := $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
-COMPILE_TIME := $(shell date)
-DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\""
+#CFLAGS  = -I. -O3 -Wall -Wno-unused
 NETCDF_LIBS = -lnetcdf $(shell ncxx4-config --libs)
-
 LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
-
 # Uncomment to include debugging information
-CXXFLAGS = -I. -g -Wall -Wextra -Werror -Wno-unused $(DEFINES)
+CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused
+#LIBRARY = -lm
 
 # Uncomment to include execution profiling information
-#CXXFLAGS  = -I. -O3 -pg -Wall -Wno-unused $(DEFINES)
+#CFLAGS  = -I. -O3 -pg -Wall -Wno-unused
+#LIBRARY = -lm
 
 # Uncomment to debug memory problems using electric fence (man efence)
-#CXXFLAGS  = -I. -g -Wall -Wno-unused $(DEFINES)
+#CFLAGS  = -I. -g -Wall -Wno-unused
+#LIBRARY = -lm -lefence -L/usr/local/lib
+
+CXXFLAGS = $(CFLAGS)
 
 # -----------------------------------------------------------------------
 # MOST USERS DO NOT NEED TO MODIFY BELOW THIS LINE
@@ -140,10 +146,19 @@ clean::
 	/bin/rm -f *.o core log *~
 
 model: $(OBJS)
-	$(CC) -o vicNl$(EXT) $(OBJS) $(CXXFLAGS) $(LIBRARY)
+	$(CC) -o vicNl$(EXT) $(OBJS) $(CFLAGS) $(LIBRARY)
 
 vicDisagg: $(OBJS)
-	$(CC) -o vicDisagg $(OBJS) $(CXXFLAGS) $(LIBRARY)
+	$(CC) -o vicDisagg $(OBJS) $(CFLAGS) $(LIBRARY)
+
+# WriteOutputNetCDF is explicitly built this way to have the macro defines included at compile time
+# This allows the timestamp and version number to automatically be added to the code.
+# Additionally, WriteOutputNetCDF.o is a "phony" target so that it is forced to be rebuilt every time 
+# rather than the version and date getting old because the object file already exists.
+WriteOutputNetCDF.o: WriteOutputNetCDF.c
+	$(CC) $(CFLAGS) -c -o $@ $^ $(DEFINES)
+
+.PHONY: WriteOutputNetCDF.o
 
 # -------------------------------------------------------------
 # tags
@@ -161,7 +176,7 @@ clean::
 # -------------------------------------------------------------
 depend: .depend
 .depend:	$(SRCS) $(HDRS)
-	$(CC) $(CXXFLAGS) -M $(SRCS) > $@
+	$(CC) $(CFLAGS) -M $(SRCS) > $@
 
 clean::
 	\rm -f .depend	     

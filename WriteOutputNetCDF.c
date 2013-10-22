@@ -1,5 +1,10 @@
 #include "WriteOutputNetCDF.h"
 
+#ifdef __unix__
+//the uname function is unix specific
+#include <sys/utsname.h>
+#endif
+
 #include <netcdf>
 #include <ctime>
 #include <map>
@@ -124,21 +129,54 @@ std::string getDateOfCompilation() {
 #endif
 }
 
-void WriteOutputNetCDF::outputGlobalAttributeError(std::string error) {
+// The MACHINE_INFO macro is set by the makefile dynamically.
+std::string getCompilationMachineInfo() {
+#ifdef MACHINE_INFO
+  return std::string(MACHINE_INFO);
+#else
+  return std::string("Unspecified");
+#endif
+}
+
+// Returns a descriptive string about the machine the model is currently being run on.
+// This implementation is currently unix dependant because of the "uname" command.
+// The code will still compile on another OS but will just return a non-descriptive string.
+std::string getRuntimeMachineInfo() {
+#ifdef __unix__
+  struct utsname info;
+  if (uname(&info) == 0) {
+    return std::string(info.sysname) + " node: " + info.nodename + " release: " + info.release + " version: " + info.version + " machine: " + info.machine;
+  } else {
+    return std::string("Unspecified unix system");
+  }
+#else
+  return std::string("Unspecified non-unix system");
+#endif
+}
+
+void WriteOutputNetCDF::outputGlobalAttributeError(std::string error, const char** requiredAttributes) {
   std::string message = "Error: netCDF global attribute not specified: \"" + error + "\"\n";
   message += "When the output is in NETCDF format, certain global attributes must be specified in the global input file\n";
-  message += "For example, put the following line in the global:\n";
+  message += "Make sure that at least ";
+  int index = 0;
+  while (requiredAttributes[index] != NULL) {
+    message += std::string("\"") + requiredAttributes[index] + "\" ";
+    index++;
+  }
+  message += "are explicitly specified.\n";
+  message += "For example, put the following line in the global input file:\n";
   message += "NETCDF_ATTRIBUTE\t" + error + "\tSome string that may contain spaces";
   throw VICException(message);
 }
 
 void WriteOutputNetCDF::verifyGlobalAttributes(NcFile& file) {
-  if (file.getAtt("institution").isNull()) {
-    outputGlobalAttributeError("institution");
-  } else if (file.getAtt("contact").isNull()) {
-    outputGlobalAttributeError("contact");
-  } else if (file.getAtt("references").isNull()) {
-    outputGlobalAttributeError("references");
+  const char* requiredAttributes [] = {"institution", "contact", "references", NULL}; // Null terminated list of attributes that must be specified.
+  int index = 0;
+  while (requiredAttributes[index] != NULL) {
+    if (file.getAtt(std::string(requiredAttributes[index])).isNull()) {
+      outputGlobalAttributeError(std::string(requiredAttributes[index]), requiredAttributes);
+    }
+    index++;
   }
 }
 
@@ -148,20 +186,29 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
 
   // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
   ncFile.putAtt("title", "VIC output.");
+  std::string source = std::string("VIC ") + version + ". ";
+  source += "(Built from source: " + getSourceVersion() + ").";
+  std::string history = "Created by " + source + ".\n";
+  history += " Compiled on: " + getDateOfCompilation() + ".\n";
+  history += " Compiled by machine: " + getCompilationMachineInfo() + ".\n";
+  history += " Model run by machine: " + getRuntimeMachineInfo();
 
-  //Add global attributes specified in the global input file.
+  // Add global attributes specified in the global input file.
+  // Special cases for "source" and "history" attributes: they can't be overwritten, just appended to.
   for (std::vector<std::pair<std::string, std::string> >::const_iterator it = state->global_param.netCDFGlobalAttributes.begin();
       it != state->global_param.netCDFGlobalAttributes.end(); ++it) {
-    ncFile.putAtt(it->first, it->second);
+    if (it->first.compare("source") == 0) {
+      source += it->second;
+    } else if (it->first.compare("history") == 0) {
+      history += it->second;
+    } else {
+      ncFile.putAtt(it->first, it->second);
+    }
   }
 
-  std::string source = "VIC " + version + ". ";
-  source += "(Built from source: " + getSourceVersion() + ").";
-  std::string history = "Created by " + source;
-  history += " on " + getDateOfCompilation() + ".";
-
   ncFile.putAtt("source", source.c_str());
-  ncFile.putAtt("history", history.c_str());//TODO: arguments
+  ncFile.putAtt("history", history.c_str());
+
   ncFile.putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
   ncFile.putAtt("Conventions", "CF-1.6");
 
