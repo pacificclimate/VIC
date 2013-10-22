@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include <netcdf.h>
 #define __STDC_LIMIT_MACROS 1
 #include <stdint.h>

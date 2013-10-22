@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include <math.h>
 
 static char vcid[] = "$Id: runoff.c,v 5.7.2.24 2011/06/05 19:42:23 vicadmin Exp $";

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include "atmos_energy_bal.h"
 
 static char vcid[] = "$Id$";

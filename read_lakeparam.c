@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include <string.h>
 
 static char vcid[] = "$Id$";

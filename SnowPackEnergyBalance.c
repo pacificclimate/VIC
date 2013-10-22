@@ -16,7 +16,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include "SnowPackEnergyBalance.h"
 
 static char vcid[] = "$Id$";

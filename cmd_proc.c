@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include <unistd.h>  /* This is where you get getopt() from, stupid. */
 
 static char vcid[] = "$Id$";

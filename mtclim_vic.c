@@ -286,10 +286,10 @@ MTCLIM version 3.1 testing
 #include <string.h>
 #include <time.h>
 #include <math.h>
-#include <vicNl.h>
+#include "vicNl.h"
 
-#include <mtclim_constants_vic.h>   /* physical constants */
-#include <mtclim_parameters_vic.h>  /* model parameters */
+#include "mtclim_constants_vic.h"   /* physical constants */
+#include "mtclim_parameters_vic.h"  /* model parameters */
 
 static char vcid[] = "$Id$";
 

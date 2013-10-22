@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include <string.h>
  
 static char vcid[] = "$Id: get_global_param.c,v 5.22.2.35 2011/12/23 06:57:55 vicadmin Exp $";

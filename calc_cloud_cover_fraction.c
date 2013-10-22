@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <vicNl.h>
+#include "vicNl.h"
 
 static char vcid[] = "$Id$";
 

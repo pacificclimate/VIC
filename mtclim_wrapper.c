@@ -37,9 +37,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <vicNl.h>
-#include <mtclim_constants_vic.h>
-#include <mtclim_parameters_vic.h>
+#include "vicNl.h"
+#include "mtclim_constants_vic.h"
+#include "mtclim_parameters_vic.h"
 
 static char vcid[] = "$Id$";
 

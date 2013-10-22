@@ -48,8 +48,8 @@
 CC = g++
 
 # Uncomment for normal optimized code flags (fastest run option)
-SOURCE_VERSION = $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
-COMPILE_TIME = $(date)
+SOURCE_VERSION := $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
+COMPILE_TIME := $(shell date)
 DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\""
 NETCDF_LIBS = -lnetcdf $(shell ncxx4-config --libs)
 

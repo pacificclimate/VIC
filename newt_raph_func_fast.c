@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdarg.h>
-#include <vicNl.h>
+#include "vicNl.h"
 #include "newt_raph_func_fast.h"
 
 #define MAXSIZE  20
