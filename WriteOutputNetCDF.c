@@ -20,7 +20,6 @@ WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFor
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
   if (netCDF != NULL) {
-    fprintf(stderr, "NetCDF output file closed from destructor\n");
     delete netCDF;
   }
 }
@@ -31,7 +30,6 @@ const char* WriteOutputNetCDF::getDescriptionOfOutputType() {
 
 // Called once for each grid cell. This could potentially support parallel writes if a library supports it.
 void WriteOutputNetCDF::openFile() {
-  fprintf(stderr, "WriteOutputNetCDF::openFile() opening file: %s \n", netCDFOutputFileName.c_str());
   // Do not specify the type of file that will be read here (NcFile::nc4). The library will throw an exception
   // if it is provided for open types read or write (since the file was already created with a certain format).
   netCDF = new NcFile(netCDFOutputFileName.c_str(), NcFile::write);
@@ -222,12 +220,15 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   NcDim lonDim = ncFile.addDim("lon", (size_t)state->global_param.gridNumLonDivisions);
   NcDim bounds = ncFile.addDim("bnds", 2);
   NcDim timeDim = ncFile.addDim("time");    // Time is unlimited.
+  NcDim valuesDim = ncFile.addDim("depth", MAX_BANDS);  // This dimension allows for variables which are actually arrays of values.
 
 
   // Define the coordinate variables.
   NcVar latVar = ncFile.addVar("lat", ncFloat, latDim);
   NcVar lonVar = ncFile.addVar("lon", ncFloat, lonDim);
   NcVar timeVar = ncFile.addVar("time", ncFloat, timeDim);
+  NcVar valuesVar = ncFile.addVar("depth", ncFloat, valuesDim);
+
   //FIXME: add the bounds variables for each of time, lat, lon
   latVar.putAtt("axis", "Y");
   latVar.putAtt("units", "degrees_north");
@@ -256,6 +257,10 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   timeVar.putAtt("bounds", "time_bnds");
   timeVar.putAtt("calendar", "gregorian");
 
+  valuesVar.putAtt("standard name", "z_dim");
+  valuesVar.putAtt("long name", "array values");
+  valuesVar.putAtt("units", "z_dim");
+
 
   out_data_struct* out_data_defaults = create_output_list(state);
   out_data_file_struct* out_file = set_output_defaults(out_data_defaults, state);
@@ -268,6 +273,11 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
     fprintf(stderr, "parent variable: %s\n", dataFiles[file_idx]->prefix);
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
+      bool removeLastDimension = false;
+      if (out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1) {
+        dimensions.push_back(valuesDim);
+        removeLastDimension = true;
+      }
       fprintf(stderr, "WriteOutputNetCDF initialize: adding variable: %s\n", varName.c_str());
       if (mapping.find(varName) == mapping.end()) {
         throw VICException("Error: could not find variable in mapping: " + varName);
@@ -286,12 +296,15 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
           data.putAtt("internal_vic_name", varName); // This is basically just for reference.
           data.putAtt("category", dataFiles[file_idx]->prefix);
           if (state->options.COMPRESS) {
-            data.setCompression(true, true, 3); // Some reasonable compression level - not too intensive.
+            data.setCompression(false, true, 1); // Some reasonable compression level - not too intensive.
           }
         } catch (const netCDF::exceptions::NcException& except) {
           fprintf(stderr, "Error adding variable: %s with name: %s Internal netCDF exception\n", varName.c_str(), metaData.name.c_str());
           throw;
         }
+      }
+      if (removeLastDimension) {
+        dimensions.pop_back();
       }
     }
   }
@@ -302,18 +315,17 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   // associated with the file, and flushes any buffers.
 }
 
-//TODO: thoroughly test this function.
 // Returns either the number of hours since the start time (if dt < 24)
 // Or returns the number of days since the start time (if dt >= 24)
 // Returns INVALID_INT on error.
 int getTimeIndex(const dmy_struct* curTime, int dt, const ProgramState* state) {
-  struct std::tm curTm = { 0, 0, curTime->hour, curTime->day, curTime->month, curTime->year - 1900, 0, 0, 0, 0, "UTC" };  // Current date.
-  struct std::tm startTm = { 0, 0, state->global_param.starthour, state->global_param.startday, state->global_param.startmonth, state->global_param.startyear - 1900, 0, 0, 0, 0, "UTC" }; // Simulation start date.
+  struct std::tm curTm = { 0, 0, curTime->hour, curTime->day, curTime->month - 1, curTime->year - 1900, 0, 0, 0, 0, "UTC" };  // Current date.
+  struct std::tm startTm = { 0, 0, state->global_param.starthour, state->global_param.startday, state->global_param.startmonth - 1, state->global_param.startyear - 1900, 0, 0, 0, 0, "UTC" }; // Simulation start date.
   std::time_t curTimeT = std::mktime(&curTm);
   std::time_t startTimeT = std::mktime(&startTm);
   if (curTimeT != (std::time_t) (-1) && startTimeT != (std::time_t) (-1)) {
     // The divisor will convert the difference to either hours or days respectively.
-    double divisor = dt < 24 ? (60 * 60) : (60 * 60 * 24);
+    double divisor = dt < 24 ? (60 * 60) : (60 * 60 * 24);  //TODO: make this a class scope constant for efficiency
     // The function std::difftime returns the difference (curTimeT-startTimeT) in seconds.
     return std::difftime(curTimeT, startTimeT) / (divisor);
   }
@@ -352,11 +364,9 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
   start.push_back(latIndex);
   start.push_back(lonIndex);
   start.push_back(timeIndex);
-  start.push_back(0);
   count.push_back(1);
   count.push_back(1);
   count.push_back(1);
-  count.push_back(0);
 
   std::multimap<std::string, netCDF::NcVar> allVars = netCDF->getVars();
 
@@ -365,8 +375,13 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
-      //for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
-      count[3] = out_data[dataFiles[file_idx]->varid[var_idx]].nelem;
+      bool removeLastDimension = false;
+      if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1) {
+        removeLastDimension = true;
+        start.push_back(0);
+        count.push_back(out_data[dataFiles[file_idx]->varid[var_idx]].nelem);
+      }
+
       try {
         NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;//netCDF->getVar(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name);
         variable.putVar(start, count, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
@@ -374,8 +389,11 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
         fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), latIndex, lonIndex, timeIndex);
         throw;
       }
-      //variable.putVar(out_data[dataFiles[file_idx]->varid[var_idx]].aggdata, latIndex, lonIndex, timeIndex);
-      //}
+
+      if (removeLastDimension) {
+        start.pop_back();
+        count.pop_back();
+      }
     }
   }
 }
@@ -388,7 +406,5 @@ void WriteOutputNetCDF::compressFiles() {
 
 void WriteOutputNetCDF::write_header(out_data_struct* out_data, const dmy_struct* dmy,
     const ProgramState* state) {
-  // This is not applicable for netCDF output format. Intentionally empty.
+  // This is not applicable for netCls output format. Intentionally empty.
 }
-
-

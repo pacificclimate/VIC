@@ -1,4 +1,15 @@
 #!/bin/bash
+
+netCDF=false;
+
+for var in "$@"
+do
+    if [ "$var" == "-netCDF" ]; then
+        echo "netCDF option enabled";
+        netCDF=true;
+    fi
+done
+
 echo starting test
 
 codeDir="VIC_4.1.2_cpp_trunk"
@@ -22,6 +33,12 @@ mkdir out/$outputName
 #Replace output line in global options file
 perl -pi.bak -e 's/RESULT_DIR.*$/RESULT_DIR\t$ENV{curDir}\/out\/$ENV{outputName}/g' $globalOptionsFile
 
+if $netCDF ; then
+    perl -pi.bak -e 's/OUTPUT_FORMAT.*$/OUTPUT_FORMAT\tNETCDF/g' $globalOptionsFile
+else
+    perl -pi.bak -e 's/OUTPUT_FORMAT.*$/OUTPUT_FORMAT\tASCII/g' $globalOptionsFile
+fi
+
 #Make the program
 pushd $codeDir > /dev/null
 echo "building the program"
@@ -43,10 +60,14 @@ echo "running the program"
 $codeDir/$programName -g $globalOptionsFile
 
 #Compare output files with pristine version hashes
-pushd out/$outputName > /dev/null
 echo ""
-echo $(md5sum -c ../4.1.2_pristine_forcings_v2_1950-2006.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../4.1.2_pristine_forcings_v2_1950-2006.md5 | wc -l) files compare OK
-
-popd > /dev/null
+echo "validating output results"
+if $netCDF ; then
+    Rscript vic_output_netcdf_compare.r out/$outputName/results.nc vicNetCDFCorrectOutputs.nc
+else
+    pushd out/$outputName > /dev/null
+    echo $(md5sum -c ../4.1.2_pristine_forcings_v2_1950-2006.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../4.1.2_pristine_forcings_v2_1950-2006.md5 | wc -l) files compare OK
+    popd > /dev/null
+fi
 
 echo "Finished."
