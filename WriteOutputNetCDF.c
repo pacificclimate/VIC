@@ -16,6 +16,8 @@ using namespace netCDF;
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
   mapping = getMapping(state->global_param.out_dt < 24);
+  // The divisor will convert the difference to either hours or days respectively.
+  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60) : (60 * 60 * 24);
 }
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
@@ -264,20 +266,20 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
 
   out_data_struct* out_data_defaults = create_output_list(state);
   out_data_file_struct* out_file = set_output_defaults(out_data_defaults, state);
-  std::vector<NcDim> dimensions;
-  dimensions.push_back(latDim);
-  dimensions.push_back(lonDim);
-  dimensions.push_back(timeDim);
+
+  // Define dimension orders.
+  // If you change the ordering, make sure you also change the order that variables are written in the WriteOutputNetCDF::write_data() method.
+  const NcDim dim3Vals [] = { latDim, lonDim, timeDim };
+  const NcDim dim4Vals [] = { valuesDim, latDim, lonDim, timeDim };
+  std::vector<NcDim> dimensions3(dim3Vals, dim3Vals + 3);
+  std::vector<NcDim> dimensions4(dim4Vals, dim4Vals + 4);
+
   // Define a netCDF variable. For example, fluxes, snow.
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
     fprintf(stderr, "parent variable: %s\n", dataFiles[file_idx]->prefix);
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
-      bool removeLastDimension = false;
-      if (out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1) {
-        dimensions.push_back(valuesDim);
-        removeLastDimension = true;
-      }
+      bool use4Dimensions = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
       fprintf(stderr, "WriteOutputNetCDF initialize: adding variable: %s\n", varName.c_str());
       if (mapping.find(varName) == mapping.end()) {
         throw VICException("Error: could not find variable in mapping: " + varName);
@@ -287,7 +289,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
         throw VICException("Error: bands not supported yet on variable mapping " + varName);
       } else {
         try {
-          NcVar data = ncFile.addVar(metaData.name.c_str(), ncFloat, dimensions);
+          NcVar data = ncFile.addVar(metaData.name.c_str(), ncFloat, (use4Dimensions ? dimensions4 : dimensions3) );
           data.putAtt("long_name", metaData.longName.c_str());
           data.putAtt("units", metaData.units.c_str());
           data.putAtt("standard_name", metaData.standardName.c_str());
@@ -303,9 +305,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
           throw;
         }
       }
-      if (removeLastDimension) {
-        dimensions.pop_back();
-      }
     }
   }
   free_out_data(&out_data_defaults);
@@ -318,16 +317,14 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
 // Returns either the number of hours since the start time (if dt < 24)
 // Or returns the number of days since the start time (if dt >= 24)
 // Returns INVALID_INT on error.
-int getTimeIndex(const dmy_struct* curTime, int dt, const ProgramState* state) {
+int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state) {
   struct std::tm curTm = { 0, 0, curTime->hour, curTime->day, curTime->month - 1, curTime->year - 1900, 0, 0, 0, 0, "UTC" };  // Current date.
   struct std::tm startTm = { 0, 0, state->global_param.starthour, state->global_param.startday, state->global_param.startmonth - 1, state->global_param.startyear - 1900, 0, 0, 0, 0, "UTC" }; // Simulation start date.
   std::time_t curTimeT = std::mktime(&curTm);
   std::time_t startTimeT = std::mktime(&startTm);
   if (curTimeT != (std::time_t) (-1) && startTimeT != (std::time_t) (-1)) {
-    // The divisor will convert the difference to either hours or days respectively.
-    double divisor = dt < 24 ? (60 * 60) : (60 * 60 * 24);  //TODO: make this a class scope constant for efficiency
     // The function std::difftime returns the difference (curTimeT-startTimeT) in seconds.
-    return std::difftime(curTimeT, startTimeT) / (divisor);
+    return std::difftime(curTimeT, startTimeT) / (timeIndexDivisor);
   }
   return INVALID_INT;
 }
@@ -340,7 +337,6 @@ int longitudeToIndex(double lon, const ProgramState* state) {
   return std::abs(lon - state->global_param.gridStartLon) / state->global_param.gridStepLon;
 }
 
-//TODO: exceptions on error (terminate)
 // This is called per time record.
 void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
 
@@ -350,7 +346,7 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     return;
   }
 
-  int timeIndex = getTimeIndex(dmy, dt, state);
+  int timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
   int lonIndex = longitudeToIndex(this->lon, state);
   int latIndex = latitudeToIndex(this->lat, state);
 
@@ -360,13 +356,15 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     throw VICException(s.str());
   }
 
-  std::vector<size_t> start, count;
-  start.push_back(latIndex);
-  start.push_back(lonIndex);
-  start.push_back(timeIndex);
-  count.push_back(1);
-  count.push_back(1);
-  count.push_back(1);
+  // Defines the dimension order of how variables are written. Only variables which have more than one value have the extra values dimension.
+  // If you change the dimension ordering here, make sure that it is also changed in the WriteOutputNetCDF::initializeFile() method.
+  // If the z dimension position changes also change the count4 vector update inside the nested loop below.
+  const size_t start3Vals [] = { latIndex, lonIndex, timeIndex };     // (y, x, t)
+  const size_t count3Vals [] = { 1,1,1 };
+  const size_t start4Vals [] = { 0, latIndex, lonIndex, timeIndex };  // (z, y, x, t)
+  const size_t count4Vals [] = { 1,1,1,1 };
+  std::vector<size_t> start3(start3Vals, start3Vals + 3), count3(count3Vals, count3Vals + 3);
+  std::vector<size_t> start4(start4Vals, start4Vals + 4), count4(count4Vals, count4Vals + 4);
 
   std::multimap<std::string, netCDF::NcVar> allVars = netCDF->getVars();
 
@@ -375,24 +373,19 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
-      bool removeLastDimension = false;
-      if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1) {
-        removeLastDimension = true;
-        start.push_back(0);
-        count.push_back(out_data[dataFiles[file_idx]->varid[var_idx]].nelem);
-      }
+      bool use4Dimensions = out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
+      count4.at(0) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
 
       try {
-        NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;//netCDF->getVar(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name);
-        variable.putVar(start, count, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
+        NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;
+        if (use4Dimensions) {
+          variable.putVar(start4, count4, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
+        } else {
+          variable.putVar(start3, count3, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
+        }
       } catch (std::exception& e) {
         fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), latIndex, lonIndex, timeIndex);
         throw;
-      }
-
-      if (removeLastDimension) {
-        start.pop_back();
-        count.pop_back();
       }
     }
   }
@@ -406,5 +399,5 @@ void WriteOutputNetCDF::compressFiles() {
 
 void WriteOutputNetCDF::write_header(out_data_struct* out_data, const dmy_struct* dmy,
     const ProgramState* state) {
-  // This is not applicable for netCls output format. Intentionally empty.
+  // This is not applicable for netCDF output format. Intentionally empty.
 }

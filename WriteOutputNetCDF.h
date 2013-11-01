@@ -38,6 +38,7 @@ private:
   std::map<std::string, VariableMetaData> mapping;
   std::string netCDFOutputFileName;
   netCDF::NcFile* netCDF;
+  int timeIndexDivisor;
 };
 
 #endif /* WRITEOUTPUTNETCDF_H_ */
