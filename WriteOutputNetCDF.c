@@ -346,11 +346,11 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     return;
   }
 
-  int timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
-  int lonIndex = longitudeToIndex(this->lon, state);
-  int latIndex = latitudeToIndex(this->lat, state);
+  const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
+  const size_t lonIndex = longitudeToIndex(this->lon, state);
+  const size_t latIndex = latitudeToIndex(this->lat, state);
 
-  if (IS_INVALID(timeIndex) || IS_INVALID(lonIndex) || IS_INVALID(latIndex)) {
+  if (IS_INVALID((int)timeIndex) || IS_INVALID((int)lonIndex) || IS_INVALID((int)latIndex)) {
     std::stringstream s;
     s << "Error: Invalid index. timeIndex=" << timeIndex << ", lonIndex=" << lonIndex << ", latIndex=" << latIndex;
     throw VICException(s.str());
@@ -384,7 +384,7 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
           variable.putVar(start3, count3, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
         }
       } catch (std::exception& e) {
-        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), latIndex, lonIndex, timeIndex);
+        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), (int)latIndex, (int)lonIndex, (int)timeIndex);
         throw;
       }
     }
