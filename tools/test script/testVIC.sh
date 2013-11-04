@@ -27,9 +27,6 @@ fail()
     exit 1 #exit shell script
 }
 
-#Create directory for output
-mkdir out/$outputName
-
 #Replace output line in global options file
 perl -pi.bak -e 's/RESULT_DIR.*$/RESULT_DIR\t$ENV{curDir}\/out\/$ENV{outputName}/g' $globalOptionsFile
 
@@ -54,6 +51,9 @@ else
     fail
 fi
 popd > /dev/null
+
+#Create directory for output
+mkdir out/$outputName
 
 #Run the code
 echo "running the program"
