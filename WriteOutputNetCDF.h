@@ -3,8 +3,11 @@
 
 #include <string>
 #include <map>
-
+#include "user_def.h"
 #include "WriteOutputFormat.h"
+
+#if NETCDF_OUTPUT_AVAILABLE
+
 namespace netCDF {
   class NcFile;
 }
@@ -40,5 +43,7 @@ private:
   netCDF::NcFile* netCDF;
   int timeIndexDivisor;
 };
+
+#endif /* NETCDF_OUTPUT_AVAILABLE */
 
 #endif /* WRITEOUTPUTNETCDF_H_ */

@@ -502,42 +502,39 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 
       /*************************************
        Define forcing files
-      *************************************/
-      else if(strcasecmp("FORCING1",optstr)==0) {
-	if ( strcmp( names->f_path_pfx[0], "MISSING" ) != 0 ) 
-	  nrerror("Tried to define FORCING1 twice, if you want to use two forcing files, the second must be defined as FORCING2");
-        sscanf(cmdstr,"%*s %s", names->f_path_pfx[0]);
-	file_num = 0;
-	field=0;
-      }
-      else if(strcasecmp("FORCING2",optstr)==0) {
-        sscanf(cmdstr,"%*s %s", names->f_path_pfx[1]);
-        if (strcasecmp("FALSE",names->f_path_pfx[1])==0)
-          strcpy(names->f_path_pfx[1],"MISSING");
-	file_num = 1;
-	field=0;
-      }
-      else if (strcasecmp("FORCE_FORMAT",optstr)==0) {
-	sscanf(cmdstr, "%*s %s", flgstr);
-	if (strcasecmp(flgstr, "BINARY") == 0)
-	  param_set.FORCE_FORMAT[file_num] = BINARY;
-	else if (strcasecmp(flgstr, "ASCII") == 0)
-	  param_set.FORCE_FORMAT[file_num] = ASCII;
+       *************************************/
+      else if (strcasecmp("FORCING1", optstr) == 0) {
+        if (strcmp(names->f_path_pfx[0], "MISSING") != 0)
+          nrerror(
+              "Tried to define FORCING1 twice, if you want to use two forcing files, the second must be defined as FORCING2");
+        sscanf(cmdstr, "%*s %s", names->f_path_pfx[0]);
+        file_num = 0;
+        field = 0;
+      } else if (strcasecmp("FORCING2", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", names->f_path_pfx[1]);
+        if (strcasecmp("FALSE", names->f_path_pfx[1]) == 0)
+          strcpy(names->f_path_pfx[1], "MISSING");
+        file_num = 1;
+        field = 0;
+      } else if (strcasecmp("FORCE_FORMAT", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp(flgstr, "BINARY") == 0)
+          param_set.FORCE_FORMAT[file_num] = BINARY;
+        else if (strcasecmp(flgstr, "ASCII") == 0)
+          param_set.FORCE_FORMAT[file_num] = ASCII;
         else if (strcasecmp(flgstr, "NETCDF") == 0)
           param_set.FORCE_FORMAT[file_num] = NETCDF;
-	else
-	  nrerror("FORCE_FORMAT must be \"NETCDF\", \"ASCII\", or \"BINARY\".");
-      }
-      else if (strcasecmp("FORCE_ENDIAN",optstr)==0) {
-	sscanf(cmdstr, "%*s %s", flgstr);
-	if (strcasecmp(flgstr, "LITTLE") == 0)
-	  param_set.FORCE_ENDIAN[file_num] = LITTLE;
-	else if (strcasecmp(flgstr, "BIG") == 0)
-	  param_set.FORCE_ENDIAN[file_num] = BIG;
-	else
-	  nrerror("FORCE_ENDIAN must be either BIG or LITTLE.");
-      }
-      else if(strcasecmp("N_TYPES",optstr)==0) {
+        else
+          nrerror("FORCE_FORMAT must be \"NETCDF\", \"ASCII\", or \"BINARY\".");
+      } else if (strcasecmp("FORCE_ENDIAN", optstr) == 0) {
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp(flgstr, "LITTLE") == 0)
+          param_set.FORCE_ENDIAN[file_num] = LITTLE;
+        else if (strcasecmp(flgstr, "BIG") == 0)
+          param_set.FORCE_ENDIAN[file_num] = BIG;
+        else
+          nrerror("FORCE_ENDIAN must be either BIG or LITTLE.");
+      } else if (strcasecmp("N_TYPES", optstr) == 0) {
         sscanf(cmdstr,"%*s %d",&param_set.N_TYPES[file_num]);
       }
       else if(strcasecmp("FORCE_TYPE",optstr)==0) {
@@ -718,6 +715,9 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
           options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
         } else if (strcasecmp("NETCDF", flgstr) == 0) {
           options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
+#if !NETCDF_OUTPUT_AVAILABLE
+          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the OUTPUT_FORMAT type (in the global input file) to BINARY or ASCII");
+#endif
         } else {
           fprintf(stderr, "Warning, input for option OUTPUT_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n", optstr);
           fprintf(stderr, "OUTPUT_FORMAT will default to ASCII\n");

@@ -1,4 +1,7 @@
 #include "WriteOutputNetCDF.h"
+#include "user_def.h"
+
+#if NETCDF_OUTPUT_AVAILABLE
 
 #ifdef __unix__
 //the uname function is unix specific
@@ -401,3 +404,5 @@ void WriteOutputNetCDF::write_header(out_data_struct* out_data, const dmy_struct
     const ProgramState* state) {
   // This is not applicable for netCDF output format. Intentionally empty.
 }
+
+#endif // NETCDF_OUTPUT_AVAILABLE

@@ -121,3 +121,11 @@
        longwave radiation (use 1, unless measured longwave available for
        calibration) *****/
 #define LWAVE_COR	1.
+
+/***** Allows users to compile without the netcdf c++ libraries installed.
+ * This is for when the OUTPUT_FORMAT is set to NETCDF.
+ * If this option is turned off then output will not be available in netCDF format.
+ */
+#define NETCDF_OUTPUT_AVAILABLE TRUE
+
+
