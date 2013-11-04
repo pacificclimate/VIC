@@ -1,2 +1,13 @@
 syntax: glob
 *.o
+Debug/subdir.mk
+Debug/sources.mk
+Debug/objects.mk
+Debug/makefile
+.settings/org.eclipse.core.runtime.prefs
+.settings/org.eclipse.cdt.codan.core.prefs
+.settings/com.googlecode.cppcheclipse.core.prefs
+.project
+.depend
+.cproject
+vicNl
