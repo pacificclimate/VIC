@@ -399,10 +399,12 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"Input State File:\n");
   if (options.INIT_STATE) {
     fprintf(stderr,"INIT_STATE\t\tTRUE\t%s\n",names->init_state);
-    if (options.BINARY_STATE_FILE)
-      fprintf(stderr,"BINARY_STATE_FILE\tTRUE\n");
+    if (options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE)
+      fprintf(stderr,"STATE_FORMAT\tBINARY_STATEFILE\n");
+    else if (options.STATE_FORMAT == StateOutputFormat::ASCII_STATEFILE)
+      fprintf(stderr,"STATE_FORMAT\tASCII\n");
     else
-      fprintf(stderr,"BINARY_STATE_FILE\tFALSE\n");
+      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE");
   }
   else
     fprintf(stderr,"INIT_STATE\t\tFALSE\n");
@@ -415,10 +417,12 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     fprintf(stderr,"STATEYEAR\t\t%d\n",global_param.stateyear);
     fprintf(stderr,"STATEMONTH\t\t%d\n",global_param.statemonth);
     fprintf(stderr,"STATEDAY\t\t%d\n",global_param.stateday);
-    if (options.BINARY_STATE_FILE)
-      fprintf(stderr,"BINARY_STATE_FILE\tTRUE\n");
+    if (options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE)
+      fprintf(stderr,"STATE_FORMAT\tBINARY_STATEFILE\n");
+    else if (options.STATE_FORMAT == StateOutputFormat::ASCII_STATEFILE)
+      fprintf(stderr,"STATE_FORMAT\tASCII\n");
     else
-      fprintf(stderr,"BINARY_STATE_FILE\tFALSE\n");
+      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE");
   }
   else {
     fprintf(stderr,"SAVE_STATE\t\tFALSE\n");

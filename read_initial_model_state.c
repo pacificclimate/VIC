@@ -105,7 +105,7 @@ void read_initial_model_state(FILE    *init_state,
   rewind(init_state);
   
   /* skip header */
-  if ( state->options.BINARY_STATE_FILE )
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
     fread(&tmpstr, sizeof(int)*5, 1, init_state);
   else {
     fgets(tmpstr, MAXSTRING, init_state);
@@ -116,7 +116,7 @@ void read_initial_model_state(FILE    *init_state,
 #endif
   
   /* read cell information */
-  if ( state->options.BINARY_STATE_FILE ) {
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
     fread( &tmp_cellnum, sizeof(int), 1, init_state );
     fread( &tmp_Nveg, sizeof(int), 1, init_state );
     fread( &tmp_Nband, sizeof(int), 1, init_state );
@@ -126,7 +126,7 @@ void read_initial_model_state(FILE    *init_state,
     fscanf( init_state, "%d %d %d", &tmp_cellnum, &tmp_Nveg, &tmp_Nband );
   // Skip over unused cell information
   while ( tmp_cellnum != cellnum && !feof(init_state) ) {
-    if ( state->options.BINARY_STATE_FILE ) {
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
       // skip rest of current cells info
       for ( byte = 0; byte < Nbytes; byte++ ) 
 	fread ( &tmpchar, 1, 1, init_state);
@@ -172,7 +172,7 @@ void read_initial_model_state(FILE    *init_state,
  
   /* Read soil thermal node deltas */
   for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
-    if ( state->options.BINARY_STATE_FILE )
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
       fread( &soil_con->dz_node[nidx], sizeof(double), 1, init_state );
     else 
       fscanf( init_state, "%lf", &soil_con->dz_node[nidx] );
@@ -181,7 +181,7 @@ void read_initial_model_state(FILE    *init_state,
   
   /* Read soil thermal node depths */
   for (int nidx = 0; nidx < state->options.Nnode; nidx++ ) {
-    if ( state->options.BINARY_STATE_FILE )
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
       fread( &soil_con->Zsum_node[nidx], sizeof(double), 1, init_state );
     else 
       fscanf( init_state, "%lf", &soil_con->Zsum_node[nidx] );
@@ -196,7 +196,7 @@ void read_initial_model_state(FILE    *init_state,
 #if EXCESS_ICE
   /* Read soil depth */
   for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
-    if ( state->options.BINARY_STATE_FILE )
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
       fread( &soil_con->depth[lidx], sizeof(double), 1, init_state );
     else 
       fscanf( init_state, "%lf", &soil_con->depth[lidx] );
@@ -204,14 +204,14 @@ void read_initial_model_state(FILE    *init_state,
   
   /* Read effective porosity */
   for (int lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
-    if ( state->options.BINARY_STATE_FILE )
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
       fread( &soil_con->effective_porosity[lidx], sizeof(double), 1, init_state );
     else 
       fscanf( init_state, "%lf", &soil_con->effective_porosity[lidx] );
   }
   
   /* Reading damping depth */
-  if ( state->options.BINARY_STATE_FILE )
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
     fread( &soil_con->dp, sizeof(double), 1, init_state );
   else 
     fscanf( init_state, "%lf", &soil_con->dp );
@@ -221,7 +221,7 @@ void read_initial_model_state(FILE    *init_state,
   for (int veg = 0; veg <= Nveg; veg++ ) {
     
     // read distributed precipitation variables
-    if ( state->options.BINARY_STATE_FILE ) {
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
       fread( &prcp->mu[veg], sizeof(double), 1, init_state );
       fread( &init_STILL_STORM[veg], sizeof(char), 1, init_state );
       fread( &init_DRY_TIME[veg], sizeof(int), 1, init_state );
@@ -237,7 +237,7 @@ void read_initial_model_state(FILE    *init_state,
       /* Read cell identification information */
       int iveg = 0;
       int iband = 0;
-      if ( state->options.BINARY_STATE_FILE ) {
+      if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
 	if ( fread( &iveg, sizeof(int), 1, init_state) != 1 ) 
 	  nrerror("End of model state file found unexpectedly");
 	if ( fread( &iband, sizeof(int), 1, init_state) != 1 ) 
@@ -257,7 +257,7 @@ void read_initial_model_state(FILE    *init_state,
         hru_data_struct& cellRef = element->cell[dist];
         /* Read total soil moisture */
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          if (state->options.BINARY_STATE_FILE) {
+          if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
             if (fread(&cellRef.layer[lidx].moist,
                 sizeof(double), 1, init_state) != 1)
               nrerror("End of model state file found unexpectedly");
@@ -273,7 +273,7 @@ void read_initial_model_state(FILE    *init_state,
 #if SPATIAL_FROST
 #error // SPATIAL_FROST is an untested code path. Continue at your own risk!
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-            if ( state->options.BINARY_STATE_FILE ) {
+            if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
               if ( fread( &cellRef.layer[lidx].soil_ice[frost_area],
                       sizeof(double), 1, init_state ) != 1 )
               nrerror("End of model state file found unexpectedly");
@@ -285,7 +285,7 @@ void read_initial_model_state(FILE    *init_state,
             }
           }
 #else
-          if (state->options.BINARY_STATE_FILE) {
+          if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
             if (fread(&cellRef.layer[lidx].soil_ice,
                 sizeof(double), 1, init_state) != 1)
               nrerror("End of model state file found unexpectedly");
@@ -299,7 +299,7 @@ void read_initial_model_state(FILE    *init_state,
 
         /* Read dew storage */
         if (veg < Nveg) {
-          if (state->options.BINARY_STATE_FILE) {
+          if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
             if (fread(&element->veg_var[dist].Wdew, sizeof(double), 1,
                 init_state) != 1)
               nrerror("End of model state file found unexpectedly");
@@ -312,7 +312,7 @@ void read_initial_model_state(FILE    *init_state,
       }
       
       /* Read snow data */
-      if ( state->options.BINARY_STATE_FILE ) {
+      if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
 	if ( fread( &element->snow.last_snow, sizeof(int), 1,
 		    init_state ) != 1 )
 	  nrerror("End of model state file found unexpectedly");
@@ -362,7 +362,7 @@ void read_initial_model_state(FILE    *init_state,
       
       /* Read soil thermal node temperatures */
       for (int nidx = 0; nidx < state->options.Nnode; nidx++) {
-        if (state->options.BINARY_STATE_FILE) {
+        if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
           if (fread(&element->energy.T[nidx], sizeof(double), 1,
               init_state) != 1)
             nrerror("End of model state file found unexpectedly");
@@ -375,7 +375,7 @@ void read_initial_model_state(FILE    *init_state,
     }
   }
   if ( state->options.LAKES ) {
-    if ( state->options.BINARY_STATE_FILE ) {
+    if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
       // Read both wet and dry fractions if using distributed precipitation
       for (int dist = 0; dist < Ndist; dist ++ ) {
 	

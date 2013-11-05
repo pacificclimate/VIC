@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
   /** open state file if model state is to be saved **/
   if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
     filep.statefile = open_state_file(&state.global_param, filenames, state.options.Nlayer,
-        state.options.Nnode, state.options.BINARY_STATE_FILE);
+        state.options.Nnode, state.options.STATE_FORMAT);
   else
     filep.statefile = NULL;
 #endif // !OUTPUT_FORCE

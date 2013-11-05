@@ -359,7 +359,7 @@ double new_snow_density(double, const ProgramState*);
 void   nrerror(const char *);
 
 FILE  *open_file(const char *string, const char *type);
-FILE  *open_state_file(global_param_struct *, filenames_struct, int, int, char);
+FILE  *open_state_file(global_param_struct *, filenames_struct, int, int, StateOutputFormat::Type);
 
 void parse_output_info(const char*, out_data_file_struct *, out_data_struct *, ProgramState*);
 double penman(double, double, double, double, double, double, double);

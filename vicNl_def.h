@@ -578,6 +578,12 @@ enum Type {
 };
 }
 
+namespace StateOutputFormat {
+enum Type {
+  BINARY_STATEFILE, ASCII_STATEFILE, NETCDF_STATEFILE
+};
+}
+
 typedef struct {
 
   // simulation modes
@@ -699,7 +705,7 @@ typedef struct {
   char   ORGANIC_FRACT;  /* TRUE = organic matter fraction of each layer is read from the soil parameter file; otherwise set to 0.0. */
 
   // state options
-  char   BINARY_STATE_FILE; /* TRUE = model state file is binary (default) */
+  StateOutputFormat::Type STATE_FORMAT; /* The output format of the state files (if any) */
   char   INIT_STATE;     /* TRUE = initialize model state from file */
   char   SAVE_STATE;     /* TRUE = save state file */       
   double MAX_MEMORY;     /* Amount of RAM (in Gb) available to run the model with. The user will be warned if the projected memory use exceeds this limit.

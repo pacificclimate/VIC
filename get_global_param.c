@@ -210,6 +210,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
             31, /* DECEMBER */
         } ;
   bool outputTypeSet = false;
+  bool outputStateTypeSet = false;
 
   /** Initialize global parameters (that aren't part of the options struct) **/
   global_param.dt            = INVALID_INT;
@@ -492,9 +493,40 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       } else if (strcasecmp("BINARY_STATE_FILE", optstr) == 0) {
         sscanf(cmdstr, "%*s %s", flgstr);
         if (strcasecmp("FALSE", flgstr) == 0)
-          options.BINARY_STATE_FILE = FALSE;
+          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
         else
-          options.BINARY_STATE_FILE = TRUE;
+          options.STATE_FORMAT = StateOutputFormat::BINARY_STATEFILE;
+
+        if (outputStateTypeSet) {
+          throw VICException(
+              "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
+        }
+        outputStateTypeSet = true;
+      } else if (strcasecmp("STATE_OUTPUT_FORMAT", optstr) == 0) {
+        if (outputStateTypeSet) {
+          throw VICException(
+              "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
+        }
+        outputStateTypeSet = true;
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp("BINARY", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
+        } else if (strcasecmp("ASCII", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+        } else if (strcasecmp("NETCDF", flgstr) == 0) {
+          options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
+#if !NETCDF_OUTPUT_AVAILABLE
+          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the OUTPUT_FORMAT type (in the global input file) to BINARY or ASCII");
+#endif
+        } else {
+          fprintf(stderr,
+              "Warning, input for option OUTPUT_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
+              optstr);
+          fprintf(stderr, "OUTPUT_FORMAT will default to ASCII\n");
+          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+        }
+
+
       } else if (strcasecmp("MAX_MEMORY", optstr) == 0) {
         sscanf(cmdstr, "%*s %s", flgstr);
         options.MAX_MEMORY = atof(flgstr);  // Conversion atof defaults to 0.0 on error (which is consistent with our default value).

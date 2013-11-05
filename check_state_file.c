@@ -38,13 +38,13 @@ FILE *check_state_file(char *init_state_name, ProgramState *state)
   int     startday, startmonth, startyear;
 
   /* open state file */
-  if ( state->options.BINARY_STATE_FILE )
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
     init_state = open_file(init_state_name,"rb");
   else 
     init_state = open_file(init_state_name,"r");
 
   /* Check state date information */
-  if ( state->options.BINARY_STATE_FILE ) {
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
     fread( &startyear, sizeof(int), 1, init_state );
     fread( &startmonth, sizeof(int), 1, init_state );
     fread( &startday, sizeof(int), 1, init_state );
@@ -54,7 +54,7 @@ FILE *check_state_file(char *init_state_name, ProgramState *state)
   }
 
   /* Check simulation options */
-  if ( state->options.BINARY_STATE_FILE ) {
+  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
     fread( &tmp_Nlayer, sizeof(int), 1, init_state );
     fread( &tmp_Nnodes, sizeof(int), 1, init_state );
   }

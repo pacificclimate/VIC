@@ -168,7 +168,7 @@ void ProgramState::initialize_global() {
   options.VEGPARAM_LAI          = FALSE;
   options.LAI_SRC               = LAI_FROM_VEGLIB;
   // state options
-  options.BINARY_STATE_FILE     = FALSE;
+  options.STATE_FORMAT          = StateOutputFormat::ASCII_STATEFILE;
   options.INIT_STATE            = FALSE;
   options.SAVE_STATE            = FALSE;
   options.MAX_MEMORY            = 0.0;    // Assume no restrictions on memory if none are given.

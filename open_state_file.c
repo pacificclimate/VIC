@@ -10,7 +10,7 @@ FILE *open_state_file(global_param_struct *global,
 		      filenames_struct     filenames,
 		      int                  Nlayer,
 		      int                  Nnodes,
-		      char                 BINARY_STATE_FILE)
+		      StateOutputFormat::Type stateFormat)
 /*********************************************************************
   open_state_file      Keith Cherkauer           April 15, 2000
 
@@ -34,13 +34,13 @@ FILE *open_state_file(global_param_struct *global,
 
   /* open state file */
   sprintf(filename,"%s", filenames.statefile);
-  if ( BINARY_STATE_FILE )
+  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE )
     statefile = open_file(filename,"wb");
   else
     statefile = open_file(filename,"w");
 
   /* Write save state date information */
-  if ( BINARY_STATE_FILE ) {
+  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE ) {
     fwrite( &global->stateyear, sizeof(int), 1, statefile );
     fwrite( &global->statemonth, sizeof(int), 1, statefile );
     fwrite( &global->stateday, sizeof(int), 1, statefile );
@@ -51,7 +51,7 @@ FILE *open_state_file(global_param_struct *global,
   }
 
   /* Write simulation flags */
-  if ( BINARY_STATE_FILE ) {
+  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE ) {
     fwrite( &Nlayer, sizeof(int), 1, statefile );
     fwrite( &Nnodes, sizeof(int), 1, statefile );
   }
