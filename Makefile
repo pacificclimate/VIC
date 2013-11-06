@@ -102,6 +102,7 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	read_atmos_data.o read_forcing_data.o read_initial_model_state.o \
 	read_snowband.o read_soilparam.o read_soilparam_arc.o read_veglib.o \
 	read_vegparam.o redistribute_during_storm.o root_brent.o runoff.o \
+	StateIO.o StateIOASCII.o StateIOBinary.o StateIONetCDF.o \
 	set_output_defaults.o snow_intercept.o snow_melt.o \
 	snow_utility.o soil_conduction.o \
 	soil_thermal_eqn.o solve_snow.o store_moisture_for_debug.o \
