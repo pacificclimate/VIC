@@ -25,6 +25,8 @@ public:
    virtual int writeNewline();
    virtual int read(int* data, int numValues) = 0;
    virtual int read(double* data, int numValues) = 0;
+   virtual void flush() = 0;
+private:
    const ProgramState* state;
 };
 

@@ -34,4 +34,9 @@ int StateIONetCDF::read(double* data, int numValues) {
   return 0;
 }
 
+void StateIONetCDF::flush() {
+  //TODO: implement if applicable
+}
+
+
 

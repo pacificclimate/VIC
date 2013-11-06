@@ -62,4 +62,9 @@ int StateIOASCII::read(double* data, int numValues) {
   return 0;
 }
 
+void StateIOASCII::flush() {
+  fflush(file);
+}
+
+
 

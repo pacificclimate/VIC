@@ -1,12 +1,23 @@
 #!/bin/bash
 
 netCDF=false;
+stateOutputASCII=false
+stateOutputBinary=false
+stateOutputNetCDF=false
 
 for var in "$@"
 do
     if [ "$var" == "-netCDF" ]; then
         echo "netCDF option enabled";
         netCDF=true;
+    fi
+    if [ "$var" == "-stateOutputASCII" ]; then
+        echo "state output ASCII enabled";
+        stateOutputASCII=true;
+    fi
+    if [ "$var" == "-stateOutputBinary" ]; then
+        echo "state output Binary enabled";
+        stateOutputBinary=true;
     fi
 done
 
@@ -34,6 +45,16 @@ if $netCDF ; then
     perl -pi.bak -e 's/OUTPUT_FORMAT.*$/OUTPUT_FORMAT\tNETCDF/g' $globalOptionsFile
 else
     perl -pi.bak -e 's/OUTPUT_FORMAT.*$/OUTPUT_FORMAT\tASCII/g' $globalOptionsFile
+fi
+
+if $stateOutputASCII ; then
+    perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tASCII/g' $globalOptionsFile
+else if $stateOutputBinary ; then
+    perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tBINARY/g' $globalOptionsFile
+else 
+    perl -pi.bak -e 's/.*STATENAME.*$/#STATENAME\tfrs.state/g' $globalOptionsFile
 fi
 
 #Make the program
@@ -68,6 +89,12 @@ else
     pushd out/$outputName > /dev/null
     echo $(md5sum -c ../4.1.2_pristine_forcings_v2_1950-2006.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../4.1.2_pristine_forcings_v2_1950-2006.md5 | wc -l) files compare OK
     popd > /dev/null
+fi
+
+if $stateOutputASCII ; then
+    $(md5sum frs.state_19951231 stateASCIIOutput)
+else if $stateOutputBinary ; then
+    $(md5sum frs.state_19951231 stateBinaryOutput)
 fi
 
 echo "Finished."

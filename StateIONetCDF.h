@@ -12,6 +12,7 @@ public:
   int write(const char* data, int numValues, const StateVariableMetaData* meta);
   int read(int* data, int numValues);
   int read(double* data, int numValues);
+  void flush();
 };
 
 #endif /* STATEIONETCDF_H_ */

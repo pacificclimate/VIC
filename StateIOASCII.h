@@ -13,6 +13,7 @@ public:
   int writeNewline();
   int read(int* data, int numValues);
   int read(double* data, int numValues);
+  void flush();
 private:
   FILE* file;
   bool firstValueOnLine;
