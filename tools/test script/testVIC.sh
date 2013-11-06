@@ -50,7 +50,7 @@ fi
 if $stateOutputASCII ; then
     perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
     perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tASCII/g' $globalOptionsFile
-else if $stateOutputBinary ; then
+elif $stateOutputBinary ; then
     perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
     perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tBINARY/g' $globalOptionsFile
 else 
@@ -92,9 +92,9 @@ else
 fi
 
 if $stateOutputASCII ; then
-    $(md5sum frs.state_19951231 stateASCIIOutput)
-else if $stateOutputBinary ; then
-    $(md5sum frs.state_19951231 stateBinaryOutput)
+    md5sum frs.state_19951231 stateASCIIOutput
+elif $stateOutputBinary ; then
+    md5sum frs.state_19951231 stateBinaryOutput
 fi
 
 echo "Finished."

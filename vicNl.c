@@ -489,14 +489,13 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
     free_dist_prcp(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].veg_con[0].vegetat_type_num);
     free_vegcon(&cell_data_structs[cellidx].veg_con);
-    free((char *) cell_data_structs[cellidx].soil_con.AreaFract);
-    free((char *) cell_data_structs[cellidx].soil_con.BandElev);
-    free((char *) cell_data_structs[cellidx].soil_con.Tfactor);
-    free((char *) cell_data_structs[cellidx].soil_con.Pfactor);
-    free((char *) cell_data_structs[cellidx].soil_con.AboveTreeLine);
-
-    /*      free((char*)init_STILL_STORM);
-     free((char*)init_DRY_TIME); */
+    free(cell_data_structs[cellidx].soil_con.AreaFract);
+    free(cell_data_structs[cellidx].soil_con.BandElev);
+    free(cell_data_structs[cellidx].soil_con.Tfactor);
+    free(cell_data_structs[cellidx].soil_con.Pfactor);
+    free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
+    free(cell_data_structs[cellidx].init_STILL_STORM);
+    free(cell_data_structs[cellidx].init_DRY_TIME);
   } /* End Grid Loop */
 
 }

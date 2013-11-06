@@ -147,7 +147,7 @@ int initialize_model_state(cell_info_struct* cell,
   if ( surf_temp < -1. ) surf_temp = -1.;
   
   // initialize storm parameters to start a new simulation
-  cell->init_STILL_STORM = (char *)malloc((Nveg+1)*sizeof(char));
+  cell->init_STILL_STORM = (char *)calloc((Nveg+1),sizeof(char)); // Sets all elements to zero (FALSE)
   cell->init_DRY_TIME    = (int *)malloc((Nveg+1)*sizeof(int));
   for (int veg = 0; veg <= Nveg; veg++)
     cell->init_DRY_TIME[veg] = INVALID_INT;

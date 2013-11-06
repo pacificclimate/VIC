@@ -510,20 +510,20 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         outputStateTypeSet = true;
         sscanf(cmdstr, "%*s %s", flgstr);
         if (strcasecmp("BINARY", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
+          options.STATE_FORMAT = StateOutputFormat::BINARY_STATEFILE;
         } else if (strcasecmp("ASCII", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
         } else if (strcasecmp("NETCDF", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
+          options.STATE_FORMAT = StateOutputFormat::NETCDF_STATEFILE;
 #if !NETCDF_OUTPUT_AVAILABLE
-          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the OUTPUT_FORMAT type (in the global input file) to BINARY or ASCII");
+          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the STATE_FORMAT type (in the global input file) to BINARY or ASCII");
 #endif
         } else {
           fprintf(stderr,
-              "Warning, input for option OUTPUT_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
+              "Warning, input for option STATE_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
               optstr);
-          fprintf(stderr, "OUTPUT_FORMAT will default to ASCII\n");
-          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
+          fprintf(stderr, "STATE_FORMAT will default to ASCII\n");
+          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
         }
 
 
