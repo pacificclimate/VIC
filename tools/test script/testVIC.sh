@@ -5,6 +5,10 @@ stateOutputASCII=false
 stateOutputBinary=false
 stateOutputNetCDF=false
 
+stateInputASCII=false
+stateInputBinary=false
+stateInputNetCDF=false
+
 for var in "$@"
 do
     if [ "$var" == "-netCDF" ]; then
@@ -18,6 +22,14 @@ do
     if [ "$var" == "-stateOutputBinary" ]; then
         echo "state output Binary enabled";
         stateOutputBinary=true;
+    fi
+    if [ "$var" == "-stateInputBinary" ]; then
+        echo "state input Binary enabled";
+        stateInputBinary=true;
+    fi
+    if [ "$var" == "-stateInputASCII" ]; then
+        echo "state input ASCII enabled";
+        stateInputASCII=true;
     fi
 done
 
@@ -55,6 +67,16 @@ elif $stateOutputBinary ; then
     perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tBINARY/g' $globalOptionsFile
 else 
     perl -pi.bak -e 's/.*STATENAME.*$/#STATENAME\tfrs.state/g' $globalOptionsFile
+fi
+
+if $stateInputASCII ; then
+    perl -pi.bak -e 's/.*INIT_STATE.*$/INIT_STATE\tstateASCIIOutput/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tASCII/g' $globalOptionsFile
+elif $stateInputBinary ; then
+    perl -pi.bak -e 's/.*INIT_STATE.*$/INIT_STATE\tstateBinaryOutput/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tBINARY/g' $globalOptionsFile
+else 
+    perl -pi.bak -e 's/.*INIT_STATE.*$/#INIT_STATE\tinputState/g' $globalOptionsFile
 fi
 
 #Make the program
@@ -97,4 +119,15 @@ elif $stateOutputBinary ; then
     md5sum frs.state_19951231 stateBinaryOutput
 fi
 
+if $stateInputASCII ; then
+    pushd out/$outputName > /dev/null
+    md5sum -c ../../correctResults/stateInputFluxesOutputASCII/checksum
+    popd > /dev/null
+elif $stateInputBinary ; then
+    pushd out/$outputName > /dev/null
+    md5sum -c ../../correctResults/stateInputFluxesOutputBinary/checksum
+    popd > /dev/null
+fi
+
 echo "Finished."
+
