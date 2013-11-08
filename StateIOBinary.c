@@ -2,10 +2,31 @@
 
 #include <cstdio>
 
+#include "vicNl.h"
+
 StateIOBinary::StateIOBinary(FILE* file, const ProgramState* state) : StateIO(state), file(file) {
 }
 
 StateIOBinary::~StateIOBinary() {
+}
+
+void StateIOBinary::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
+  /* open state file */
+    file = open_file(filename,"wb");
+
+    // The write functions are not used here because the automatic NBytes field is not applicable for the file header.
+
+    /* Write save state date information */
+    fwrite(&state->global_param.stateyear, sizeof(int), 1, file);
+    fwrite(&state->global_param.statemonth, sizeof(int), 1, file);
+    fwrite(&state->global_param.stateday, sizeof(int), 1, file);
+
+    /* Write simulation flags */
+    fwrite(&state->options.Nlayer, sizeof(int), 1, file);
+    fwrite(&state->options.Nnode, sizeof(int), 1, file);
+
+    fflush(file);
+    (*f) = file;
 }
 
 int StateIOBinary::write(const int* data, int numValues, const StateVariableMetaData* meta) {
@@ -50,7 +71,7 @@ void StateIOBinary::flush() {
   int headerLength = 3 * sizeof(int); // Three integers at the beginning of the line are not counted.
   int numBytes = (dataToWrite.size() - headerLength);
   dataToWrite.insert(headerLength, (const char *)&numBytes, sizeof(int));
-  fputs(dataToWrite.c_str(),file);
+  fwrite(dataToWrite.c_str(), sizeof(char), dataToWrite.size() ,file);
   fflush(file);
   dataToWrite = "";
 }

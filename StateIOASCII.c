@@ -2,6 +2,8 @@
 
 #include <cstdio>
 
+#include "vicNl.h"
+
 StateIOASCII::StateIOASCII(FILE* file, const ProgramState* state) :  StateIO(state), file(file), firstValueOnLine(true) {
   // TODO Auto-generated constructor stub
 
@@ -9,6 +11,22 @@ StateIOASCII::StateIOASCII(FILE* file, const ProgramState* state) :  StateIO(sta
 
 StateIOASCII::~StateIOASCII() {
   // TODO Auto-generated destructor stub
+}
+
+void StateIOASCII::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
+  // Open state file.
+  file = open_file(filename,"w");
+  fprintf(stderr, "ASCII initializeOutput: f is now %s\n", f == NULL ? "NULL" : "Not NULLL");
+  /* Write save state date information */
+  write(&state->global_param.stateyear, 1, NULL);
+  write(&state->global_param.statemonth, 1, NULL);
+  write(&state->global_param.stateday, 1, NULL);
+  writeNewline();
+  /* Write simulation flags */
+  write(&state->options.Nlayer, 1, NULL);
+  write(&state->options.Nnode, 1, NULL);
+  writeNewline();
+  (*f) = file;
 }
 
 int StateIOASCII::write(const int* data, int numValues, const StateVariableMetaData* meta) {

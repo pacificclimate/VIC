@@ -9,6 +9,17 @@
 
 static char vcid[] = "$Id$";
 
+StateIO* getStateIO(FILE* f, const ProgramState* state) {
+  StateIO* io = NULL;
+  if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
+    io = new StateIOBinary(f, state);
+  } else if (state->options.STATE_FORMAT == StateOutputFormat::NETCDF_STATEFILE) {
+    io = new StateIONetCDF(state);
+  } else {
+    io = new StateIOASCII(f, state);
+  }
+  return io;
+}
 
 void write_model_state(dist_prcp_struct    *prcp,
 		       int                  Nveg,
@@ -90,14 +101,7 @@ void write_model_state(dist_prcp_struct    *prcp,
     Ndist = 1;
   Nbands = state->options.SNOW_BAND;
 
-  StateIO* writer = NULL;
-  if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
-    writer = new StateIOBinary(filep->statefile, state);
-  } else if (state->options.STATE_FORMAT == StateOutputFormat::NETCDF_STATEFILE) {
-    writer = new StateIONetCDF(state);
-  } else {
-    writer = new StateIOASCII(filep->statefile, state);
-  }
+  StateIO* writer = getStateIO(filep->statefile, state);
 
   /* write cell information */
   writer->write(&cellnum, 1, NULL);
@@ -267,5 +271,7 @@ void write_model_state(dist_prcp_struct    *prcp,
   }
   /* Force file to be written */
   writer->flush();
+
+  delete writer;
 }
 

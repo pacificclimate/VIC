@@ -502,7 +502,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
               "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
         }
         outputStateTypeSet = true;
-      } else if (strcasecmp("STATE_OUTPUT_FORMAT", optstr) == 0) {
+      } else if (strcasecmp("STATE_FORMAT", optstr) == 0) {
         if (outputStateTypeSet) {
           throw VICException(
               "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");

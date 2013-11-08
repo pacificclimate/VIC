@@ -49,10 +49,10 @@ fi
 
 if $stateOutputASCII ; then
     perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
-    perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tASCII/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tASCII/g' $globalOptionsFile
 elif $stateOutputBinary ; then
     perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
-    perl -pi.bak -e 's/.*STATE_OUTPUT_FORMAT.*$/STATE_OUTPUT_FORMAT\tBINARY/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tBINARY/g' $globalOptionsFile
 else 
     perl -pi.bak -e 's/.*STATENAME.*$/#STATENAME\tfrs.state/g' $globalOptionsFile
 fi

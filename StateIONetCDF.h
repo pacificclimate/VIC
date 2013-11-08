@@ -7,6 +7,7 @@ class StateIONetCDF: public StateIO {
 public:
   StateIONetCDF(const ProgramState* state);
   virtual ~StateIONetCDF();
+  void initializeOutput(FILE** f, const char* filename, const ProgramState* state);
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);

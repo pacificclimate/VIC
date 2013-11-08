@@ -7,6 +7,7 @@ class StateIOASCII: public StateIO {
 public:
   StateIOASCII(FILE* file, const ProgramState* state);
   virtual ~StateIOASCII();
+  void initializeOutput(FILE** f, const char* filename, const ProgramState* state);
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);

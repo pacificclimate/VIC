@@ -19,15 +19,16 @@ class StateIO {
 public:
   StateIO(const ProgramState* state);
   virtual ~StateIO();
-   virtual int write(const int* data, int numValues, const StateVariableMetaData* meta) = 0;
-   virtual int write(const double* data, int numValues, const StateVariableMetaData* meta) = 0;
-   virtual int write(const char* data, int numValues, const StateVariableMetaData* meta) = 0;
-   virtual int writeNewline();
-   virtual int read(int* data, int numValues) = 0;
-   virtual int read(double* data, int numValues) = 0;
-   virtual void flush() = 0;
+  virtual void initializeOutput(FILE** f, const char* filename, const ProgramState* state) = 0;
+  virtual int write(const int* data, int numValues, const StateVariableMetaData* meta) = 0;
+  virtual int write(const double* data, int numValues, const StateVariableMetaData* meta) = 0;
+  virtual int write(const char* data, int numValues, const StateVariableMetaData* meta) = 0;
+  virtual int writeNewline();
+  virtual int read(int* data, int numValues) = 0;
+  virtual int read(double* data, int numValues) = 0;
+  virtual void flush() = 0;
 private:
-   const ProgramState* state;
+  const ProgramState* state;
 };
 
 #endif /* STATEIO_H_ */

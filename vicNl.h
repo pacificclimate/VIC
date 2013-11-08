@@ -114,6 +114,7 @@
 #include "IceEnergyBalance.h"
 #include "canopy_energy_bal.h"
 #include "SnowPackEnergyBalance.h"
+#include "StateIO.h"
 #include "WriteOutputContext.h"
 
 /*** SubRoutine Prototypes ***/
@@ -359,7 +360,7 @@ double new_snow_density(double, const ProgramState*);
 void   nrerror(const char *);
 
 FILE  *open_file(const char *string, const char *type);
-FILE  *open_state_file(global_param_struct *, filenames_struct, int, int, StateOutputFormat::Type);
+FILE  *open_state_file(filenames_struct, const ProgramState*);
 
 void parse_output_info(const char*, out_data_file_struct *, out_data_struct *, ProgramState*);
 double penman(double, double, double, double, double, double, double);
@@ -475,6 +476,7 @@ void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
 void write_forcing_file(atmos_data_struct *, int, WriteOutputFormat *, out_data_struct *, const ProgramState*);
 void write_layer(layer_data_struct *, int, int, const double*);
+StateIO* getStateIO(FILE* f, const ProgramState* state);
 void write_model_state(dist_prcp_struct *, int, int, filep_struct *,
       soil_con_struct *, char *, int *, lake_con_struct, const ProgramState*);
 void write_snow_data(snow_data_struct, int, int);

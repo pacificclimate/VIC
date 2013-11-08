@@ -9,6 +9,10 @@ StateIONetCDF::~StateIONetCDF() {
   // TODO Auto-generated destructor stub
 }
 
+void StateIONetCDF::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
+  //TODO: initialize global attributes, setup variable dimensions and structure.
+}
+
 int StateIONetCDF::write(const int* data, int numValues,
     const StateVariableMetaData* meta) {
   return 0;

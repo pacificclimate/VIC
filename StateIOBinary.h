@@ -7,6 +7,7 @@ class StateIOBinary: public StateIO {
 public:
   StateIOBinary(FILE* file, const ProgramState* state);
   virtual ~StateIOBinary();
+  void initializeOutput(FILE** f, const char* filename, const ProgramState* state);
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);

@@ -1,16 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "vicNl.h"
 
 static char vcid[] = "$Id$";
 
+#include <string.h>
 
-FILE *open_state_file(global_param_struct *global,
-		      filenames_struct     filenames,
-		      int                  Nlayer,
-		      int                  Nnodes,
-		      StateOutputFormat::Type stateFormat)
+
+FILE *open_state_file(filenames_struct filenames, const ProgramState* state)
 /*********************************************************************
   open_state_file      Keith Cherkauer           April 15, 2000
 
@@ -28,38 +23,12 @@ FILE *open_state_file(global_param_struct *global,
 
 *********************************************************************/
 {
-  FILE   *statefile;
-  char    filename[MAXSTRING];
-  double  Nsum;
+  FILE* statefile = NULL;
 
-  /* open state file */
-  sprintf(filename,"%s", filenames.statefile);
-  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE )
-    statefile = open_file(filename,"wb");
-  else
-    statefile = open_file(filename,"w");
+  StateIO* outputState = getStateIO(NULL, state);
+  outputState->initializeOutput(&statefile, filenames.statefile, state);
 
-  /* Write save state date information */
-  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE ) {
-    fwrite( &global->stateyear, sizeof(int), 1, statefile );
-    fwrite( &global->statemonth, sizeof(int), 1, statefile );
-    fwrite( &global->stateday, sizeof(int), 1, statefile );
-  }
-  else {
-    fprintf(statefile,"%i %i %i\n", global->stateyear, 
-	    global->statemonth, global->stateday);
-  }
-
-  /* Write simulation flags */
-  if ( stateFormat == StateOutputFormat::BINARY_STATEFILE ) {
-    fwrite( &Nlayer, sizeof(int), 1, statefile );
-    fwrite( &Nnodes, sizeof(int), 1, statefile );
-  }
-  else {
-    fprintf(statefile,"%i %i\n", Nlayer, Nnodes);
-  }
-
-  return(statefile);
-
+  delete outputState;
+  return statefile;
 }
 
