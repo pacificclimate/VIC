@@ -240,96 +240,95 @@ int initialize_model_state(cell_info_struct* cell,
     provided
   ************************************************************************/
 
-  if(state->options.INIT_STATE) {
+  if (state->options.INIT_STATE) {
 
 #if EXCESS_ICE
 #error // EXCESS_ICE is an untested code path. Continue at your own risk!
     sum_mindepth = 0;
     sum_depth_pre = 0;
-    for( lidx = 0; lidx < state->options.Nlayer; lidx++ ){
+    for( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
       tmp_mindepth = (float)(int)(cell->soil_con.min_depth[lidx] * 1000 + 0.5) / 1000;
       sum_mindepth += tmp_mindepth;
       sum_depth_pre += cell->soil_con.depth[lidx];
     }
 #endif
 
-    read_initial_model_state(filep.init_state, &cell->prcp,
-			     Nveg, state->options.SNOW_BAND, cell->soil_con.gridcel, &cell->soil_con,
-			     Ndist, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con, state);
-
-
+    read_initial_model_state(filep.init_state, &cell->prcp, Nveg,
+        state->options.SNOW_BAND, cell->soil_con.gridcel, &cell->soil_con,
+        Ndist, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con,
+        state);
 
 #if EXCESS_ICE
     // calculate dynamic soil and veg properties if excess_ice is present
     sum_depth_post = 0;
     for( lidx = 0; lidx < state->options.Nlayer; lidx++ )
-      sum_depth_post += cell->soil_con.depth[lidx];
+    sum_depth_post += cell->soil_con.depth[lidx];
     if( sum_depth_post != sum_depth_pre) {
       /*update soil_con properties*/
       for( lidx = 0; lidx < state->options.Nlayer; lidx++ ) {
         cell->soil_con.bulk_dens_min[lidx] *= (1.0-cell->soil_con.effective_porosity[lidx])*cell->soil_con.soil_density[lidx]/cell->soil_con.bulk_density[lidx];
         if (cell->soil_con.organic[lidx] > 0)
-          cell->soil_con.bulk_dens_org[lidx] *= (1.0-cell->soil_con.effective_porosity[lidx])*cell->soil_con.soil_density[lidx]/cell->soil_con.bulk_density[lidx];
-	cell->soil_con.bulk_density[lidx] = (1.0-cell->soil_con.effective_porosity[lidx])*cell->soil_con.soil_density[lidx];
-	cell->soil_con.max_moist[lidx] = cell->soil_con.depth[lidx] * cell->soil_con.effective_porosity[lidx] * 1000.;
+        cell->soil_con.bulk_dens_org[lidx] *= (1.0-cell->soil_con.effective_porosity[lidx])*cell->soil_con.soil_density[lidx]/cell->soil_con.bulk_density[lidx];
+        cell->soil_con.bulk_density[lidx] = (1.0-cell->soil_con.effective_porosity[lidx])*cell->soil_con.soil_density[lidx];
+        cell->soil_con.max_moist[lidx] = cell->soil_con.depth[lidx] * cell->soil_con.effective_porosity[lidx] * 1000.;
       } //loop for each soil layer      
-      
+
       /********update remaining soil_con properties**********/
       /* update Maximum Infiltration for Upper Layers */
       if(state->options.Nlayer==2)
-	cell->soil_con.max_infil = (1.0+cell->soil_con.b_infilt)*cell->soil_con.max_moist[0];
+      cell->soil_con.max_infil = (1.0+cell->soil_con.b_infilt)*cell->soil_con.max_moist[0];
       else
-	cell->soil_con.max_infil = (1.0+cell->soil_con.b_infilt)*(cell->soil_con.max_moist[0]+cell->soil_con.max_moist[1]);
-      
+      cell->soil_con.max_infil = (1.0+cell->soil_con.b_infilt)*(cell->soil_con.max_moist[0]+cell->soil_con.max_moist[1]);
+
       /* Soil Layer Critical and Wilting Point Moisture Contents */
-      for(lidx=0;lidx<state->options.Nlayer;lidx++) {//soil layer
-	cell->soil_con.Wcr[lidx]  = cell->soil_con.Wcr_FRACT[lidx] * cell->soil_con.max_moist[lidx];
-	cell->soil_con.Wpwp[lidx] = cell->soil_con.Wpwp_FRACT[lidx] * cell->soil_con.max_moist[lidx];
-	if(cell->soil_con.Wpwp[lidx] > cell->soil_con.Wcr[lidx]) {
-	  sprintf(ErrStr,"Updated wilting point moisture (%f mm) is greater than updated critical point moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be <= Wcr_FRACT.\n",
-		  cell->soil_con.Wpwp[lidx], cell->soil_con.Wcr[lidx], lidx);
-	  nrerror(ErrStr);
-	}
-	if(cell->soil_con.Wpwp[lidx] < cell->soil_con.resid_moist[lidx] * cell->soil_con.depth[lidx] * 1000.) {
-	  sprintf(ErrStr,"Updated wilting point moisture (%f mm) is less than updated residual moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be >= resid_moist / (1.0 - bulk_density/soil_density).\n",
-		  cell->soil_con.Wpwp[lidx], cell->soil_con.resid_moist[lidx] * cell->soil_con.depth[lidx] * 1000., lidx);
-	  nrerror(ErrStr);
-	}
-      }      
-      
-      /* If BASEFLOW = NIJSSEN2001 then convert ARNO baseflow
-	 parameters d1, d2, d3, and d4 to Ds, Dsmax, Ws, and c */
-      if(state->options.BASEFLOW == NIJSSEN2001) {
-	lidx = state->options.Nlayer-1;
-	cell->soil_con.Dsmax = cell->soil_con.Dsmax_orig *
-	  pow((double)(1./(cell->soil_con.max_moist[lidx]-cell->soil_con.Ws_orig)), -cell->soil_con.c) +
-	  cell->soil_con.Ds_orig * cell->soil_con.max_moist[lidx];
-	cell->soil_con.Ds = cell->soil_con.Ds_orig * cell->soil_con.Ws_orig / cell->soil_con.Dsmax_orig;
-	cell->soil_con.Ws = cell->soil_con.Ws_orig/cell->soil_con.max_moist[lidx];
+      for(lidx=0;lidx<state->options.Nlayer;lidx++) { //soil layer
+        cell->soil_con.Wcr[lidx] = cell->soil_con.Wcr_FRACT[lidx] * cell->soil_con.max_moist[lidx];
+        cell->soil_con.Wpwp[lidx] = cell->soil_con.Wpwp_FRACT[lidx] * cell->soil_con.max_moist[lidx];
+        if(cell->soil_con.Wpwp[lidx] > cell->soil_con.Wcr[lidx]) {
+          sprintf(ErrStr,"Updated wilting point moisture (%f mm) is greater than updated critical point moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be <= Wcr_FRACT.\n",
+              cell->soil_con.Wpwp[lidx], cell->soil_con.Wcr[lidx], lidx);
+          nrerror(ErrStr);
+        }
+        if(cell->soil_con.Wpwp[lidx] < cell->soil_con.resid_moist[lidx] * cell->soil_con.depth[lidx] * 1000.) {
+          sprintf(ErrStr,"Updated wilting point moisture (%f mm) is less than updated residual moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be >= resid_moist / (1.0 - bulk_density/soil_density).\n",
+              cell->soil_con.Wpwp[lidx], cell->soil_con.resid_moist[lidx] * cell->soil_con.depth[lidx] * 1000., lidx);
+          nrerror(ErrStr);
+        }
       }
-      
+
+      /* If BASEFLOW = NIJSSEN2001 then convert ARNO baseflow
+       parameters d1, d2, d3, and d4 to Ds, Dsmax, Ws, and c */
+      if(state->options.BASEFLOW == NIJSSEN2001) {
+        lidx = state->options.Nlayer-1;
+        cell->soil_con.Dsmax = cell->soil_con.Dsmax_orig *
+        pow((double)(1./(cell->soil_con.max_moist[lidx]-cell->soil_con.Ws_orig)), -cell->soil_con.c) +
+        cell->soil_con.Ds_orig * cell->soil_con.max_moist[lidx];
+        cell->soil_con.Ds = cell->soil_con.Ds_orig * cell->soil_con.Ws_orig / cell->soil_con.Dsmax_orig;
+        cell->soil_con.Ws = cell->soil_con.Ws_orig/cell->soil_con.max_moist[lidx];
+      }
+
       /*********** update root fractions ***************/
       calc_root_fractions(cell->veg_con, soil_con);
-      
+
 #if VERBOSE
       /* write changes to screen */
       fprintf(stderr,"Soil properties initialized from state file:\n");
-      for(lidx=0;lidx<state->options.Nlayer;lidx++) {//soil layer
-	fprintf(stderr,"\tFor layer %d:\n",lidx+1);
-	fprintf(stderr,"\t\tDepth of soil layer = %.2f m.\n",cell->soil_con.depth[lidx]);
-	fprintf(stderr,"\t\tEffective porosity = %.2f.\n",cell->soil_con.effective_porosity[lidx]);
-	fprintf(stderr,"\t\tBulk density = %.2f kg/m^3.\n",cell->soil_con.bulk_density[lidx]);
+      for(lidx=0;lidx<state->options.Nlayer;lidx++) { //soil layer
+        fprintf(stderr,"\tFor layer %d:\n",lidx+1);
+        fprintf(stderr,"\t\tDepth of soil layer = %.2f m.\n",cell->soil_con.depth[lidx]);
+        fprintf(stderr,"\t\tEffective porosity = %.2f.\n",cell->soil_con.effective_porosity[lidx]);
+        fprintf(stderr,"\t\tBulk density = %.2f kg/m^3.\n",cell->soil_con.bulk_density[lidx]);
       }
       fprintf(stderr,"\tDamping depth = %.2f m.\n",cell->soil_con.dp);
       if(sum_depth_post == sum_mindepth)
-	fprintf(stderr,"\tExcess ice is no longer present in the soil column.\n");
+      fprintf(stderr,"\tExcess ice is no longer present in the soil column.\n");
 #endif //VERBOSE
-
-    }//updated initial conditions due to state file
+    } //updated initial conditions due to state file
 #endif //EXCESS_ICE
 
     /******Check that soil moisture does not exceed maximum allowed************/
-    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin();
+        it != cell->prcp.hruList.end(); ++it) {
 
       for (int dist = 0; dist < Ndist; dist++) {
         hru_data_struct& cellRef = it->cell[dist];
@@ -338,8 +337,8 @@ int initialize_model_state(cell_info_struct* cell,
           if (cellRef.layer[lidx].moist > cell->soil_con.max_moist[lidx]) {
             fprintf(stderr,
                 "WARNING: Initial soil moisture (%f mm) exceeds maximum (%f mm) in layer %d for veg tile %d and snow band%d.  Resetting to maximum.\n",
-                cellRef.layer[lidx].moist,
-                cell->soil_con.max_moist[lidx], lidx, it->vegIndex, it->bandIndex);
+                cellRef.layer[lidx].moist, cell->soil_con.max_moist[lidx], lidx,
+                it->vegIndex, it->bandIndex);
 #if SPATIAL_FROST
             for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++)
             cellRef.layer[lidx].soil_ice[frost_area] *= cell->soil_con.max_moist[lidx]/cellRef.layer[lidx].moist;
@@ -368,15 +367,18 @@ int initialize_model_state(cell_info_struct* cell,
       // (ideally we wouldn't store these in the state file in the first place)
       if (state->options.LAKES && it->vegIndex == cell->lake_con.lake_idx) {
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          cell->prcp.lake_var.soil.layer[lidx].moist = cell->soil_con.max_moist[lidx];
+          cell->prcp.lake_var.soil.layer[lidx].moist =
+              cell->soil_con.max_moist[lidx];
 #if SPATIAL_FROST
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++) {
             if (cell->prcp.lake_var->soil.layer[lidx].soil_ice[frost_area] > cell->prcp.lake_var->soil.layer[lidx].moist)
             cell->prcp.lake_var->soil.layer[lidx].soil_ice[frost_area] = cell->prcp.lake_var->soil.layer[lidx].moist;
           }
 #else
-          if (cell->prcp.lake_var.soil.layer[lidx].soil_ice > cell->prcp.lake_var.soil.layer[lidx].moist)
-            cell->prcp.lake_var.soil.layer[lidx].soil_ice = cell->prcp.lake_var.soil.layer[lidx].moist;
+          if (cell->prcp.lake_var.soil.layer[lidx].soil_ice
+              > cell->prcp.lake_var.soil.layer[lidx].moist)
+            cell->prcp.lake_var.soil.layer[lidx].soil_ice =
+                cell->prcp.lake_var.soil.layer[lidx].moist;
 #endif
         }
       }
@@ -730,6 +732,7 @@ int initialize_model_state(cell_info_struct* cell,
     }
   }
 
+  //TODO: TreeAdjustFactor is a local variable that is not used anywhere... why do we need to compute this at all?
   // Compute treeline adjustment factors
   for (int band = 0; band < state->options.SNOW_BAND; band++ ) {
     if ( cell->soil_con.AboveTreeLine[band] ) {
