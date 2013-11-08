@@ -4,29 +4,33 @@
 
 #include "vicNl.h"
 
-StateIOBinary::StateIOBinary(FILE* file, const ProgramState* state) : StateIO(state), file(file) {
+StateIOBinary::StateIOBinary(std::string filename, const ProgramState* state) : StateIO(filename, state) {
+  file = open_file(filename.c_str(), "ab");
 }
 
 StateIOBinary::~StateIOBinary() {
+  if (file != NULL) {
+    fclose(file);
+  }
 }
 
-void StateIOBinary::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
-  /* open state file */
-    file = open_file(filename,"wb");
+void StateIOBinary::initializeOutput() {
+  // Wipe out any existing file of the same name if it exists.
+  fclose(file);
+  file = open_file(filename.c_str(), "wb");
 
-    // The write functions are not used here because the automatic NBytes field is not applicable for the file header.
+  // The write functions are not used here because the automatic NBytes field is not applicable for the file header.
 
-    /* Write save state date information */
-    fwrite(&state->global_param.stateyear, sizeof(int), 1, file);
-    fwrite(&state->global_param.statemonth, sizeof(int), 1, file);
-    fwrite(&state->global_param.stateday, sizeof(int), 1, file);
+  /* Write save state date information */
+  fwrite(&state->global_param.stateyear, sizeof(int), 1, file);
+  fwrite(&state->global_param.statemonth, sizeof(int), 1, file);
+  fwrite(&state->global_param.stateday, sizeof(int), 1, file);
 
-    /* Write simulation flags */
-    fwrite(&state->options.Nlayer, sizeof(int), 1, file);
-    fwrite(&state->options.Nnode, sizeof(int), 1, file);
+  /* Write simulation flags */
+  fwrite(&state->options.Nlayer, sizeof(int), 1, file);
+  fwrite(&state->options.Nnode, sizeof(int), 1, file);
 
-    fflush(file);
-    (*f) = file;
+  fflush(file);
 }
 
 int StateIOBinary::write(const int* data, int numValues, const StateVariableMetaData* meta) {

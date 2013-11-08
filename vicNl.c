@@ -3,6 +3,7 @@
 #include <string.h>
 #include "vicNl.h"
 #include "global.h"
+#include "StateIOContext.h"
 #include <assert.h>
 #include <omp.h>
 #include <unistd.h>
@@ -144,10 +145,10 @@ int main(int argc, char *argv[])
   if (state.options.INIT_STATE)
     filep.init_state = check_state_file(filenames.init_state, &state);
   /** open state file if model state is to be saved **/
-  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
-    filep.statefile = open_state_file(filenames, &state);
-  else
-    filep.statefile = NULL;
+  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0) {
+    StateIOContext context(filenames.statefile, &state);
+    context.stream->initializeOutput();
+  }
 #endif // !OUTPUT_FORCE
 
   std::vector<cell_info_struct> cell_data_structs;
@@ -174,8 +175,6 @@ int main(int argc, char *argv[])
     fclose(filep.lakeparam);
   if (state.options.INIT_STATE)
     fclose(filep.init_state);
-  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0)
-    fclose(filep.statefile);
 
 #endif /* !OUTPUT_FORCE */
 
@@ -443,6 +442,19 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
           outputFormat, current_output_data, rec, NEWCELL, state);
+
+      /************************************
+       Save model state at assigned date
+       (after the final time step of the assigned date)
+       ************************************/
+      if (state->options.SAVE_STATE == TRUE
+          && (dmy[rec].year == state->global_param.stateyear
+              && dmy[rec].month == state->global_param.statemonth
+              && dmy[rec].day == state->global_param.stateday
+              && (rec + 1 == state->global_param.nrecs
+                  || dmy[rec + 1].day != state->global_param.stateday))) {
+        write_model_state(&cell_data_structs[cellidx], filenames.statefile, state);
+      }
 
       if (ErrorFlag == ERROR) {
         if (state->options.CONTINUEONERROR == TRUE) {

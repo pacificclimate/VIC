@@ -1,13 +1,15 @@
 #ifndef STATEIOBINARY_H_
 #define STATEIOBINARY_H_
 
+#include <string>
+
 #include "StateIO.h"
 
 class StateIOBinary: public StateIO {
 public:
-  StateIOBinary(FILE* file, const ProgramState* state);
+  StateIOBinary(std::string filename, const ProgramState* state);
   virtual ~StateIOBinary();
-  void initializeOutput(FILE** f, const char* filename, const ProgramState* state);
+  void initializeOutput();
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);

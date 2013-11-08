@@ -1,13 +1,15 @@
 #ifndef STATEIOASCII_H_
 #define STATEIOASCII_H_
 
+#include <string>
+
 #include "StateIO.h"
 
 class StateIOASCII: public StateIO {
 public:
-  StateIOASCII(FILE* file, const ProgramState* state);
+  StateIOASCII(std::string filename, const ProgramState* state);
   virtual ~StateIOASCII();
-  void initializeOutput(FILE** f, const char* filename, const ProgramState* state);
+  void initializeOutput();
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);

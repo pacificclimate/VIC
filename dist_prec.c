@@ -182,20 +182,6 @@ int  dist_prec(cell_info_struct* cell,
   if (ErrorFlag2 == ERROR)
     ErrorFlag = ERROR;
 
-  /************************************
-   Save model state at assigned date
-   (after the final time step of the assigned date)
-   ************************************/
-
-  if (filep->statefile != NULL
-      && (dmy[time_step_record].year == state->global_param.stateyear
-          && dmy[time_step_record].month == state->global_param.statemonth
-          && dmy[time_step_record].day == state->global_param.stateday
-          && (time_step_record + 1 == state->global_param.nrecs
-              || dmy[time_step_record + 1].day != state->global_param.stateday)))
-    write_model_state(&cell->prcp, cell->veg_con[0].vegetat_type_num,
-        cell->soil_con.gridcel, filep, &cell->soil_con, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con, state);
-
   return (ErrorFlag);
 
 }

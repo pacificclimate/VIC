@@ -17,9 +17,9 @@ public:
 
 class StateIO {
 public:
-  StateIO(const ProgramState* state);
+  StateIO(std::string filename, const ProgramState* state);
   virtual ~StateIO();
-  virtual void initializeOutput(FILE** f, const char* filename, const ProgramState* state) = 0;
+  virtual void initializeOutput() = 0;
   virtual int write(const int* data, int numValues, const StateVariableMetaData* meta) = 0;
   virtual int write(const double* data, int numValues, const StateVariableMetaData* meta) = 0;
   virtual int write(const char* data, int numValues, const StateVariableMetaData* meta) = 0;
@@ -27,7 +27,8 @@ public:
   virtual int read(int* data, int numValues) = 0;
   virtual int read(double* data, int numValues) = 0;
   virtual void flush() = 0;
-private:
+protected:
+  std::string filename;
   const ProgramState* state;
 };
 

@@ -4,19 +4,21 @@
 
 #include "vicNl.h"
 
-StateIOASCII::StateIOASCII(FILE* file, const ProgramState* state) :  StateIO(state), file(file), firstValueOnLine(true) {
-  // TODO Auto-generated constructor stub
-
+StateIOASCII::StateIOASCII(std::string filename, const ProgramState* state) :  StateIO(filename, state), firstValueOnLine(true) {
+  file = open_file(filename.c_str(), "a");
 }
 
 StateIOASCII::~StateIOASCII() {
-  // TODO Auto-generated destructor stub
+  if (file != NULL) {
+    fclose(file);
+  }
 }
 
-void StateIOASCII::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
-  // Open state file.
-  file = open_file(filename,"w");
-  fprintf(stderr, "ASCII initializeOutput: f is now %s\n", f == NULL ? "NULL" : "Not NULLL");
+void StateIOASCII::initializeOutput() {
+  // Wipe out any existing file of the same name if it exists.
+  fclose(file);
+  file = open_file(filename.c_str(), "w");
+
   /* Write save state date information */
   write(&state->global_param.stateyear, 1, NULL);
   write(&state->global_param.statemonth, 1, NULL);
@@ -26,7 +28,6 @@ void StateIOASCII::initializeOutput(FILE** f, const char* filename, const Progra
   write(&state->options.Nlayer, 1, NULL);
   write(&state->options.Nnode, 1, NULL);
   writeNewline();
-  (*f) = file;
 }
 
 int StateIOASCII::write(const int* data, int numValues, const StateVariableMetaData* meta) {

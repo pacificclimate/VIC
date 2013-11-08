@@ -548,7 +548,6 @@ typedef struct {
   FILE *lakeparam;      /* lake parameter file */
   FILE *snowband;       /* snow elevation band data file */
   FILE *soilparam;      /* soil parameters for all grid cells */
-  FILE *statefile;      /* output model state file */
   FILE *veglib;         /* vegetation parameters for all vege types */
   FILE *vegparam;       /* fractional coverage info for grid cell */
 } filep_struct;

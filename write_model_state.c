@@ -3,33 +3,11 @@
 #include <string.h>
 
 #include "vicNl.h"
-#include "StateIOASCII.h"
-#include "StateIOBinary.h"
-#include "StateIONetCDF.h"
+#include "StateIOContext.h"
 
 static char vcid[] = "$Id$";
 
-StateIO* getStateIO(FILE* f, const ProgramState* state) {
-  StateIO* io = NULL;
-  if (state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE) {
-    io = new StateIOBinary(f, state);
-  } else if (state->options.STATE_FORMAT == StateOutputFormat::NETCDF_STATEFILE) {
-    io = new StateIONetCDF(state);
-  } else {
-    io = new StateIOASCII(f, state);
-  }
-  return io;
-}
-
-void write_model_state(dist_prcp_struct    *prcp,
-		       int                  Nveg,
-		       int                  cellnum,
-		       filep_struct        *filep,
-		       soil_con_struct     *soil_con,
-		       char                *STILL_STORM,
-		       int                 *DRY_TIME,
-		       lake_con_struct      lake_con,
-		       const ProgramState  *state)
+void write_model_state(cell_info_struct* cell, const char* filename, const ProgramState  *state)
 /*********************************************************************
   write_model_state      Keith Cherkauer           April 14, 2000
 
@@ -101,45 +79,46 @@ void write_model_state(dist_prcp_struct    *prcp,
     Ndist = 1;
   Nbands = state->options.SNOW_BAND;
 
-  StateIO* writer = getStateIO(filep->statefile, state);
+  StateIOContext context(filename, state);
+  StateIO* writer = context.stream;
 
   /* write cell information */
-  writer->write(&cellnum, 1, NULL);
-  writer->write(&Nveg, 1, NULL);
+  writer->write(&cell->soil_con.gridcel, 1, NULL);
+  writer->write(&cell->veg_con[0].vegetat_type_num, 1, NULL);
   writer->write(&Nbands, 1, NULL);
   
   /* Write soil thermal node deltas */
-  writer->write(soil_con->dz_node, state->options.Nnode, NULL);
+  writer->write(cell->soil_con.dz_node, state->options.Nnode, NULL);
 
   /* Write soil thermal node depths */
-  writer->write(soil_con->Zsum_node, state->options.Nnode, NULL);
+  writer->write(cell->soil_con.Zsum_node, state->options.Nnode, NULL);
 
   writer->writeNewline();
   
   /* Write dynamic soil properties */
 #if EXCESS_ICE
   /* Write soil depth */
-  writer->write(soil_con->depth, state->options.Nlayer, NULL);
+  writer->write(cell->soil_con.depth, state->options.Nlayer, NULL);
   
   /* Write effective porosity */
-  writer->write(soil_con->effective_porosity, state->options.Nlayer, NULL);
+  writer->write(cell->soil_con.effective_porosity, state->options.Nlayer, NULL);
   
   /* Write damping depth */
-  writer->write(&soil_con->dp, 1, NULL);
+  writer->write(&cell->soil_con.dp, 1, NULL);
   writer->writeNewline();
 #endif
   
   /* Output for all vegetation types */
-  for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
     
     // Do the following only once per vegetation type
     if (it->bandIndex == 0) {
       // Store distributed precipitation fraction
-      writer->write(&prcp->mu[it->vegIndex], 1, NULL);
+      writer->write(&cell->prcp.mu[it->vegIndex], 1, NULL);
 
       // Store distributed precipitation variables
-      writer->write(&STILL_STORM[it->vegIndex], 1, NULL);
-      writer->write(&DRY_TIME[it->vegIndex], 1, NULL);
+      writer->write(&cell->init_STILL_STORM[it->vegIndex], 1, NULL);
+      writer->write(&cell->init_DRY_TIME[it->vegIndex], 1, NULL);
       writer->writeNewline();
     }
 
@@ -175,7 +154,7 @@ void write_model_state(dist_prcp_struct    *prcp,
       writer->write(&(avgIceContent[0]), avgIceContent.size(), NULL);
 
       /* Write dew storage */
-      if (it->vegIndex < Nveg) {
+      if (it->vegIndex < cell->veg_con[0].vegetat_type_num) {
         double tmpval = it->veg_var[dist].Wdew;
         writer->write(&tmpval, 1, NULL);
       }
@@ -207,7 +186,7 @@ void write_model_state(dist_prcp_struct    *prcp,
       /* Write total soil moisture */
       std::vector<double> moistValues;  // Convert to array for single write operation.
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-        moistValues.push_back(prcp->lake_var.soil.layer[lidx].moist);
+        moistValues.push_back(cell->prcp.lake_var.soil.layer[lidx].moist);
       }
       writer->write(&(moistValues[0]), moistValues.size(), NULL);
 
@@ -217,61 +196,59 @@ void write_model_state(dist_prcp_struct    *prcp,
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
         for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-          avgIceContent.push_back(prcp->lake_var.soil.layer[lidx].soil_ice[frost_area]);
+          avgIceContent.push_back(cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area]);
         }
 #else
-        avgIceContent.push_back(prcp->lake_var.soil.layer[lidx].soil_ice);
+        avgIceContent.push_back(cell->prcp.lake_var.soil.layer[lidx].soil_ice);
 #endif // SPATIAL_FROST
       }
       writer->write(&(avgIceContent[0]), avgIceContent.size(), NULL);
     }
 
     /* Write snow data */
-    writer->write(&prcp->lake_var.snow.last_snow,   1, NULL);
-    writer->write(&prcp->lake_var.snow.MELTING,     1, NULL);
-    writer->write(&prcp->lake_var.snow.coverage,    1, NULL);
-    writer->write(&prcp->lake_var.snow.swq,         1, NULL);
-    writer->write(&prcp->lake_var.snow.surf_temp,   1, NULL);
-    writer->write(&prcp->lake_var.snow.surf_water,  1, NULL);
-    writer->write(&prcp->lake_var.snow.pack_temp,   1, NULL);
-    writer->write(&prcp->lake_var.snow.pack_water,  1, NULL);
-    writer->write(&prcp->lake_var.snow.density,     1, NULL);
-    writer->write(&prcp->lake_var.snow.coldcontent, 1, NULL);
-    writer->write(&prcp->lake_var.snow.snow_canopy, 1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.last_snow,   1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.MELTING,     1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.coverage,    1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.swq,         1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.surf_temp,   1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.surf_water,  1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.pack_temp,   1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.pack_water,  1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.density,     1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.coldcontent, 1, NULL);
+    writer->write(&cell->prcp.lake_var.snow.snow_canopy, 1, NULL);
 
     /* Write soil thermal node temperatures */
-    writer->write(prcp->lake_var.energy.T, state->options.Nnode, NULL);
+    writer->write(cell->prcp.lake_var.energy.T, state->options.Nnode, NULL);
 
     /* Write lake-specific variables */
-    writer->write(&prcp->lake_var.activenod, 1, NULL);
-    writer->write(&prcp->lake_var.dz, 1, NULL);
-    writer->write(&prcp->lake_var.surfdz, 1, NULL);
-    writer->write(&prcp->lake_var.ldepth, 1, NULL);
-    writer->write(prcp->lake_var.surface, prcp->lake_var.activenod, NULL);
-    writer->write(&prcp->lake_var.sarea, 1, NULL);
-    writer->write(&prcp->lake_var.volume, 1, NULL);
-    writer->write(prcp->lake_var.temp, prcp->lake_var.activenod, NULL);
-    writer->write(&prcp->lake_var.tempavg, 1, NULL);
-    writer->write(&prcp->lake_var.areai, 1, NULL);
-    writer->write(&prcp->lake_var.new_ice_area, 1, NULL);
-    writer->write(&prcp->lake_var.ice_water_eq, 1, NULL);
-    writer->write(&prcp->lake_var.hice, 1, NULL);
-    writer->write(&prcp->lake_var.tempi, 1, NULL);
-    writer->write(&prcp->lake_var.swe, 1, NULL);
-    writer->write(&prcp->lake_var.surf_temp, 1, NULL);
-    writer->write(&prcp->lake_var.pack_temp, 1, NULL);
-    writer->write(&prcp->lake_var.coldcontent, 1, NULL);
-    writer->write(&prcp->lake_var.surf_water, 1, NULL);
-    writer->write(&prcp->lake_var.pack_water, 1, NULL);
-    writer->write(&prcp->lake_var.SAlbedo, 1, NULL);
-    writer->write(&prcp->lake_var.sdepth, 1, NULL);
+    writer->write(&cell->prcp.lake_var.activenod, 1, NULL);
+    writer->write(&cell->prcp.lake_var.dz, 1, NULL);
+    writer->write(&cell->prcp.lake_var.surfdz, 1, NULL);
+    writer->write(&cell->prcp.lake_var.ldepth, 1, NULL);
+    writer->write(cell->prcp.lake_var.surface, cell->prcp.lake_var.activenod, NULL);
+    writer->write(&cell->prcp.lake_var.sarea, 1, NULL);
+    writer->write(&cell->prcp.lake_var.volume, 1, NULL);
+    writer->write(cell->prcp.lake_var.temp, cell->prcp.lake_var.activenod, NULL);
+    writer->write(&cell->prcp.lake_var.tempavg, 1, NULL);
+    writer->write(&cell->prcp.lake_var.areai, 1, NULL);
+    writer->write(&cell->prcp.lake_var.new_ice_area, 1, NULL);
+    writer->write(&cell->prcp.lake_var.ice_water_eq, 1, NULL);
+    writer->write(&cell->prcp.lake_var.hice, 1, NULL);
+    writer->write(&cell->prcp.lake_var.tempi, 1, NULL);
+    writer->write(&cell->prcp.lake_var.swe, 1, NULL);
+    writer->write(&cell->prcp.lake_var.surf_temp, 1, NULL);
+    writer->write(&cell->prcp.lake_var.pack_temp, 1, NULL);
+    writer->write(&cell->prcp.lake_var.coldcontent, 1, NULL);
+    writer->write(&cell->prcp.lake_var.surf_water, 1, NULL);
+    writer->write(&cell->prcp.lake_var.pack_water, 1, NULL);
+    writer->write(&cell->prcp.lake_var.SAlbedo, 1, NULL);
+    writer->write(&cell->prcp.lake_var.sdepth, 1, NULL);
 
     writer->writeNewline();
 
   }
   /* Force file to be written */
   writer->flush();
-
-  delete writer;
 }
 

@@ -1,6 +1,6 @@
 #include "StateIONetCDF.h"
 
-StateIONetCDF::StateIONetCDF(const ProgramState* state) : StateIO(state) {
+StateIONetCDF::StateIONetCDF(std::string filename, const ProgramState* state) : StateIO(filename, state) {
   // TODO Auto-generated constructor stub
 
 }
@@ -9,7 +9,7 @@ StateIONetCDF::~StateIONetCDF() {
   // TODO Auto-generated destructor stub
 }
 
-void StateIONetCDF::initializeOutput(FILE** f, const char* filename, const ProgramState* state) {
+void StateIONetCDF::initializeOutput() {
   //TODO: initialize global attributes, setup variable dimensions and structure.
 }
 
