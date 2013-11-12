@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
   /** Initial state **/
 #if !OUTPUT_FORCE
   if (state.options.INIT_STATE)
-    filep.init_state = check_state_file(filenames.init_state, &state);
+    check_state_file(filenames.init_state, &state);
   /** open state file if model state is to be saved **/
   if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0) {
     StateIOContext context(filenames.statefile, StateIO::Writer, &state);
@@ -173,8 +173,6 @@ int main(int argc, char *argv[])
     fclose(filep.snowband);
   if (state.options.LAKES)
     fclose(filep.lakeparam);
-  if (state.options.INIT_STATE)
-    fclose(filep.init_state);
 
 #endif /* !OUTPUT_FORCE */
 

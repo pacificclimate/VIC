@@ -544,7 +544,6 @@ typedef struct {
   FILE *forcing[2];     /* atmospheric forcing data files */
   int forcing_ncid[2];
   FILE *globalparam;    /* global parameters file */
-  FILE *init_state;     /* initial model state file */
   FILE *lakeparam;      /* lake parameter file */
   FILE *snowband;       /* snow elevation band data file */
   FILE *soilparam;      /* soil parameters for all grid cells */

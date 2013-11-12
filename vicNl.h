@@ -189,7 +189,7 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
 
 void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, ProgramState *state);
 filep_struct   get_files(const filenames_struct *, ProgramState*);
-FILE  *check_state_file(char *, ProgramState*);
+void check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, filenames_struct *, bool, const ProgramState*);
 void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);
 void   collect_eb_terms(const energy_bal_struct&, const snow_data_struct&, const hru_data_struct&,

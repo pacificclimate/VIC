@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sstream>
+
 #include "vicNl.h"
+#include "StateIOContext.h"
 
 static char vcid[] = "$Id$";
 
-FILE *check_state_file(char *init_state_name, ProgramState *state)
+void check_state_file(char *init_state_name, ProgramState *state)
 /*********************************************************************
   check_state_file      Keith Cherkauer           April 17, 2000
 
@@ -29,47 +32,20 @@ FILE *check_state_file(char *init_state_name, ProgramState *state)
 
 *********************************************************************/
 {
-  FILE   *init_state;
-  char    filename[MAXSTRING];
-  char    ErrStr[MAXSTRING];
-  double  Nsum;
-  int     tmp_Nlayer;
-  int     tmp_Nnodes;
-  int     startday, startmonth, startyear;
 
-  /* open state file */
-  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE )
-    init_state = open_file(init_state_name,"rb");
-  else 
-    init_state = open_file(init_state_name,"r");
+  StateIOContext context(init_state_name, StateIO::Reader, state);
+  StateHeader header = context.stream->readHeader();
 
-  /* Check state date information */
-  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
-    fread( &startyear, sizeof(int), 1, init_state );
-    fread( &startmonth, sizeof(int), 1, init_state );
-    fread( &startday, sizeof(int), 1, init_state );
+  if ( header.nLayer != state->options.Nlayer ) {
+    std::stringstream ss;
+    ss << "The number of soil moisture layers in the model state file (" << header.nLayer << ")";
+    ss << "does not equal that defined in the global control file (" << state->options.Nlayer << ").  Check your input files.";
+    throw new VICException(ss.str());
   }
-  else {
-    fscanf(init_state,"%d %d %d\n", &startyear, &startmonth, &startday);
+  if ( header.nNode != state->options.Nnode ) {
+    std::stringstream ss;
+    ss << "The number of soil thermal nodes in the model state file (" << header.nNode << ")";
+    ss << "does not equal that defined in the global control file (" << state->options.Nnode << ").  Check your input files.";
+    throw new VICException(ss.str());
   }
-
-  /* Check simulation options */
-  if ( state->options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE ) {
-    fread( &tmp_Nlayer, sizeof(int), 1, init_state );
-    fread( &tmp_Nnodes, sizeof(int), 1, init_state );
-  }
-  else {
-    fscanf(init_state,"%d %d\n", &tmp_Nlayer, &tmp_Nnodes);
-  }
-  if ( tmp_Nlayer != state->options.Nlayer ) {
-    sprintf(ErrStr,"The number of soil moisture layers in the model state file (%d) does not equal that defined in the global control file (%d).  Check your input files.", tmp_Nlayer, state->options.Nlayer);
-    nrerror(ErrStr);
-  }
-  if ( tmp_Nnodes != state->options.Nnode ) {
-    sprintf(ErrStr,"The number of soil thermal nodes in the model state file (%d) does not equal that defined in the global control file (%d).  Check your input files.", tmp_Nnodes, state->options.Nnode);
-    nrerror(ErrStr);
-  }
-
-  return(init_state);
-
 }
