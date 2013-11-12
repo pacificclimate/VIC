@@ -9,6 +9,7 @@ int initialize_model_state(cell_info_struct* cell,
 			   dmy_struct           dmy,
 			   filep_struct         filep,
 			   int                  Ndist,
+			   const char*          initStateFilename,
 			   const ProgramState  *state)
 /**********************************************************************
   initialize_model_state      Keith Cherkauer	    April 17, 2000
@@ -253,7 +254,7 @@ int initialize_model_state(cell_info_struct* cell,
     }
 #endif
 
-    read_initial_model_state(filep.init_state, &cell->prcp, Nveg,
+    read_initial_model_state(initStateFilename, &cell->prcp, Nveg,
         state->options.SNOW_BAND, cell->soil_con.gridcel, &cell->soil_con,
         Ndist, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con,
         state);

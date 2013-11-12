@@ -330,7 +330,7 @@ void copy_data_file_format(const out_data_file_struct* out_template, std::vector
 void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
 
-int initialize_model_state(cell_info_struct*, dmy_struct, filep_struct, int, const ProgramState *);
+int initialize_model_state(cell_info_struct*, dmy_struct, filep_struct, int, const char*, const ProgramState *);
 
 int    initialize_new_storm(std::vector<HRU>&, int, int, int, double, double, const ProgramState *);
 void   initialize_snow(std::vector<HRU>&);
@@ -370,7 +370,7 @@ double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
 void   read_atmos_data(FILE *, int ncid, int, int, double **, soil_con_struct *, const ProgramState*);
 double **read_forcing_data(FILE **, int *ncids, global_param_struct, soil_con_struct *, const ProgramState*);
-void read_initial_model_state(FILE *, dist_prcp_struct *, int, int, int,
+void read_initial_model_state(const char*, dist_prcp_struct *, int, int, int,
     soil_con_struct *, int, char *, int *, lake_con_struct,
     const ProgramState*);
 void   read_snowband(FILE *, soil_con_struct *, const int);

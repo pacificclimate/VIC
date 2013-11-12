@@ -1,6 +1,6 @@
 #include "StateIO.h"
 
-StateIO::StateIO(std::string filename, const ProgramState* state) : filename(filename), state(state) {
+StateIO::StateIO(std::string filename, IOType type, const ProgramState* state) : filename(filename), state(state), ioType(type) {
 }
 
 StateIO::~StateIO() {

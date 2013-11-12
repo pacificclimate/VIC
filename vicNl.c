@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     filep.init_state = check_state_file(filenames.init_state, &state);
   /** open state file if model state is to be saved **/
   if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0) {
-    StateIOContext context(filenames.statefile, &state);
+    StateIOContext context(filenames.statefile, StateIO::Writer, &state);
     context.stream->initializeOutput();
   }
 #endif // !OUTPUT_FORCE
@@ -317,7 +317,7 @@ int initializeCell(cell_info_struct& cell,
   #if VERBOSE
       fprintf(stderr, "Model State Initialization\n");
   #endif /* VERBOSE */
-  int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, state);
+  int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
 
   if (ErrorFlag == ERROR) {
     if (state->options.CONTINUEONERROR == TRUE) {

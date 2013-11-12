@@ -13,7 +13,7 @@
  */
 class StateIOContext {
 public:
-  StateIOContext(std::string filename, const ProgramState* state);
+  StateIOContext(std::string filename, StateIO::IOType ioType, const ProgramState* state);
   virtual ~StateIOContext();
   StateIO* stream;
 };

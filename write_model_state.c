@@ -79,7 +79,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
     Ndist = 1;
   Nbands = state->options.SNOW_BAND;
 
-  StateIOContext context(filename, state);
+  StateIOContext context(filename, StateIO::Writer, state);
   StateIO* writer = context.stream;
 
   /* write cell information */
@@ -138,20 +138,14 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
       writer->write(&(soilMoisture[0]), soilMoisture.size(), NULL);
 
       /* Write average ice content */
-      std::vector<double> avgIceContent;
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
 #error
-        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-          tmpval = cellRef.layer[lidx].soil_ice[frost_area];
-          avgIceContent.push_back(tmpval);
-        }
+        writer->write(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
 #else
-        double tmpval = cellRef.layer[lidx].soil_ice;
-        avgIceContent.push_back(tmpval);
+        writer->write(&cellRef.layer[lidx].soil_ice, 1, NULL);
 #endif // SPATIAL_FROST
       }
-      writer->write(&(avgIceContent[0]), avgIceContent.size(), NULL);
 
       /* Write dew storage */
       if (it->vegIndex < cell->veg_con[0].vegetat_type_num) {

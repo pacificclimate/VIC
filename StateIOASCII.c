@@ -1,11 +1,17 @@
 #include "StateIOASCII.h"
 
+#include <stdio.h>
 #include <cstdio>
+#include <sstream>
 
 #include "vicNl.h"
 
-StateIOASCII::StateIOASCII(std::string filename, const ProgramState* state) :  StateIO(filename, state), firstValueOnLine(true) {
-  file = open_file(filename.c_str(), "a");
+StateIOASCII::StateIOASCII(std::string filename, IOType ioType, const ProgramState* state) :  StateIO(filename, ioType, state), firstValueOnLine(true) {
+  std::string openType = "r";
+  if (ioType == StateIO::Writer) {
+    openType = "a";
+  }
+  file = open_file(filename.c_str(), openType.c_str());
 }
 
 StateIOASCII::~StateIOASCII() {
@@ -72,18 +78,91 @@ int StateIOASCII::writeNewline() {
   return errorCode;
 }
 
-int StateIOASCII::read(int* data, int numValues) {
-  return 0;
+
+int StateIOASCII::read(int* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = 0;
+  for (int i = 0; i < numValues; i++) {
+    numRead += fscanf(file, "%d", &data[i]);
+  }
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
 }
 
+int StateIOASCII::read(double* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = 0;
+  for (int i = 0; i < numValues; i++) {
+    numRead += fscanf(file, "%lf", &data[i]);  //TODO: possibly read " %lf"
+  }
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
 
-int StateIOASCII::read(double* data, int numValues) {
+int StateIOASCII::read(char* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = 0;
+  for (int i = 0; i < numValues; i++) {
+    int temp;
+    numRead += fscanf(file, "%d", &temp);
+    data[i] = (char)temp;
+  }
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
+
+StateHeader StateIOASCII::readHeader() {
+  int year, month, day, nLayer, nNode;
+  fscanf(file, "%d %d %d", &year, &month, &day);
+  fscanf(file, "%d %d", &nLayer, &nNode);
+  return StateHeader(year, month, day, nLayer, nNode);
+}
+
+int StateIOASCII::seekToCell(int cellid, int* nVeg, int* nBand) {
+  int tmpCellNum, tmpNveg, tmpNband;
+  char buffer[MAXSTRING];
+  /* read cell information */
+  fscanf(file, "%d %d %d", &tmpCellNum, &tmpNveg, &tmpNband);
+  // Skip over unused cell information
+  while (tmpCellNum != cellid && !feof(file)) {
+    // skip rest of current cells info
+    fgets(buffer, MAXSTRING, file); // skip rest of general cell info
+#if EXCESS_ICE
+        fgets(buffer, MAXSTRING, file); //excess ice info
+#endif
+    for (int veg = 0; veg <= tmpNveg; veg++) {
+      fgets(buffer, MAXSTRING, file); // skip dist precip info
+      for (int band = 0; band < tmpNband; band++)
+        fgets(buffer, MAXSTRING, file); // skip snowband info
+    }
+    if (state->options.LAKES) {
+      fgets(buffer, MAXSTRING, file); // skip lake info
+    }
+    // read info for next cell
+    fscanf(file, "%d %d %d", &tmpCellNum, &tmpNveg, &tmpNband);
+  } //end while
+
+  *nVeg = tmpNveg;
+  *nBand = tmpNband;
+
+  if (feof(file)) {
+    return -1;
+  }
+
   return 0;
 }
 
 void StateIOASCII::flush() {
   fflush(file);
 }
+
+void StateIOASCII::rewindFile() {
+  rewind(file);
+}
+
 
 
 

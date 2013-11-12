@@ -1,11 +1,16 @@
 #include "StateIOBinary.h"
 
 #include <cstdio>
+#include <stdio.h>
 
 #include "vicNl.h"
 
-StateIOBinary::StateIOBinary(std::string filename, const ProgramState* state) : StateIO(filename, state) {
-  file = open_file(filename.c_str(), "ab");
+StateIOBinary::StateIOBinary(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state) {
+  std::string openType = "rb";
+  if (ioType == StateIO::Writer) {
+    openType = "ab";
+  }
+  file = open_file(filename.c_str(), openType.c_str());
 }
 
 StateIOBinary::~StateIOBinary() {
@@ -54,11 +59,67 @@ int StateIOBinary::write(const char* data, int numValues, const StateVariableMet
   return dataLength;
 }
 
-int StateIOBinary::read(int* data, int numValues) {
-  return 0;
+int StateIOBinary::read(int* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = fread(data, sizeof(int), numValues, file);
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
 }
 
-int StateIOBinary::read(double* data, int numValues) {
+int StateIOBinary::read(double* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = fread(data, sizeof(double), numValues, file);
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
+
+int StateIOBinary::read(char* data, int numValues, const StateVariableMetaData* meta) {
+  int numRead = fread(data, sizeof(char), numValues, file);
+  if (feof(file)) {
+    throw new VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
+
+StateHeader StateIOBinary::readHeader() {
+  int year, month, day, nLayer, nNode;
+  fread(&year, sizeof(int), 1, file);
+  fread(&month, sizeof(int), 1, file);
+  fread(&day, sizeof(int), 1, file);
+  fread(&nLayer, sizeof(int), 1, file);
+  fread(&nNode, sizeof(int), 1, file);
+  return StateHeader(year, month, day, nLayer, nNode);
+}
+
+int StateIOBinary::seekToCell(int cellid, int* nVeg, int* nBand) {
+  int tmpCellNum, tmpNVeg, tmpNBand, tmpNBytes;
+  char tmpByte;
+  /* read cell information */
+  fread(&tmpCellNum, sizeof(int), 1, file);
+  fread(&tmpNVeg, sizeof(int), 1, file);
+  fread(&tmpNBand, sizeof(int), 1, file);
+  fread(&tmpNBytes, sizeof(int), 1, file);
+  // Skip over unused cell information
+  while (tmpCellNum != cellid && !feof(file)) {
+    // skip rest of current cells info
+    for (int byte = 0; byte < tmpNBytes; byte++)
+      fread(&tmpByte, 1, 1, file);
+    // read info for next cell
+    fread(&tmpCellNum, sizeof(int), 1, file);
+    fread(&tmpNVeg, sizeof(int), 1, file);
+    fread(&tmpNBand, sizeof(int), 1, file);
+    fread(&tmpNBytes, sizeof(int), 1, file);
+  } //end while
+
+  *nVeg = tmpNVeg;
+  *nBand = tmpNBand;
+
+  if (feof(file)) {
+    return -1;
+  }
+
   return 0;
 }
 
@@ -80,5 +141,8 @@ void StateIOBinary::flush() {
   dataToWrite = "";
 }
 
+void StateIOBinary::rewindFile() {
+  rewind(file);
+}
 
 
