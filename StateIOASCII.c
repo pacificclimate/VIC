@@ -49,7 +49,7 @@ int StateIOASCII::write(const double* data, int numValues, const StateVariableMe
       errorCode += fprintf(file, " ");
     }
     firstValueOnLine = false;
-    errorCode += fprintf(file, "%f", data[i]);
+    errorCode += fprintf(file, "%.18e", data[i]);
   }
   return errorCode;
 }
