@@ -50,6 +50,7 @@ public:
   virtual int read(char* data, int numValues, const StateVariableMetaData* meta) = 0;
   virtual void flush() = 0;
   virtual void rewindFile() = 0;
+  IOType getType() { return ioType; }
 protected:
   std::string filename;
   const ProgramState* state;

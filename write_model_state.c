@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sstream>
 
 #include "vicNl.h"
 #include "StateIOContext.h"
@@ -131,8 +132,22 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
     /* Output for all snow bands */
     /* Write cell identification information */
-      stream->process(&it->vegIndex, 1, NULL);    //TODO: check veg and band in hru
-      stream->process(&it->bandIndex, 1, NULL);
+    int originalVeg = it->vegIndex;
+    int originalBand = it->bandIndex;
+
+    stream->process(&it->vegIndex, 1, NULL);
+    stream->process(&it->bandIndex, 1, NULL);
+
+    // The following is read specific and there is nothing we can do about it.
+    if (stream->getType() == StateIO::Reader) {
+      if (originalVeg != it->vegIndex || originalBand != it->bandIndex) {
+        std::stringstream ss;
+        ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")";
+        ss << "do not match those currently requested (veg = " << it->vegIndex << ", band = " << it->bandIndex << "). ";
+        ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
+        throw new VICException(ss.str());
+      }
+    }
 
     for (int dist = 0; dist < Ndist; dist++) {
       hru_data_struct& cellRef = it->cell[dist];
@@ -147,24 +162,26 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       }
 
       /* Write average ice content */
-      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+
 #if SPATIAL_FROST
 #error
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         stream->process(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
-#else
-        stream->process(&cellRef.layer[lidx].soil_ice, 1, NULL);
-#endif // SPATIAL_FROST
       }
+#else
+      double iceContent [state->options.Nlayer];
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        iceContent[lidx] = cellRef.layer[lidx].soil_ice;        // Write specific.
+      }
+      stream->process(iceContent, state->options.Nlayer, NULL);
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        cellRef.layer[lidx].soil_ice = iceContent[lidx];        // Read specific.
+      }
+#endif // SPATIAL_FROST
 
-      //TODO: make sure that these are doing the same thing:
-      //        /* Read dew storage */
-      //        if (veg < Nveg) {
-      //          reader->read(&element->veg_var[dist].Wdew, 1, NULL);
-      //        }
       /* Write dew storage */
       if (it->vegIndex < cell->veg_con[0].vegetat_type_num) {
-        double tmpval = it->veg_var[dist].Wdew;
-        stream->process(&tmpval, 1, NULL);
+        stream->process(&it->veg_var[dist].Wdew, 1, NULL);
       }
     }
 
@@ -192,25 +209,39 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       // Store both wet and dry fractions if using distributed precipitation
 
       /* Write total soil moisture */
-      std::vector<double> moistValues;  // Convert to array for single write operation.
+      double moistValues [state->options.Nlayer];
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-        moistValues.push_back(cell->prcp.lake_var.soil.layer[lidx].moist);
+        moistValues[lidx] = cell->prcp.lake_var.soil.layer[lidx].moist;   // Write specific.
       }
-      stream->process(&(moistValues[0]), moistValues.size(), NULL);
-
+      stream->process(moistValues, state->options.Nlayer, NULL);
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        cell->prcp.lake_var.soil.layer[lidx].moist = moistValues[lidx];   // Read specific.
+      }
 
       /* Write average ice content */
-      std::vector<double> avgIceContent;
-      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
 #if SPATIAL_FROST
+      double avgIceContent [state->options.Nlayer * FROST_SUBAREAS];
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-          avgIceContent.push_back(cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area]);
+          avgIceContent[(lidx * FROST_SUBAREAS) + frost_area] = cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area];  // Write specific.
         }
-#else
-        avgIceContent.push_back(cell->prcp.lake_var.soil.layer[lidx].soil_ice);
-#endif // SPATIAL_FROST
       }
-      stream->process(&(avgIceContent[0]), avgIceContent.size(), NULL);
+      stream->process(avgIceContent, state->options.Nlayer * FROST_SUBAREAS, NULL);
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+          cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area] = avgIceContent[(lidx * FROST_SUBAREAS) + frost_area];  // Read specific.
+        }
+      }
+#else
+      double avgIceContent [state->options.Nlayer];
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        avgIceContent[lidx] = cell->prcp.lake_var.soil.layer[lidx].soil_ice;  // Write specific.
+      }
+      stream->process(avgIceContent, state->options.Nlayer, NULL);
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        cell->prcp.lake_var.soil.layer[lidx].soil_ice = avgIceContent[lidx];  // Read specific.
+      }
+#endif // SPATIAL_FROST
     }
 
     /* Write snow data */
