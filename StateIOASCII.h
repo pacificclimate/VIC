@@ -13,7 +13,7 @@ public:
   int write(const int* data, int numValues, const StateVariableMetaData* meta);
   int write(const double* data, int numValues, const StateVariableMetaData* meta);
   int write(const char* data, int numValues, const StateVariableMetaData* meta);
-  int writeNewline();
+  int processNewline();
   StateHeader readHeader();
   int seekToCell(int cellid, int* nVeg, int* nBand);
   int read(int* data, int numValues, const StateVariableMetaData* meta);

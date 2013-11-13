@@ -133,12 +133,14 @@ int StateIOBinary::seekToCell(int cellid, int* nVeg, int* nBand) {
  * manually by hand every time a new value is added to the state file.
  */
 void StateIOBinary::flush() {
-  int headerLength = 3 * sizeof(int); // Three integers at the beginning of the line are not counted.
-  int numBytes = (dataToWrite.size() - headerLength);
-  dataToWrite.insert(headerLength, (const char *)&numBytes, sizeof(int));
-  fwrite(dataToWrite.c_str(), sizeof(char), dataToWrite.size() ,file);
-  fflush(file);
-  dataToWrite = "";
+  if (ioType == StateIO::Writer) {
+    int headerLength = 3 * sizeof(int); // Three integers at the beginning of the line are not counted.
+    int numBytes = (dataToWrite.size() - headerLength);
+    dataToWrite.insert(headerLength, (const char *) &numBytes, sizeof(int));
+    fwrite(dataToWrite.c_str(), sizeof(char), dataToWrite.size(), file);
+    fflush(file);
+    dataToWrite = "";
+  }
 }
 
 void StateIOBinary::rewindFile() {

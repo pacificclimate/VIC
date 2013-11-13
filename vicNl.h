@@ -370,9 +370,7 @@ double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
 void   read_atmos_data(FILE *, int ncid, int, int, double **, soil_con_struct *, const ProgramState*);
 double **read_forcing_data(FILE **, int *ncids, global_param_struct, soil_con_struct *, const ProgramState*);
-void read_initial_model_state(const char*, dist_prcp_struct *, int, int, int,
-    soil_con_struct *, int, char *, int *, lake_con_struct,
-    const ProgramState*);
+void read_initial_model_state(const char* initStateFilename, cell_info_struct *cell, int Nveg, int Ndist, const ProgramState *state);
 void   read_snowband(FILE *, soil_con_struct *, const int);
 void   read_snowmodel(atmos_data_struct *, FILE *, int, int, int, int);
 soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
@@ -474,6 +472,7 @@ void write_dist_prcp(dist_prcp_struct *);
 void write_forcing_file(atmos_data_struct *, int, WriteOutputFormat *, out_data_struct *, const ProgramState*);
 void write_layer(layer_data_struct *, int, int, const double*);
 void write_model_state(cell_info_struct* cell, const char* filename, const ProgramState  *state);
+void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state);
 void write_snow_data(snow_data_struct, int, int);
 void write_soilparam(soil_con_struct *, const ProgramState*);
 void write_vegparam(veg_con_struct *, const ProgramState*);

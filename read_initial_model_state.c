@@ -7,17 +7,7 @@
 
 static char vcid[] = "$Id$";
 
-void read_initial_model_state(const char* initStateFilename,
-			            dist_prcp_struct    *prcp,
-			            int                  Nveg,
-			            int                  Nbands,
-			            int                  cellnum,
-			            soil_con_struct     *soil_con,
-			            int                  Ndist,
-			            char                *init_STILL_STORM,
-			            int                 *init_DRY_TIME,
-			            lake_con_struct      lake_con,
-			            const ProgramState  *state)
+void read_initial_model_state(const char* initStateFilename, cell_info_struct *cell, int Nveg, int Ndist, const ProgramState *state)
 /*********************************************************************
   read_initial_model_state   Keith Cherkauer         April 14, 2000
 
@@ -116,184 +106,208 @@ void read_initial_model_state(const char* initStateFilename,
 #endif
 
   int cellNVeg, cellNBand;
-  if (reader->seekToCell(cellnum, &cellNVeg, &cellNBand) < 0) {
+  if (reader->seekToCell(cell->soil_con.gridcel, &cellNVeg, &cellNBand) < 0) {
     std::stringstream ss;
-    ss << "Requested grid cell (" << cellnum << ") is not in the model state file.";
+    ss << "Requested grid cell (" << cell->soil_con.gridcel << ") is not in the model state file.";
     throw new VICException(ss.str());
   }
 
   if (cellNVeg != Nveg) {
     std::stringstream ss;
-    ss << "The number of vegetation types in cell " << cellnum << " (" << cellNVeg << ") does not equal that defined in vegetation parameter file (" << Nveg << ").  Check your input files.";
+    ss << "The number of vegetation types in cell " << cell->soil_con.gridcel << " (" << cellNVeg << ") does not equal that defined in vegetation parameter file (" << Nveg << ").  Check your input files.";
     throw new VICException(ss.str());
   }
-  if (cellNBand != Nbands) {
+  if (cellNBand != state->options.SNOW_BAND) {
     std::stringstream ss;
-    ss << "The number of snow bands in cell " << cellnum << " (" << cellNBand << ") does not equal that defined in the snow band file (" << Nbands << ").  Check your input files.";
+    ss << "The number of snow bands in cell " << cell->soil_con.gridcel << " (" << cellNBand << ") does not equal that defined in the snow band file (" << state->options.SNOW_BAND << ").  Check your input files.";
     throw new VICException(ss.str());
   }
 
-  /* Read soil thermal node deltas */
-  reader->read(soil_con->dz_node, state->options.Nnode, NULL);
+  processCellForStateFile(cell, reader, state);
 
-  if ( state->options.Nnode == 1 ) soil_con->dz_node[0] = 0;    //TODO: read specific
+  //Read specific stuff follows:
+  if ( state->options.Nnode == 1 ) cell->soil_con.dz_node[0] = 0;
 
-  /* Read soil thermal node depths */
-  reader->read(soil_con->Zsum_node, state->options.Nnode, NULL);
-
-  if ( state->options.Nnode == 1 ) soil_con->Zsum_node[0] = 0;
-  if ( soil_con->Zsum_node[state->options.Nnode-1] - soil_con->dp > SMALL) {
-    fprintf( stderr, "WARNING: Sum of soil nodes (%f) exceeds defined damping depth (%f).  Resetting damping depth.\n", soil_con->Zsum_node[state->options.Nnode-1], soil_con->dp );
-    soil_con->dp = soil_con->Zsum_node[state->options.Nnode-1];
+  if ( state->options.Nnode == 1 ) cell->soil_con.Zsum_node[0] = 0;
+  if ( cell->soil_con.Zsum_node[state->options.Nnode-1] - cell->soil_con.dp > SMALL) {
+    fprintf( stderr, "WARNING: Sum of soil nodes (%f) exceeds defined damping depth (%f).  Resetting damping depth.\n", cell->soil_con.Zsum_node[state->options.Nnode-1], cell->soil_con.dp );
+    cell->soil_con.dp = cell->soil_con.Zsum_node[state->options.Nnode-1];
   }
 
-  /* Read dynamic soil properties */
-#if EXCESS_ICE
-  /* Read soil depth */
-  reader->read(soil_con->depth, state->options.Nlayer, NULL);
-
-  /* Read effective porosity */
-  reader->read(soil_con->effective_porosity, state->options.Nlayer, NULL);
-
-  /* Reading damping depth */
-  reader->read(&soil_con->dp, 1, NULL);
-#endif //EXCESS_ICE
-
-  //TODO: veg band loop -> hru iterator
-  /* Input for all vegetation types */
-  for (int veg = 0; veg <= Nveg; veg++ ) {
-
-    // read distributed precipitation variables
-    reader->read(&prcp->mu[veg], 1, NULL);
-    reader->read(&init_STILL_STORM[veg], 1, NULL);
-    reader->read(&init_DRY_TIME[veg], 1, NULL);
-
-    /* Input for all snow bands */
-    for (int band = 0; band < Nbands; band++ ) {
-      /* Read cell identification information */
-      int iveg = 0;
-      int iband = 0;
-      reader->read(&iveg, 1, NULL);
-      reader->read(&iband, 1, NULL);
-
-      if ( iveg != veg || iband != band ) {
-        std::stringstream ss;
-        ss << "The vegetation and snow band indices in the model state file (veg = " << iveg << ", band = " << iband << ")";
-        ss << "do not match those currently requested (veg = " << veg << ", band = " << band << "). ";
-        ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
-        throw new VICException(ss.str());;
-      }
-      HRU* element = prcp->getHRUElement(veg, band);
-      // Read both wet and dry fractions if using distributed precipitation
-      for (int dist = 0; dist < Ndist; dist ++ ) {
-        hru_data_struct& cellRef = element->cell[dist];
-        /* Read total soil moisture */
-        double moistArray [state->options.Nlayer];
-        reader->read(moistArray, state->options.Nlayer, NULL);
-        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          cellRef.layer[lidx].moist = moistArray[lidx];
-        }
-
-        /* Read average ice content */
-        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-#if SPATIAL_FROST
-#error // SPATIAL_FROST is an untested code path. Continue at your own risk!
-          reader->read(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
-#else
-          reader->read(&cellRef.layer[lidx].soil_ice, 1, NULL);
-#endif // SPATIAL_FROST
-        }
-
-        /* Read dew storage */
-        if (veg < Nveg) {
-          reader->read(&element->veg_var[dist].Wdew, 1, NULL);
-        }
-      }
-
-      /* Read snow data */
-      reader->read(&element->snow.last_snow, 1, NULL);
-      reader->read(&element->snow.MELTING, 1, NULL);
-      reader->read(&element->snow.coverage, 1, NULL);
-      reader->read(&element->snow.swq, 1, NULL);
-      reader->read(&element->snow.surf_temp, 1, NULL);
-      reader->read(&element->snow.surf_water, 1, NULL);
-      reader->read(&element->snow.pack_temp, 1, NULL);
-      reader->read(&element->snow.pack_water, 1, NULL);
-      reader->read(&element->snow.density, 1, NULL);
-      reader->read(&element->snow.coldcontent, 1, NULL);
-      reader->read(&element->snow.snow_canopy, 1, NULL);
-
-      if (element->snow.density > 0.)
-        element->snow.depth = 1000. * element->snow.swq / element->snow.density;    //TODO: this is read specific
-
-      /* Read soil thermal node temperatures */
-      reader->read(element->energy.T, state->options.Nnode, NULL);
-
-    }
+  for (std::vector<HRU>::iterator element = cell->prcp.hruList.begin(); element != cell->prcp.hruList.end(); ++element) {
+    if (element->snow.density > 0.)
+      element->snow.depth = 1000. * element->snow.swq / element->snow.density;
   }
-  if ( state->options.LAKES ) {
-      // Read both wet and dry fractions if using distributed precipitation
-      for (int dist = 0; dist < Ndist; dist++) {
 
-        /* Read total soil moisture */
-        double layerMoist [state->options.Nlayer];
-        reader->read(layerMoist, state->options.Nlayer, NULL);
-        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          prcp->lake_var.soil.layer[lidx].moist = layerMoist[lidx];
-        }
-
-        /* Read average ice content */
-        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-#if SPATIAL_FROST
-          reader->read(prcp->lake_var.soil.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
-#else
-          reader->read(&prcp->lake_var.soil.layer[lidx].soil_ice, 1, NULL);
-#endif // SPATIAL_FROST
-        }
-      }
-
-      /* Read snow data */
-      reader->read(&prcp->lake_var.snow.last_snow,   1, NULL);
-      reader->read(&prcp->lake_var.snow.MELTING,     1, NULL);
-      reader->read(&prcp->lake_var.snow.coverage,    1, NULL);
-      reader->read(&prcp->lake_var.snow.swq,         1, NULL);
-      reader->read(&prcp->lake_var.snow.surf_temp,   1, NULL);
-      reader->read(&prcp->lake_var.snow.surf_water,  1, NULL);
-      reader->read(&prcp->lake_var.snow.pack_temp,   1, NULL);
-      reader->read(&prcp->lake_var.snow.pack_water,  1, NULL);
-      reader->read(&prcp->lake_var.snow.density,     1, NULL);
-      reader->read(&prcp->lake_var.snow.coldcontent, 1, NULL);
-      reader->read(&prcp->lake_var.snow.snow_canopy, 1, NULL);
-
-      if (prcp->lake_var.snow.density > 0.) //TODO: read specific
-        prcp->lake_var.snow.depth = 1000. * prcp->lake_var.snow.swq / prcp->lake_var.snow.density;
-
-      /* Read soil thermal node temperatures */
-      reader->read(prcp->lake_var.energy.T, state->options.Nnode, NULL);
-
-      /* Read lake-specific variables */
-      reader->read(&prcp->lake_var.activenod, 1, NULL);
-      reader->read(&prcp->lake_var.dz, 1, NULL);
-      reader->read(&prcp->lake_var.surfdz, 1, NULL);
-      reader->read(&prcp->lake_var.ldepth, 1, NULL);
-      reader->read(prcp->lake_var.surface, prcp->lake_var.activenod, NULL);
-
-      reader->read(&prcp->lake_var.sarea, 1, NULL);
-      reader->read(&prcp->lake_var.volume, 1, NULL);
-      reader->read(prcp->lake_var.temp, prcp->lake_var.activenod, NULL);
-      reader->read(&prcp->lake_var.tempavg, 1, NULL);
-      reader->read(&prcp->lake_var.areai, 1, NULL);
-      reader->read(&prcp->lake_var.new_ice_area, 1, NULL);
-      reader->read(&prcp->lake_var.ice_water_eq, 1, NULL);
-      reader->read(&prcp->lake_var.hice, 1, NULL);
-      reader->read(&prcp->lake_var.tempi, 1, NULL);
-      reader->read(&prcp->lake_var.swe, 1, NULL);
-      reader->read(&prcp->lake_var.surf_temp, 1, NULL);
-      reader->read(&prcp->lake_var.pack_temp, 1, NULL);
-      reader->read(&prcp->lake_var.coldcontent, 1, NULL);
-      reader->read(&prcp->lake_var.surf_water, 1, NULL);
-      reader->read(&prcp->lake_var.pack_water, 1, NULL);
-      reader->read(&prcp->lake_var.SAlbedo, 1, NULL);
-      reader->read(&prcp->lake_var.sdepth, 1, NULL);
+  if (state->options.LAKES == TRUE) {
+    if (cell->prcp.lake_var.snow.density > 0.)
+      cell->prcp.lake_var.snow.depth = 1000. * cell->prcp.lake_var.snow.swq / cell->prcp.lake_var.snow.density;
   }
+
 }
+
+//
+//  /* Read soil thermal node deltas */
+//  reader->read(soil_con->dz_node, state->options.Nnode, NULL);
+//
+//  if ( state->options.Nnode == 1 ) soil_con->dz_node[0] = 0;    //TODO: read specific
+//
+//  /* Read soil thermal node depths */
+//  reader->read(soil_con->Zsum_node, state->options.Nnode, NULL);
+//
+//  if ( state->options.Nnode == 1 ) soil_con->Zsum_node[0] = 0;    //TODO: read specific
+//  if ( soil_con->Zsum_node[state->options.Nnode-1] - soil_con->dp > SMALL) {
+//    fprintf( stderr, "WARNING: Sum of soil nodes (%f) exceeds defined damping depth (%f).  Resetting damping depth.\n", soil_con->Zsum_node[state->options.Nnode-1], soil_con->dp );
+//    soil_con->dp = soil_con->Zsum_node[state->options.Nnode-1];
+//  }
+//
+//  /* Read dynamic soil properties */
+//#if EXCESS_ICE
+//  /* Read soil depth */
+//  reader->read(soil_con->depth, state->options.Nlayer, NULL);
+//
+//  /* Read effective porosity */
+//  reader->read(soil_con->effective_porosity, state->options.Nlayer, NULL);
+//
+//  /* Reading damping depth */
+//  reader->read(&soil_con->dp, 1, NULL);
+//#endif //EXCESS_ICE
+//
+//  //TODO: veg band loop -> hru iterator
+//  /* Input for all vegetation types */
+//  for (int veg = 0; veg <= Nveg; veg++ ) {
+//
+//    // read distributed precipitation variables
+//    reader->read(&prcp->mu[veg], 1, NULL);
+//    reader->read(&init_STILL_STORM[veg], 1, NULL);
+//    reader->read(&init_DRY_TIME[veg], 1, NULL);
+//
+//    /* Input for all snow bands */
+//    for (int band = 0; band < Nbands; band++ ) {
+//      /* Read cell identification information */
+//      int iveg = 0;
+//      int iband = 0;
+//      reader->read(&iveg, 1, NULL);
+//      reader->read(&iband, 1, NULL);
+//
+//      if ( iveg != veg || iband != band ) {
+//        std::stringstream ss;
+//        ss << "The vegetation and snow band indices in the model state file (veg = " << iveg << ", band = " << iband << ")";  //TODO: read specific
+//        ss << "do not match those currently requested (veg = " << veg << ", band = " << band << "). ";
+//        ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
+//        throw new VICException(ss.str());;
+//      }
+//      HRU* element = prcp->getHRUElement(veg, band);
+//      // Read both wet and dry fractions if using distributed precipitation
+//      for (int dist = 0; dist < Ndist; dist ++ ) {
+//        hru_data_struct& cellRef = element->cell[dist];
+//        /* Read total soil moisture */
+//        double moistArray [state->options.Nlayer];
+//        reader->read(moistArray, state->options.Nlayer, NULL);
+//        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+//          cellRef.layer[lidx].moist = moistArray[lidx];
+//        }
+//
+//        /* Read average ice content */
+//        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+//#if SPATIAL_FROST
+//#error // SPATIAL_FROST is an untested code path. Continue at your own risk!
+//          reader->read(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
+//#else
+//          reader->read(&cellRef.layer[lidx].soil_ice, 1, NULL);
+//#endif // SPATIAL_FROST
+//        }
+//
+//        /* Read dew storage */
+//        if (veg < Nveg) {
+//          reader->read(&element->veg_var[dist].Wdew, 1, NULL);
+//        }
+//      }
+//
+//      /* Read snow data */
+//      reader->read(&element->snow.last_snow, 1, NULL);
+//      reader->read(&element->snow.MELTING, 1, NULL);
+//      reader->read(&element->snow.coverage, 1, NULL);
+//      reader->read(&element->snow.swq, 1, NULL);
+//      reader->read(&element->snow.surf_temp, 1, NULL);
+//      reader->read(&element->snow.surf_water, 1, NULL);
+//      reader->read(&element->snow.pack_temp, 1, NULL);
+//      reader->read(&element->snow.pack_water, 1, NULL);
+//      reader->read(&element->snow.density, 1, NULL);
+//      reader->read(&element->snow.coldcontent, 1, NULL);
+//      reader->read(&element->snow.snow_canopy, 1, NULL);
+//
+//      if (element->snow.density > 0.)
+//        element->snow.depth = 1000. * element->snow.swq / element->snow.density;    //TODO: this is read specific
+//
+//      /* Read soil thermal node temperatures */
+//      reader->read(element->energy.T, state->options.Nnode, NULL);
+//
+//    }
+//  }
+//  if ( state->options.LAKES ) {
+//      // Read both wet and dry fractions if using distributed precipitation
+//      for (int dist = 0; dist < Ndist; dist++) {
+//
+//        /* Read total soil moisture */
+//        double layerMoist [state->options.Nlayer];
+//        reader->read(layerMoist, state->options.Nlayer, NULL);
+//        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+//          prcp->lake_var.soil.layer[lidx].moist = layerMoist[lidx];
+//        }
+//
+//        /* Read average ice content */
+//        for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+//#if SPATIAL_FROST
+//          reader->read(prcp->lake_var.soil.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
+//#else
+//          reader->read(&prcp->lake_var.soil.layer[lidx].soil_ice, 1, NULL);
+//#endif // SPATIAL_FROST
+//        }
+//      }
+//
+//      /* Read snow data */
+//      reader->read(&prcp->lake_var.snow.last_snow,   1, NULL);
+//      reader->read(&prcp->lake_var.snow.MELTING,     1, NULL);
+//      reader->read(&prcp->lake_var.snow.coverage,    1, NULL);
+//      reader->read(&prcp->lake_var.snow.swq,         1, NULL);
+//      reader->read(&prcp->lake_var.snow.surf_temp,   1, NULL);
+//      reader->read(&prcp->lake_var.snow.surf_water,  1, NULL);
+//      reader->read(&prcp->lake_var.snow.pack_temp,   1, NULL);
+//      reader->read(&prcp->lake_var.snow.pack_water,  1, NULL);
+//      reader->read(&prcp->lake_var.snow.density,     1, NULL);
+//      reader->read(&prcp->lake_var.snow.coldcontent, 1, NULL);
+//      reader->read(&prcp->lake_var.snow.snow_canopy, 1, NULL);
+//
+//      if (prcp->lake_var.snow.density > 0.) //TODO: read specific
+//        prcp->lake_var.snow.depth = 1000. * prcp->lake_var.snow.swq / prcp->lake_var.snow.density;
+//
+//      /* Read soil thermal node temperatures */
+//      reader->read(prcp->lake_var.energy.T, state->options.Nnode, NULL);
+//
+//      /* Read lake-specific variables */
+//      reader->read(&prcp->lake_var.activenod, 1, NULL);
+//      reader->read(&prcp->lake_var.dz, 1, NULL);
+//      reader->read(&prcp->lake_var.surfdz, 1, NULL);
+//      reader->read(&prcp->lake_var.ldepth, 1, NULL);
+//      reader->read(prcp->lake_var.surface, prcp->lake_var.activenod, NULL);
+//
+//      reader->read(&prcp->lake_var.sarea, 1, NULL);
+//      reader->read(&prcp->lake_var.volume, 1, NULL);
+//      reader->read(prcp->lake_var.temp, prcp->lake_var.activenod, NULL);
+//      reader->read(&prcp->lake_var.tempavg, 1, NULL);
+//      reader->read(&prcp->lake_var.areai, 1, NULL);
+//      reader->read(&prcp->lake_var.new_ice_area, 1, NULL);
+//      reader->read(&prcp->lake_var.ice_water_eq, 1, NULL);
+//      reader->read(&prcp->lake_var.hice, 1, NULL);
+//      reader->read(&prcp->lake_var.tempi, 1, NULL);
+//      reader->read(&prcp->lake_var.swe, 1, NULL);
+//      reader->read(&prcp->lake_var.surf_temp, 1, NULL);
+//      reader->read(&prcp->lake_var.pack_temp, 1, NULL);
+//      reader->read(&prcp->lake_var.coldcontent, 1, NULL);
+//      reader->read(&prcp->lake_var.surf_water, 1, NULL);
+//      reader->read(&prcp->lake_var.pack_water, 1, NULL);
+//      reader->read(&prcp->lake_var.SAlbedo, 1, NULL);
+//      reader->read(&prcp->lake_var.sdepth, 1, NULL);
+//  }
+//}

@@ -254,10 +254,7 @@ int initialize_model_state(cell_info_struct* cell,
     }
 #endif
 
-    read_initial_model_state(initStateFilename, &cell->prcp, Nveg,
-        state->options.SNOW_BAND, cell->soil_con.gridcel, &cell->soil_con,
-        Ndist, cell->init_STILL_STORM, cell->init_DRY_TIME, cell->lake_con,
-        state);
+    read_initial_model_state(initStateFilename, cell, Nveg, Ndist, state);
 
 #if EXCESS_ICE
     // calculate dynamic soil and veg properties if excess_ice is present

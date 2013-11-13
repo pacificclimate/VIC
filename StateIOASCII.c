@@ -29,11 +29,11 @@ void StateIOASCII::initializeOutput() {
   write(&state->global_param.stateyear, 1, NULL);
   write(&state->global_param.statemonth, 1, NULL);
   write(&state->global_param.stateday, 1, NULL);
-  writeNewline();
+  processNewline();
   /* Write simulation flags */
   write(&state->options.Nlayer, 1, NULL);
   write(&state->options.Nnode, 1, NULL);
-  writeNewline();
+  processNewline();
 }
 
 int StateIOASCII::write(const int* data, int numValues, const StateVariableMetaData* meta) {
@@ -72,10 +72,13 @@ int StateIOASCII::write(const char* data, int numValues, const StateVariableMeta
   return errorCode;
 }
 
-int StateIOASCII::writeNewline() {
-  int errorCode = fprintf(file, "\n");
-  firstValueOnLine = true;
-  return errorCode;
+int StateIOASCII::processNewline() {
+  if (ioType == StateIO::Writer) {
+    int errorCode = fprintf(file, "\n");
+    firstValueOnLine = true;
+    return errorCode;
+  }
+  return 0;
 }
 
 
@@ -156,7 +159,9 @@ int StateIOASCII::seekToCell(int cellid, int* nVeg, int* nBand) {
 }
 
 void StateIOASCII::flush() {
-  fflush(file);
+  if (ioType == StateIO::Writer) {
+    fflush(file);
+  }
 }
 
 void StateIOASCII::rewindFile() {

@@ -31,11 +31,18 @@ public:
   enum IOType { Reader, Writer };
   StateIO(std::string filename, IOType type, const ProgramState* state);
   virtual ~StateIO();
+  int process(int* data, int numValues, const StateVariableMetaData* meta);
+  int process(double* data, int numValues, const StateVariableMetaData* meta);
+  int process(char* data, int numValues, const StateVariableMetaData* meta);
+  int process(const int* data, int numValues, const StateVariableMetaData* meta);
+  int process(const double* data, int numValues, const StateVariableMetaData* meta);
+  int process(const char* data, int numValues, const StateVariableMetaData* meta);
+
   virtual void initializeOutput() = 0;
   virtual int write(const int* data, int numValues, const StateVariableMetaData* meta) = 0;
   virtual int write(const double* data, int numValues, const StateVariableMetaData* meta) = 0;
   virtual int write(const char* data, int numValues, const StateVariableMetaData* meta) = 0;
-  virtual int writeNewline();
+  virtual int processNewline();
   virtual StateHeader readHeader() = 0;
   virtual int seekToCell(int cellid, int* nVeg, int* nBand) = 0;
   virtual int read(int* data, int numValues, const StateVariableMetaData* meta) = 0;
