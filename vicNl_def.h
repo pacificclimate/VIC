@@ -1276,6 +1276,32 @@ typedef struct {
   hru_data_struct  soil;         /* Soil column below lake */
 } lake_var_struct;
 
+
+/*****************************************************************
+  This structure defines the glacier specific variables (per HRU)
+  that are required for the case where a HRU contains a glacier.
+*****************************************************************/
+struct glac_data_struct {
+  // Initialize variables to NAN on construction of an object.
+  glac_data_struct() : cold_content(INVALID), surf_temp(INVALID), surf_temp_fbcount(0), surf_temp_fbflag(false),
+      Qnet(INVALID), mass_balance(INVALID), ice_mass_balance(INVALID), accumulation(INVALID), melt(INVALID),
+      vapor_flux(INVALID), water_storage(INVALID), outflow(INVALID), outflow_coef(INVALID) {}
+
+  double cold_content;        /* cold content of glacier surface layer */
+  double surf_temp;           /* temperature of glacier surface layer, deg-C */
+  int    surf_temp_fbcount;
+  bool   surf_temp_fbflag;
+  double Qnet;                /* residual of energy balance at ice surface */
+  double mass_balance;        /* net water equivalent of both snow and ice */
+  double ice_mass_balance;
+  double accumulation;        /* water equivalent accumulation of ice from snow/firn conversion */
+  double melt;                /* water equivalent depth of melting glacier ice */
+  double vapor_flux;          /* water equivalent depth of glacier ice sublimation */
+  double water_storage;       /* water storage in glacier  */
+  double outflow;             /* glacier water outflow */
+  double outflow_coef;        /* water outflow coefficient */
+};
+
 /*****************************************************************
   This structure joins together data which was accessed in the
   same way (as a 2d array [veg][band]). Since the data is specific
@@ -1284,10 +1310,13 @@ typedef struct {
   HRU = Hydrologic Response Unit.
 *****************************************************************/
 struct HRU {
-  hru_data_struct cell[2]; /* Stores soil layer variables (wet and dry) */
-  energy_bal_struct energy; /* Stores energy balance variables */
-  snow_data_struct snow; /* Stores snow variables */
-  veg_var_struct veg_var[2]; /* Stores vegetation variables (wet and dry) */
+  hru_data_struct cell[2];    /* Stores soil layer variables (wet and dry) */
+  energy_bal_struct energy;   /* Stores energy balance variables */
+  snow_data_struct snow;      /* Stores snow variables */
+  veg_var_struct veg_var[2];  /* Stores vegetation variables (wet and dry) */
+  glac_data_struct glacier;   /* Stores glacier specific variables (which are initialized to INVALID if there is no glacier present */
+
+  bool isGlacier;             /* Does this HRU contain glacier? */
   int vegIndex;
   int bandIndex;
 };

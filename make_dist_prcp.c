@@ -40,6 +40,7 @@ void dist_prcp_struct::make_dist_prcp(int  nveg, const int NUM_SNOW_BAND)
       e.vegIndex = i;
       e.bandIndex = j;
       e.energy.frozen = FALSE;
+      e.isGlacier = false;
       this->hruList.push_back(e);
     }
   }
