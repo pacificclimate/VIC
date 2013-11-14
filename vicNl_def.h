@@ -274,6 +274,20 @@ extern const char ref_veg_ref_crop[];
 #define PI 3.1415927
 #endif
 
+//TODO: temporary fix for missing defines. These should be inputs from the soil file.
+#define GLAC_SURF_THICK     100.0     /* Thickness of glacier active layer (mm) */
+#define GLAC_SURF_WE        91.7      /* Water equivalent of glacier surface layer (mm) */
+#define GLAC_TEMP           0.0       /* Temperature of main glacier (C) */
+#define GLAC_KMIN                0.05      /* Minimum glacier outflow coefficient (-) */
+#define GLAC_DK                  0.75      /* Maximum glacier outflow coefficient (-) */
+#define GLAC_A                   0.01      /* Outflow parameter (-) */
+#define GLAC_ALBEDO         0.3       /* Glacier ice surface albedo (-) */
+#define GLAC_ROUGH          0.002     /* Glacier ice surface roughness (m) */
+#define GLAC_K_ICE               2.14      /* Thermal conductivity of ice (W/mK) */
+//TODO: implement this...
+#define GLAC_ID             #error    /* Vegetation class denoting glacier cover */
+
+
 /* define constants for saturated vapor pressure curve (kPa) */
 #define A_SVP 0.61078
 #define B_SVP 17.269

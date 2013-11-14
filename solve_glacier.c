@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-double solve_glacier(double               LongUnderOut, // LW from understory
-      /* double               MIN_RAIN_TEMP, */
-      /* double               MAX_SNOW_TEMP, */
-      /* double               Tcanopy, // canopy air temperature */
+double solve_glacier(double LongUnderOut, // LW from understory
       double               Tgrnd, // glacier slab temperature
       double               air_temp, // air temperature
       double               mu,
@@ -23,9 +20,6 @@ double solve_glacier(double               LongUnderOut, // LW from understory
       double              *Torg_snow,
       double              *aero_resist,
       double              *aero_resist_used,
-      /* double              *coverage, // best guess snow coverage */
-      /* double              *delta_coverage, // cover fract change */
-      /* double              *delta_snow_heat, // change in pack heat */
       double              *displacement,
       double              *gauge_correction,
       double              *melt_energy,
@@ -36,12 +30,8 @@ double solve_glacier(double               LongUnderOut, // LW from understory
       double              *rainfall,
       double              *ref_height,
       double              *roughness,
-      /* double              *snow_inflow, */
       double              *snowfall,
-      /* double              *surf_atten, */
       double              *wind,
-      /* float               *root, */
-      /* int                  INCLUDE_SNOW, */
       int                  Nveg,
       int                  iveg,
       int                  band,
@@ -52,10 +42,9 @@ double solve_glacier(double               LongUnderOut, // LW from understory
       dmy_struct          *dmy,
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,
-      /* snow_data_struct    *snow, */
-      glac_data_struct   *glacier) {
+      glac_data_struct   *glacier,
+      const ProgramState *state) {
 /*********************************************************************
-  solve_snow.c                Keith Cherkauer       July 2, 1998
 
   This routine was written to handle the various calls and data
   handling needed to solve the various components of the new VIC
@@ -66,31 +55,18 @@ double solve_glacier(double               LongUnderOut, // LW from understory
 
 *********************************************************************/
 
-  extern option_struct   options;
-  extern veg_lib_struct *veg_lib;
-
   int                 ErrorFlag;
   double              ShortOverIn;
   double              melt;
-  /* double              old_coverage; */
-  /* double              old_depth; */
-  /* double              old_swq; */
-  /* double              rainonly; */
-  /* double              tmp_Wdew[2]; */
   double              tmp_grnd_flux;
   double              store_snowfall;
   double              tmp_ref_height;
-  /* int                 month; */
-  /* int                 hour; */
   double              density;
   double              longwave;
   double              pressure;
   double              shortwave;
   double              vp;
   double              vpd;
-
-  /* month       = dmy[rec].month; */
-  /* hour        = dmy[rec].hour; */
 
   density   = atmos->density[hidx];
   longwave  = atmos->longwave[hidx];
@@ -117,10 +93,6 @@ double solve_glacier(double               LongUnderOut, // LW from understory
 
    energy->NetLongOver = 0;
    energy->LongOverIn  = 0;
-
-   /* (*NetShortGrnd) = 0.; */
-
-   /* (*snow_inflow) += rainfall[WET] + snowfall[WET]; */
 
    (*UnderStory) = 2;         /* ground snow is present or accumulating during time step */
 

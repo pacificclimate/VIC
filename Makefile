@@ -90,6 +90,7 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	free_vegcon.o frozen_soil.o full_energy.o func_atmos_energy_bal.o \
 	func_atmos_moist_bal.o func_canopy_energy_bal.o \
 	func_surf_energy_bal.o get_dist.o get_force_type.o get_global_param.o \
+	GlacierEnergyBalance.o glacier_melt.o \
 	initialize_atmos.o initialize_model_state.o \
 	initialize_global.o initialize_new_storm.o initialize_snow.o \
 	initialize_soil.o initialize_veg.o latent_heat_from_snow.o \
@@ -105,7 +106,7 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	StateIO.o StateIOContext.o StateIOASCII.o StateIOBinary.o StateIONetCDF.o \
 	set_output_defaults.o snow_intercept.o snow_melt.o \
 	snow_utility.o soil_conduction.o \
-	soil_thermal_eqn.o solve_snow.o store_moisture_for_debug.o \
+	soil_thermal_eqn.o solve_snow.o solve_glacier.o store_moisture_for_debug.o \
 	surface_fluxes.o svp.o vicNl.o vicerror.o write_atmosdata.o \
 	write_debug.o write_forcing_file.o write_layer.o \
 	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o \

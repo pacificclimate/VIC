@@ -414,6 +414,15 @@ int    snow_melt(double, double, double, double, double *, double, double *, dou
                  double *, double *, double *, double *, double *, double *, 
                  double *, double *, double *, double *, double *, double *, 
                  int, int, int, int, snow_data_struct *, const soil_con_struct *, const ProgramState*);
+int glacier_melt(double Le, double NetShort, double Tgrnd, double *Z0,
+    double aero_resist, double *aero_resist_used, double air_temp,
+    double delta_t, double density, double displacement, double grnd_flux,
+    double LongIn, double pressure, double rainfall, double vp, double vpd,
+    double wind, double z2, double *NetLong, double *OldTSurf, double *melt,
+    double *save_Qnet, double *save_advected_sensible, double *save_advection,
+    double *save_deltaCC, double *save_grnd_flux, double *save_latent,
+    double *save_latent_sub, double *save_sensible, int rec, int iveg, int band,
+    glac_data_struct *glacier, const ProgramState *state);
 double soil_conductivity(double, double, double, double, double, double, double, double);
 void   soil_thermal_calc(soil_con_struct *, layer_data_struct *,
 			 energy_bal_struct, double *, double *, double *,
@@ -430,6 +439,18 @@ double solve_snow(char, double, double, double, double, double, double,
                   layer_data_struct *, layer_data_struct *,
                   snow_data_struct *, const soil_con_struct *,
                   veg_var_struct *, veg_var_struct *, const ProgramState*);
+double solve_glacier(double LongUnderOut, double Tgrnd, double air_temp,
+    double mu, double prec, double snow_grnd_flux, double wind_h,
+    double *AlbedoUnder, double *Evap, double *Le, double *LongUnderIn,
+    double *NetLongSnow, double *NetShortGrnd, double *NetShortSnow,
+    double *ShortUnderIn, double *Torg_snow, double *aero_resist,
+    double *aero_resist_used, double *displacement, double *gauge_correction,
+    double *melt_energy, double *out_prec, double *out_rain, double *out_snow,
+    double *ppt, double *rainfall, double *ref_height, double *roughness,
+    double *snowfall, double *wind, int Nveg, int iveg, int band, int dt,
+    int rec, int hidx, int *UnderStory, dmy_struct *dmy,
+    atmos_data_struct *atmos, energy_bal_struct *energy,
+    glac_data_struct *glacier, const ProgramState *state);
 
 int solve_T_profile(double *T, double *T0, char *Tfbflag, int *Tfbcount,
     double *kappa, double *Cs, double *moist, double deltat, double *ice,
