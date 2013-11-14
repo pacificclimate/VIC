@@ -24,9 +24,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   double TMean;                   /* Average temperature for time step (C) */
   double Tmp;
   double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
-  double BlowingMassFlux;         /* Mass flux of water vapor from blowing snow. (kg/m2s) */
-  double SurfaceMassFlux;         /* Mass flux of water vapor from pack snow. (kg/m2s) */
-
 
   /* Calculate active temp for energy balance as average of old and new  */
 
@@ -62,22 +59,17 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Convert sublimation terms from m/timestep to kg/m2s */
   VaporMassFlux = *vapor_flux * Density / Dt;
-  BlowingMassFlux = *blowing_flux * Density / Dt; /* blowing_flux = 0. for a bare glacier */
-  SurfaceMassFlux = *surface_flux * Density / Dt;
 
   /* Calculate the mass flux of ice to or from the surface layer */
 
   /* Calculate the saturated vapor pressure,
      (Equation 3.32, Bras 1990) */
 
-  latent_heat_from_snow(AirDens, EactAir, Lv, Press, Ra_used[0], TMean, Vpd,
-      LatentHeat, LatentHeatSub, &VaporMassFlux, &BlowingMassFlux,
-      &SurfaceMassFlux);
+   latent_heat_from_glacier(AirDens, EactAir, Lv, Press, Ra_used[0], TMean, Vpd,
+      LatentHeat, LatentHeatSub, &VaporMassFlux);
 
   /* Convert sublimation terms from kg/m2s to m/timestep */
   *vapor_flux = VaporMassFlux * Dt / Density;
-  *blowing_flux = BlowingMassFlux * Dt / Density;
-  *surface_flux = SurfaceMassFlux * Dt / Density;
 
   /* Calculate advected heat flux from rain
      Equation 7.3.12 from H.B.H. for rain falling on melting snowpack */

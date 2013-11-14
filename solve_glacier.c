@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-double solve_glacier(double LongUnderOut, // LW from understory
-      double               Tgrnd, // glacier slab temperature
-      double               air_temp, // air temperature
+double solve_glacier(double LongUnderOut,       // LW from understory
+      double               Tgrnd,               // glacier slab temperature
+      double               air_temp,            // air temperature
       double               mu,
       double               prec,
       double               snow_grnd_flux,
@@ -12,11 +12,11 @@ double solve_glacier(double LongUnderOut, // LW from understory
       double              *AlbedoUnder,
       double              *Evap,
       double              *Le,
-      double              *LongUnderIn, // surface incoming LW
-      double              *NetLongSnow, // net LW at glacier surface
-      double              *NetShortGrnd, // net SW reaching ground
-      double              *NetShortSnow, // net SW at glaciersurface
-      double              *ShortUnderIn, // surfave incoming SW
+      double              *LongUnderIn,         // surface incoming LW
+      double              *NetLongSnow,         // net LW at glacier surface
+      double              *NetShortGrnd,        // net SW reaching ground
+      double              *NetShortSnow,        // net SW at glaciersurface
+      double              *ShortUnderIn,        // surface incoming SW
       double              *Torg_snow,
       double              *aero_resist,
       double              *aero_resist_used,
@@ -112,7 +112,7 @@ double solve_glacier(double LongUnderOut, // LW from understory
     &energy->deltaCC, &tmp_grnd_flux, &energy->latent,
     &energy->latent_sub,
     &energy->sensible,
-    rec, iveg, band, glacier);
+    rec, iveg, band, glacier, state);
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall

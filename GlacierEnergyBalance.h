@@ -38,9 +38,7 @@ public:
   double *LatentHeatSub,          /* Latent heat of sublimation exchange at surface (W/m2) */
   double *NetLongUnder,           /* Net longwave radiation at snowpack surface (W/m^2) */
   double *SensibleHeat,           /* Sensible heat exchange at surface (W/m2) */
-  double *vapor_flux,             /* Mass flux of water vapor to or from the intercepted snow (m/timestep) */
-  double *blowing_flux,           /* Mass flux of water vapor from blowing snow. (m/timestep) */
-  double *surface_flux            /* Mass flux of water vapor from pack snow. (m/timestep) */
+  double *vapor_flux             /* Mass flux of water vapor to or from the intercepted snow (m/timestep) */
   ) :
       Dt(Dt), Ra(Ra), Ra_used(Ra_used), Displacement(Displacement), Z(Z),
       Z0(Z0), AirDens(AirDens), EactAir(EactAir), LongSnowIn(LongSnowIn),
@@ -49,8 +47,8 @@ public:
       Tair(Tair), TGrnd(TGrnd), AdvectedEnergy(AdvectedEnergy),
       AdvectedSensibleHeat(AdvectedSensibleHeat), DeltaColdContent(DeltaColdContent),
       GroundFlux(GroundFlux), LatentHeat(LatentHeat), LatentHeatSub(LatentHeatSub),
-      NetLongUnder(NetLongUnder), SensibleHeat(SensibleHeat), vapor_flux(vapor_flux),
-      blowing_flux(blowing_flux), surface_flux(surface_flux) {}
+      NetLongUnder(NetLongUnder), SensibleHeat(SensibleHeat), vapor_flux(vapor_flux)
+       {}
 
   double calculate(double);
 private:
@@ -87,8 +85,6 @@ private:
   double *NetLongUnder;           /* Net longwave radiation at snowpack surface (W/m^2) */
   double *SensibleHeat;           /* Sensible heat exchange at surface (W/m2) */
   double *vapor_flux;             /* Mass flux of water vapor to or from the intercepted snow (m/timestep) */
-  double *blowing_flux;           /* Mass flux of water vapor from blowing snow. (m/timestep) */
-  double *surface_flux;           /* Mass flux of water vapor from pack snow. (m/timestep) */
 };
 
 

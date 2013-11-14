@@ -4,19 +4,16 @@
 
 #include "GlacierEnergyBalance.h"
 #include "vicNl.h"
-
+// Forward declaration for the error function which just prints out all the variables.
 double ErrorPrintGlacierEnergyBalance(double TSurf, int rec, int iveg, int band,
-    double Dt, double Ra, double Displacement, double Z, double Z0,
-    double AirDens, double EactAir, double LongIn, double Lv, double Press,
-    double Rain, double ShortRad, double Vpd, double Wind, double OldTSurf,
-    double Tair, double TGrnd, double *AdvectedEnergy,
-    double *AdvectedSensibleHeat, double *DeltaColdContent,
-    double *DeltaPackColdContent, //TODO: not necessary?
-    double *GroundFlux, double *LatentHeat, double *LatentHeatSub,
-    double *NetLong,
-    double *RefreezeEnergy,     //TODO: not necessary?
-    double *SensibleHeat, double *VaporMassFlux, double *BlowingMassFlux,
-    double *SurfaceMassFlux, char *ErrorString);
+    double Dt, double Ra, double *Ra_used, double Displacement, double Z,
+    double *Z0, double AirDens, double EactAir, double LongSnowIn, double Lv,
+    double Press, double Rain, double NetShortUnder, double Vpd, double Wind,
+    double OldTSurf, double IceDepth, double IceWE, double Tair, double TGrnd,
+    double *AdvectedEnergy, double *AdvectedSensibleHeat,
+    double *DeltaColdContent, double *GroundFlux, double *LatentHeat,
+    double *LatentHeatSub, double *NetLongUnder, double *SensibleHeat,
+    double *vapor_flux, char *ErrorString);
 
 /*****************************************************************************
   Function name: glacier_melt()
@@ -121,26 +118,26 @@ int glacier_melt(double Le,
   (*OldTSurf) = glacier->surf_temp;
 
   /* Calculate the surface energy balance for surf_temp = 0.0 */
-  GlacierEnergyBalance glacierEnergy = GlacierEnergyBalance(delta_t, aero_resist, aero_resist_used,
+  GlacierEnergyBalance glacierEnergy(delta_t, aero_resist, aero_resist_used,
          displacement, z2, Z0,
          density, vp, LongIn, Le, pressure,
          RainFall, NetShort, vpd,
          wind, (*OldTSurf),
-         GLAC_SURF_THICK, ice_density,
-         GLAC_SURF_WE, Tgrnd,
+         GLAC_SURF_THICK,
+         GLAC_SURF_WE, air_temp, Tgrnd,
          &advection, &advected_sensible_heat,
          &deltaCC,
          &grnd_flux, &latent_heat,
          &latent_heat_sub, NetLong,
-         &RefreezeEnergy, &sensible_heat,
-         &glacier->vapor_flux, 0.,
-         &glacier->surface_flux);
+         &sensible_heat,
+         &glacier->vapor_flux);
+
   Qnet = glacierEnergy.calculate((double)0.0);
 
   /* If Qnet == 0.0, then set the surface temperature to 0.0 */
   if (abs(Qnet) < 2e-7) {
     glacier->surf_temp = 0.;
-    melt_energy = NetShort + NetLong + sensible_heat + advected_sensible_heat
+    melt_energy = NetShort + (*NetLong) + sensible_heat + advected_sensible_heat
         + latent_heat + latent_heat_sub
         - ice_density * CH_ICE * (glacier->surf_temp - (*OldTSurf)) / delta_t;
     GlacMelt = melt_energy / (Lf * RHO_W) * delta_t;
@@ -150,13 +147,19 @@ int glacier_melt(double Le,
   /* Else, GlacierEnergyBalance(T=0.0) <= 0.0 */
   else {
     /* Calculate surface layer temperature using "Brent method" */
-    GlacierEnergyBalance glacierIterative(delta_t, aero_resist,
-        aero_resist_used, displacement, z2, Z0, density, vp, LongIn, Le,
-        pressure, RainFall, NetShort, vpd, wind, (*OldTSurf), GLAC_SURF_THICK,
-        ice_density, GLAC_SURF_WE, Tgrnd, &advection, &advected_sensible_heat,
-        &deltaCC, &grnd_flux, &latent_heat, &latent_heat_sub, NetLong,
-        &RefreezeEnergy, &sensible_heat, &snow->vapor_flux, 0.,
-        &snow->surface_flux);
+    GlacierEnergyBalance glacierIterative(delta_t, aero_resist, aero_resist_used,
+        displacement, z2, Z0,
+        density, vp, LongIn, Le, pressure,
+        RainFall, NetShort, vpd,
+        wind, (*OldTSurf),
+        GLAC_SURF_THICK,
+        GLAC_SURF_WE, air_temp, Tgrnd,
+        &advection, &advected_sensible_heat,
+        &deltaCC,
+        &grnd_flux, &latent_heat,
+        &latent_heat_sub, NetLong,
+        &sensible_heat,
+        &glacier->vapor_flux);
 
     glacier->surf_temp = glacierIterative.root_brent(
         (double) (glacier->surf_temp - SNOW_DT),
@@ -171,22 +174,28 @@ int glacier_melt(double Le,
         error = ErrorPrintGlacierEnergyBalance(glacier->surf_temp, rec, iveg, band,
             delta_t, aero_resist, aero_resist_used, displacement, z2, Z0,
             density, vp, LongIn, Le, pressure, RainFall, NetShort, vpd, wind,
-            (*OldTSurf), GLAC_SURF_THICK, ice_density, GLAC_SURF_WE, Tgrnd,
+            (*OldTSurf), GLAC_SURF_THICK, GLAC_SURF_WE, air_temp, Tgrnd,
             &advection, &advected_sensible_heat, &deltaCC, &grnd_flux,
-            &latent_heat, &latent_heat_sub, NetLong, &RefreezeEnergy,
-            &sensible_heat, &snow->vapor_flux, 0., &snow->surface_flux);
+            &latent_heat, &latent_heat_sub, NetLong,
+            &sensible_heat, &glacier->vapor_flux, ErrorString);
         return (ERROR);
       }
     }
 
     if (glacier->surf_temp > -998) {
-      GlacierEnergyBalance glacierEnergy(delta_t, aero_resist,
-          aero_resist_used, displacement, z2, Z0, density, vp, LongIn, Le,
-          pressure, RainFall, NetShort, vpd, wind, (*OldTSurf), GLAC_SURF_THICK,
-          ice_density, GLAC_SURF_WE, Tgrnd, &advection, &advected_sensible_heat,
-          &deltaCC, &grnd_flux, &latent_heat, &latent_heat_sub, NetLong,
-          &RefreezeEnergy, &sensible_heat, &glacier->vapor_flux, 0.,
-          &glacier->surface_flux);
+      GlacierEnergyBalance glacierEnergy(delta_t, aero_resist, aero_resist_used,
+          displacement, z2, Z0,
+          density, vp, LongIn, Le, pressure,
+          RainFall, NetShort, vpd,
+          wind, (*OldTSurf),
+          GLAC_SURF_THICK,
+          GLAC_SURF_WE, air_temp, Tgrnd,
+          &advection, &advected_sensible_heat,
+          &deltaCC,
+          &grnd_flux, &latent_heat,
+          &latent_heat_sub, NetLong,
+          &sensible_heat,
+          &glacier->vapor_flux);
 
       Qnet = glacierEnergy.calculate(glacier->surf_temp);
 
@@ -227,39 +236,38 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
     int iveg,
     int band,
     double Dt,                      /* Model time step (sec) */
-    /* Vegetation Parameters */
     double Ra,                      /* Aerodynamic resistance (s/m) */
+    double *Ra_used,                /* Aerodynamic resistance (s/m) after stability correction */
+    /* Vegetation Parameters */
     double Displacement,            /* Displacement height (m) */
     double Z,                       /* Reference height (m) */
-    double Z0,                      /* surface roughness height (m) */
+    double *Z0,                     /* surface roughness height (m) */
     /* Atmospheric Forcing Variables */
     double AirDens,                 /* Density of air (kg/m3) */
     double EactAir,                 /* Actual vapor pressure of air (Pa) */
-    double LongIn,                  /* Incoming longwave radiation (W/m2) */
+    double LongSnowIn,              /* Incoming longwave radiation (W/m2) */
     double Lv,                      /* Latent heat of vaporization (J/kg3) */
     double Press,                   /* Air pressure (Pa) */
     double Rain,                    /* Rain fall (m/timestep) */
-    double ShortRad,                /* Net incident shortwave radiation (W/m2) */
+    double NetShortUnder,           /* Net incident shortwave radiation (W/m2) */
     double Vpd,                     /* Vapor pressure deficit (Pa) */
     double Wind,                    /* Wind speed (m/s) */
     /* Snowpack Variables */
-    double OldTSurf,                /* Surface temperature during previous timestep */
+    double OldTSurf,                /* Surface temperature during previous time step */
+    double IceDepth,                /* Depth of glacier surface layer (m) */
+    double IceWE,                   /* Liquid water in the glacier surface layer (m) */
     /* Energy Balance Components */
-    double Tair,                    /* Air temperature (C) */
-    double TGrnd,                   /* Temperature of glacier slab (C) */
+    double Tair,                    /* Canopy air / Air temperature (C) */
+    double TGrnd,                   /* Ground surface temperature (C) */
     double *AdvectedEnergy,         /* Energy advected by precipitation (W/m2) */
     double *AdvectedSensibleHeat,   /* Sensible heat advected from snow-free area into snow covered area (W/m^2) */
-    double *DeltaColdContent,       /* Change in cold content of glacier surface layer (W/m2) */
-    double *DeltaPackColdContent, //TODO: not necessary?
+    double *DeltaColdContent,       /* Change in cold content of surface layer (W/m2) */
     double *GroundFlux,             /* Ground Heat Flux (W/m2) */
     double *LatentHeat,             /* Latent heat exchange at surface (W/m2) */
-    double *LatentHeatSub,          /* Latent heat of sub exchange at surface (W/m2) */
-    double *NetLong,                /* Net longwave radiation at glacier surface (W/m^2) */
-    double *RefreezeEnergy,     //TODO: not necessary?
+    double *LatentHeatSub,          /* Latent heat of sublimation exchange at surface (W/m2) */
+    double *NetLongUnder,           /* Net longwave radiation at snowpack surface (W/m^2) */
     double *SensibleHeat,           /* Sensible heat exchange at surface (W/m2) */
-    double *VaporMassFlux,          /* Mass flux of water vapor to or from glacier surface */
-    double *BlowingMassFlux,        /* Mass flux of water vapor from blowing snow snow */
-    double *SurfaceMassFlux,        /* Total mass flux of water vapor from glacier */
+    double *vapor_flux,             /* Mass flux of water vapor to or from the intercepted snow (m/timestep) */
     char *ErrorString)
 {
 
@@ -268,6 +276,7 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
   fprintf(stderr, "ERROR: glacier_melt failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");
 
   /* general model terms */
+  fprintf(stderr, "TSurf = %f\n", TSurf);
   fprintf(stderr, "rec = %i\n", rec);
   fprintf(stderr, "iveg = %i\n", iveg);
   fprintf(stderr, "band = %i\n", band);
@@ -275,38 +284,37 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
 
   /* land surface parameters */
   fprintf(stderr,"Ra = %f\n",Ra);
+  fprintf(stderr, "Ra_used = %f\n", Ra_used[0]);
   fprintf(stderr,"Displacement = %f\n",Displacement);
   fprintf(stderr,"Z = %f\n",Z);
-  fprintf(stderr,"Z0 = %f\n",Z0);
+  fprintf(stderr,"Z0 = %f\n",Z0[0]);
 
   /* meteorological terms */
   fprintf(stderr,"AirDens = %f\n",AirDens);
   fprintf(stderr,"EactAir = %f\n",EactAir);
-  fprintf(stderr,"LongIn = %f\n",LongIn);
+  fprintf(stderr,"LongIn = %f\n",LongSnowIn);
   fprintf(stderr,"Lv = %f\n",Lv);
   fprintf(stderr,"Press = %f\n",Press);
   fprintf(stderr,"Rain = %f\n",Rain);
-  fprintf(stderr,"ShortRad = %f\n",ShortRad);
+  fprintf(stderr,"ShortRad = %f\n",NetShortUnder);
   fprintf(stderr,"Vpd = %f\n",Vpd);
   fprintf(stderr,"Wind = %f\n",Wind);
 
   /* glacer terms */
   fprintf(stderr,"OldTSurf = %f\n",OldTSurf);
+  fprintf(stderr, "IceDepth = %f\n", IceDepth);
+  fprintf(stderr, "IceWE = %f\n", IceWE);
   fprintf(stderr,"Tair = %f\n",Tair);
   fprintf(stderr,"TGrnd = %f\n",TGrnd);
   fprintf(stderr,"AdvectedEnergy = %f\n",AdvectedEnergy[0]);
   fprintf(stderr,"AdvectedSensibleHeat = %f\n",AdvectedSensibleHeat[0]);
   fprintf(stderr,"DeltaColdContent = %f\n",DeltaColdContent[0]);
-  fprintf(stderr,"DeltaColdPackContent = %f\n", DeltaPackColdContent[0]);
   fprintf(stderr,"GroundFlux = %f\n",GroundFlux[0]);
   fprintf(stderr,"LatentHeat = %f\n",LatentHeat[0]);
   fprintf(stderr,"LatentHeatSub = %f\n",LatentHeatSub[0]);
-  fprintf(stderr,"NetLong = %f\n",NetLong[0]);
-  fprintf(stderr,"RefreezeEnergy = %f\n", RefreezeEnergy[0]);
+  fprintf(stderr,"NetLong = %f\n",NetLongUnder[0]);
   fprintf(stderr,"SensibleHeat = %f\n",SensibleHeat[0]);
-  fprintf(stderr,"VaporMassFlux = %f\n",VaporMassFlux[0]);
-  fprintf(stderr,"BlowingMassFlux = %f\n",BlowingMassFlux[0]);
-  fprintf(stderr,"SurfaceMassFlux = %f\n",SurfaceMassFlux[0]);
+  fprintf(stderr,"VaporMassFlux = %f\n",vapor_flux[0]);
 
   fprintf(stderr,"Finished dumping glacier_melt variables.\nTry increasing SNOW_DT to get model to complete cell.\nThen check output for instabilities.\n");
 

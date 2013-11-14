@@ -340,6 +340,10 @@ void initialize_veg(std::vector<HRU>&, int);
 void   latent_heat_from_snow(double, double, double, double, double, 
                              double, double, double *, double *, 
                              double *, double *, double *);
+void latent_heat_from_glacier(double AirDens, double EactAir, double Lv,
+    double Press, double Ra, double TMean, double Vpd, double *LatentHeat,
+    double *LatentHeatSublimation, double *VaporMassFlux);
+
 double linear_interp(double,double,double,double,double);
 
 dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
