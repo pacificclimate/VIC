@@ -73,7 +73,7 @@ double adjflux(double, double, double ,double, double, double, double,
 void advect_soil_veg_storage(double, double, double, double *, soil_con_struct *, veg_con_struct *, hru_data_struct *, veg_var_struct *, lake_con_struct, const ProgramState*);
 void advect_snow_storage(double, double, double, snow_data_struct *);
 void alblake(double, double, double *, double *, float *, float *, double, double, 
-	     int, int *, double, double, char *, int, double, const ProgramState*);
+	     int, int *, double, double, char *, int, double, const soil_con_struct*, const ProgramState*);
 double calc_density(double);
 void colavg (double *, double *, double *, float, double *, int, double, double);
 float dragcoeff(float, double, double);
@@ -115,7 +115,7 @@ void rescale_snow_storage(double, double, snow_data_struct *);
 void rhoinit(double *, double);
 int solve_lake(double, double, double, double, double, double, double, double, 
 		double, double, lake_var_struct *, lake_con_struct, 
-		soil_con_struct, int, int, double, dmy_struct, double, const ProgramState*);
+		const soil_con_struct*, int, int, double, dmy_struct, double, const ProgramState*);
 double specheat (double);
 void temp_area(double, double, double, double *, double *, double *, double *, int, double *, int, double, double, double*, double *, double *);
 void tracer_mixer(double *, int *, int, double*, int, double, double, double *);

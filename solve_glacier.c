@@ -43,6 +43,7 @@ double solve_glacier(double LongUnderOut,       // LW from understory
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,
       glac_data_struct   *glacier,
+      const soil_con_struct* soil,
       const ProgramState *state) {
 /*********************************************************************
 
@@ -97,7 +98,7 @@ double solve_glacier(double LongUnderOut,       // LW from understory
    (*UnderStory) = 2;         /* ground snow is present or accumulating during time step */
 
    /** compute net shortwave radiation **/
-   (*AlbedoUnder) = GLAC_ALBEDO;
+   (*AlbedoUnder) = soil->GLAC_ALBEDO;
    (*NetShortSnow) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    /** Call snow pack accumulation and ablation algorithm **/
@@ -112,7 +113,7 @@ double solve_glacier(double LongUnderOut,       // LW from understory
     &energy->deltaCC, &tmp_grnd_flux, &energy->latent,
     &energy->latent_sub,
     &energy->sensible,
-    rec, iveg, band, glacier, state);
+    rec, iveg, band, glacier, soil, state);
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall

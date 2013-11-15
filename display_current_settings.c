@@ -144,11 +144,6 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"MAX_VEG\t\t\t%2d\n",MAX_VEG);
   fprintf(stderr,"\n");
   fprintf(stderr,"Snow Constants:\n");
-  fprintf(stderr,"NEW_SNOW_ALB\t\t%f\n",NEW_SNOW_ALB);
-  fprintf(stderr,"SNOW_ALB_ACCUM_A\t%f\n",SNOW_ALB_ACCUM_A);
-  fprintf(stderr,"SNOW_ALB_ACCUM_B\t%f\n",SNOW_ALB_ACCUM_B);
-  fprintf(stderr,"SNOW_ALB_THAW_A\t\t%f\n",SNOW_ALB_THAW_A);
-  fprintf(stderr,"SNOW_ALB_THAW_B\t\t%f\n",SNOW_ALB_THAW_B);
   fprintf(stderr,"TraceSnow\t\t%f\n",TraceSnow);
   fprintf(stderr,"\n");
   fprintf(stderr,"Other Constants:\n");

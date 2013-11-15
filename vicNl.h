@@ -353,8 +353,7 @@ void   MassRelease(double *,double *,double *,double *);
 double maximum_unfrozen_water(double, double, double, double);
 double maximum_unfrozen_water_quick(double, double, double **);
 double modify_Ksat(double, const ProgramState*);
-void mtclim_wrapper(int, int, double, double, double, double,
-                      double, double, double, double,
+void mtclim_wrapper(int, int, double, const soil_con_struct*,
                     int, /* MPN: separate instance; should probably be const */ dmy_struct *, double *,
                       double *, double *, double *, double *, double *, const ProgramState*);
 
@@ -399,7 +398,7 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
-double snow_albedo(double, double, double, double, double, double, int, char, const ProgramState*);
+double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
 int    snow_intercept(double, double, double, double, double, double,
                       double, double, double, double, double, double, 
@@ -426,7 +425,7 @@ int glacier_melt(double Le, double NetShort, double Tgrnd, double *Z0,
     double *save_Qnet, double *save_advected_sensible, double *save_advection,
     double *save_deltaCC, double *save_grnd_flux, double *save_latent,
     double *save_latent_sub, double *save_sensible, int rec, int iveg, int band,
-    glac_data_struct *glacier, const ProgramState *state);
+    glac_data_struct *glacier, const soil_con_struct*, const ProgramState *state);
 double soil_conductivity(double, double, double, double, double, double, double, double);
 void   soil_thermal_calc(soil_con_struct *, layer_data_struct *,
 			 energy_bal_struct, double *, double *, double *,

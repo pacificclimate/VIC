@@ -73,14 +73,6 @@
 #define SNOW_A2 0.3  
 #define SNOW_L1 6    // (1/m)
 #define SNOW_L2 20   // (1/m)
- 
-/***** Snow albedo curve parameters.  Defaults are from Bras p263.
-       Should not be changed except for serious problems with snow melt *****/
-#define NEW_SNOW_ALB		0.85
-#define SNOW_ALB_ACCUM_A	0.94
-#define SNOW_ALB_ACCUM_B	0.58
-#define SNOW_ALB_THAW_A		0.82
-#define SNOW_ALB_THAW_B		0.46
 
 /***** Defines the minimum amount of new snow (mm) which will reset the
        snowpack albedo to new snow *****/

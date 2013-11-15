@@ -17,7 +17,7 @@ int solve_lake(double             snowfall,
 	       double             air_density, 
 	       lake_var_struct   *lake, 
 	       lake_con_struct    lake_con, 
-	       soil_con_struct    soil_con, 
+	       const soil_con_struct *soil_con,
 	       int                dt, 
 	       int                rec, 
 	       double             wind_h,
@@ -242,7 +242,7 @@ int solve_lake(double             snowfall,
     alblake(Tcutoff, tair, &lake->SAlbedo, &tempalbs, &albi, &albw, snowfall,
 	    lake->snow.coldcontent, dt, &lake->snow.last_snow,
 	    lake->snow.swq, lake->snow.depth, &lake->snow.MELTING,
-	    dmy.day_in_year, (double)soil_con.lat, state);
+	    dmy.day_in_year, (double)soil_con->lat, soil_con, state);
 
     /* --------------------------------------------------------------------
      * Calculate the incoming solar radiaton for both the ice fraction
@@ -278,7 +278,7 @@ int solve_lake(double             snowfall,
 
       ErrorFlag = water_energy_balance( lake->activenod, lake->surface, &lake->evapw, 
 					dt, freezeflag, lake->dz, lake->surfdz,
-					(double)soil_con.lat, Tcutoff, tair, windw, 
+					(double)soil_con->lat, Tcutoff, tair, windw,
 					pressure, vp, air_density, longin, sw_water, 
 					sumjoulb, wind_h, &Qhw, &Qew, &LWnetw, T, 
 					water_density, &lake->energy.deltaH,
@@ -332,16 +332,16 @@ int solve_lake(double             snowfall,
 
       freezeflag = 0;         /* Calculation for ice. */
       Le = (677. - 0.07 * tair) * JOULESPCAL * GRAMSPKG; /* ice*/
-      windi = ( wind * log((2. + soil_con.snow_rough) / soil_con.snow_rough) 
-		/ log(wind_h/soil_con.snow_rough) );
+      windi = ( wind * log((2. + soil_con->snow_rough) / soil_con->snow_rough)
+		/ log(wind_h/soil_con->snow_rough) );
       if ( windi < 1.0 ) windi = 1.0;
-      lake->aero_resist = (log((2. + soil_con.snow_rough) / soil_con.snow_rough)
-			   * log(wind_h/soil_con.snow_rough) / (von_K*von_K)) / windi;
+      lake->aero_resist = (log((2. + soil_con->snow_rough) / soil_con->snow_rough)
+			   * log(wind_h/soil_con->snow_rough) / (von_K*von_K)) / windi;
 
       /* Calculate snow/ice temperature and change in ice thickness from 
          surface melting. */
-      ErrorFlag = ice_melt( wind_h+soil_con.snow_rough, lake->aero_resist, &(lake->aero_resist),
-			    Le, &lake->snow, lake, dt,  0.0, soil_con.snow_rough, 1.0,
+      ErrorFlag = ice_melt( wind_h+soil_con->snow_rough, lake->aero_resist, &(lake->aero_resist),
+			    Le, &lake->snow, lake, dt,  0.0, soil_con->snow_rough, 1.0,
 			    rainfall, snowfall,  windi, Tcutoff, tair, sw_ice, 
 			    longin, air_density, pressure,  vpd,  vp, &lake->snowmlt, 
 			    &lake->energy.advection, &lake->energy.deltaCC,
@@ -362,7 +362,7 @@ int solve_lake(double             snowfall,
 
       if (lake->activenod > 0) {
         ErrorFlag = water_under_ice( freezeflag, sw_ice, wind, Ti, water_density, 
-				     (double)soil_con.lat, lake->activenod, lake->dz, lake->surfdz,
+				     (double)soil_con->lat, lake->activenod, lake->dz, lake->surfdz,
 				     Tcutoff, &qw, lake->surface, &temphi, water_cp, 
 				     mixdepth, lake->hice, lake->snow.swq*RHO_W/RHOSNOW,
 				     (double)dt, &energy_out_bottom_ice);     
@@ -645,6 +645,7 @@ void alblake (double  Tcutoff,
 	      char   *MELTING,
 	      int     day_in_year,
 	      double  latitude,
+	      const soil_con_struct* soil,
 	      const ProgramState* state)
 {
 /**********************************************************************
@@ -714,14 +715,14 @@ void alblake (double  Tcutoff,
 
   // compute snow surface albedo
   if(swq > 0.0)
-    *snowalbedo = snow_albedo(newsnow, swq, depth, *snowalbedo, coldcontent, dt, *last_snow, *MELTING, state);
+    *snowalbedo = snow_albedo(newsnow, swq, depth, *snowalbedo, coldcontent, dt, *last_snow, *MELTING, soil, state);
   else if(swq == 0.0 && newsnow > 0.0)
-    *snowalbedo = NEW_SNOW_ALB;
+    *snowalbedo = soil->NEW_SNOW_ALB;
   else
     *snowalbedo = 0.0;
 
   if(newsnow > 0.0)
-    *albs = NEW_SNOW_ALB;
+    *albs = soil->NEW_SNOW_ALB;
   else
     *albs = *snowalbedo;
 

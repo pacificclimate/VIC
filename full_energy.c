@@ -782,7 +782,7 @@ int  full_energy(char                 NEWCELL,
         atmos->wind[state->NR], atmos->vp[state->NR] / 1000., atmos->shortwave[state->NR],
         atmos->longwave[state->NR], atmos->vpd[state->NR] / 1000.,
         atmos->pressure[state->NR] / 1000., atmos->density[state->NR], &(prcp->lake_var), *lake_con,
-        *soil_con, state->global_param.dt, time_step_record, state->global_param.wind_h, dmy[time_step_record], fraci, state);
+        soil_con, state->global_param.dt, time_step_record, state->global_param.wind_h, dmy[time_step_record], fraci, state);
     if (ErrorFlag == ERROR)
       return (ERROR);
 

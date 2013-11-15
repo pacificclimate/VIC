@@ -234,6 +234,7 @@ double snow_albedo(double new_snow,
                    double dt,
                    int    last_snow,
                    char   MELTING,
+                   const soil_con_struct* soil,
                    const ProgramState* state) {
 /**********************************************************************
   snow_albedo		Keith Cherkauer		June 10, 1997
@@ -256,7 +257,7 @@ double snow_albedo(double new_snow,
 **********************************************************************/
 
   /** New Snow **/
-  if(new_snow > TraceSnow  && cold_content < 0.0 ) albedo = NEW_SNOW_ALB;
+  if(new_snow > TraceSnow  && cold_content < 0.0 ) albedo = soil->NEW_SNOW_ALB;
 
   /** Aged Snow **/
   else if(swq > 0.0) {
@@ -283,15 +284,15 @@ double snow_albedo(double new_snow,
 
       /* Accumulation season */
       if ( cold_content < 0.0 && !MELTING )
-        albedo = NEW_SNOW_ALB*pow(SNOW_ALB_ACCUM_A, 
+        albedo = soil->NEW_SNOW_ALB*pow(soil->SNOW_ALB_ACCUM_A,
 				  pow((double)last_snow * dt / 24.,
-				      SNOW_ALB_ACCUM_B));
+				      soil->SNOW_ALB_ACCUM_B));
 
       /* Melt Season */
       else
-        albedo = NEW_SNOW_ALB*pow(SNOW_ALB_THAW_A, 
+        albedo = soil->NEW_SNOW_ALB*pow(soil->SNOW_ALB_THAW_A,
 				  pow((double)last_snow * dt / 24.,
-				      SNOW_ALB_THAW_B));
+				      soil->SNOW_ALB_THAW_B));
 
     }
 

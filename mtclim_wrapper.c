@@ -50,9 +50,7 @@ static char vcid[] = "$Id$";
 /******************************************************************************/
 /*			      FUNCTION PROTOTYPES                             */
 /******************************************************************************/
-void mtclim_init(int have_dewpt, int have_shortwave, double elevation, double slope, double aspect,
-                   double ehoriz, double whoriz, double annual_prcp, 
-		   double lat, int Ndays, dmy_struct *dmy, 
+void mtclim_init(int have_dewpt, int have_shortwave, const soil_con_struct* soil, int Ndays, dmy_struct *dmy,
 		   double *prec, double *tmax, double *tmin, double *vp, double *hourlyrad, 
 		   double **tiny_radfract, control_struct *ctrl, 
 		   parameter_struct *p, data_struct *mtclim_data, const ProgramState* state);
@@ -64,9 +62,7 @@ void mtclim_to_vic(double hour_offset,
 		     double *hourlyrad);
 
 void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
-		      double elevation, double slope, double aspect,
-                      double ehoriz, double whoriz,
-                      double annual_prcp, double lat, 
+		      const soil_con_struct* soil,
 		      int Ndays, dmy_struct *dmy, 
 		      double *prec, double *tmax, double *tmin, double *tskc,
 		      double *vp, double *hourlyrad, const ProgramState* state)
@@ -90,8 +86,7 @@ void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
   }
 
   /* initialize the mtclim data structures */ 
-  mtclim_init(have_dewpt, have_shortwave, elevation, slope, aspect, ehoriz, whoriz,
-                annual_prcp, lat, Ndays, dmy, prec,
+  mtclim_init(have_dewpt, have_shortwave, soil, Ndays, dmy, prec,
 		tmax, tmin, vp, hourlyrad, tiny_radfract, &ctrl, &p,
 		&mtclim_data, state);
 
@@ -140,9 +135,7 @@ void mtclim_wrapper(int have_dewpt, int have_shortwave, double hour_offset,
   free(tiny_radfract);
 }
   
-void mtclim_init(int have_dewpt, int have_shortwave, double elevation, double slope, double aspect,
-                   double ehoriz, double whoriz, double annual_prcp, 
-		   double lat, int Ndays, dmy_struct *dmy, 
+void mtclim_init(int have_dewpt, int have_shortwave, const soil_con_struct* soil, int Ndays, dmy_struct *dmy,
 		   double *prec, double *tmax, double *tmin, double *vp, double *hourlyrad, 
 		   double **tiny_radfract, control_struct *ctrl, 
 		   parameter_struct *p, data_struct *mtclim_data, const ProgramState* state)
@@ -175,17 +168,17 @@ void mtclim_init(int have_dewpt, int have_shortwave, double elevation, double sl
      outside of the mtclim code.  Therefore p->base_elev and p->site_elev are
      set to the same value.  The same is true for p->base_isoh and
      p->site_isoh. */
-  p->base_elev   = elevation;
-  p->base_isoh   = annual_prcp/10.; /* MTCLIM prcp in cm */
-  p->site_lat    = lat;
-  p->site_elev   = elevation;
-  p->site_slp    = slope;
-  p->site_asp    = aspect;
-  p->site_isoh   = annual_prcp/10.; /* MTCLIM prcp in cm */
-  p->site_ehoriz = ehoriz;
-  p->site_whoriz = whoriz;
-  p->tmax_lr     = T_lapse;	    /* not used since site_elev == base_elev */
-  p->tmin_lr     = T_lapse;	    /* not used since site_elev == base_elev */
+  p->base_elev   = soil->elevation;
+  p->base_isoh   = soil->annual_prec/10.; /* MTCLIM prcp in cm */
+  p->site_lat    = soil->lat;
+  p->site_elev   = soil->elevation;
+  p->site_slp    = soil->slope;
+  p->site_asp    = soil->aspect;
+  p->site_isoh   = soil->annual_prec/10.; /* MTCLIM prcp in cm */
+  p->site_ehoriz = soil->ehoriz;
+  p->site_whoriz = soil->whoriz;
+  p->tmax_lr     = soil->T_LAPSE;	    /* not used since site_elev == base_elev */
+  p->tmin_lr     = soil->T_LAPSE;	    /* not used since site_elev == base_elev */
 
   /* allocate space in the data arrays for input and output data */
   if (data_alloc(ctrl, mtclim_data)) {

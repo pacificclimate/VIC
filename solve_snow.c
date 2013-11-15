@@ -333,13 +333,13 @@ double solve_snow(char                 overstory,
         snow->last_snow++;
         snow->albedo = snow_albedo( snowfall[WET], snow->swq, snow->depth,
 				    snow->albedo, snow->coldcontent, (double)dt, 
-				    snow->last_snow, snow->MELTING, state);
+				    snow->last_snow, snow->MELTING, soil_con, state);
         (*AlbedoUnder) = (*coverage * snow->albedo + (1. - *coverage) * BareAlbedo);
       }
       else {
         // set snow albedo to new snow albedo
         snow->last_snow = 0;
-        snow->albedo = NEW_SNOW_ALB;
+        snow->albedo = soil_con->NEW_SNOW_ALB;
         (*AlbedoUnder) = snow->albedo;
       }
       (*NetShortSnow) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
@@ -548,7 +548,7 @@ double solve_snow(char                 overstory,
     snow->store_coverage = 1;
     snow->MELTING        = FALSE;
     snow->last_snow      = INVALID_INT;
-    snow->albedo         = NEW_SNOW_ALB;
+    snow->albedo         = soil_con->NEW_SNOW_ALB;
   }
 
   energy->melt_energy *= -1.;

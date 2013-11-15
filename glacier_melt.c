@@ -94,6 +94,7 @@ int glacier_melt(double Le,
     int iveg,
     int               band,
     glac_data_struct *glacier,
+    const soil_con_struct* soil,
     const ProgramState *state)
 {
   double error;
@@ -123,8 +124,8 @@ int glacier_melt(double Le,
          density, vp, LongIn, Le, pressure,
          RainFall, NetShort, vpd,
          wind, (*OldTSurf),
-         GLAC_SURF_THICK,
-         GLAC_SURF_WE, air_temp, Tgrnd,
+         soil->GLAC_SURF_THICK,
+         soil->GLAC_SURF_WE, air_temp, Tgrnd,
          &advection, &advected_sensible_heat,
          &deltaCC,
          &grnd_flux, &latent_heat,
@@ -152,8 +153,8 @@ int glacier_melt(double Le,
         density, vp, LongIn, Le, pressure,
         RainFall, NetShort, vpd,
         wind, (*OldTSurf),
-        GLAC_SURF_THICK,
-        GLAC_SURF_WE, air_temp, Tgrnd,
+        soil->GLAC_SURF_THICK,
+        soil->GLAC_SURF_WE, air_temp, Tgrnd,
         &advection, &advected_sensible_heat,
         &deltaCC,
         &grnd_flux, &latent_heat,
@@ -174,7 +175,7 @@ int glacier_melt(double Le,
         error = ErrorPrintGlacierEnergyBalance(glacier->surf_temp, rec, iveg, band,
             delta_t, aero_resist, aero_resist_used, displacement, z2, Z0,
             density, vp, LongIn, Le, pressure, RainFall, NetShort, vpd, wind,
-            (*OldTSurf), GLAC_SURF_THICK, GLAC_SURF_WE, air_temp, Tgrnd,
+            (*OldTSurf), soil->GLAC_SURF_THICK, soil->GLAC_SURF_WE, air_temp, Tgrnd,
             &advection, &advected_sensible_heat, &deltaCC, &grnd_flux,
             &latent_heat, &latent_heat_sub, NetLong,
             &sensible_heat, &glacier->vapor_flux, ErrorString);
@@ -188,8 +189,8 @@ int glacier_melt(double Le,
           density, vp, LongIn, Le, pressure,
           RainFall, NetShort, vpd,
           wind, (*OldTSurf),
-          GLAC_SURF_THICK,
-          GLAC_SURF_WE, air_temp, Tgrnd,
+          soil->GLAC_SURF_THICK,
+          soil->GLAC_SURF_WE, air_temp, Tgrnd,
           &advection, &advected_sensible_heat,
           &deltaCC,
           &grnd_flux, &latent_heat,
@@ -201,7 +202,7 @@ int glacier_melt(double Le,
 
       /* since we iterated, the surface layer is below freezing and no snowmelt */
       GlacMelt = 0.0;
-      GlacCC = CH_ICE * glacier->surf_temp * GLAC_SURF_WE;
+      GlacCC = CH_ICE * glacier->surf_temp * soil->GLAC_SURF_WE;
 
     }
   }

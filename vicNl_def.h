@@ -250,8 +250,6 @@ extern const char ref_veg_ref_crop[];
 #define MAX_SUBSIDENCE    1.0        /* maximum depth of subsidence per layer per
 					time-step (mm) */
 #define ice_density      917.	    /* density of ice (kg/m^3) */
-#define T_lapse          6.5        /* temperature lapse rate of US Std 
-				       Atmos in C/km */
 #define von_K        0.40	/* Von Karman constant for evapotranspiration */
 #define KELVIN       273.15	/* conversion factor C to K */
 #define STEFAN_B     5.6696e-8	/* stefan-boltzmann const in unit W/m^2/K^4 */
@@ -274,19 +272,9 @@ extern const char ref_veg_ref_crop[];
 #define PI 3.1415927
 #endif
 
-//TODO: temporary fix for missing defines. These should be inputs from the soil file.
-#define GLAC_SURF_THICK     100.0     /* Thickness of glacier active layer (mm) */
-#define GLAC_SURF_WE        91.7      /* Water equivalent of glacier surface layer (mm) */
-#define GLAC_TEMP           0.0       /* Temperature of main glacier (C) */
-#define GLAC_KMIN                0.05      /* Minimum glacier outflow coefficient (-) */
-#define GLAC_DK                  0.75      /* Maximum glacier outflow coefficient (-) */
-#define GLAC_A                   0.01      /* Outflow parameter (-) */
-#define GLAC_ALBEDO         0.3       /* Glacier ice surface albedo (-) */
-#define GLAC_ROUGH          0.002     /* Glacier ice surface roughness (m) */
-#define GLAC_K_ICE               2.14      /* Thermal conductivity of ice (W/mK) */
-//TODO: implement this...
-#define GLAC_ID             #error    /* Vegetation class denoting glacier cover */
-
+// Glacier specific constants.
+#define GLAC_TEMP    0.0       /* Temperature of main glacier (C) */
+#define GLAC_K_ICE   2.14      /* Thermal conductivity of ice (W/mK) */
 
 /* define constants for saturated vapor pressure curve (kPa) */
 #define A_SVP 0.61078
@@ -932,6 +920,26 @@ typedef struct {
   double   Wcr_FRACT[MAX_LAYERS];
   double   Wpwp_FRACT[MAX_LAYERS];
   double   subsidence[MAX_LAYERS];      /* subsidence of soil layer, mm*/
+  // glacier variables
+  double NEW_SNOW_ALB;       /* New snow albedo (-)            */
+  double SNOW_ALB_ACCUM_A;   /* Accumulation albedo decay (-)  */
+  double SNOW_ALB_ACCUM_B;   /* Accumulation exponent (-)      */
+  double SNOW_ALB_THAW_A;    /* Melt albedo decay (-)          */
+  double SNOW_ALB_THAW_B;    /* Melt exponent (-)              */
+  double MIN_RAIN_TEMP;      /* Air temperature below which all precip occurs as snow (C) */
+  double MAX_SNOW_TEMP;      /* Air temperature above which all precip occurs as rain (C) */
+  double PADJ;               /* Precipitation adjustment factor (-) */
+  double T_LAPSE;            /* Temperature lapse rate (C km-1) */
+  double PGRAD;              /* Precipitation Gradient (km-1) */
+  double AREA;               /* Grid cell area (m2) */
+  double GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */
+  double GLAC_SURF_WE;       /* Water equivalent of glacier surface layer (mm) */
+  double GLAC_KMIN;          /* Minimum glacier outflow coefficient (-) */
+  double GLAC_DK;            /* Maximum glacier outflow coefficient (-) */
+  double GLAC_A;             /* Outflow parameter (-) */
+  double GLAC_ALBEDO;        /* Glacier ice surface albedo (-) */
+  double GLAC_ROUGH;         /* Glacier ice surface roughness (m) */
+
 } soil_con_struct;
 
 /*****************************************************************
