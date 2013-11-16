@@ -646,7 +646,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.PADJ = 1.0;
       temp.T_LAPSE = 6.5;
       temp.PGRAD = 1.0;
-      temp.AREA = 0;
+      temp.AREA = 0.0;
       temp.GLAC_SURF_THICK = 100.0;
       temp.GLAC_SURF_WE = 91.7;
       temp.GLAC_KMIN = 0.05;
