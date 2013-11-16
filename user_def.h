@@ -131,5 +131,5 @@
 /* The glacier code expects 18 more parameters per cell in the soil file by default.
  If this is explicitly set to FALSE, then the old format is used for backwards
  compatibility and reasonable defaults are assigned to the glacier parameters. */
-#define GLACIER_SOIL_FILE_FORMAT FALSE
+#define GLACIER_SOIL_FILE_FORMAT TRUE
 
