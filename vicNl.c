@@ -414,7 +414,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
     // forcing data array is dumped into a new set of files.
-    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, outputFormat, out_data);
+    write_forcing_file(&cell_data_structs[cellidx], global_param.nrecs, outputFormat, out_data);
     continue;
 #endif
 

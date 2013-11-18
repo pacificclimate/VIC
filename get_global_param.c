@@ -223,8 +223,6 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   global_param.endmonth      = INVALID_INT;
   global_param.endday        = INVALID_INT;
   global_param.resolution    = INVALID;
-  global_param.MAX_SNOW_TEMP = 0;
-  global_param.MIN_RAIN_TEMP = 0;
   global_param.measure_h     = 2.0;
   global_param.wind_h        = 10.0;
   for(i = 0; i < 2; i++) {
@@ -379,12 +377,6 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       }
       else if(strcasecmp("MIN_WIND_SPEED",optstr)==0) {
 	sscanf(cmdstr,"%*s %f",&options.MIN_WIND_SPEED);
-      }
-      else if(strcasecmp("MIN_RAIN_TEMP",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global_param.MIN_RAIN_TEMP);
-      }
-      else if(strcasecmp("MAX_SNOW_TEMP",optstr)==0) {
-        sscanf(cmdstr,"%*s %lf",&global_param.MAX_SNOW_TEMP);
       }
       else if(strcasecmp("CONTINUEONERROR",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);

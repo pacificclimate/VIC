@@ -301,8 +301,6 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"WIND_H\t\t\t%f\n",global_param.wind_h);
   fprintf(stderr,"MEASURE_H\t\t%f\n",global_param.measure_h);
   fprintf(stderr,"NODES\t\t\t%d\n",options.Nnode);
-  fprintf(stderr,"MIN_RAIN_TEMP\t\t%f\n",global_param.MIN_RAIN_TEMP);
-  fprintf(stderr,"MAX_SNOW_TEMP\t\t%f\n",global_param.MAX_SNOW_TEMP);
   fprintf(stderr,"MIN_WIND_SPEED\t\t%f\n",options.MIN_WIND_SPEED);
 
   fprintf(stderr,"\n");

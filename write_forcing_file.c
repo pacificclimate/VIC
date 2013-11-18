@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void write_forcing_file(atmos_data_struct *atmos,
+void write_forcing_file(cell_info_struct *cell,
 			int                nrecs,
 			WriteOutputFormat *outputFormat,
 			out_data_struct   *out_data,
@@ -42,28 +42,28 @@ void write_forcing_file(atmos_data_struct *atmos,
   for ( rec = 0; rec < nrecs; rec++ ) {
     for ( j = 0; j < state->NF; j++ ) {
 
-      out_data[OUT_AIR_TEMP].data[0]  = atmos[rec].air_temp[j];
-      out_data[OUT_DENSITY].data[0]   = atmos[rec].density[j];
-      out_data[OUT_LONGWAVE].data[0]  = atmos[rec].longwave[j];
-      out_data[OUT_PREC].data[0]      = atmos[rec].prec[j];
-      out_data[OUT_PRESSURE].data[0]  = atmos[rec].pressure[j]/kPa2Pa;
-      out_data[OUT_QAIR].data[0]      = EPS * atmos[rec].vp[j]/atmos[rec].pressure[j];
-      out_data[OUT_REL_HUMID].data[0] = 100.*atmos[rec].vp[j]/(atmos[rec].vp[j]+atmos[rec].vpd[j]);
-      out_data[OUT_SHORTWAVE].data[0] = atmos[rec].shortwave[j];
-      out_data[OUT_TSKC].data[0]      = atmos[rec].tskc[j];
-      out_data[OUT_VP].data[0]        = atmos[rec].vp[j]/kPa2Pa;
-      out_data[OUT_VPD].data[0]       = atmos[rec].vpd[j]/kPa2Pa;
-      out_data[OUT_WIND].data[0]      = atmos[rec].wind[j];
-      if (out_data[OUT_AIR_TEMP].data[0] >= state->global_param.MAX_SNOW_TEMP) {
+      out_data[OUT_AIR_TEMP].data[0]  = cell->atmos[rec].air_temp[j];
+      out_data[OUT_DENSITY].data[0]   = cell->atmos[rec].density[j];
+      out_data[OUT_LONGWAVE].data[0]  = cell->atmos[rec].longwave[j];
+      out_data[OUT_PREC].data[0]      = cell->atmos[rec].prec[j];
+      out_data[OUT_PRESSURE].data[0]  = cell->atmos[rec].pressure[j]/kPa2Pa;
+      out_data[OUT_QAIR].data[0]      = EPS * cell->atmos[rec].vp[j]/cell->atmos[rec].pressure[j];
+      out_data[OUT_REL_HUMID].data[0] = 100.*cell->atmos[rec].vp[j]/(cell->atmos[rec].vp[j]+cell->atmos[rec].vpd[j]);
+      out_data[OUT_SHORTWAVE].data[0] = cell->atmos[rec].shortwave[j];
+      out_data[OUT_TSKC].data[0]      = cell->atmos[rec].tskc[j];
+      out_data[OUT_VP].data[0]        = cell->atmos[rec].vp[j]/kPa2Pa;
+      out_data[OUT_VPD].data[0]       = cell->atmos[rec].vpd[j]/kPa2Pa;
+      out_data[OUT_WIND].data[0]      = cell->atmos[rec].wind[j];
+      if (out_data[OUT_AIR_TEMP].data[0] >= cell->soil_con.MAX_SNOW_TEMP) {
         out_data[OUT_RAINF].data[0] = out_data[OUT_PREC].data[0];
         out_data[OUT_SNOWF].data[0] = 0;
       }
-      else if (out_data[OUT_AIR_TEMP].data[0] <= state->global_param.MIN_RAIN_TEMP) {
+      else if (out_data[OUT_AIR_TEMP].data[0] <= cell->soil_con.MIN_RAIN_TEMP) {
         out_data[OUT_RAINF].data[0] = 0;
         out_data[OUT_SNOWF].data[0] = out_data[OUT_PREC].data[0];
       }
       else {
-        out_data[OUT_RAINF].data[0] = ((out_data[OUT_AIR_TEMP].data[0]-state->global_param.MIN_RAIN_TEMP)/(state->global_param.MAX_SNOW_TEMP-state->global_param.MIN_RAIN_TEMP))*out_data[OUT_PREC].data[0];
+        out_data[OUT_RAINF].data[0] = ((out_data[OUT_AIR_TEMP].data[0]-cell->soil_con.MIN_RAIN_TEMP)/(cell->soil_con.MAX_SNOW_TEMP-cell->soil_con.MIN_RAIN_TEMP))*out_data[OUT_PREC].data[0];
         out_data[OUT_SNOWF].data[0] = out_data[OUT_PREC].data[0]-out_data[OUT_RAINF].data[0];
       }
 

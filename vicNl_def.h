@@ -788,8 +788,6 @@ typedef struct {
   This structure stores all model run global parameters.
   *******************************************************/
 typedef struct {
-  double MAX_SNOW_TEMP; /* maximum temperature at which snow can fall (C) */
-  double MIN_RAIN_TEMP; /* minimum temperature at which rain can fall (C) */
   double measure_h;  /* height of measurements (m) */
   double wind_h;     /* height of wind measurements (m) */ 
   float  resolution; /* Model resolution (degrees) */

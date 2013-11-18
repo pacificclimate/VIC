@@ -544,7 +544,7 @@ int surface_fluxes(char                 overstory,
 
         /** Solve snow accumulation, ablation and interception **/
         step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
-            state->global_param.MIN_RAIN_TEMP, state->global_param.MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
+            soil_con->MIN_RAIN_TEMP, soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
             step_prec[WET], snow_grnd_flux, state->global_param.wind_h, &energy->AlbedoUnder,
             &step_Evap, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
             &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,

@@ -1280,7 +1280,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
     atmos[rec].snowflag[state->NR] = FALSE;
     for (int i = 0; i < state->NF; i++) {
-      if ((atmos[rec].air_temp[i] + min_Tfactor) < state->global_param.MAX_SNOW_TEMP
+      if ((atmos[rec].air_temp[i] + min_Tfactor) < soil_con->MAX_SNOW_TEMP
 	  &&  atmos[rec].prec[i] > 0) {
 	atmos[rec].snowflag[i] = TRUE;
 	atmos[rec].snowflag[state->NR] = TRUE;

@@ -493,7 +493,7 @@ double volumetric_heat_capacity(double,double,double,double);
 void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
-void write_forcing_file(atmos_data_struct *, int, WriteOutputFormat *, out_data_struct *, const ProgramState*);
+void write_forcing_file(cell_info_struct*, int, WriteOutputFormat *, out_data_struct *, const ProgramState*);
 void write_layer(layer_data_struct *, int, int, const double*);
 void write_model_state(cell_info_struct* cell, const char* filename, const ProgramState  *state);
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state);
