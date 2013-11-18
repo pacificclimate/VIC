@@ -723,6 +723,7 @@ typedef struct {
 				   variables are explicitly mentioned in global parameter file, this option
 				   is ignored. */
   char NETCDF_FULL_FILE_PATH[MAXSTRING]; /* Full file path to the netCDF output file, applies if OUTPUT_FILE == NETCDF */
+  int GLACIER_ID;        /* An index indicating which veg class in the vegetation library contains glacier information. */
 } option_struct;
 
 #if LINK_DEBUG

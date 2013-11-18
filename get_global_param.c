@@ -675,19 +675,23 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         else
           options.LAI_SRC=LAI_FROM_VEGLIB;
       }
+      else if (strcasecmp("GLACIER_ID", optstr) == 0) {
+        sscanf(cmdstr,"%*s %d", &options.GLACIER_ID);
+      }
       else if(strcasecmp("ROOT_ZONES",optstr)==0) {
-	sscanf(cmdstr,"%*s %d",&options.ROOT_ZONES);
+        sscanf(cmdstr,"%*s %d",&options.ROOT_ZONES);
       }
       else if(strcasecmp("SNOW_BAND",optstr)==0) {
-	sscanf(cmdstr,"%*s %d %s",&options.SNOW_BAND,names->snowband);
+        sscanf(cmdstr,"%*s %d %s",&options.SNOW_BAND,names->snowband);
       }
       else if(strcasecmp("LAKES",optstr)==0) {
-        sscanf(cmdstr,"%*s %s", flgstr);
-        if(strcasecmp("FALSE", flgstr) == 0) options.LAKES = FALSE;
+        sscanf(cmdstr, "%*s %s", flgstr);
+        if (strcasecmp("FALSE", flgstr) == 0)
+          options.LAKES = FALSE;
         else {
-	  options.LAKES = TRUE;
-	  strcpy(names->lakeparam, flgstr);
-	}
+          options.LAKES = TRUE;
+          strcpy(names->lakeparam, flgstr);
+        }
       }
       else if(strcasecmp("LAKE_PROFILE",optstr)==0) {
         sscanf(cmdstr,"%*s %s", flgstr);

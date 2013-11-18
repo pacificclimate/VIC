@@ -167,6 +167,7 @@ void ProgramState::initialize_global() {
   options.ORGANIC_FRACT         = FALSE;
   options.VEGPARAM_LAI          = FALSE;
   options.LAI_SRC               = LAI_FROM_VEGLIB;
+  options.GLACIER_ID            = -1;
   // state options
   options.STATE_FORMAT          = StateOutputFormat::ASCII_STATEFILE;
   options.INIT_STATE            = FALSE;

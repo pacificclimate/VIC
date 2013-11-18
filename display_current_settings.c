@@ -359,6 +359,7 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"Veg library file\t%s\n",names->veglib);
   fprintf(stderr,"Veg param file\t\t%s\n",names->veg);
   fprintf(stderr,"ROOT_ZONES\t\t%d\n",options.ROOT_ZONES);
+  fprintf(stderr, "GLACIER_ID\t\t%d\n", options.GLACIER_ID);
   if (options.VEGPARAM_LAI)
     fprintf(stderr,"VEGPARAM_LAI\t\tTRUE\n");
   else
