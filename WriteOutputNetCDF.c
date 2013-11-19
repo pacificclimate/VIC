@@ -183,6 +183,14 @@ void WriteOutputNetCDF::verifyGlobalAttributes(NcFile& file) {
   }
 }
 
+int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
+  dmy_struct endTime;
+  endTime.year = state->global_param.endyear;
+  endTime.month = state->global_param.endmonth;
+  endTime.day = state->global_param.endday;
+  return getTimeIndex(&endTime, timeIndexDivisor, state) + 1;
+}
+
 // Called automatically only once at the beginning of the program.
 void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
@@ -218,13 +226,13 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   verifyGlobalAttributes(ncFile);
 
   // Set up the dimensions and variables.
-
-  fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions);
+  int timeSize = getLengthOfTimeDimension(state);
+  fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld, time: %d\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions, timeSize);
 
   NcDim latDim = ncFile.addDim("lat", (size_t)state->global_param.gridNumLatDivisions);
   NcDim lonDim = ncFile.addDim("lon", (size_t)state->global_param.gridNumLonDivisions);
   NcDim bounds = ncFile.addDim("bnds", 2);
-  NcDim timeDim = ncFile.addDim("time");    // Time is unlimited.
+  NcDim timeDim = ncFile.addDim("time", timeSize);
   NcDim valuesDim = ncFile.addDim("depth", MAX_BANDS);  // This dimension allows for variables which are actually arrays of values.
 
 
@@ -320,7 +328,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
 // Returns either the number of hours since the start time (if dt < 24)
 // Or returns the number of days since the start time (if dt >= 24)
 // Returns INVALID_INT on error.
-int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state) {
+int WriteOutputNetCDF::getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state) {
   struct std::tm curTm = { 0, 0, curTime->hour, curTime->day, curTime->month - 1, curTime->year - 1900, 0, 0, 0, 0, "UTC" };  // Current date.
   struct std::tm startTm = { 0, 0, state->global_param.starthour, state->global_param.startday, state->global_param.startmonth - 1, state->global_param.startyear - 1900, 0, 0, 0, 0, "UTC" }; // Simulation start date.
   std::time_t curTimeT = std::mktime(&curTm);

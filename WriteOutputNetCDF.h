@@ -37,6 +37,8 @@ public:
 private:
   void outputGlobalAttributeError(std::string error, const char** requiredAttributes);
   void verifyGlobalAttributes(netCDF::NcFile& file);
+  int getLengthOfTimeDimension(const ProgramState* state);
+  int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state);
   std::map<std::string, VariableMetaData> getMapping(bool isHourly = false);
   std::map<std::string, VariableMetaData> mapping;
   std::string netCDFOutputFileName;
