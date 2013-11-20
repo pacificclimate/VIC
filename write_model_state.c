@@ -79,15 +79,17 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   StateIO* writer = context.stream;
 
   /* write cell information */
-  writer->write(&cell->soil_con.gridcel, 1, NULL);
-  writer->write(&cell->veg_con[0].vegetat_type_num, 1, NULL);
-  writer->write(&Nbands, 1, NULL);
+  writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
+  writer->write(&cell->veg_con[0].vegetat_type_num, 1, StateVariables::VEG_TYPE_NUM);
+  writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
 
   processCellForStateFile(cell, writer, state);
   
 }
 
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state) {
+
+  using namespace StateVariables;
 
   int Ndist;
   if(state->options.DIST_PRCP)
@@ -96,23 +98,23 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     Ndist = 1;
 
   /* Write soil thermal node deltas */
-  stream->process(cell->soil_con.dz_node, state->options.Nnode, NULL);
+  stream->process(cell->soil_con.dz_node, state->options.Nnode, SOIL_DZ_NODE);
 
   /* Write soil thermal node depths */
-  stream->process(cell->soil_con.Zsum_node, state->options.Nnode, NULL);
+  stream->process(cell->soil_con.Zsum_node, state->options.Nnode, SOIL_ZSUM_NODE);
 
   stream->processNewline();
   
   /* Write dynamic soil properties */
 #if EXCESS_ICE
   /* Write soil depth */
-  stream->process(cell->soil_con.depth, state->options.Nlayer, NULL);
+  stream->process(cell->soil_con.depth, state->options.Nlayer, SOIL_DEPTH);
   
   /* Write effective porosity */
-  stream->process(cell->soil_con.effective_porosity, state->options.Nlayer, NULL);
+  stream->process(cell->soil_con.effective_porosity, state->options.Nlayer, SOIL_EFFECTIVE_POROSITY);
   
   /* Write damping depth */
-  stream->process(&cell->soil_con.dp, 1, NULL);
+  stream->process(&cell->soil_con.dp, 1, SOIL_DP);
   stream->processNewline();
 #endif
   
@@ -122,11 +124,11 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     // Do the following only once per vegetation type
     if (it->bandIndex == 0) {
       // Store distributed precipitation fraction
-      stream->process(&cell->prcp.mu[it->vegIndex], 1, NULL);
+      stream->process(&cell->prcp.mu[it->vegIndex], 1, PRCP_MU);
 
       // Store distributed precipitation variables
-      stream->process(&cell->init_STILL_STORM[it->vegIndex], 1, NULL);
-      stream->process(&cell->init_DRY_TIME[it->vegIndex], 1, NULL);
+      stream->process(&cell->init_STILL_STORM[it->vegIndex], 1, INIT_STILL_STORM);
+      stream->process(&cell->init_DRY_TIME[it->vegIndex], 1, INIT_DRY_TIME);
       stream->processNewline();
     }
 
@@ -135,8 +137,8 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     int originalVeg = it->vegIndex;
     int originalBand = it->bandIndex;
 
-    stream->process(&it->vegIndex, 1, NULL);
-    stream->process(&it->bandIndex, 1, NULL);
+    stream->process(&it->vegIndex, 1, HRU_VEG_INDEX);
+    stream->process(&it->bandIndex, 1, HRU_BAND_INDEX);
 
     // The following is read specific and there is nothing we can do about it.
     if (stream->getType() == StateIO::Reader) {
@@ -156,7 +158,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         soilMoisture[lidx] = (cellRef.layer[lidx].moist);   // This is write specific (no-op for read).
       }
-      stream->process(soilMoisture, state->options.Nlayer, NULL);
+      stream->process(soilMoisture, state->options.Nlayer, LAYER_MOIST);
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         cellRef.layer[lidx].moist = soilMoisture[lidx];   // This is read specific (no-op for write).
       }
@@ -166,14 +168,14 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 #if SPATIAL_FROST
 #error
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-        stream->process(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, NULL);
+        stream->process(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, LAYER_SOIL_ICE);
       }
 #else
       double iceContent [state->options.Nlayer];
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         iceContent[lidx] = cellRef.layer[lidx].soil_ice;        // Write specific.
       }
-      stream->process(iceContent, state->options.Nlayer, NULL);
+      stream->process(iceContent, state->options.Nlayer, LAYER_ICE_CONTENT);
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         cellRef.layer[lidx].soil_ice = iceContent[lidx];        // Read specific.
       }
@@ -181,25 +183,25 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
       /* Write dew storage */
       if (it->vegIndex < cell->veg_con[0].vegetat_type_num) {
-        stream->process(&it->veg_var[dist].Wdew, 1, NULL);
+        stream->process(&it->veg_var[dist].Wdew, 1, HRU_VEG_VAR_WDEW);
       }
     }
 
     /* Write snow data */
-    stream->process(&it->snow.last_snow, 1, NULL);
-    stream->process(&it->snow.MELTING, 1, NULL);
-    stream->process(&it->snow.coverage, 1, NULL);
-    stream->process(&it->snow.swq, 1, NULL);
-    stream->process(&it->snow.surf_temp, 1, NULL);
-    stream->process(&it->snow.surf_water, 1, NULL);
-    stream->process(&it->snow.pack_temp, 1, NULL);
-    stream->process(&it->snow.pack_water, 1, NULL);
-    stream->process(&it->snow.density, 1, NULL);
-    stream->process(&it->snow.coldcontent, 1, NULL);
-    stream->process(&it->snow.snow_canopy, 1, NULL);
+    stream->process(&it->snow.last_snow, 1, SNOW_LAST_SNOW);
+    stream->process(&it->snow.MELTING, 1, SNOW_MELTING);
+    stream->process(&it->snow.coverage, 1, SNOW_COVERAGE);
+    stream->process(&it->snow.swq, 1, SNOW_SWQ);
+    stream->process(&it->snow.surf_temp, 1, SNOW_SURF_TEMP);
+    stream->process(&it->snow.surf_water, 1, SNOW_SURF_WATER);
+    stream->process(&it->snow.pack_temp, 1, SNOW_PACK_TEMP);
+    stream->process(&it->snow.pack_water, 1, SNOW_PACK_WATER);
+    stream->process(&it->snow.density, 1, SNOW_DENSITY);
+    stream->process(&it->snow.coldcontent, 1, SNOW_COLD_CONTENT);
+    stream->process(&it->snow.snow_canopy, 1, SNOW_CANOPY);
 
     /* Write soil thermal node temperatures */
-    stream->process(it->energy.T, state->options.Nnode, NULL);
+    stream->process(it->energy.T, state->options.Nnode, ENERGY_T);
 
     stream->processNewline();
   }
@@ -213,7 +215,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         moistValues[lidx] = cell->prcp.lake_var.soil.layer[lidx].moist;   // Write specific.
       }
-      stream->process(moistValues, state->options.Nlayer, NULL);
+      stream->process(moistValues, state->options.Nlayer, LAKE_LAYER_MOIST);
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         cell->prcp.lake_var.soil.layer[lidx].moist = moistValues[lidx];   // Read specific.
       }
@@ -226,7 +228,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
           avgIceContent[(lidx * FROST_SUBAREAS) + frost_area] = cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area];  // Write specific.
         }
       }
-      stream->process(avgIceContent, state->options.Nlayer * FROST_SUBAREAS, NULL);
+      stream->process(avgIceContent, state->options.Nlayer * FROST_SUBAREAS, LAKE_LAYER_SOIL_ICE);
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
           cell->prcp.lake_var.soil.layer[lidx].soil_ice[frost_area] = avgIceContent[(lidx * FROST_SUBAREAS) + frost_area];  // Read specific.
@@ -237,7 +239,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         avgIceContent[lidx] = cell->prcp.lake_var.soil.layer[lidx].soil_ice;  // Write specific.
       }
-      stream->process(avgIceContent, state->options.Nlayer, NULL);
+      stream->process(avgIceContent, state->options.Nlayer, LAKE_LAYER_ICE_CONTENT);
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         cell->prcp.lake_var.soil.layer[lidx].soil_ice = avgIceContent[lidx];  // Read specific.
       }
@@ -245,44 +247,41 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     }
 
     /* Write snow data */
-    stream->process(&cell->prcp.lake_var.snow.last_snow,   1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.MELTING,     1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.coverage,    1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.swq,         1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.surf_temp,   1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.surf_water,  1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.pack_temp,   1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.pack_water,  1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.density,     1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.coldcontent, 1, NULL);
-    stream->process(&cell->prcp.lake_var.snow.snow_canopy, 1, NULL);
+    stream->process(&cell->prcp.lake_var.snow.last_snow,   1, LAKE_SNOW_LAST_SNOW);
+    stream->process(&cell->prcp.lake_var.snow.MELTING,     1, LAKE_SNOW_MELTING);
+    stream->process(&cell->prcp.lake_var.snow.coverage,    1, LAKE_SNOW_COVERAGE);
+    stream->process(&cell->prcp.lake_var.snow.swq,         1, LAKE_SNOW_SWQ);
+    stream->process(&cell->prcp.lake_var.snow.surf_temp,   1, LAKE_SNOW_SURF_TEMP);
+    stream->process(&cell->prcp.lake_var.snow.surf_water,  1, LAKE_SNOW_SURF_WATER);
+    stream->process(&cell->prcp.lake_var.snow.pack_temp,   1, LAKE_SNOW_PACK_TEMP);
+    stream->process(&cell->prcp.lake_var.snow.pack_water,  1, LAKE_SNOW_PACK_WATER);
+    stream->process(&cell->prcp.lake_var.snow.density,     1, LAKE_SNOW_DENSITY);
+    stream->process(&cell->prcp.lake_var.snow.coldcontent, 1, LAKE_SNOW_COLD_CONTENT);
+    stream->process(&cell->prcp.lake_var.snow.snow_canopy, 1, LAKE_SNOW_CANOPY);
 
     /* Write soil thermal node temperatures */
-    stream->process(cell->prcp.lake_var.energy.T, state->options.Nnode, NULL);
+    stream->process(cell->prcp.lake_var.energy.T, state->options.Nnode, LAKE_ENERGY_T);
 
     /* Write lake-specific variables */
-    stream->process(&cell->prcp.lake_var.activenod, 1, NULL);
-    stream->process(&cell->prcp.lake_var.dz, 1, NULL);
-    stream->process(&cell->prcp.lake_var.surfdz, 1, NULL);
-    stream->process(&cell->prcp.lake_var.ldepth, 1, NULL);
-    stream->process(cell->prcp.lake_var.surface, cell->prcp.lake_var.activenod, NULL);
-    stream->process(&cell->prcp.lake_var.sarea, 1, NULL);
-    stream->process(&cell->prcp.lake_var.volume, 1, NULL);
-    stream->process(cell->prcp.lake_var.temp, cell->prcp.lake_var.activenod, NULL);
-    stream->process(&cell->prcp.lake_var.tempavg, 1, NULL);
-    stream->process(&cell->prcp.lake_var.areai, 1, NULL);
-    stream->process(&cell->prcp.lake_var.new_ice_area, 1, NULL);
-    stream->process(&cell->prcp.lake_var.ice_water_eq, 1, NULL);
-    stream->process(&cell->prcp.lake_var.hice, 1, NULL);
-    stream->process(&cell->prcp.lake_var.tempi, 1, NULL);
-    stream->process(&cell->prcp.lake_var.swe, 1, NULL);
-    stream->process(&cell->prcp.lake_var.surf_temp, 1, NULL);
-    stream->process(&cell->prcp.lake_var.pack_temp, 1, NULL);
-    stream->process(&cell->prcp.lake_var.coldcontent, 1, NULL);
-    stream->process(&cell->prcp.lake_var.surf_water, 1, NULL);
-    stream->process(&cell->prcp.lake_var.pack_water, 1, NULL);
-    stream->process(&cell->prcp.lake_var.SAlbedo, 1, NULL);
-    stream->process(&cell->prcp.lake_var.sdepth, 1, NULL);
+    stream->process(&cell->prcp.lake_var.activenod, 1, LAKE_ACTIVENOD);
+    stream->process(&cell->prcp.lake_var.dz, 1, LAKE_DZ);
+    stream->process(&cell->prcp.lake_var.surfdz, 1, LAKE_SURFDZ);
+    stream->process(&cell->prcp.lake_var.ldepth, 1, LAKE_LDEPTH);
+    stream->process(cell->prcp.lake_var.surface, cell->prcp.lake_var.activenod, LAKE_SURFACE);
+    stream->process(&cell->prcp.lake_var.sarea, 1, LAKE_SAREA);
+    stream->process(&cell->prcp.lake_var.volume, 1, LAKE_VOLUME);
+    stream->process(cell->prcp.lake_var.temp, cell->prcp.lake_var.activenod, LAKE_TEMP);
+    stream->process(&cell->prcp.lake_var.tempavg, 1, LAKE_TEMPAVG);
+    stream->process(&cell->prcp.lake_var.areai, 1, LAKE_AREAI);
+    stream->process(&cell->prcp.lake_var.new_ice_area, 1, LAKE_NEW_ICE_AREA);
+    stream->process(&cell->prcp.lake_var.ice_water_eq, 1, LAKE_ICE_WATER_EQ);
+    stream->process(&cell->prcp.lake_var.hice, 1, LAKE_HICE);
+    stream->process(&cell->prcp.lake_var.tempi, 1, LAKE_TEMPI);
+    stream->process(&cell->prcp.lake_var.swe, 1, LAKE_SWE);
+    stream->process(&cell->prcp.lake_var.surf_temp, 1, LAKE_SURF_TEMP);
+    stream->process(&cell->prcp.lake_var.pack_temp, 1, LAKE_PACK_TEMP);
+    stream->process(&cell->prcp.lake_var.SAlbedo, 1, LAKE_SALBEDO);
+    stream->process(&cell->prcp.lake_var.sdepth, 1, LAKE_SDEPTH);
 
     stream->processNewline();
 
@@ -290,4 +289,3 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   /* Force file to be written */
   stream->flush();
 }
-

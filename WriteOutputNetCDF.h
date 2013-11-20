@@ -35,10 +35,6 @@ public:
   void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state);
   void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state);
 private:
-  void outputGlobalAttributeError(std::string error, const char** requiredAttributes);
-  void verifyGlobalAttributes(netCDF::NcFile& file);
-  int getLengthOfTimeDimension(const ProgramState* state);
-  int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state);
   std::map<std::string, VariableMetaData> getMapping(bool isHourly = false);
   std::map<std::string, VariableMetaData> mapping;
   std::string netCDFOutputFileName;

@@ -38,28 +38,28 @@ void StateIOBinary::initializeOutput() {
   fflush(file);
 }
 
-int StateIOBinary::write(const int* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::write(const int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   //return fwrite(data, sizeof(int), numValues, file);
   int dataLength = numValues * sizeof(int);
   dataToWrite.append((const char*)data, dataLength);
   return dataLength;
 }
 
-int StateIOBinary::write(const double* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::write(const double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   //return fwrite(data, sizeof(double), numValues, file);
   int dataLength = numValues * sizeof(double);
   dataToWrite.append((const char*)data, dataLength);
   return dataLength;
 }
 
-int StateIOBinary::write(const char* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   //return fwrite(data, sizeof(char), numValues, file);
   int dataLength = numValues * sizeof(char);
   dataToWrite.append((const char*)data, dataLength);
   return dataLength;
 }
 
-int StateIOBinary::read(int* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::read(int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = fread(data, sizeof(int), numValues, file);
   if (feof(file)) {
     throw new VICException("End of model state file found unexpectedly");
@@ -67,7 +67,7 @@ int StateIOBinary::read(int* data, int numValues, const StateVariableMetaData* m
   return numRead;
 }
 
-int StateIOBinary::read(double* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = fread(data, sizeof(double), numValues, file);
   if (feof(file)) {
     throw new VICException("End of model state file found unexpectedly");
@@ -75,7 +75,7 @@ int StateIOBinary::read(double* data, int numValues, const StateVariableMetaData
   return numRead;
 }
 
-int StateIOBinary::read(char* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOBinary::read(char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = fread(data, sizeof(char), numValues, file);
   if (feof(file)) {
     throw new VICException("End of model state file found unexpectedly");

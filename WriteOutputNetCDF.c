@@ -157,7 +157,7 @@ std::string getRuntimeMachineInfo() {
 #endif
 }
 
-void WriteOutputNetCDF::outputGlobalAttributeError(std::string error, const char** requiredAttributes) {
+void outputGlobalAttributeError(std::string error, const char** requiredAttributes) {
   std::string message = "Error: netCDF global attribute not specified: \"" + error + "\"\n";
   message += "When the output is in NETCDF format, certain global attributes must be specified in the global input file\n";
   message += "Make sure that at least ";
@@ -172,7 +172,7 @@ void WriteOutputNetCDF::outputGlobalAttributeError(std::string error, const char
   throw VICException(message);
 }
 
-void WriteOutputNetCDF::verifyGlobalAttributes(NcFile& file) {
+void verifyGlobalAttributes(const NcFile& file) {
   const char* requiredAttributes [] = {"institution", "contact", "references", NULL}; // Null terminated list of attributes that must be specified.
   int index = 0;
   while (requiredAttributes[index] != NULL) {

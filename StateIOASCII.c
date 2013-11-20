@@ -26,17 +26,17 @@ void StateIOASCII::initializeOutput() {
   file = open_file(filename.c_str(), "w");
 
   /* Write save state date information */
-  write(&state->global_param.stateyear, 1, NULL);
-  write(&state->global_param.statemonth, 1, NULL);
-  write(&state->global_param.stateday, 1, NULL);
+  write(&state->global_param.stateyear, 1, StateVariables::NONE);
+  write(&state->global_param.statemonth, 1, StateVariables::NONE);
+  write(&state->global_param.stateday, 1, StateVariables::NONE);
   processNewline();
   /* Write simulation flags */
-  write(&state->options.Nlayer, 1, NULL);
-  write(&state->options.Nnode, 1, NULL);
+  write(&state->options.Nlayer, 1, StateVariables::NONE);
+  write(&state->options.Nnode, 1, StateVariables::NONE);
   processNewline();
 }
 
-int StateIOASCII::write(const int* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::write(const int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int errorCode = 0;
   for (int i = 0; i < numValues; i++) {
     if (!firstValueOnLine) {
@@ -48,7 +48,7 @@ int StateIOASCII::write(const int* data, int numValues, const StateVariableMetaD
   return errorCode;
 }
 
-int StateIOASCII::write(const double* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::write(const double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int errorCode = 0;
   for (int i = 0; i < numValues; i++) {
     if (!firstValueOnLine) {
@@ -60,7 +60,7 @@ int StateIOASCII::write(const double* data, int numValues, const StateVariableMe
   return errorCode;
 }
 
-int StateIOASCII::write(const char* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int errorCode = 0;
   for (int i = 0; i < numValues; i++) {
     if (!firstValueOnLine) {
@@ -82,7 +82,7 @@ int StateIOASCII::processNewline() {
 }
 
 
-int StateIOASCII::read(int* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::read(int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = 0;
   for (int i = 0; i < numValues; i++) {
     numRead += fscanf(file, "%d", &data[i]);
@@ -93,7 +93,7 @@ int StateIOASCII::read(int* data, int numValues, const StateVariableMetaData* me
   return numRead;
 }
 
-int StateIOASCII::read(double* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = 0;
   for (int i = 0; i < numValues; i++) {
     numRead += fscanf(file, "%lf", &data[i]);  //TODO: possibly read " %lf"
@@ -104,7 +104,7 @@ int StateIOASCII::read(double* data, int numValues, const StateVariableMetaData*
   return numRead;
 }
 
-int StateIOASCII::read(char* data, int numValues, const StateVariableMetaData* meta) {
+int StateIOASCII::read(char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int numRead = 0;
   for (int i = 0; i < numValues; i++) {
     int temp;
