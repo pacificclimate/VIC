@@ -88,6 +88,7 @@ int surface_fluxes_glac(
   double                 rainfall[2]; // rainfall
   double                 snowfall[2]; // snowfall
   double                 snow_flux; // heat flux through snowpack
+  double                 rainOnly;
 
   // Step-specific quantities
   double                 step_Wdew[2];
@@ -316,6 +317,19 @@ int surface_fluxes_glac(
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[band];
     step_prec[WET] = atmos->prec[hidx] / current_prcp_mu * soil_con->Pfactor[band];
 
+    rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP,
+        soil_con->MIN_RAIN_TEMP, current_prcp_mu);
+    snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly);
+    rainfall[WET] = gauge_correction[RAIN] * rainOnly;
+    snowfall[DRY] = 0.;
+    rainfall[DRY] = 0.;
+
+    if(snowfall[WET] < 1e-5) snowfall[WET] = 0;
+
+    step_out_prec = snowfall[WET] + rainfall[WET];
+    step_out_rain = rainfall[WET];
+    step_out_snow = snowfall[WET];
+
     // initialize ground surface temperaure
     Tgrnd = GLAC_TEMP;
 
@@ -356,20 +370,20 @@ int surface_fluxes_glac(
         /* iter_snow.blowing_flux has already been reset to step_snow.blowing_flux */
         LongUnderOut = step_energy.LongUnderOut;
 
-        if (step_snow.swq > 0) {
+        if (step_snow.swq > 0 || snowfall[WET] > 0.) {
           /** Solve snow accumulation, ablation and interception **/
 
 
           step_melt = 0; // TODO: step_melt_glac = ... ?
           // TODO: check these arguments (especially -snow_flux?)
           /*step_melt = solve_snow(LongUnderOut,
-              soil_con->MIN_RAIN_TEMP, soil_con->MAX_SNOW_TEMP, Tgrnd, Tair, dp, current_prcp_mu,
+              Tgrnd, Tair, dp, current_prcp_mu,
               step_prec[WET], (-snow_flux), state->global_param.wind_h, &energy->AlbedoUnder,
               latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
               &NetShortSnow, &ShortUnderIn, &OldTSurf, temp_aero_resist,
               temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
-              displacement, gauge_correction, &step_melt_energy, &step_out_prec,
-              &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
+              displacement, &step_melt_energy,
+              step_ppt, rainfall, ref_height,
               roughness, snow_inflow, snowfall, &surf_atten, wind, root,
               state->options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
               veg_class, &UnderStory, dmy, *atmos, &(step_energy),
@@ -475,18 +489,17 @@ int surface_fluxes_glac(
     store_glacier_flux += step_energy.glacier_flux;
     store_deltaCC_glac += step_energy.deltaCC_glac;
 
-    if (step_snow.snow) {
-      store_advected_sensible += step_energy.advected_sensible
-          * (step_snow.coverage + delta_coverage);
-      store_advection += step_energy.advection
-          * (step_snow.coverage + delta_coverage);
-      store_deltaCC += step_energy.deltaCC
-          * (step_snow.coverage + delta_coverage);
-      store_snow_flux += step_energy.snow_flux
-          * (step_snow.coverage + delta_coverage);
-      store_refreeze_energy += step_energy.refreeze_energy
-          * (step_snow.coverage + delta_coverage);
-    }
+    store_advected_sensible += step_energy.advected_sensible
+        * (step_snow.coverage + delta_coverage);
+    store_advection += step_energy.advection
+        * (step_snow.coverage + delta_coverage);
+    store_deltaCC += step_energy.deltaCC
+        * (step_snow.coverage + delta_coverage);
+    store_snow_flux += step_energy.snow_flux
+        * (step_snow.coverage + delta_coverage);
+    store_refreeze_energy += step_energy.refreeze_energy
+        * (step_snow.coverage + delta_coverage);
+
     for (p = 0; p < N_PET_TYPES; p++)
       store_pot_evap[p] += step_pot_evap[p];
 
@@ -558,12 +571,10 @@ int surface_fluxes_glac(
   energy->sensible = store_sensible / (double) N_steps;
   energy->glacier_flux = store_glacier_flux / (double) N_steps;
   energy->deltaCC_glac = store_deltaCC_glac / (double) N_steps;
-  if (snow->snow) {
-    energy->advection = store_advection / (double) N_steps;
-    energy->deltaCC = store_deltaCC / (double) N_steps;
-    energy->refreeze_energy = store_refreeze_energy / (double) N_steps;
-    energy->snow_flux = store_snow_flux / (double) N_steps;
-  }
+  energy->advection = store_advection / (double) N_steps;
+  energy->deltaCC = store_deltaCC / (double) N_steps;
+  energy->refreeze_energy = store_refreeze_energy / (double) N_steps;
+  energy->snow_flux = store_snow_flux / (double) N_steps;
   energy->Tfoliage = step_energy.Tfoliage;
   energy->Tfoliage_fbflag = step_energy.Tfoliage_fbflag;
   energy->Tfoliage_fbcount = step_energy.Tfoliage_fbcount;
