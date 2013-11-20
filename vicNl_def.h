@@ -1163,6 +1163,8 @@ typedef struct {
   double  ShortOverIn;           /* incoming shortwave to overstory */
   double  ShortUnderIn;          /* incoming shortwave to understory */
   double  snow_flux;             /* thermal flux through the snow pack (Wm-2) */
+  double  glacier_flux;          /* glacier specific, used in surface_fluxes_glac (Wm-2) */
+  double  deltaCC_glac;          /* glacier specific, change in snow heat storage (Wm-2) */
 } energy_bal_struct;
 
 /***********************************************************************
@@ -1321,6 +1323,7 @@ struct glac_data_struct {
   double water_storage;       /* water storage in glacier  */
   double outflow;             /* glacier water outflow */
   double outflow_coef;        /* water outflow coefficient */
+  double inflow;              /* glacier water inflow */
 };
 
 /*****************************************************************
