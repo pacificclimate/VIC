@@ -275,6 +275,8 @@ extern const char ref_veg_ref_crop[];
 // Glacier specific constants.
 #define GLAC_TEMP    0.0       /* Temperature of main glacier (C) */
 #define GLAC_K_ICE   2.14      /* Thermal conductivity of ice (W/mK) */
+#define SNOW_SURF_DEENSITY 350
+#define CUTOFF_DENSITY 830
 
 /* define constants for saturated vapor pressure curve (kPa) */
 #define A_SVP 0.61078
