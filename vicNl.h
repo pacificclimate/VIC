@@ -518,6 +518,22 @@ int surface_fluxes(char, double, double, double, double, int, double *,
         const dmy_struct *, energy_bal_struct *, hru_data_struct *,
         hru_data_struct *, snow_data_struct *, const soil_con_struct *, veg_var_struct *,
         veg_var_struct *, float, float, float, const ProgramState*);
+
+int surface_fluxes_glac(double BareAlbedo, double height, double ice0,
+    double moist0, int SubsidenceUpdate, double *evap_prior_dry,
+    double *evap_prior_wet, double current_prcp_mu, double surf_atten,
+    double *Melt, double *latent_heat_Le, double **aero_resist,
+    double *displacement, double *gauge_correction, double *out_prec,
+    double *out_rain, double *out_snow, double *ref_height, double *roughness,
+    double *snow_inflow, double *wind, const float *root, int Nbands, int Ndist,
+    int Nlayers, int Nveg, int band, int dp, int iveg, int rec, int veg_class,
+    atmos_data_struct *atmos, const dmy_struct *dmy, energy_bal_struct *energy,
+    hru_data_struct *cell_dry, hru_data_struct *cell_wet,
+    snow_data_struct *snow, const soil_con_struct *soil_con,
+    veg_var_struct *veg_var_dry, veg_var_struct *veg_var_wet,
+    glac_data_struct *glacier, float lag_one, float sigma_slope, float fetch,
+    const ProgramState *state);
+
 double svp(double);
 double svp_slope(double);
 

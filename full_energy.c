@@ -399,7 +399,18 @@ int  full_energy(char                 NEWCELL,
 
         if (it->isGlacier) {  // If this HRU contains glacier then perform different, glacier specific, calculations.
 
-          //TODO: call some glacier specific function here. (glac_surface_fluxes)
+          //TODO: double check parameters here.
+          ErrorFlag = surface_fluxes_glac(bare_albedo, height, ice0[it->bandIndex],
+              moist0[it->bandIndex], SubsidenceUpdate, evap_prior[DRY][it->vegIndex][it->bandIndex],
+              evap_prior[WET][it->vegIndex][it->bandIndex], prcp->mu[it->vegIndex],
+              surf_atten, &(Melt[it->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
+              gauge_correction, &out_prec[it->bandIndex * 2], &out_rain[it->bandIndex * 2],
+              &out_snow[it->bandIndex * 2], ref_height, roughness, &snow_inflow[it->bandIndex],
+              tmp_wind, veg_con[it->vegIndex].root, Nbands, Ndist, state->options.Nlayer,
+              Nveg, it->bandIndex, dp, it->vegIndex, time_step_record, veg_class, atmos,
+              dmy, &(it->energy), &(it->cell[DRY]), &(it->cell[WET]), &(it->snow),
+              soil_con, &(it->veg_var[DRY]), &(it->veg_var[WET]), &(it->glacier), lag_one,
+              sigma_slope, fetch, state);
 
         } else {              // Otherwise, run the model calculations as normal.
           ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[it->bandIndex],
