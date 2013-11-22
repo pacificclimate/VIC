@@ -3,6 +3,7 @@
 
 #include "vicNl_def.h"
 #include <string>
+#include <vector>
 
 // For backwards compatibility, only add values to the end of the enum,
 // and never remove values (just stop using them if necessary).
@@ -73,15 +74,44 @@ enum StateMetaDataVariableIndices {
   LAKE_SALBEDO,
   LAKE_SDEPTH
 };
+
+enum StateVariableLastDimension {
+  NO_DIM = 0,
+  LAYERS_DIM,
+  NODES_DIM,
+  LAKE_NODES_DIM,
+  FROST_LAYER_AREAS_DIM,
+  FROST_AREAS_DIM,
+  HRU_DIM,
+  VEG_DIM,
+  DIST_DIM,
+};
 }
 
 using std::string;
+class StateVariableDimension {
+public:
+  StateVariableDimension() : name("invalid"), size(-1) {}
+  StateVariableDimension(string name, int size) : name(name), size(size) {}
+  string name;
+  int size;
+};
+
+using StateVariables::StateVariableLastDimension;
+using StateVariables::NO_DIM;
 // This is just a wrapper class for now in case more attributes are needed in netCDF state files.
 class StateVariableMetaData {
 public:
-  StateVariableMetaData() {}
-  StateVariableMetaData(string name) : name(name) {}
+  StateVariableMetaData() : name("invalid") {}
+  StateVariableMetaData(string name, StateVariableLastDimension d1 = NO_DIM, StateVariableLastDimension d2 = NO_DIM,
+      StateVariableLastDimension d3 = NO_DIM, StateVariableLastDimension d4 = NO_DIM) : name(name) {
+    dimensions.push_back(d1);
+    dimensions.push_back(d2);
+    dimensions.push_back(d3);
+    dimensions.push_back(d4);
+  }
   string name;
+  std::vector<StateVariables::StateVariableLastDimension> dimensions;
 };
 
 class StateHeader {
@@ -113,6 +143,8 @@ public:
   virtual int write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int processNewline();
   virtual StateHeader readHeader() = 0;
+  virtual void notifyCellLocation(float lat, float lng) {}
+  virtual void notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value = -1) {}
   virtual int seekToCell(int cellid, int* nVeg, int* nBand) = 0;
   virtual int read(int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;

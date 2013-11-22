@@ -79,6 +79,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   StateIO* writer = context.stream;
 
   /* write cell information */
+  writer->notifyCellLocation(cell->soil_con.lat, cell->soil_con.lng);
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
   writer->write(&cell->veg_con[0].vegetat_type_num, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
@@ -120,9 +121,11 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   
   /* Output for all vegetation types */
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+    stream->notifyDimensionUpdate(HRU_DIM);
     
     // Do the following only once per vegetation type
     if (it->bandIndex == 0) {
+      stream->notifyDimensionUpdate(VEG_DIM, it->vegIndex);
       // Store distributed precipitation fraction
       stream->process(&cell->prcp.mu[it->vegIndex], 1, PRCP_MU);
 
@@ -152,6 +155,8 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     }
 
     for (int dist = 0; dist < Ndist; dist++) {
+      stream->notifyDimensionUpdate(DIST_DIM, dist);
+
       hru_data_struct& cellRef = it->cell[dist];
       /* Write total soil moisture */
       double soilMoisture [state->options.Nlayer];
@@ -167,8 +172,17 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
 #if SPATIAL_FROST
 #error
+      double iceContent [state->options.Nlayer * FROST_SUBAREAS];
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-        stream->process(cellRef.layer[lidx].soil_ice, FROST_SUBAREAS, LAYER_SOIL_ICE);
+        for (int frost = 0; frost < FROST_SUBAREAS; frost++) {
+         iceContent[lidx * state->options.Nlayer + frost] = cellRef.layer[lidx].soil_ice[frost];  // Write specific.
+        }
+      }
+      stream->process(iceContent, state->options.Nlayer * FROST_SUBAREAS, LAYER_SOIL_ICE);
+      for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
+        for (int frost = 0; frost < FROST_SUBAREAS; frost++) {
+         cellRef.layer[lidx].soil_ice[frost] = iceContent[lidx * state->options.Nlayer + frost];  // Read specific.
+        }
       }
 #else
       double iceContent [state->options.Nlayer];
@@ -208,6 +222,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
   if (state->options.LAKES) {
     for (int dist = 0; dist < Ndist; dist++) {
+      stream->notifyDimensionUpdate(DIST_DIM, dist);
       // Store both wet and dry fractions if using distributed precipitation
 
       /* Write total soil moisture */
