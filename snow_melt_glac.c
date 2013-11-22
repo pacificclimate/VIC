@@ -239,7 +239,7 @@ int snow_melt_glac(double latent_heat_Le,
           snow->surf_temp_fbflag = 1;
           snow->surf_temp_fbcount++;
         } else {
-          error = ErrorPrintSnowPackEnergyBalance(snow->surf_temp, rec, iveg,
+          error = ErrorPrintSnowPackEnergyBalanceGlacier(snow->surf_temp, rec, iveg,
               band, delta_t, aero_resist, aero_resist_used, displacement, z2,
               Z0, density, vp, LongSnowIn, latent_heat_Le, pressure, RainFall,
               NetShortSnow, vpd, wind, (*OldTSurf), coverage, snow->density,
@@ -418,11 +418,12 @@ int snow_melt_glac(double latent_heat_Le,
   return (0);
 }
 
-double ErrorPrintSnowPackEnergyBalance(double TSurf, int rec, int iveg,
+double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec, int iveg,
     int band, double Dt, /* Model time step (sec) */
     /* Vegetation Parameters */
     double Ra, /* Aerodynamic resistance (s/m) */
-    double* RaUsed, double Displacement, /* Displacement height (m) */
+    double* RaUsed,
+    double Displacement, /* Displacement height (m) */
     double Z, /* Reference height (m) */
     double *Z0, /* surface roughness height (m) */
     /* Atmospheric Forcing Variables */

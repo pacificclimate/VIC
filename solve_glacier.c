@@ -39,7 +39,7 @@ double solve_glacier(double LongUnderOut,       // LW from understory
       int                  rec,
       int                  hidx,
       int                 *UnderStory,
-      dmy_struct          *dmy,
+      const dmy_struct    *dmy,
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,
       glac_data_struct   *glacier,
