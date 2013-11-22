@@ -316,26 +316,33 @@ int surface_fluxes_glac(
     if (step_snow.swq > 0 || snowfall[WET] > 0.) {
       /** Solve snow accumulation, ablation and interception **/
 
-      step_melt = 0; // TODO: step_melt_glac = ... ?
       // TODO: check these arguments (especially -snow_flux?)
-      /*step_melt = solve_snow(LongUnderOut,
-       Tgrnd, Tair, dp, current_prcp_mu,
+      step_melt = solve_snow_glac(BareAlbedo, LongUnderOut,
+       Tgrnd, Tair, current_prcp_mu,
        step_prec[WET], (-snow_flux), state->global_param.wind_h, &energy->AlbedoUnder,
-       latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
+       latent_heat_Le, &LongUnderIn, &NetLongSnow,
        &NetShortSnow, &ShortUnderIn, &OldTSurf, temp_aero_resist,
        temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
-       displacement, &step_melt_energy,
+       displacement, &step_melt_energy, out_prec, out_rain, out_snow,
        step_ppt, rainfall, ref_height,
        roughness, snow_inflow, snowfall, &surf_atten, wind, root,
-       state->options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
+       iveg, band, step_dt, rec, hidx,
        veg_class, &UnderStory, dmy, *atmos, &(step_energy),
-       &(step_snow), soil_con, state);
-       */
+       &(step_snow), soil_con, glacier, state);
+
       if (step_melt == ERROR)
         return (ERROR);
     } else {
 
-      step_melt_glac = 0;          //TODO: step_melt_glac = solve_glac(...);
+      step_melt_glac = solve_glacier(LongUnderOut, Tgrnd, Tair, current_prcp_mu,
+          step_prec[WET], snow_flux, state->global_param.wind_h,
+          &energy->AlbedoUnder, step_pot_evap, latent_heat_Le, &LongUnderIn,
+          &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
+          temp_aero_resist, temp_aero_resist_used, displacement,
+          gauge_correction, &step_melt_energy, out_prec, out_rain, out_snow,
+          step_ppt, rainfall, ref_height, roughness, snowfall, wind, Nveg, iveg,
+          band, step_dt, rec, hidx, &UnderStory, dmy, atmos, &step_energy,
+          glacier, soil_con, state);
 
       if (step_melt_glac == ERROR) {
         return (ERROR);
@@ -586,8 +593,7 @@ int surface_fluxes_glac(
   // TODO: implement and call runoff_glac with the correct parameters.
   //ErrorFlag = runoff_glac(cell_wet, cell_dry, energy, soil_con, ppt,
   //   SubsidenceUpdate, current_prcp_mu, band, rec, iveg, state);
-
-  return (ErrorFlag);
+  //return (ErrorFlag);
 #if EXCESS_ICE
 }
 #endif
