@@ -120,8 +120,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 #endif
   
   /* Output for all vegetation types */
-  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
-    stream->notifyDimensionUpdate(HRU_DIM);
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, stream->notifyDimensionUpdate(HRU_DIM)) {
     
     // Do the following only once per vegetation type
     if (it->bandIndex == 0) {

@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <omp.h>
 #include <unistd.h>
+#include <sstream>
 
 static char vcid[] = "$Id$";
 

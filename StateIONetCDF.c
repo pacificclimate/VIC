@@ -53,13 +53,23 @@ void StateIONetCDF::openFile() {
 
   closeFile();  // Safety check against memory leaks.
 
-  NcFile::FileMode netcdfFileMode = NcFile::write;
   if (ioType == StateIO::Reader) {
-    netcdfFileMode = NcFile::read;
+    // Do not specify the type of file that will be read here (NcFile::nc4). The library will throw an exception
+    // if it is provided for open types read or write (since the file was already created with a certain format).
+    try {
+      netCDF = new NcFile(filename, NcFile::read);
+    } catch (netCDF::exceptions::NcException& e) {
+      fprintf(stderr, "Error: could not open input netCDF state file \"%s\" check that it exists and is actually a netCDF formatted file\n", filename.c_str());
+      throw;
+    }
+  } else {
+    try {
+      netCDF = new NcFile(filename, NcFile::write);
+    } catch (netCDF::exceptions::NcNotNCF& e) { // File doesn't exist or is not netCDF format.
+      // Ignored. This is expected the first time an instance of this class is created without calling initializeOutput.
+    }
   }
-  // Do not specify the type of file that will be read here (NcFile::nc4). The library will throw an exception
-  // if it is provided for open types read or write (since the file was already created with a certain format).
-  netCDF = new NcFile(filename, netcdfFileMode);
+
 }
 
   // Initialize global attributes, setup variable dimensions and structure.
@@ -159,7 +169,7 @@ void StateIONetCDF::initializeOutput() {
     }
 
     try {
-      NcVar data = netCDF->addVar(varName, ncFloat, dimensions);
+      NcVar data = netCDF->addVar(varName, netCDF::NcType(it->second.type), dimensions);
       data.putAtt("internal_id", ncInt, id); // This is basically just for reference, it might change between versions.
       if (state->options.COMPRESS) {
         data.setCompression(false, true, 1); // Some reasonable compression level - not too intensive.
@@ -307,7 +317,28 @@ void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableLastDimen
 }
 
 int StateIONetCDF::seekToCell(int cellid, int* nVeg, int* nBand) {
-  return 0;
+  NcDim latDim = netCDF->getDim("lat");
+  NcDim lonDim = netCDF->getDim("lon");
+  int latSize = latDim.getSize();
+  int lonSize = lonDim.getSize();
+  NcVar cellIds = netCDF->getVar("GRID_CELL");    //TODO: reuse string
+  for (int i = 0; i < latSize; i++) {
+    for (int j = 0; j < lonSize; j++) {
+      double cellIdRead = -1;
+      std::vector<size_t> start;
+      start.push_back((size_t)i);
+      start.push_back((size_t)j);
+      cellIds.getVar(start, &cellIdRead);
+      if ((int)cellIdRead == cellid) {
+        NcVar veg = netCDF->getVar("VEG_TYPE_NUM");
+        NcVar band = netCDF->getVar("NUM_BANDS"); //TODO: string reuse
+        veg.getVar(start, nVeg);
+        band.getVar(start, &nBand);
+        return 0;
+      }
+    }
+  }
+  return -1;
 }
 
 void StateIONetCDF::flush() {
@@ -322,7 +353,7 @@ void StateIONetCDF::rewindFile() {
 void StateIONetCDF::initializeDimensionIndices() {
   for (std::map<StateVariables::StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
       it != metaDimensions.end(); ++it) {
-    curDimensionIndices[it->first] = -1;  // This will change to 0 on the first call to notifyDimensionUpdate.
+    curDimensionIndices[it->first] = 0;  // This will change to 0 on the first call to notifyDimensionUpdate.
   }
 }
 
@@ -405,4 +436,9 @@ void StateIONetCDF::populateMetaData() {
   metaData[LAKE_PACK_TEMP] =          StateVariableMetaData("LAKE_PACK_TEMP");
   metaData[LAKE_SALBEDO] =            StateVariableMetaData("LAKE_SALBEDO");
   metaData[LAKE_SDEPTH] =             StateVariableMetaData("LAKE_SDEPTH");
+
+  // Make type adjustments if required.
+  metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
+  metaData[SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
+  metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
 }

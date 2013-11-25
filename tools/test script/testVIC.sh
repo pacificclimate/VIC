@@ -23,6 +23,10 @@ do
         echo "state output Binary enabled";
         stateOutputBinary=true;
     fi
+    if [ "$var" == "-stateOutputNetCDF" ]; then
+        echo "state output NetCDF enabled";
+        stateOutputNetCDF=true;
+    fi
     if [ "$var" == "-stateInputBinary" ]; then
         echo "state input Binary enabled";
         stateInputBinary=true;
@@ -30,6 +34,10 @@ do
     if [ "$var" == "-stateInputASCII" ]; then
         echo "state input ASCII enabled";
         stateInputASCII=true;
+    fi
+    if [ "$var" == "-stateInputNetCDF" ]; then
+        echo "state input NetCDF eneabled";
+        stateInputNetCDF=true;
     fi
 done
 
@@ -65,6 +73,9 @@ if $stateOutputASCII ; then
 elif $stateOutputBinary ; then
     perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
     perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tBINARY/g' $globalOptionsFile
+elif $stateOutputNetCDF ; then
+    perl -pi.bak -e 's/.*STATENAME.*$/STATENAME\tfrs.state/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tNETCDF/g' $globalOptionsFile
 else 
     perl -pi.bak -e 's/.*STATENAME.*$/#STATENAME\tfrs.state/g' $globalOptionsFile
 fi
@@ -75,6 +86,9 @@ if $stateInputASCII ; then
 elif $stateInputBinary ; then
     perl -pi.bak -e 's/.*INIT_STATE.*$/INIT_STATE\tstateBinaryOutput/g' $globalOptionsFile
     perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tBINARY/g' $globalOptionsFile
+elif $stateInputNetCDF ; then
+    perl -pi.bak -e 's/.*INIT_STATE.*$/INIT_STATE\tstateNetCDFOutput/g' $globalOptionsFile
+    perl -pi.bak -e 's/.*STATE_FORMAT.*$/STATE_FORMAT\tNETCDF/g' $globalOptionsFile
 else 
     perl -pi.bak -e 's/.*INIT_STATE.*$/#INIT_STATE\tinputState/g' $globalOptionsFile
 fi
@@ -124,6 +138,10 @@ if $stateInputASCII ; then
     md5sum -c ../../correctResults/stateInputFluxesOutputASCII/checksum
     popd > /dev/null
 elif $stateInputBinary ; then
+    pushd out/$outputName > /dev/null
+    md5sum -c ../../correctResults/stateInputFluxesOutputBinary/checksum
+    popd > /dev/null
+elif $stateInputNetCDF ; then
     pushd out/$outputName > /dev/null
     md5sum -c ../../correctResults/stateInputFluxesOutputBinary/checksum
     popd > /dev/null

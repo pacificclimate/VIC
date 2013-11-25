@@ -4,6 +4,7 @@
 #include "vicNl_def.h"
 #include <string>
 #include <vector>
+#include <netcdf>
 
 // For backwards compatibility, only add values to the end of the enum,
 // and never remove values (just stop using them if necessary).
@@ -102,15 +103,16 @@ using StateVariables::NO_DIM;
 // This is just a wrapper class for now in case more attributes are needed in netCDF state files.
 class StateVariableMetaData {
 public:
-  StateVariableMetaData() : name("invalid") {}
+  StateVariableMetaData() : name("invalid"), type(netCDF::NcType::nc_FLOAT) {}
   StateVariableMetaData(string name, StateVariableLastDimension d1 = NO_DIM, StateVariableLastDimension d2 = NO_DIM,
-      StateVariableLastDimension d3 = NO_DIM, StateVariableLastDimension d4 = NO_DIM) : name(name) {
+      StateVariableLastDimension d3 = NO_DIM, StateVariableLastDimension d4 = NO_DIM) : name(name), type(netCDF::NcType::nc_FLOAT) {
     dimensions.push_back(d1);
     dimensions.push_back(d2);
     dimensions.push_back(d3);
     dimensions.push_back(d4);
   }
   string name;
+  netCDF::NcType::ncType type;
   std::vector<StateVariables::StateVariableLastDimension> dimensions;
 };
 
