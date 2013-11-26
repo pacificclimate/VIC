@@ -44,6 +44,7 @@ done
 echo starting test
 
 codeDir="VIC_4.1.2_cpp_trunk"
+correctResultsDir="correctResults"
 programName="vicNl"
 globalOptionsFile="glb_prb_base_BASIN_SCENARIO_19502006_VIC4.1.2_netcdf_auto.txt"
 export curDir=$(pwd)
@@ -120,10 +121,10 @@ $codeDir/$programName -g $globalOptionsFile
 echo ""
 echo "validating output results"
 if $netCDF ; then
-    Rscript vic_output_netcdf_compare.r out/$outputName/results.nc vicNetCDFCorrectOutputs.nc
+    Rscript vic_output_netcdf_compare.r out/$outputName/results.nc $correctResultsDir/vicNetCDFCorrectOutputs.nc
 else
     pushd out/$outputName > /dev/null
-    echo $(md5sum -c ../4.1.2_pristine_forcings_v2_1950-2006.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../4.1.2_pristine_forcings_v2_1950-2006.md5 | wc -l) files compare OK
+    echo $(md5sum -c ../../$correctResultsDir/timeSeriesChecksums.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../../$correctResultsDir/timeSeriesChecksums.md5 | wc -l) files compare OK
     popd > /dev/null
 fi
 
