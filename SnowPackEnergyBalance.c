@@ -188,7 +188,7 @@ double SnowPackEnergyBalance::calculate(double TSurf)
 
   /* Calculate energy balance error at the snowpack surface */
   RestTerm = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub 
-    + *AdvectedEnergy + *GroundFlux - *DeltaColdContent 
+    + *AdvectedEnergy + *GroundFlux - *DeltaColdContent   // TODO: remove + *GroundFlux term.
     + *AdvectedSensibleHeat;
 
   *RefreezeEnergy = (SurfaceLiquidWater * Lf * Density)/(Dt);

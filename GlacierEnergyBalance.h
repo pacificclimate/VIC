@@ -31,7 +31,6 @@ public:
   double Tair,                    /* Canopy air / Air temperature (C) */
   double TGrnd,                   /* Ground surface temperature (C) */
   double *AdvectedEnergy,         /* Energy advected by precipitation (W/m2) */
-  double *AdvectedSensibleHeat,   /* Sensible heat advected from snow-free area into snow covered area (W/m^2) */
   double *DeltaColdContent,       /* Change in cold content of surface layer (W/m2) */
   double *GroundFlux,             /* Ground Heat Flux (W/m2) */
   double *LatentHeat,             /* Latent heat exchange at surface (W/m2) */
@@ -45,7 +44,7 @@ public:
       Lv(Lv), Press(Press), Rain(Rain), NetShortUnder(NetShortUnder), Vpd(Vpd),
       Wind(Wind), OldTSurf(OldTSurf), IceDepth(IceDepth), IceWE(IceWE),
       Tair(Tair), TGrnd(TGrnd), AdvectedEnergy(AdvectedEnergy),
-      AdvectedSensibleHeat(AdvectedSensibleHeat), DeltaColdContent(DeltaColdContent),
+      DeltaColdContent(DeltaColdContent),
       GroundFlux(GroundFlux), LatentHeat(LatentHeat), LatentHeatSub(LatentHeatSub),
       NetLongUnder(NetLongUnder), SensibleHeat(SensibleHeat), vapor_flux(vapor_flux)
        {}
@@ -77,7 +76,6 @@ private:
   double Tair;                    /* Canopy air / Air temperature (C) */
   double TGrnd;                   /* Ground surface temperature (C) */
   double *AdvectedEnergy;         /* Energy advected by precipitation (W/m2) */
-  double *AdvectedSensibleHeat;   /* Sensible heat advected from snow-free area into snow covered area (W/m^2) */
   double *DeltaColdContent;       /* Change in cold content of surface layer (W/m2) */
   double *GroundFlux;             /* Ground Heat Flux (W/m2) */
   double *LatentHeat;             /* Latent heat exchange at surface (W/m2) */

@@ -24,6 +24,7 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   double TMean;                   /* Average temperature for time step (C) */
   double Tmp;
   double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
+  double Fbal;                    /* Energy balance at glacier surface */
 
   /* Calculate active temp for energy balance as average of old and new  */
 
@@ -55,8 +56,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   *SensibleHeat = AirDens * Cp * (Tair - TMean) / Ra_used[0];
 
-  (*AdvectedSensibleHeat) = 0;
-
   /* Convert sublimation terms from m/timestep to kg/m2s */
   VaporMassFlux = *vapor_flux * Density / Dt;
 
@@ -84,11 +83,11 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Calculate Ground Heat Flux */
   /* Estimate of ice thermal conductivity (at atmospheric pressure) adapted from Slack (1980), Table 1; assumes
-       linear relationship between Tmean and K below -75C */
+       linear relationship between Tmean and K above -75C */
   *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth / (Dt);
 
   /* Calculate energy balance error at the snowpack surface */
-  double Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy + *AdvectedSensibleHeat;
+  Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy;
   RestTerm = Fbal - *DeltaColdContent + *GroundFlux;
 
   if (TSurf == 0.0 && Fbal >= 0.) RestTerm = 0.;

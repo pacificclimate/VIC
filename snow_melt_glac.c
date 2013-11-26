@@ -22,7 +22,6 @@ int snow_melt_glac(double latent_heat_Le,
     double delta_t,  // time step in secs
     double density,  // atmospheric density
     double displacement,  // surface displacement
-    double grnd_flux,  // ground heat flux
     double LongSnowIn,  // incoming longwave radiation
     double pressure, double rainfall, double snowfall, double vp, double vpd,
     double wind, double z2, double *NetLongSnow, double *OldTSurf, double *melt,
@@ -32,7 +31,6 @@ int snow_melt_glac(double latent_heat_Le,
     double *save_sensible, int rec, int iveg, int band, snow_data_struct *snow,
     const soil_con_struct *soil_con, glac_data_struct *glacier,
     const ProgramState* state) {
-  int Twidth;
   double error;
   double DeltaPackCC; /* Change in cold content of the pack */
   double DeltaPackSwq; /* Change in snow water equivalent of the
@@ -60,6 +58,7 @@ int snow_melt_glac(double latent_heat_Le,
   double latent_heat_sub;
   double sensible_heat;
   double advected_sensible_heat;
+  double grnd_flux;
   double melt_energy = 0.;
   double FirnToIce = 0.;
 
@@ -110,16 +109,18 @@ int snow_melt_glac(double latent_heat_Le,
   else
     snow->surf_temp = 0.0;
 
+  /* Add dense Firn to glacier/remove firn snow pack */
   if (PackSwq > 0.0) {
-    if (snow->density > SNOW_SURF_DEENSITY) {
-      double zco = (CUTOFF_DENSITY - SNOW_SURF_DEENSITY) * (snow->depth / 2) / (snow->density - SNOW_SURF_DEENSITY);
+    if (snow->density > SNOW_SURF_DENSITY) {
+      double zco = (CUTOFF_DENSITY - SNOW_SURF_DENSITY) * (snow->depth / 2) / (snow->density - SNOW_SURF_DENSITY);
       if (zco < snow->depth) {
-        double density_zsnow = SNOW_SURF_DEENSITY + 2 * (snow->density - SNOW_SURF_DEENSITY);
+        double density_zsnow = SNOW_SURF_DENSITY + 2 * (snow->density - SNOW_SURF_DENSITY);
         FirnToIce = (density_zsnow + CUTOFF_DENSITY) / (2 * RHO_W) * (snow->depth - zco);
         if (FirnToIce >= PackSwq) {
           FirnToIce = PackSwq;
           PackSwq = 0.0;
           snow->pack_temp = 0.0;
+          PackCC = 0.0;
         } else {
           PackSwq -= FirnToIce;
         }
@@ -141,7 +142,7 @@ int snow_melt_glac(double latent_heat_Le,
   SnowPackEnergyBalance snowPack(delta_t, aero_resist, aero_resist_used,
       displacement, z2, Z0, density, vp, LongSnowIn, latent_heat_Le, pressure,
       RainFall, NetShortSnow, vpd, wind, (*OldTSurf), coverage, snow->depth,
-      snow->density, snow->surf_water, SurfaceSwq, /* TODO: Tcanopy */ 0.0, Tgrnd, &advection,
+      snow->density, snow->surf_water, SurfaceSwq, air_temp, Tgrnd, &advection,
       &advected_sensible_heat, &deltaCC, &grnd_flux, &latent_heat,
       &latent_heat_sub, NetLongSnow, &RefreezeEnergy, &sensible_heat,
       &snow->vapor_flux, &snow->blowing_flux, &snow->surface_flux);
@@ -224,7 +225,7 @@ int snow_melt_glac(double latent_heat_Le,
           aero_resist_used, displacement, z2, Z0, density, vp, LongSnowIn,
           latent_heat_Le, pressure, RainFall, NetShortSnow, vpd, wind,
           (*OldTSurf), coverage, snow->depth, snow->density, snow->surf_water,
-          SurfaceSwq, /* TODO: Tcanopy */ 0.0, Tgrnd, &advection, &advected_sensible_heat,
+          SurfaceSwq, air_temp, Tgrnd, &advection, &advected_sensible_heat,
           &deltaCC, &grnd_flux, &latent_heat, &latent_heat_sub, NetLongSnow,
           &RefreezeEnergy, &sensible_heat, &snow->vapor_flux,
           &snow->blowing_flux, &snow->surface_flux);
@@ -243,7 +244,7 @@ int snow_melt_glac(double latent_heat_Le,
               band, delta_t, aero_resist, aero_resist_used, displacement, z2,
               Z0, density, vp, LongSnowIn, latent_heat_Le, pressure, RainFall,
               NetShortSnow, vpd, wind, (*OldTSurf), coverage, snow->density,
-              snow->surf_water, SurfaceSwq, /* TODO: Tcanopy */0.0, Tgrnd,
+              snow->surf_water, SurfaceSwq, air_temp, Tgrnd,
               &advection, &advected_sensible_heat, &deltaCC, &grnd_flux,
               &latent_heat, &latent_heat_sub, NetLongSnow, &RefreezeEnergy,
               &sensible_heat, &snow->vapor_flux, &snow->blowing_flux,
@@ -265,7 +266,7 @@ int snow_melt_glac(double latent_heat_Le,
           aero_resist_used, displacement, z2, Z0, density, vp, LongSnowIn,
           latent_heat_Le, pressure, RainFall, NetShortSnow, vpd, wind,
           (*OldTSurf), coverage, snow->depth, snow->density, snow->surf_water,
-          SurfaceSwq, /* TODO: Tcanopy */ 0.0, Tgrnd, &advection, &advected_sensible_heat,
+          SurfaceSwq, air_temp, Tgrnd, &advection, &advected_sensible_heat,
           &deltaCC, &grnd_flux, &latent_heat, &latent_heat_sub, NetLongSnow,
           &RefreezeEnergy, &sensible_heat, &snow->vapor_flux,
           &snow->blowing_flux, &snow->surface_flux);

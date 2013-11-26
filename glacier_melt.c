@@ -10,7 +10,7 @@ double ErrorPrintGlacierEnergyBalance(double TSurf, int rec, int iveg, int band,
     double *Z0, double AirDens, double EactAir, double LongSnowIn, double Lv,
     double Press, double Rain, double NetShortUnder, double Vpd, double Wind,
     double OldTSurf, double IceDepth, double IceWE, double Tair, double TGrnd,
-    double *AdvectedEnergy, double *AdvectedSensibleHeat,
+    double *AdvectedEnergy,
     double *DeltaColdContent, double *GroundFlux, double *LatentHeat,
     double *LatentHeatSub, double *NetLongUnder, double *SensibleHeat,
     double *vapor_flux, char *ErrorString);
@@ -72,7 +72,6 @@ int glacier_melt(double Le,
     double delta_t,  // time step in secs
     double density,  // atmospheric density
     double displacement,  // surface displacement
-    double grnd_flux,  // ground heat flux
     double LongIn,  // incoming longwave radiation
     double pressure, double rainfall,
     double vp,
@@ -83,9 +82,8 @@ int glacier_melt(double Le,
     double *OldTSurf,
     double *melt,
     double *save_Qnet,
-    double *save_advected_sensible,
     double *save_advection,
-    double *save_deltaCC,
+    double *save_deltaCC_glac,
     double *save_grnd_flux,
     double *save_latent,
     double *save_latent_sub,
@@ -104,12 +102,12 @@ int glacier_melt(double Le,
   double GlacCC;                 /* Cold content of glacier surface layer (J) */
   double RainFall;
   double advection;
-  double deltaCC;
+  double deltaCC_glac;
   double latent_heat;
   double latent_heat_sub;
   double sensible_heat;
-  double advected_sensible_heat;
   double melt_energy = 0.;
+  double grnd_flux;
 
   char ErrorString[MAXSTRING];
 
@@ -126,8 +124,8 @@ int glacier_melt(double Le,
          wind, (*OldTSurf),
          soil->GLAC_SURF_THICK,
          soil->GLAC_SURF_WE, air_temp, Tgrnd,
-         &advection, &advected_sensible_heat,
-         &deltaCC,
+         &advection,
+         &deltaCC_glac,
          &grnd_flux, &latent_heat,
          &latent_heat_sub, NetLong,
          &sensible_heat,
@@ -138,7 +136,7 @@ int glacier_melt(double Le,
   /* If Qnet == 0.0, then set the surface temperature to 0.0 */
   if (abs(Qnet) < 2e-7) {
     glacier->surf_temp = 0.;
-    melt_energy = NetShort + (*NetLong) + sensible_heat + advected_sensible_heat
+    melt_energy = NetShort + (*NetLong) + sensible_heat
         + latent_heat + latent_heat_sub
         - ice_density * CH_ICE * (glacier->surf_temp - (*OldTSurf)) / delta_t;
     GlacMelt = melt_energy / (Lf * RHO_W) * delta_t;
@@ -155,8 +153,8 @@ int glacier_melt(double Le,
         wind, (*OldTSurf),
         soil->GLAC_SURF_THICK,
         soil->GLAC_SURF_WE, air_temp, Tgrnd,
-        &advection, &advected_sensible_heat,
-        &deltaCC,
+        &advection,
+        &deltaCC_glac,
         &grnd_flux, &latent_heat,
         &latent_heat_sub, NetLong,
         &sensible_heat,
@@ -166,7 +164,7 @@ int glacier_melt(double Le,
         (double) (glacier->surf_temp - SNOW_DT),
         (double) (glacier->surf_temp + SNOW_DT), ErrorString);
 
-    if (glacier->surf_temp <= -998) {
+    if (glacierIterative.resultIsError(glacier->surf_temp)) {
       if (state->options.TFALLBACK) {
         glacier->surf_temp = *OldTSurf;
         glacier->surf_temp_fbflag = 1;
@@ -176,14 +174,14 @@ int glacier_melt(double Le,
             delta_t, aero_resist, aero_resist_used, displacement, z2, Z0,
             density, vp, LongIn, Le, pressure, RainFall, NetShort, vpd, wind,
             (*OldTSurf), soil->GLAC_SURF_THICK, soil->GLAC_SURF_WE, air_temp, Tgrnd,
-            &advection, &advected_sensible_heat, &deltaCC, &grnd_flux,
+            &advection, &deltaCC_glac, &grnd_flux,
             &latent_heat, &latent_heat_sub, NetLong,
             &sensible_heat, &glacier->vapor_flux, ErrorString);
         return (ERROR);
       }
     }
 
-    if (glacier->surf_temp > -998) {
+    if (glacierIterative.resultIsError(glacier->surf_temp) == false) {  // Result is valid
       GlacierEnergyBalance glacierEnergy(delta_t, aero_resist, aero_resist_used,
           displacement, z2, Z0,
           density, vp, LongIn, Le, pressure,
@@ -191,8 +189,8 @@ int glacier_melt(double Le,
           wind, (*OldTSurf),
           soil->GLAC_SURF_THICK,
           soil->GLAC_SURF_WE, air_temp, Tgrnd,
-          &advection, &advected_sensible_heat,
-          &deltaCC,
+          &advection,
+          &deltaCC_glac,
           &grnd_flux, &latent_heat,
           &latent_heat_sub, NetLong,
           &sensible_heat,
@@ -220,12 +218,11 @@ int glacier_melt(double Le,
   glacier->cold_content = GlacCC;
   glacier->vapor_flux *= -1.;
   *save_advection = advection;
-  *save_deltaCC = deltaCC;
+  *save_deltaCC_glac = deltaCC_glac;
   *save_grnd_flux = grnd_flux;
   *save_latent = latent_heat;
   *save_latent_sub = latent_heat_sub;
   *save_sensible = sensible_heat;
-  *save_advected_sensible = advected_sensible_heat;
   *save_Qnet = Qnet;
 
   return (0);
@@ -261,7 +258,6 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
     double Tair,                    /* Canopy air / Air temperature (C) */
     double TGrnd,                   /* Ground surface temperature (C) */
     double *AdvectedEnergy,         /* Energy advected by precipitation (W/m2) */
-    double *AdvectedSensibleHeat,   /* Sensible heat advected from snow-free area into snow covered area (W/m^2) */
     double *DeltaColdContent,       /* Change in cold content of surface layer (W/m2) */
     double *GroundFlux,             /* Ground Heat Flux (W/m2) */
     double *LatentHeat,             /* Latent heat exchange at surface (W/m2) */
@@ -308,7 +304,6 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
   fprintf(stderr,"Tair = %f\n",Tair);
   fprintf(stderr,"TGrnd = %f\n",TGrnd);
   fprintf(stderr,"AdvectedEnergy = %f\n",AdvectedEnergy[0]);
-  fprintf(stderr,"AdvectedSensibleHeat = %f\n",AdvectedSensibleHeat[0]);
   fprintf(stderr,"DeltaColdContent = %f\n",DeltaColdContent[0]);
   fprintf(stderr,"GroundFlux = %f\n",GroundFlux[0]);
   fprintf(stderr,"LatentHeat = %f\n",LatentHeat[0]);

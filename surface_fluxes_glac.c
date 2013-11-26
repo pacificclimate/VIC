@@ -25,13 +25,11 @@ int surface_fluxes_glac(
        double              *roughness,
        double              *snow_inflow,
        double              *wind,
-       const float         *root,
        int                  Nbands,
        int                  Ndist,
        int                  Nlayers,
        int                  Nveg,
        int                  band,
-       int                  dp,
        int                  iveg,
        int                  rec,
        int                  veg_class,
@@ -139,10 +137,7 @@ int surface_fluxes_glac(
   // glacier structure
   double                 store_melt_glac = 0;
   double                 store_vapor_flux_glac = 0;
-  double                 store_mass_balance = 0;
-  double                 store_ice_mass_balance = 0;
   double                 store_accum_glac = 0;
-  double                 store_inflow_glac = 0;
   // snow structure
   double                 store_canopy_vapor_flux = 0;
   double                 store_melt = 0;
@@ -182,14 +177,6 @@ int surface_fluxes_glac(
    are completed
    ***********************************************************************/
 
-  energy->advection = 0;
-  energy->deltaCC = 0;
-  if (snow->swq > 0) {
-    snow_flux = energy->snow_flux;
-  } else {
-    snow_flux = 0;
-  }
-  energy->refreeze_energy = 0;
   coverage = snow->coverage;
   step_energy = (*energy);
   snow_veg_var[WET] = (*veg_var_wet);
@@ -279,12 +266,12 @@ int surface_fluxes_glac(
     step_out_rain = rainfall[WET];
     step_out_snow = snowfall[WET];
 
-    // initialize ground surface temperaure
+    // initialize ground surface temperature: set to glacier temperature
     Tgrnd = GLAC_TEMP;
 
     // initialize canopy terms
     Tcanopy = 0.;
-    VPDcanopy = atmos->vpd[hidx];
+    VPDcanopy = 0.;
 
     // Compute mass flux of blowing snow
     if (state->options.BLOWING && step_snow.swq > 0.) {
@@ -310,39 +297,37 @@ int surface_fluxes_glac(
     step_snow.canopy_vapor_flux = 0;
     step_snow.vapor_flux = 0;
     step_snow.surface_flux = 0;
-    /* iter_snow.blowing_flux has already been reset to step_snow.blowing_flux */
     LongUnderOut = step_energy.LongUnderOut;
 
-    if (step_snow.swq > 0 || snowfall[WET] > 0.) {
-      /** Solve snow accumulation, ablation and interception **/
+    if (step_snow.swq > 0. || snowfall[WET] > 0.) {
+      /** Solve snow accumulation and ablation on the glacier surface **/
 
-      // TODO: check these arguments (especially -snow_flux?)
       step_melt = solve_snow_glac(BareAlbedo, LongUnderOut,
        Tgrnd, Tair, current_prcp_mu,
-       step_prec[WET], (-snow_flux), state->global_param.wind_h, &energy->AlbedoUnder,
+       step_prec[WET], state->global_param.wind_h, &energy->AlbedoUnder,
        latent_heat_Le, &LongUnderIn, &NetLongSnow,
        &NetShortSnow, &ShortUnderIn, &OldTSurf, temp_aero_resist,
        temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
        displacement, &step_melt_energy, out_prec, out_rain, out_snow,
        step_ppt, rainfall, ref_height,
-       roughness, snow_inflow, snowfall, &surf_atten, wind, root,
+       roughness, snow_inflow, snowfall, &surf_atten, wind,
        iveg, band, step_dt, rec, hidx,
        veg_class, &UnderStory, dmy, *atmos, &(step_energy),
-       &(step_snow), soil_con, glacier, state);
+       &(step_snow), soil_con, &step_glacier, state);
 
       if (step_melt == ERROR)
         return (ERROR);
     } else {
 
       step_melt_glac = solve_glacier(LongUnderOut, Tgrnd, Tair, current_prcp_mu,
-          step_prec[WET], snow_flux, state->global_param.wind_h,
-          &energy->AlbedoUnder, step_pot_evap, latent_heat_Le, &LongUnderIn,
+          step_prec[WET], state->global_param.wind_h,
+          &energy->AlbedoUnder, latent_heat_Le, &LongUnderIn,
           &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
           temp_aero_resist, temp_aero_resist_used, displacement,
-          gauge_correction, &step_melt_energy, out_prec, out_rain, out_snow,
+          &step_melt_energy, out_prec, out_rain, out_snow,
           step_ppt, rainfall, ref_height, roughness, snowfall, wind, Nveg, iveg,
           band, step_dt, rec, hidx, &UnderStory, dmy, atmos, &step_energy,
-          glacier, soil_con, state);
+          &step_glacier, soil_con, state);
 
       if (step_melt_glac == ERROR) {
         return (ERROR);
@@ -429,10 +414,7 @@ int surface_fluxes_glac(
     // glacier
     store_melt_glac += step_melt_glac;
     store_vapor_flux_glac += step_glacier.vapor_flux;
-    store_mass_balance += step_glacier.mass_balance;
-    store_ice_mass_balance += step_glacier.ice_mass_balance;
     store_accum_glac += step_glacier.accumulation;
-    store_inflow_glac += step_glacier.inflow;
     store_glacier_flux += step_energy.glacier_flux;
     store_deltaCC_glac += step_energy.deltaCC_glac;
 
@@ -463,10 +445,7 @@ int surface_fluxes_glac(
   (*glacier) = step_glacier;
   glacier->melt = store_melt_glac;
   glacier->vapor_flux = store_vapor_flux_glac;
-  glacier->mass_balance = store_mass_balance;
-  glacier->ice_mass_balance = store_ice_mass_balance;
   glacier->accumulation = store_accum_glac;
-  glacier->inflow = store_inflow_glac;
 
   /************************************************
    Store snow variables for sub-model time steps
@@ -482,6 +461,9 @@ int surface_fluxes_glac(
   for (int dist = 0; dist < 2; dist++) {
     ppt[dist] = store_ppt[dist];
   }
+
+  glacier->mass_balance = out_prec[WET] - snow->melt - glacier->melt - snow->vapor_flux - glacier->vapor_flux;
+  glacier->ice_mass_balance = glacier->accumulation - glacier->melt - glacier->vapor_flux;
 
   /******************************************************
    Store energy flux averages for sub-model time steps
@@ -588,12 +570,23 @@ int surface_fluxes_glac(
 #endif
   cell_wet->inflow = 0.;
   cell_dry->inflow = 0.;
-  glacier->water_storage += glacier->inflow;
 
-  // TODO: implement and call runoff_glac with the correct parameters.
-  //ErrorFlag = runoff_glac(cell_wet, cell_dry, energy, soil_con, ppt,
-  //   SubsidenceUpdate, current_prcp_mu, band, rec, iveg, state);
-  //return (ErrorFlag);
+  /* calculate glacier outflow and HRU runoff; all glacier outflow is assumed to be surface runoff */
+  glacier->inflow = ppt[WET] + ppt[DRY];
+  cell_wet->runoff = 0.;
+  cell_dry->runoff = 0.;
+  cell_wet->baseflow = 0.;
+  cell_dry->baseflow = 0.;
+  double wt = glacier->water_storage + glacier->inflow;
+  double kt = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * snow->swq);
+  double qt = kt * wt;
+  wt -= qt;   /* qt always less than wt */
+
+  glacier->water_storage = wt;
+  glacier->outflow = qt;
+  cell_wet->runoff = qt;
+  glacier->outflow_coef = kt;
+
 #if EXCESS_ICE
 }
 #endif

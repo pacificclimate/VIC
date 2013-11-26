@@ -7,10 +7,8 @@ double solve_glacier(double LongUnderOut,       // LW from understory
       double               air_temp,            // air temperature
       double               mu,
       double               prec,
-      double               snow_grnd_flux,
       double               wind_h,
       double              *AlbedoUnder,
-      double              *Evap,
       double              *Le,
       double              *LongUnderIn,         // surface incoming LW
       double              *NetLongSnow,         // net LW at glacier surface
@@ -21,7 +19,6 @@ double solve_glacier(double LongUnderOut,       // LW from understory
       double              *aero_resist,
       double              *aero_resist_used,
       double              *displacement,
-      double              *gauge_correction,
       double              *melt_energy,
       double              *out_prec,
       double              *out_rain,
@@ -101,23 +98,23 @@ double solve_glacier(double LongUnderOut,       // LW from understory
    (*AlbedoUnder) = soil->GLAC_ALBEDO;
    (*NetShortSnow) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
-   /** Call snow pack accumulation and ablation algorithm **/
+   /** Call glacier ablation algorithm **/
    ErrorFlag = glacier_melt((*Le), (*NetShortSnow), Tgrnd,
     roughness, aero_resist[*UnderStory], aero_resist_used,
     air_temp, (double)dt * SECPHOUR, density,
-    displacement[*UnderStory], snow_grnd_flux,
+    displacement[*UnderStory],
     *LongUnderIn, pressure, rainfall[WET], vp, vpd,
     wind[*UnderStory], ref_height[*UnderStory],
     NetLongSnow, Torg_snow, &melt, &energy->error,
-    &energy->advected_sensible, &energy->advection,
-    &energy->deltaCC, &tmp_grnd_flux, &energy->latent,
+    &energy->advection,
+    &energy->deltaCC_glac, &energy->grnd_flux, &energy->latent,
     &energy->latent_sub,
     &energy->sensible,
     rec, iveg, band, glacier, soil, state);
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall
-   ppt[WET] += (melt + rainfall[WET]);
+   ppt[WET] = (melt + rainfall[WET]);
 
    // store glacier albedo
    energy->AlbedoUnder = *AlbedoUnder;

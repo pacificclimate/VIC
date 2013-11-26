@@ -9,7 +9,6 @@ double solve_snow_glac(
       double               air_temp, // air temperature
       double               precipitation_mu,
       double               prec,
-      double               snow_grnd_flux,
       double               wind_h,
       double              *AlbedoUnder,
       double              *latent_heat_Le,
@@ -36,7 +35,6 @@ double solve_snow_glac(
       double              *snowfall,
       double              *surf_atten,
       double              *wind,
-      const float         *root,
       int                  iveg,
       int                  band,
       int                  dt,
@@ -125,14 +123,14 @@ double solve_snow_glac(
 
   snow->snow = TRUE; // snow is present during time step
 
-  (*surf_atten) = 1.;  // understory covered by snow
+  (*surf_atten) = 1.;  // no overstory vegetation
 
   old_coverage = snow->coverage; // store previous coverage fraction
 
   energy->NetLongOver = 0;
   energy->LongOverIn = 0;
 
-  (*snow_inflow) += rainfall[WET] + snowfall[WET];
+  (*snow_inflow) = rainfall[WET] + snowfall[WET];
 
   old_swq = snow->swq; /* store swq for density calculations */
   (*UnderStory) = 2; /* ground snow is present of accumulating
@@ -171,11 +169,11 @@ double solve_snow_glac(
   ErrorFlag = snow_melt_glac((*latent_heat_Le), (*NetShortSnow),
       Tgrnd, roughness, aero_resist[*UnderStory], aero_resist_used,
       air_temp, *coverage, (double) dt * SECPHOUR, atmos.density[hidx],
-      displacement[*UnderStory], snow_grnd_flux, *LongUnderIn,
+      displacement[*UnderStory], *LongUnderIn,
       atmos.pressure[hidx], rainfall[WET], snowfall[WET], atmos.vp[hidx],
       atmos.vpd[hidx], wind[*UnderStory], ref_height[*UnderStory], NetLongSnow,
       Torg_snow, &melt, &energy->error, &energy->advected_sensible,
-      &energy->advection, &energy->deltaCC, &tmp_grnd_flux, &energy->latent,
+      &energy->advection, &energy->deltaCC, &energy->grnd_flux, &energy->latent,
       &energy->latent_sub, &energy->refreeze_energy, &energy->sensible, rec,
       iveg, band, snow, soil_con, glacier, state);
 
