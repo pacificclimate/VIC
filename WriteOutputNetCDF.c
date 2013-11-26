@@ -188,6 +188,8 @@ int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
   endTime.year = state->global_param.endyear;
   endTime.month = state->global_param.endmonth;
   endTime.day = state->global_param.endday;
+  endTime.hour = 0;
+  endTime.day_in_year = 0;
   return getTimeIndex(&endTime, timeIndexDivisor, state) + 1;
 }
 
