@@ -109,18 +109,18 @@ void read_initial_model_state(const char* initStateFilename, cell_info_struct *c
   if (reader->seekToCell(cell->soil_con.gridcel, &cellNVeg, &cellNBand) < 0) {
     std::stringstream ss;
     ss << "Requested grid cell (" << cell->soil_con.gridcel << ") is not in the model state file.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
 
   if (cellNVeg != Nveg) {
     std::stringstream ss;
     ss << "The number of vegetation types in cell " << cell->soil_con.gridcel << " (" << cellNVeg << ") does not equal that defined in vegetation parameter file (" << Nveg << ").  Check your input files.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
   if (cellNBand != state->options.SNOW_BAND) {
     std::stringstream ss;
     ss << "The number of snow bands in cell " << cell->soil_con.gridcel << " (" << cellNBand << ") does not equal that defined in the snow band file (" << state->options.SNOW_BAND << ").  Check your input files.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
 
   processCellForStateFile(cell, reader, state);

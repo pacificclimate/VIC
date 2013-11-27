@@ -278,7 +278,7 @@ void StateIONetCDF::checkAndRead(std::string name, int * storage, int length) {
   } else {
     std::stringstream ss;
     ss << "Error: mismatch in variable sizes when reading " << name << " expected=" << length << " actual=" << att.getAttLength();
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
 }
 
@@ -302,7 +302,7 @@ void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableLastDimen
   if (curDimensionIndices.find(dimension) == curDimensionIndices.end() || metaDimensions.find(dimension) == metaDimensions.end()) {
     std::stringstream ss;
     ss << "Error: could not find dimension " << dimension << ". Make sure it has an entry in both maps: curDimensionIndices and metaDimensions.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
   int newValue = value;
   if (newValue < 0) {
@@ -311,7 +311,7 @@ void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableLastDimen
   if (newValue < 0 || newValue >= metaDimensions[dimension].size) {
     std::stringstream ss;
     ss << "Error: the dimension " << dimension << " cannot have an index value of " << newValue;
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
   curDimensionIndices[dimension] = newValue;
 }

@@ -149,7 +149,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
         ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")";
         ss << "do not match those currently requested (veg = " << it->vegIndex << ", band = " << it->bandIndex << "). ";
         ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
-        throw new VICException(ss.str());
+        throw VICException(ss.str());
       }
     }
 

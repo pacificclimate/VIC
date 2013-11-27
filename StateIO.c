@@ -36,7 +36,7 @@ int StateIO::process(char* data, int numValues, const StateVariables::StateMetaD
 
 inline int StateIO::process(const int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   if (ioType == StateIO::Reader) {
-    throw new VICException("Error in StateIO::process. Can't read into a const array!\n");
+    throw VICException("Error in StateIO::process. Can't read into a const array!\n");
     //return read(data, numValues, meta);
   } else {
     return write(data, numValues, id);
@@ -45,7 +45,7 @@ inline int StateIO::process(const int* data, int numValues, const StateVariables
 
 inline int StateIO::process(const double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   if (ioType == StateIO::Reader) {
-    throw new VICException("Error in StateIO::process. Can't read into a const array!\n");
+    throw VICException("Error in StateIO::process. Can't read into a const array!\n");
     //return read(data, numValues, meta);
   } else {
     return write(data, numValues, id);
@@ -54,7 +54,7 @@ inline int StateIO::process(const double* data, int numValues, const StateVariab
 
 inline int StateIO::process(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   if (ioType == StateIO::Reader) {
-    throw new VICException("Error in StateIO::process. Can't read into a const array!\n");
+    throw VICException("Error in StateIO::process. Can't read into a const array!\n");
     //return read(data, numValues, meta);
   } else {
     return write(data, numValues, id);

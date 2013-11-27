@@ -88,7 +88,7 @@ int StateIOASCII::read(int* data, int numValues, const StateVariables::StateMeta
     numRead += fscanf(file, "%d", &data[i]);
   }
   if (feof(file)) {
-    throw new VICException("End of model state file found unexpectedly");
+    throw VICException("End of model state file found unexpectedly");
   }
   return numRead;
 }
@@ -99,7 +99,7 @@ int StateIOASCII::read(double* data, int numValues, const StateVariables::StateM
     numRead += fscanf(file, "%lf", &data[i]);  //TODO: possibly read " %lf"
   }
   if (feof(file)) {
-    throw new VICException("End of model state file found unexpectedly");
+    throw VICException("End of model state file found unexpectedly");
   }
   return numRead;
 }
@@ -112,7 +112,7 @@ int StateIOASCII::read(char* data, int numValues, const StateVariables::StateMet
     data[i] = (char)temp;
   }
   if (feof(file)) {
-    throw new VICException("End of model state file found unexpectedly");
+    throw VICException("End of model state file found unexpectedly");
   }
   return numRead;
 }

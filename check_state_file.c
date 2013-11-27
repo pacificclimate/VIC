@@ -40,12 +40,12 @@ void check_state_file(char *init_state_name, ProgramState *state)
     std::stringstream ss;
     ss << "The number of soil moisture layers in the model state file (" << header.nLayer << ")";
     ss << "does not equal that defined in the global control file (" << state->options.Nlayer << ").  Check your input files.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
   if ( header.nNode != state->options.Nnode ) {
     std::stringstream ss;
     ss << "The number of soil thermal nodes in the model state file (" << header.nNode << ")";
     ss << "does not equal that defined in the global control file (" << state->options.Nnode << ").  Check your input files.";
-    throw new VICException(ss.str());
+    throw VICException(ss.str());
   }
 }
