@@ -129,22 +129,22 @@ else
 fi
 
 if $stateOutputASCII ; then
-    md5sum frs.state_19951231 stateASCIIOutput
+    md5sum frs.state_19951231 $correctResultsDir/stateASCIIOutput
 elif $stateOutputBinary ; then
-    md5sum frs.state_19951231 stateBinaryOutput
+    md5sum frs.state_19951231 $correctResultsDir/stateBinaryOutput
 fi
 
 if $stateInputASCII ; then
     pushd out/$outputName > /dev/null
-    md5sum -c ../../correctResults/stateInputFluxesOutputASCII/checksum
+    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputASCII/checksum
     popd > /dev/null
 elif $stateInputBinary ; then
     pushd out/$outputName > /dev/null
-    md5sum -c ../../correctResults/stateInputFluxesOutputBinary/checksum
+    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputBinary/checksum
     popd > /dev/null
 elif $stateInputNetCDF ; then
     pushd out/$outputName > /dev/null
-    md5sum -c ../../correctResults/stateInputFluxesOutputBinary/checksum
+    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputBinary/checksum
     popd > /dev/null
 fi
 
