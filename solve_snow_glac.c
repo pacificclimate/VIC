@@ -75,7 +75,6 @@ double solve_snow_glac(
   double              rainonly;
   double              tmp_Wdew[2];
   double              tmp_grnd_flux;
-  double              store_snowfall;
   double              tmp_ref_height;
   int                 month;
   int                 hour;
@@ -149,7 +148,7 @@ double solve_snow_glac(
 #endif
 
   /** compute understory albedo and net shortwave radiation **/
-  if (snow->swq > 0 /* TODO: this is not initialized: && store_snowfall == 0 */) {
+  if (snow->swq > 0. && snowfall[WET] == 0.) {
     // age snow albedo if no new snowfall
     // ignore effects of snow dropping from canopy; only consider fresh snow from sky
     snow->last_snow++;

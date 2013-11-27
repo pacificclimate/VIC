@@ -317,6 +317,13 @@ int surface_fluxes_glac(
 
       if (step_melt == ERROR)
         return (ERROR);
+
+      step_melt_glac = 0.;
+      step_glacier.vapor_flux = 0.;
+      step_energy.glacier_flux = 0.;
+      step_energy.deltaCC_glac = 0.;
+      step_energy.snow_flux = -step_energy.grnd_flux;
+
     } else {
 
       step_melt_glac = solve_glacier(LongUnderOut, Tgrnd, Tair, current_prcp_mu,
@@ -332,6 +339,20 @@ int surface_fluxes_glac(
       if (step_melt_glac == ERROR) {
         return (ERROR);
       }
+
+      step_melt = 0.;
+      snow->snow = FALSE;
+      snow->store_swq = 0.;
+      snow->store_coverage = 1;
+      snow->last_snow = INVALID_INT;
+      snow->albedo = soil_con->NEW_SNOW_ALB;
+      step_energy.deltaCC = 0.;
+      step_energy.refreeze_energy = 0.;
+      step_energy.snow_flux = 0.;
+      step_energy.advected_sensible = 0.;
+      step_energy.glacier_flux = -step_energy.grnd_flux;
+      step_glacier.accumulation = 0.;
+
     }
 
     /**************************************
