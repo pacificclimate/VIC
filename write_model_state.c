@@ -79,7 +79,10 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   StateIO* writer = context.stream;
 
   /* write cell information */
-  writer->notifyCellLocation(cell->soil_con.lat, cell->soil_con.lng);
+  writer->initializeDimensionIndices();
+  writer->notifyDimensionUpdate(StateVariables::LAT_DIM, latitudeToIndex(cell->soil_con.lat, state));
+  writer->notifyDimensionUpdate(StateVariables::LON_DIM, longitudeToIndex(cell->soil_con.lng, state));
+
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
   writer->write(&cell->veg_con[0].vegetat_type_num, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
@@ -139,15 +142,16 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     int originalVeg = it->vegIndex;
     int originalBand = it->bandIndex;
 
-    stream->process(&it->vegIndex, 1, HRU_VEG_INDEX);
-    stream->process(&it->bandIndex, 1, HRU_BAND_INDEX);
+    stream->process(&(it->vegIndex), 1, HRU_VEG_INDEX);
+    stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX);
 
     // The following is read specific and there is nothing we can do about it.
     if (stream->getType() == StateIO::Reader) {
       if (originalVeg != it->vegIndex || originalBand != it->bandIndex) {
         std::stringstream ss;
-        ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")";
-        ss << "do not match those currently requested (veg = " << it->vegIndex << ", band = " << it->bandIndex << "). ";
+        ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")\n";
+        ss << "do not match those currently requested (veg = " << it->vegIndex << ", band = " << it->bandIndex << "). \n";
+        ss << "At HRU dimension index: " << stream->getCurrentDimensionIndex(HRU_DIM) << "\n";
         ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
         throw VICException(ss.str());
       }

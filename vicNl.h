@@ -348,6 +348,9 @@ void   initialize_snow(std::vector<HRU>&);
 void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, veg_con_struct *, const ProgramState*);
 void initialize_veg(std::vector<HRU>&, int);
 
+int latitudeToIndex(double lat, const ProgramState* state);
+int longitudeToIndex(double lon, const ProgramState* state);
+
 void   latent_heat_from_snow(double, double, double, double, double, 
                              double, double, double *, double *, 
                              double *, double *, double *);

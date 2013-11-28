@@ -342,14 +342,6 @@ int WriteOutputNetCDF::getTimeIndex(const dmy_struct* curTime, const int timeInd
   return INVALID_INT;
 }
 
-int latitudeToIndex(double lat, const ProgramState* state) {
-  return std::abs(lat - state->global_param.gridStartLat) / state->global_param.gridStepLat;
-}
-
-int longitudeToIndex(double lon, const ProgramState* state) {
-  return std::abs(lon - state->global_param.gridStartLon) / state->global_param.gridStepLon;
-}
-
 // This is called per time record.
 void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
 

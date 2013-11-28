@@ -49,6 +49,14 @@ void finilizeForceTypes(ProgramState* state) {
 
 }
 
+int latitudeToIndex(double lat, const ProgramState* state) {
+  return std::abs(lat - state->global_param.gridStartLat) / state->global_param.gridStepLat;
+}
+
+int longitudeToIndex(double lon, const ProgramState* state) {
+  return std::abs(lon - state->global_param.gridStartLon) / state->global_param.gridStepLon;
+}
+
 // Calculate the grid cell parameters. This is used for NetCDF outputs
 void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
   if (cells.size() == 0) {

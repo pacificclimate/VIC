@@ -106,6 +106,11 @@ void read_initial_model_state(const char* initStateFilename, cell_info_struct *c
 #endif
 
   int cellNVeg, cellNBand;
+
+  reader->initializeDimensionIndices();
+  reader->notifyDimensionUpdate(StateVariables::LAT_DIM, latitudeToIndex(cell->soil_con.lat, state));
+  reader->notifyDimensionUpdate(StateVariables::LON_DIM, longitudeToIndex(cell->soil_con.lng, state));
+
   if (reader->seekToCell(cell->soil_con.gridcel, &cellNVeg, &cellNBand) < 0) {
     std::stringstream ss;
     ss << "Requested grid cell (" << cell->soil_con.gridcel << ") is not in the model state file.";

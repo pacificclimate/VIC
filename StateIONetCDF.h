@@ -22,8 +22,9 @@ public:
   int read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   int read(char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   StateHeader readHeader();
-  void notifyCellLocation(float lat, float lng);
   void notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value = -1);
+  void initializeDimensionIndices();
+  int getCurrentDimensionIndex(StateVariables::StateVariableLastDimension dimension);
   int seekToCell(int cellid, int* nVeg, int* nBand);
   void flush();
   void rewindFile();
@@ -33,7 +34,7 @@ private:
   template<typename T> int generalRead(T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   void populateMetaData();
   void populateMetaDimensions();
-  void initializeDimensionIndices();
+  void initializeLatLonDims();
   std::map<StateVariables::StateMetaDataVariableIndices, StateVariableMetaData> metaData;
   std::map<StateVariables::StateVariableLastDimension, StateVariableDimension> metaDimensions;
   void checkAndRead(std::string name, int * storage, int length);
@@ -43,8 +44,6 @@ private:
 
   netCDF::NcFile* netCDF;
   std::string filename;
-  int curLatIndex;
-  int curLonIndex;
   std::map<StateVariables::StateVariableLastDimension, int> curDimensionIndices;
 };
 

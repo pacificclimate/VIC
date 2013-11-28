@@ -16,17 +16,21 @@ std::string getCompilationMachineInfo();
 std::string getDateOfCompilation();
 std::string getRuntimeMachineInfo();
 std::string getSourceVersion();
-int latitudeToIndex(double lat, const ProgramState* state);
-int longitudeToIndex(double lon, const ProgramState* state);
 void verifyGlobalAttributes(const NcFile& file);
 
 extern const char* version; // Defined in global.h
 
+// List of strings that are used in more than one place (prevents spelling mistakes in separate places and is more maintainable).
 const std::string stateYear = "state_year";
 const std::string stateMonth = "state_month";
 const std::string stateDay = "state_day";
 const std::string stateNLayer = "state_nlayer";
 const std::string stateNNode = "state_nnode";
+const std::string LAT_DIM_STR = "lat";
+const std::string LON_DIM_STR = "lon";
+const std::string GRID_CELL_STR = "GRID_CELL";
+const std::string VEG_TYPE_NUM_STR = "VEG_TYPE_NUM";
+const std::string NUM_BANDS_STR = "NUM_BANDS";
 
 StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL), filename(filename) {
   populateMetaData();
@@ -65,15 +69,58 @@ void StateIONetCDF::openFile() {
   } else {
     try {
       netCDF = new NcFile(filename, NcFile::write);
-    } catch (netCDF::exceptions::NcNotNCF& e) { // File doesn't exist or is not netCDF format.
+    } catch (netCDF::exceptions::NcException& e) { // File doesn't exist or is not netCDF format.
       // Ignored. This is expected the first time an instance of this class is created without calling initializeOutput.
     }
   }
 
 }
 
+// Specific steps for lat/long dimensions and variables.
+void StateIONetCDF::initializeLatLonDims() {
+  NcDim latDim = netCDF->getDim(LAT_DIM_STR);
+  NcDim lonDim = netCDF->getDim(LON_DIM_STR);
+
+  {
+    NcVar latVar = netCDF->addVar(LAT_DIM_STR, ncFloat, latDim);
+    latVar.putAtt("axis", "Y");
+    latVar.putAtt("units", "degrees_north");
+    latVar.putAtt("standard name", "latitude");
+    latVar.putAtt("long name", "latitude");
+    latVar.putAtt("bounds", "lat_bnds");
+  }
+
+  NcVar latVar = netCDF->getVar(LAT_DIM_STR);
+  for (int i = 0; i < state->global_param.gridNumLatDivisions; i++) {
+    std::vector<size_t> start, count;
+    start.push_back(i);
+    count.push_back(1);
+    float value = state->global_param.gridStartLat + (i * state->global_param.gridStepLat);
+    latVar.putVar(start, count, &value);    //TODO: this doesn't seem to be working...
+  }
+
+  {
+    NcVar lonVar = netCDF->addVar(LON_DIM_STR, ncFloat, lonDim);
+    lonVar.putAtt("axis", "X");
+    lonVar.putAtt("units", "degrees_east");
+    lonVar.putAtt("standard name", "longitude");
+    lonVar.putAtt("long name", "longitude");
+    lonVar.putAtt("bounds", "lon_bnds");
+  }
+
+  NcVar lonVar = netCDF->getVar(LON_DIM_STR);
+  for (int i = 0; i < state->global_param.gridNumLonDivisions; i++) {
+    std::vector<size_t> start, count;
+    start.push_back(i);
+    count.push_back(1);
+    float value = state->global_param.gridStartLon + (i * state->global_param.gridStepLon);
+    lonVar.putVar(start, count, &value);
+  }
+}
+
   // Initialize global attributes, setup variable dimensions and structure.
 void StateIONetCDF::initializeOutput() {
+  using namespace StateVariables;
 
   closeFile();  // Close the file that was opened in the constructor so we can recreate it properly.
 
@@ -122,44 +169,25 @@ void StateIONetCDF::initializeOutput() {
       (size_t) state->global_param.gridNumLatDivisions,
       (size_t) state->global_param.gridNumLonDivisions);
 
-  NcDim latDim = netCDF->addDim("lat", (size_t) state->global_param.gridNumLatDivisions);
-  NcDim lonDim = netCDF->addDim("lon", (size_t) state->global_param.gridNumLonDivisions);
-  NcDim boundsDim = netCDF->addDim("bnds", 2);
-
-  std::map<StateVariables::StateVariableLastDimension, NcDim> allDynamicDimensions;
-  for (std::map<StateVariables::StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
+  std::map<StateVariableLastDimension, NcDim> allDynamicDimensions;
+  for (std::map<StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
       it != metaDimensions.end(); ++it) {
     NcDim tempDim = netCDF->addDim(it->second.name, it->second.size);
     allDynamicDimensions[it->first] = tempDim;
   }
 
-  // Define the coordinate variables.
-  NcVar latVar = netCDF->addVar("lat", ncFloat, latDim);
-  NcVar lonVar = netCDF->addVar("lon", ncFloat, lonDim);
+  initializeLatLonDims();
 
-  latVar.putAtt("axis", "Y");
-  latVar.putAtt("units", "degrees_north");
-  latVar.putAtt("standard name", "latitude");
-  latVar.putAtt("long name", "latitude");
-  latVar.putAtt("bounds", "lat_bnds");
-
-  lonVar.putAtt("axis", "X");
-  lonVar.putAtt("units", "degrees_east");
-  lonVar.putAtt("standard name", "longitude");
-  lonVar.putAtt("long name", "longitude");
-  lonVar.putAtt("bounds", "lon_bnds");
-
-  using namespace StateVariables;
-  for (std::map<StateVariables::StateMetaDataVariableIndices, StateVariableMetaData>::iterator it = metaData.begin();
+  // Add all variables found in the metaData map.
+  for (std::map<StateMetaDataVariableIndices, StateVariableMetaData>::iterator it = metaData.begin();
       it != metaData.end(); ++it) {
 
     const std::string varName = it->second.name;
     int id = it->first;
 
     std::vector<NcDim> dimensions;
-    dimensions.push_back(latDim);
-    dimensions.push_back(lonDim);
 
+    // Dynamically add any extra dimensions for this variable.
     for (std::vector<StateVariableLastDimension>::iterator dimIt =
         it->second.dimensions.begin(); dimIt != it->second.dimensions.end();
         ++dimIt) {
@@ -186,10 +214,6 @@ void StateIONetCDF::initializeOutput() {
 template<typename T> int StateIONetCDF::generalWrite(const T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   std::vector<size_t> start;
   std::vector<size_t> count;
-  start.push_back(curLatIndex);
-  start.push_back(curLonIndex);
-  count.push_back(1);
-  count.push_back(1);
   StateVariables::StateVariableLastDimension lastDimensionId = StateVariables::NO_DIM;
   try {
     for (std::vector<StateVariables::StateVariableLastDimension>::iterator it = metaData[id].dimensions.begin();
@@ -207,7 +231,7 @@ template<typename T> int StateIONetCDF::generalWrite(const T* data, int numValue
 
   } catch (std::exception& e) {
     fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d. numValues = %d, last dimensionId = %d, last dimension length = %d\n",
-        metaData[id].name.c_str(), curLatIndex, curLonIndex, numValues,
+        metaData[id].name.c_str(), (int)start[0], (int)start[1], numValues,
         lastDimensionId, metaDimensions[lastDimensionId].size);
     throw;
   }
@@ -219,10 +243,6 @@ template<typename T> int StateIONetCDF::generalWrite(const T* data, int numValue
 template<typename T> int StateIONetCDF::generalRead(T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   std::vector<size_t> start;
   std::vector<size_t> count;
-  start.push_back(curLatIndex);
-  start.push_back(curLonIndex);
-  count.push_back(1);
-  count.push_back(1);
   StateVariables::StateVariableLastDimension lastDimensionId = StateVariables::NO_DIM;
   try {
     for (std::vector<StateVariables::StateVariableLastDimension>::iterator it = metaData[id].dimensions.begin();
@@ -237,10 +257,15 @@ template<typename T> int StateIONetCDF::generalRead(T* data, int numValues, cons
 
     NcVar variable = netCDF->getVar(metaData[id].name);
     variable.getVar(start, count, data);
-
+  } catch (netCDF::exceptions::NcRange &e) {
+    fprintf(stderr, "Error reading variable: %s, at latIndex: %d, lonIndex: %d. numValues = %d, last dimensionId = %d, last dimension length = %d\n",
+        metaData[id].name.c_str(), (int)start[0], (int)start[1], numValues,
+        lastDimensionId, metaDimensions[lastDimensionId].size);
+    fprintf(stderr, "This most likely means that the metadata type of this variable is wrong\n");
+    throw;
   } catch (std::exception& e) {
-    fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d. numValues = %d, last dimensionId = %d, last dimension length = %d\n",
-        metaData[id].name.c_str(), curLatIndex, curLonIndex, numValues,
+    fprintf(stderr, "Error reading variable: %s, at latIndex: %d, lonIndex: %d. numValues = %d, last dimensionId = %d, last dimension length = %d\n",
+        metaData[id].name.c_str(), (int)start[0], (int)start[1], numValues,
         lastDimensionId, metaDimensions[lastDimensionId].size);
     throw;
   }
@@ -292,12 +317,6 @@ StateHeader StateIONetCDF::readHeader() {
   return StateHeader(year, month, day, nLayer, nNode);
 }
 
-void StateIONetCDF::notifyCellLocation(float lat, float lng) {
-  curLatIndex = latitudeToIndex(lat, state);
-  curLonIndex = longitudeToIndex(lng, state);
-  initializeDimensionIndices(); // This is reset for each cell.
-}
-
 void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value) {
   if (curDimensionIndices.find(dimension) == curDimensionIndices.end() || metaDimensions.find(dimension) == metaDimensions.end()) {
     std::stringstream ss;
@@ -321,7 +340,9 @@ int StateIONetCDF::seekToCell(int cellid, int* nVeg, int* nBand) {
   NcDim lonDim = netCDF->getDim("lon");
   int latSize = latDim.getSize();
   int lonSize = lonDim.getSize();
-  NcVar cellIds = netCDF->getVar("GRID_CELL");    //TODO: reuse string
+  NcVar cellIds = netCDF->getVar(GRID_CELL_STR);
+  // Iterate through the lat/lng grid until the correct cellId is found.
+  // Then read the veg and band vars at this cell.
   for (int i = 0; i < latSize; i++) {
     for (int j = 0; j < lonSize; j++) {
       double cellIdRead = -1;
@@ -330,10 +351,10 @@ int StateIONetCDF::seekToCell(int cellid, int* nVeg, int* nBand) {
       start.push_back((size_t)j);
       cellIds.getVar(start, &cellIdRead);
       if ((int)cellIdRead == cellid) {
-        NcVar veg = netCDF->getVar("VEG_TYPE_NUM");
-        NcVar band = netCDF->getVar("NUM_BANDS"); //TODO: string reuse
+        NcVar veg = netCDF->getVar(VEG_TYPE_NUM_STR);
+        NcVar band = netCDF->getVar(NUM_BANDS_STR);
         veg.getVar(start, nVeg);
-        band.getVar(start, &nBand);
+        band.getVar(start, nBand);
         return 0;
       }
     }
@@ -342,24 +363,31 @@ int StateIONetCDF::seekToCell(int cellid, int* nVeg, int* nBand) {
 }
 
 void StateIONetCDF::flush() {
-  //TODO: implement if applicable
+  // Intentionally empty. The netCDF file is flushed when it closes (at the destructor).
 }
 
 void StateIONetCDF::rewindFile() {
-
+// This is not applicable to netCDF.
 }
 
 // Reset all dimension indices to zero.
 void StateIONetCDF::initializeDimensionIndices() {
   for (std::map<StateVariables::StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
       it != metaDimensions.end(); ++it) {
-    curDimensionIndices[it->first] = 0;  // This will change to 0 on the first call to notifyDimensionUpdate.
+    curDimensionIndices[it->first] = 0;
   }
+}
+
+int StateIONetCDF::getCurrentDimensionIndex(StateVariables::StateVariableLastDimension dimension) {
+  return curDimensionIndices[dimension];
 }
 
 void StateIONetCDF::populateMetaDimensions() {
   using namespace StateVariables;
   metaDimensions[NO_DIM] = StateVariableDimension("no_dim", 1);
+  metaDimensions[LAT_DIM] = StateVariableDimension(LAT_DIM_STR, state->global_param.gridNumLatDivisions);
+  metaDimensions[LON_DIM] = StateVariableDimension(LON_DIM_STR, state->global_param.gridNumLonDivisions);
+  metaDimensions[BNDS_DIM]= StateVariableDimension("bnds", 2);
   metaDimensions[LAYERS_DIM] = StateVariableDimension("Nlayers", state->options.Nlayer);
   metaDimensions[NODES_DIM] = StateVariableDimension("Nnodes", state->options.Nnode);
   metaDimensions[LAKE_NODES_DIM] = StateVariableDimension("lake_active_nodes", MAX_LAKE_NODES+1);
@@ -373,9 +401,9 @@ void StateIONetCDF::populateMetaDimensions() {
 void StateIONetCDF::populateMetaData() {
   using namespace StateVariables;
   metaData[NONE] =                    StateVariableMetaData("NONE");
-  metaData[GRID_CELL] =               StateVariableMetaData("GRID_CELL");
-  metaData[VEG_TYPE_NUM] =            StateVariableMetaData("VEG_TYPE_NUM");
-  metaData[NUM_BANDS] =               StateVariableMetaData("NUM_BANDS");
+  metaData[GRID_CELL] =               StateVariableMetaData(GRID_CELL_STR);
+  metaData[VEG_TYPE_NUM] =            StateVariableMetaData(VEG_TYPE_NUM_STR);
+  metaData[NUM_BANDS] =               StateVariableMetaData(NUM_BANDS_STR);
   metaData[SOIL_DZ_NODE] =            StateVariableMetaData("SOIL_DZ_NODE", NODES_DIM);
   metaData[SOIL_ZSUM_NODE] =          StateVariableMetaData("SOIL_ZSUM_NODE", NODES_DIM);
   metaData[SOIL_DEPTH] =              StateVariableMetaData("SOIL_DEPTH", LAYERS_DIM);
@@ -437,8 +465,11 @@ void StateIONetCDF::populateMetaData() {
   metaData[LAKE_SALBEDO] =            StateVariableMetaData("LAKE_SALBEDO");
   metaData[LAKE_SDEPTH] =             StateVariableMetaData("LAKE_SDEPTH");
 
-  // Make type adjustments if required.
+  // Make type adjustments if required (default type is float).
   metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
+  metaData[INIT_DRY_TIME].type = netCDF::NcType::nc_INT;
+  metaData[HRU_VEG_INDEX].type = netCDF::NcType::nc_INT;
+  metaData[HRU_BAND_INDEX].type = netCDF::NcType::nc_INT;
   metaData[SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
   metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
 }
