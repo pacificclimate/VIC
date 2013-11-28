@@ -169,8 +169,8 @@ void StateIONetCDF::initializeOutput() {
       (size_t) state->global_param.gridNumLatDivisions,
       (size_t) state->global_param.gridNumLonDivisions);
 
-  std::map<StateVariableLastDimension, NcDim> allDynamicDimensions;
-  for (std::map<StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
+  std::map<StateVariableDimensionId, NcDim> allDynamicDimensions;
+  for (std::map<StateVariableDimensionId, StateVariableDimension>::iterator it = metaDimensions.begin();
       it != metaDimensions.end(); ++it) {
     NcDim tempDim = netCDF->addDim(it->second.name, it->second.size);
     allDynamicDimensions[it->first] = tempDim;
@@ -188,7 +188,7 @@ void StateIONetCDF::initializeOutput() {
     std::vector<NcDim> dimensions;
 
     // Dynamically add any extra dimensions for this variable.
-    for (std::vector<StateVariableLastDimension>::iterator dimIt =
+    for (std::vector<StateVariableDimensionId>::iterator dimIt =
         it->second.dimensions.begin(); dimIt != it->second.dimensions.end();
         ++dimIt) {
       if (*dimIt != StateVariables::NO_DIM) {
@@ -214,9 +214,9 @@ void StateIONetCDF::initializeOutput() {
 template<typename T> int StateIONetCDF::generalWrite(const T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   std::vector<size_t> start;
   std::vector<size_t> count;
-  StateVariables::StateVariableLastDimension lastDimensionId = StateVariables::NO_DIM;
+  StateVariables::StateVariableDimensionId lastDimensionId = StateVariables::NO_DIM;
   try {
-    for (std::vector<StateVariables::StateVariableLastDimension>::iterator it = metaData[id].dimensions.begin();
+    for (std::vector<StateVariables::StateVariableDimensionId>::iterator it = metaData[id].dimensions.begin();
         it != metaData[id].dimensions.end(); ++it) {
       if (*it != StateVariables::NO_DIM) {
         lastDimensionId = *it;
@@ -243,9 +243,9 @@ template<typename T> int StateIONetCDF::generalWrite(const T* data, int numValue
 template<typename T> int StateIONetCDF::generalRead(T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   std::vector<size_t> start;
   std::vector<size_t> count;
-  StateVariables::StateVariableLastDimension lastDimensionId = StateVariables::NO_DIM;
+  StateVariables::StateVariableDimensionId lastDimensionId = StateVariables::NO_DIM;
   try {
-    for (std::vector<StateVariables::StateVariableLastDimension>::iterator it = metaData[id].dimensions.begin();
+    for (std::vector<StateVariables::StateVariableDimensionId>::iterator it = metaData[id].dimensions.begin();
         it != metaData[id].dimensions.end(); ++it) {
       if (*it != StateVariables::NO_DIM) {
         lastDimensionId = *it;
@@ -317,7 +317,7 @@ StateHeader StateIONetCDF::readHeader() {
   return StateHeader(year, month, day, nLayer, nNode);
 }
 
-void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value) {
+void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableDimensionId dimension, int value) {
   if (curDimensionIndices.find(dimension) == curDimensionIndices.end() || metaDimensions.find(dimension) == metaDimensions.end()) {
     std::stringstream ss;
     ss << "Error: could not find dimension " << dimension << ". Make sure it has an entry in both maps: curDimensionIndices and metaDimensions.";
@@ -372,13 +372,13 @@ void StateIONetCDF::rewindFile() {
 
 // Reset all dimension indices to zero.
 void StateIONetCDF::initializeDimensionIndices() {
-  for (std::map<StateVariables::StateVariableLastDimension, StateVariableDimension>::iterator it = metaDimensions.begin();
+  for (std::map<StateVariables::StateVariableDimensionId, StateVariableDimension>::iterator it = metaDimensions.begin();
       it != metaDimensions.end(); ++it) {
     curDimensionIndices[it->first] = 0;
   }
 }
 
-int StateIONetCDF::getCurrentDimensionIndex(StateVariables::StateVariableLastDimension dimension) {
+int StateIONetCDF::getCurrentDimensionIndex(StateVariables::StateVariableDimensionId dimension) {
   return curDimensionIndices[dimension];
 }
 

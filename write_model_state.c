@@ -91,6 +91,19 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   
 }
 
+/*
+ * The processCellForStateFile function is used for reading and writing state files (depending on the type of StateIO stream).
+ * This method is also generic for each different state format type (binary, ascii, netCDF). This means that adding a variable
+ * will make it written and read in the same place for each format. To add a new variable, use the following process as a guide:
+ *
+ * 1) Add it to the correct location below. For example if the variable is different per HRU then add it inside the HRU loop.
+ * 2) Create a new entry in the StateMetaDataVariableIndices enum to uniquely describe this variable (see StateIO.h).
+ * 3) Update the StateIONetCDF::populateMetaData() method to include a descriptive name for this variable and its dimensions.
+ * 4) If a new dimension is needed then update the StateVariableDimension enum and add an entry in StateIONetCDF::populateMetaDimensions()
+ *    (this step is probably not needed unless you added another loop below which does not iterate along an existing dimension).
+ * 5) If you added another loop below, then make sure that stream->notifyDimensionUpdate is called appropriately for your dimension.
+ * 6) Test. Test read and write for at least one format. The results of ASCII and NetCDF should be easily verifiable (human readable).
+ */
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state) {
 
   using namespace StateVariables;

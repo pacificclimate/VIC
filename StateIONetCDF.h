@@ -22,9 +22,9 @@ public:
   int read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   int read(char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   StateHeader readHeader();
-  void notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value = -1);
+  void notifyDimensionUpdate(StateVariables::StateVariableDimensionId dimension, int value = -1);
   void initializeDimensionIndices();
-  int getCurrentDimensionIndex(StateVariables::StateVariableLastDimension dimension);
+  int getCurrentDimensionIndex(StateVariables::StateVariableDimensionId dimension);
   int seekToCell(int cellid, int* nVeg, int* nBand);
   void flush();
   void rewindFile();
@@ -36,7 +36,7 @@ private:
   void populateMetaDimensions();
   void initializeLatLonDims();
   std::map<StateVariables::StateMetaDataVariableIndices, StateVariableMetaData> metaData;
-  std::map<StateVariables::StateVariableLastDimension, StateVariableDimension> metaDimensions;
+  std::map<StateVariables::StateVariableDimensionId, StateVariableDimension> metaDimensions;
   void checkAndRead(std::string name, int * storage, int length);
 
   void openFile();
@@ -44,7 +44,7 @@ private:
 
   netCDF::NcFile* netCDF;
   std::string filename;
-  std::map<StateVariables::StateVariableLastDimension, int> curDimensionIndices;
+  std::map<StateVariables::StateVariableDimensionId, int> curDimensionIndices;
 };
 
 #endif /* STATEIONETCDF_H_ */

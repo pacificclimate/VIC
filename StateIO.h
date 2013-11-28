@@ -76,7 +76,7 @@ enum StateMetaDataVariableIndices {
   LAKE_SDEPTH
 };
 
-enum StateVariableLastDimension {
+enum StateVariableDimensionId {
   NO_DIM = 0,
   LAT_DIM,
   LON_DIM,
@@ -101,14 +101,14 @@ public:
   int size;
 };
 
-using StateVariables::StateVariableLastDimension;
+using StateVariables::StateVariableDimensionId;
 using StateVariables::NO_DIM;
 // This is just a wrapper class for now in case more attributes are needed in netCDF state files.
 class StateVariableMetaData {
 public:
   StateVariableMetaData() : name("invalid"), type(netCDF::NcType::nc_FLOAT) {}
-  StateVariableMetaData(string name, StateVariableLastDimension d1 = NO_DIM, StateVariableLastDimension d2 = NO_DIM,
-      StateVariableLastDimension d3 = NO_DIM, StateVariableLastDimension d4 = NO_DIM) : name(name), type(netCDF::NcType::nc_FLOAT) {
+  StateVariableMetaData(string name, StateVariableDimensionId d1 = NO_DIM, StateVariableDimensionId d2 = NO_DIM,
+      StateVariableDimensionId d3 = NO_DIM, StateVariableDimensionId d4 = NO_DIM) : name(name), type(netCDF::NcType::nc_FLOAT) {
     dimensions.push_back(StateVariables::LAT_DIM);  // All variables are index by lat/long.
     dimensions.push_back(StateVariables::LON_DIM);
     dimensions.push_back(d1);
@@ -118,7 +118,7 @@ public:
   }
   string name;
   netCDF::NcType::ncType type;
-  std::vector<StateVariables::StateVariableLastDimension> dimensions;
+  std::vector<StateVariables::StateVariableDimensionId> dimensions;
 };
 
 class StateHeader {
@@ -150,9 +150,9 @@ public:
   virtual int write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int processNewline();
   virtual StateHeader readHeader() = 0;
-  virtual void notifyDimensionUpdate(StateVariables::StateVariableLastDimension dimension, int value = -1) {}
+  virtual void notifyDimensionUpdate(StateVariables::StateVariableDimensionId dimension, int value = -1) {}
   virtual void initializeDimensionIndices() {}
-  virtual int getCurrentDimensionIndex(StateVariables::StateVariableLastDimension dimension) { return -1; }
+  virtual int getCurrentDimensionIndex(StateVariables::StateVariableDimensionId dimension) { return -1; }
   virtual int seekToCell(int cellid, int* nVeg, int* nBand) = 0;
   virtual int read(int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
