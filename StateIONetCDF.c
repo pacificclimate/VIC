@@ -1,4 +1,7 @@
+#include "vicNl.h"   // Need to know the NETCDF_OUTPUT_AVAILABLE option here.
 #include "StateIONetCDF.h"
+
+#if NETCDF_OUTPUT_AVAILABLE
 
 #include <netcdf>
 #include <sstream>
@@ -32,7 +35,7 @@ const std::string GRID_CELL_STR = "GRID_CELL";
 const std::string VEG_TYPE_NUM_STR = "VEG_TYPE_NUM";
 const std::string NUM_BANDS_STR = "NUM_BANDS";
 
-StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL), filename(filename) {
+StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL) {
   populateMetaData();
   populateMetaDimensions();
   initializeDimensionIndices();
@@ -336,8 +339,8 @@ void StateIONetCDF::notifyDimensionUpdate(StateVariables::StateVariableDimension
 }
 
 int StateIONetCDF::seekToCell(int cellid, int* nVeg, int* nBand) {
-  NcDim latDim = netCDF->getDim("lat");
-  NcDim lonDim = netCDF->getDim("lon");
+  NcDim latDim = netCDF->getDim(LAT_DIM_STR);
+  NcDim lonDim = netCDF->getDim(LON_DIM_STR);
   int latSize = latDim.getSize();
   int lonSize = lonDim.getSize();
   NcVar cellIds = netCDF->getVar(GRID_CELL_STR);
@@ -473,3 +476,5 @@ void StateIONetCDF::populateMetaData() {
   metaData[SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
   metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
 }
+
+#endif // NETCDF_OUTPUT_AVAILABLE

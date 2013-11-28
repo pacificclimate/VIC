@@ -4,7 +4,9 @@
 #include "vicNl_def.h"
 #include <string>
 #include <vector>
+#if NETCDF_OUTPUT_AVAILABLE
 #include <netcdf>
+#endif // NETCDF_OUTPUT_AVAILABLE
 
 // For backwards compatibility, only add values to the end of the enum,
 // and never remove values (just stop using them if necessary).
@@ -92,6 +94,8 @@ enum StateVariableDimensionId {
 };
 }
 
+#if NETCDF_OUTPUT_AVAILABLE
+
 using std::string;
 class StateVariableDimension {
 public:
@@ -120,6 +124,8 @@ public:
   netCDF::NcType::ncType type;
   std::vector<StateVariables::StateVariableDimensionId> dimensions;
 };
+
+#endif // NETCDF_OUTPUT_AVAILABLE
 
 class StateHeader {
 public:
