@@ -9,9 +9,9 @@
 #include <unistd.h>
 #include <sstream>
 
-static char vcid[] = "$Id$";
+static char vcid[] = "$Id: vicNl.c,v 5.14.2.19 2011/01/05 22:35:53 vicadmin Exp $";
 
-void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
+void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     dmy_struct* dmy, ProgramState& state);
 
@@ -142,6 +142,13 @@ int main(int argc, char *argv[])
   /** Make Date Data Structure **/
   dmy_struct* dmy = make_dmy(&state.global_param, &state);
   /** Initial state **/
+
+  std::vector<cell_info_struct> cell_data_structs;
+  readForcingData(cell_data_structs, filep, filenames, dmy, state);
+  state.initGrid(cell_data_structs);
+  initializeNetCDFOutput(&filenames, out_data_files, &state);
+
+  // Initialize state input/output if necessary.
 #if !OUTPUT_FORCE
   if (state.options.INIT_STATE)
     check_state_file(filenames.init_state, &state);
@@ -151,11 +158,6 @@ int main(int argc, char *argv[])
     context.stream->initializeOutput();
   }
 #endif // !OUTPUT_FORCE
-
-  std::vector<cell_info_struct> cell_data_structs;
-  readSoilData(cell_data_structs, filep, filenames, dmy, state);
-  state.initGrid(cell_data_structs);
-  initializeNetCDFOutput(&filenames, out_data_files, &state);
 
   runModel(cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, &state);
 
@@ -203,14 +205,14 @@ void sanityCheckNumberOfCells(const int nCells, const ProgramState* state) {
   }
 }
 
-void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
+void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     dmy_struct* dmy, ProgramState& state) {
 
   /*****************************************
    * Read soil for all "active" grid cells *
    *****************************************/
-  char done_reading_soil_file = FALSE, is_valid_soil_cell;
+  char done_reading_forcings = FALSE, is_valid_soil_cell;
   int nallocatedcells = 10; /* arbitrary */
   int currentCellNumber = 0;
 
@@ -218,16 +220,16 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   double *lng = NULL;
   int    *cellnum = NULL;
   soil_con_struct temp_soil_con;
-  while (!done_reading_soil_file) {
+  while (!done_reading_forcings) {
     if (state.options.ARC_SOIL) {
       assert(0); // presently unsupported; maybe support vector functionality later?
       int  Ncells = 0;  // This will be initialized in read_soilparam_arc
       temp_soil_con = read_soilparam_arc(filep.soilparam, filenames.soil_dir, &Ncells, &is_valid_soil_cell, currentCellNumber, lat, lng, cellnum, &state);
       currentCellNumber++;
       if (currentCellNumber == Ncells)
-        done_reading_soil_file = TRUE;
+        done_reading_forcings = TRUE;
     } else {
-      temp_soil_con = read_soilparam(filep.soilparam, filenames.soil_dir, &is_valid_soil_cell, &done_reading_soil_file, &state);
+      temp_soil_con = read_soilparam(filep.soilparam, filenames.soil_dir, &is_valid_soil_cell, &done_reading_forcings, &state);
     }
     if (is_valid_soil_cell) {
       cell_info_struct currentCell;
@@ -415,7 +417,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
     // forcing data array is dumped into a new set of files.
-    write_forcing_file(&cell_data_structs[cellidx], global_param.nrecs, outputFormat, out_data);
+    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, outputFormat, out_data);
     continue;
 #endif
 

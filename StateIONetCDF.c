@@ -96,7 +96,7 @@ void StateIONetCDF::initializeLatLonDims() {
     start.push_back(i);
     count.push_back(1);
     float value = state->global_param.gridStartLat + (i * state->global_param.gridStepLat);
-    latVar.putVar(start, count, &value);    //TODO: this doesn't seem to be working...
+    latVar.putVar(start, count, &value);
   }
 
   {
