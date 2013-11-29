@@ -646,7 +646,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.PADJ = 1.0;
       temp.T_LAPSE = 6.5;
       temp.PGRAD = 1.0;
-      temp.AREA = 0.0;
       temp.GLAC_SURF_THICK = 100.0;
       temp.GLAC_SURF_WE = 91.7;
       temp.GLAC_KMIN = 0.05;
@@ -749,15 +748,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.PGRAD);
-
-      // Read AREA.
-      token = strtok (NULL, delimiters);
-      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
-      if( token == NULL ) {
-        sprintf(ErrStr,"ERROR: Can't find values for AREA in soil file\n");
-        nrerror(ErrStr);
-      }
-      sscanf(token, "%lf", &temp.AREA);
 
       // Read GLAC_SURF_THICK.
       token = strtok (NULL, delimiters);
