@@ -99,7 +99,7 @@ void read_snowband(FILE    *snowband,
 
       fscanf(snowband, "%lf", &prec_frac); // prec_frac is read but ignored in case other variables are eventually added after prec_factor in the snow bands file.
 
-      soil_con->Pfactor[band] = 1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation) * soil_con->AreaFract[band];
+      soil_con->Pfactor[band] = (1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation)) * soil_con->AreaFract[band];
       if (soil_con->Pfactor[band] < 0) {
         sprintf(ErrStr, "Snow band precipitation factor (%f) must be between 0 and 1", soil_con->Pfactor[band]);
         nrerror(ErrStr);
