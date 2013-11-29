@@ -250,12 +250,26 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   latVar.putAtt("standard name", "latitude");
   latVar.putAtt("long name", "latitude");
   latVar.putAtt("bounds", "lat_bnds");
+  for (int i = 0; i < state->global_param.gridNumLatDivisions; i++) {
+    std::vector<size_t> start, count;
+    start.push_back(i);
+    count.push_back(1);
+    float value = state->global_param.gridStartLat + (i * state->global_param.gridStepLat);
+    latVar.putVar(start, count, &value);
+  }
 
   lonVar.putAtt("axis", "X");
   lonVar.putAtt("units", "degrees_east");
   lonVar.putAtt("standard name", "longitude");
   lonVar.putAtt("long name", "longitude");
   lonVar.putAtt("bounds", "lon_bnds");
+  for (int i = 0; i < state->global_param.gridNumLonDivisions; i++) {
+    std::vector<size_t> start, count;
+    start.push_back(i);
+    count.push_back(1);
+    float value = state->global_param.gridStartLon + (i * state->global_param.gridStepLon);
+    lonVar.putVar(start, count, &value);
+  }
 
   std::stringstream ss;
   if (state->global_param.out_dt < 24) {
