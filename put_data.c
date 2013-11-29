@@ -153,6 +153,7 @@ int  put_data(cell_info_struct  *cell,
   double                  cv_veg;
   double                  cv_overstory;
   double                  cv_snow;
+  double                  cv_glacier;
   double                  inflow;
   double                  outflow;
   double                  storage;
@@ -210,6 +211,7 @@ int  put_data(cell_info_struct  *cell,
   cv_veg = 0;
   cv_overstory = 0;
   cv_snow = 0;
+  cv_glacier = 0;
 
   // Initialize output data to zero
   zero_output_list(out_data);
@@ -250,7 +252,7 @@ int  put_data(cell_info_struct  *cell,
     Nbands = state->options.SNOW_BAND;
     IsWet = 0;
 
-    if (it->vegIndex < cell->veg_con[0].vegetat_type_num)
+    if (it->vegIndex < cell->veg_con[0].vegetat_type_num || !it->isGlacier)
       HasVeg = 1;
     else
       HasVeg = 0;
@@ -298,6 +300,9 @@ int  put_data(cell_info_struct  *cell,
               cv_overstory += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
             if (it->snow.swq > 0.0)
               cv_snow += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+            if (it->isGlacier) {
+              cv_glacier += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+            }
 
 	    /*********************************
               Record Water Balance Terms 
@@ -305,12 +310,14 @@ int  put_data(cell_info_struct  *cell,
             collect_wb_terms(it->cell[dist],
                              it->veg_var[dist],
                              it->snow,
+                             it->glacier,
                              cell->prcp.lake_var,
                              precipitation_mu,
                              Cv,
                              ThisAreaFract,
                              ThisTreeAdjust,
                              HasVeg,
+                             cv_glacier,
                              0,
                              (1-Clake),
                              overstory,
@@ -325,12 +332,14 @@ int  put_data(cell_info_struct  *cell,
 	  **********************************/
           collect_eb_terms(it->energy,
                            it->snow,
+                           it->glacier,
                            it->cell[WET],
                            &cell->fallBackStats,
                            Cv,
                            ThisAreaFract,
                            ThisTreeAdjust,
                            HasVeg,
+                           cv_glacier,
                            0,
                            (1-Clake),
                            overstory,
@@ -376,18 +385,21 @@ int  put_data(cell_info_struct  *cell,
           cell->prcp.lake_var.energy.fusion = it->energy.fusion;
           cell->prcp.lake_var.energy.grnd_flux = it->energy.grnd_flux;
 
+          glac_data_struct invalidGlacier;  // Placeholder with internal variables initialized to INVALID by default.
           /*********************************
            Record Water Balance Terms
            *********************************/
             collect_wb_terms(cell->prcp.lake_var.soil,
                              cell->prcp.getHRUElement(0, 0)->veg_var[WET],
                              cell->prcp.lake_var.snow,
+                             invalidGlacier,
                              cell->prcp.lake_var,
                              1.0,
                              Cv,
                              ThisAreaFract,
                              ThisTreeAdjust,
                              0,
+                             0.,
                              1,
                              Clake,
                              overstory,
@@ -400,12 +412,14 @@ int  put_data(cell_info_struct  *cell,
            **********************************/
             collect_eb_terms(cell->prcp.lake_var.energy,
                              cell->prcp.lake_var.snow,
+                             invalidGlacier,
                              cell->prcp.lake_var.soil,
                              &(cell->fallBackStats),
                              Cv,
                              ThisAreaFract,
                              ThisTreeAdjust,
                              0,
+                             0.,
                              1,
                              Clake,
                              overstory,
@@ -517,6 +531,9 @@ int  put_data(cell_info_struct  *cell,
     out_data[OUT_SNOW_SURF_TEMP].data[0] /= cv_snow;
     out_data[OUT_SNOW_PACK_TEMP].data[0] /= cv_snow;
   }
+  if (cv_glacier > 0) {
+    out_data[OUT_GLAC_SURF_TEMP].data[0] /= cv_glacier;
+  }
 
   // Radiative temperature
   out_data[OUT_RAD_TEMP].data[0] = pow(out_data[OUT_RAD_TEMP].data[0],0.25);
@@ -617,6 +634,7 @@ int  put_data(cell_info_struct  *cell,
     fprintf(stderr,"Total number of fallbacks in Tsnowsurf: %d\n", cell->fallBackStats.Tsnowsurf_fbcount_total);
     fprintf(stderr,"Total number of fallbacks in Tsurf: %d\n", cell->fallBackStats.Tsurf_fbcount_total);
     fprintf(stderr,"Total number of fallbacks in soil T profile: %d\n", cell->fallBackStats.Tsoil_fbcount_total);
+    fprintf(stderr,"Total number of fallbacks in Tglac_surf: %d\n", cell->fallBackStats.Tglacsurf_fbcount_total);
   }
 
   /********************
@@ -741,12 +759,14 @@ int  put_data(cell_info_struct  *cell,
 void collect_wb_terms(const hru_data_struct&  cell,
                       const veg_var_struct&    veg_var,
                       const snow_data_struct&  snow,
+                      const glac_data_struct& glacier,
                       const lake_var_struct&   lake_var,
                       double            precipitation_mu,
                       double            Cv,
                       double            AreaFract,
                       double            TreeAdjustFactor,
                       int               HasVeg,
+                      double            cv_glacier,
                       int               IsWet,
                       double            lakefactor,
                       int               overstory,
@@ -785,6 +805,9 @@ void collect_wb_terms(const hru_data_struct&  cell,
   if (HasVeg) {
     tmp_evap += veg_var.canopyevap;
     out_data[OUT_EVAP_CANOP].data[0] += veg_var.canopyevap * AreaFactor; 
+  }
+  if (cv_glacier > 0) {
+    tmp_evap += glacier.vapor_flux * 1000.;
   }
   out_data[OUT_EVAP].data[0] += tmp_evap * AreaFactor; // mm over gridcell
 
@@ -897,16 +920,33 @@ void collect_wb_terms(const hru_data_struct&  cell,
   /** record snow cover fraction **/
   out_data[OUT_SNOW_COVER].data[0] += snow.coverage * AreaFactor;
 
+  /************************
+  Record Glacier Variables
+  ************************/
+  if(cv_glacier>0.){
+    out_data[OUT_GLAC_WAT_STOR].data[0] += glacier.water_storage * AreaFactor * 1000.;
+    out_data[OUT_GLAC_AREA].data[0] += AreaFactor;
+    out_data[OUT_GLAC_MBAL].data[0] += glacier.mass_balance * AreaFactor * 1000.;
+    out_data[OUT_GLAC_IMBAL].data[0] += glacier.ice_mass_balance * AreaFactor * 1000.;
+    out_data[OUT_GLAC_ACCUM].data[0] += glacier.accumulation * AreaFactor * 1000.;
+    out_data[OUT_GLAC_MELT].data[0] += glacier.melt * AreaFactor * 1000.;
+    out_data[OUT_GLAC_SUB].data[0] += glacier.vapor_flux * AreaFactor * 1000.;
+    out_data[OUT_GLAC_INFLOW].data[0] += glacier.inflow * AreaFactor * 1000.;
+    out_data[OUT_GLAC_OUTFLOW].data[0] += glacier.outflow * AreaFactor * 1000.;
+    out_data[OUT_GLAC_OUTFLOW_COEF].data[0] += glacier.outflow_coef * AreaFactor;
+  }
 }
 
 void collect_eb_terms(const energy_bal_struct& energy,
                       const snow_data_struct&  snow,
+                      const glac_data_struct& glacier,
                       const hru_data_struct&  cell_wet,
                       FallBackStats     *fallBackStats,
                       double            Cv,
                       double            AreaFract,
                       double            TreeAdjustFactor,
                       int               HasVeg,
+                      double            cv_glacier,
                       int               IsWet,
                       double            lakefactor,
                       int               overstory,
@@ -1020,6 +1060,8 @@ void collect_eb_terms(const energy_bal_struct& energy,
   fallBackStats->Tfoliage_fbcount_total += energy.Tfoliage_fbcount;
   out_data[OUT_TCAN_FBFLAG].data[0] += energy.Tcanopy_fbflag * AreaFactor;
   fallBackStats->Tcanopy_fbcount_total += energy.Tcanopy_fbcount;
+  out_data[OUT_GLAC_TSURF_FBFLAG].data[0] += glacier.surf_temp_fbflag * AreaFactor;
+  fallBackStats->Tglacsurf_fbcount_total += glacier.surf_temp_fbcount;
 
   /** record net shortwave radiation **/
   out_data[OUT_NET_SHORT].data[0] += energy.NetShortAtmos * AreaFactor;
@@ -1086,6 +1128,13 @@ void collect_eb_terms(const energy_bal_struct& energy,
   /** record advected sensible heat energy **/
   if ( !overstory )
     out_data[OUT_ADV_SENS].data[0] -= energy.advected_sensible * AreaFactor;
+
+  /** Record Glacier Variables **/
+  if(cv_glacier>0.){
+    out_data[OUT_GLAC_SURF_TEMP].data[0] += glacier.surf_temp * AreaFactor;
+    out_data[OUT_GLAC_DELTACC].data[0] += energy.deltaCC_glac * AreaFactor;
+    out_data[OUT_GLAC_FLUX].data[0] += energy.glacier_flux * AreaFactor;
+  }
  
   /**********************************
     Record Band-Specific Variables
@@ -1154,5 +1203,20 @@ void collect_eb_terms(const energy_bal_struct& energy,
 
   /** record band net ground heat flux **/
   out_data[OUT_GRND_FLUX_BAND].data[band] -= energy.grnd_flux * Cv * lakefactor;
+
+  /** record glacier band variables **/
+  if(cv_glacier>0.){
+    out_data[OUT_GLAC_DELTACC_BAND].data[0] += energy.deltaCC_glac * Cv * lakefactor;
+    out_data[OUT_GLAC_FLUX_BAND].data[0] += energy.glacier_flux * Cv * lakefactor;
+    out_data[OUT_GLAC_WAT_STOR_BAND].data[0] += glacier.water_storage * Cv * lakefactor;
+    out_data[OUT_GLAC_AREA_BAND].data[0] += Cv * lakefactor;
+    out_data[OUT_GLAC_MBAL_BAND].data[0] += glacier.mass_balance * Cv * lakefactor;
+    out_data[OUT_GLAC_IMBAL_BAND].data[0] +=  glacier.ice_mass_balance * Cv * lakefactor;
+    out_data[OUT_GLAC_ACCUM_BAND].data[0] +=  glacier.accumulation * Cv * lakefactor;
+    out_data[OUT_GLAC_MELT_BAND].data[0] +=  glacier.melt * Cv * lakefactor;
+    out_data[OUT_GLAC_SUB_BAND].data[0] +=  glacier.vapor_flux * Cv * lakefactor;
+    out_data[OUT_GLAC_INFLOW_BAND].data[0] +=  glacier.inflow * Cv * lakefactor;
+    out_data[OUT_GLAC_OUTFLOW_BAND].data[0] +=  glacier.outflow * Cv * lakefactor;
+  }
 
 }

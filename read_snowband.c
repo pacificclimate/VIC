@@ -96,19 +96,15 @@ void read_snowband(FILE    *snowband,
     /** Read Precipitation Fraction **/
     total = 0.;
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
-      fscanf(snowband, "%lf", &prec_frac);
-      if(prec_frac<0) {
-	sprintf(ErrStr,"Snow band precipitation fraction (%f) must be between 0 and 1", 
-		prec_frac);
-	nrerror(ErrStr);
+
+      fscanf(snowband, "%lf", &prec_frac); // prec_frac is read but ignored in case other variables are eventually added after prec_factor in the snow bands file.
+
+      soil_con->Pfactor[band] = 1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation) * soil_con->AreaFract[band];
+      if (soil_con->Pfactor[band] < 0) {
+        sprintf(ErrStr, "Snow band precipitation factor (%f) must be between 0 and 1", soil_con->Pfactor[band]);
+        nrerror(ErrStr);
       }
-      if ( prec_frac > 0 && soil_con->AreaFract[band] == 0 ) {
-	sprintf(ErrStr,"Snow band precipitation fraction (%f) should be 0 when the area fraction is 0. (band = %d)", 
-		prec_frac, band);
-	nrerror(ErrStr);
-      }
-      soil_con->Pfactor[band] = prec_frac;
-      total += prec_frac;
+      total += soil_con->Pfactor[band];
     }
     if ( total != 1. ) {
       fprintf(stderr,"WARNING: Sum of the snow band precipitation fractions does not equal %d (%f), dividing each fraction by the sum\n",

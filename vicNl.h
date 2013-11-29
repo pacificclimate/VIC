@@ -192,14 +192,20 @@ filep_struct   get_files(const filenames_struct *, ProgramState*);
 void check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, filenames_struct *, bool, const ProgramState*);
 void   cmd_proc(int argc, char *argv[], char* global_file_name, ProgramState*);
-void   collect_eb_terms(const energy_bal_struct&, const snow_data_struct&, const hru_data_struct&,
-                        FallBackStats*, double, double, double,
-                        int, int, double, int, int, double *, double *,
-                        double *, double,
-                        out_data_struct *, const ProgramState*);
-void   collect_wb_terms(const hru_data_struct&, const veg_var_struct&, const snow_data_struct&, const lake_var_struct&,
-                        double, double, double, double, int, int, double, int, double *,
-                        double *, out_data_struct *, const ProgramState*);
+void collect_eb_terms(const energy_bal_struct& energy,
+    const snow_data_struct& snow, const glac_data_struct& glacier,
+    const hru_data_struct& cell_wet, FallBackStats *fallBackStats, double Cv,
+    double AreaFract, double TreeAdjustFactor, int HasVeg, double cv_glacier,
+    int IsWet, double lakefactor, int overstory, int band, double *depth,
+    double *dz, double *frost_fract, double frost_slope,
+    out_data_struct *out_data, const ProgramState* state);
+void collect_wb_terms(const hru_data_struct& cell,
+    const veg_var_struct& veg_var, const snow_data_struct& snow,
+    const glac_data_struct& glacier, const lake_var_struct& lake_var,
+    double precipitation_mu, double Cv, double AreaFract,
+    double TreeAdjustFactor, int HasVeg, double cv_glacier, int IsWet,
+    double lakefactor, int overstory, double *depth, double *frost_fract,
+    out_data_struct *out_data, const ProgramState* state);
 void   compress_files(char string[]);
 void   compute_dz(double *, double *, int, double);
 void   correct_precip(double *, double, double, double, double);

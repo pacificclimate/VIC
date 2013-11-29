@@ -260,6 +260,33 @@ out_data_struct *create_output_list(const ProgramState* state) {
   strcpy(out_data[OUT_SNOW_SURFT_BAND].varname,"OUT_SNOW_SURFT_BAND");           /* snow surface temperature [C] (ALMA_OUTPUT: [K]) */
   strcpy(out_data[OUT_SWE_BAND].varname,"OUT_SWE_BAND");                         /* snow water equivalent in snow pack [mm] */
 
+  //Glacier Terms
+  strcpy(out_data[OUT_GLAC_WAT_STOR].varname, "OUT_GLAC_WAT_STOR");              /* glacier water storage [mm] */
+  strcpy(out_data[OUT_GLAC_AREA].varname, "OUT_GLAC_AREA");                      /* glacier surface area fraction */
+  strcpy(out_data[OUT_GLAC_MBAL].varname, "OUT_GLAC_MBAL");                      /* glacier mass balance [mm] */
+  strcpy(out_data[OUT_GLAC_IMBAL].varname, "OUT_GLAC_IMBAL");                    /* glacier ice mass balance [mm] */
+  strcpy(out_data[OUT_GLAC_ACCUM].varname, "OUT_GLAC_ACCUM");                    /* glacier ice accumulation from conversion of firn to ice [mm] */
+  strcpy(out_data[OUT_GLAC_MELT].varname, "OUT_GLAC_MELT");                      /* glacier ice melt [mm] */
+  strcpy(out_data[OUT_GLAC_SUB].varname, "OUT_GLAC_SUB");                        /* Net sublimation of glacier ice [mm] */
+  strcpy(out_data[OUT_GLAC_INFLOW].varname, "OUT_GLAC_INFLOW");                  /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+  strcpy(out_data[OUT_GLAC_OUTFLOW].varname, "OUT_GLAC_OUTFLOW");                /* glacier water outflow [mm] */
+  strcpy(out_data[OUT_GLAC_SURF_TEMP].varname, "OUT_GLAC_SURF_TEMP");            /* glacier surface temperature [C] */
+  strcpy(out_data[OUT_GLAC_TSURF_FBFLAG].varname, "OUT_GLAC_TSURF_FBFLAG");      /* glacier surface temperature flag */
+  strcpy(out_data[OUT_GLAC_DELTACC].varname, "OUT_GLAC_DELTACC");                /* rate of change of cold content in glacier surface layer [W/m2] */
+  strcpy(out_data[OUT_GLAC_FLUX].varname, "OUT_GLAC_FLUX");                      /* energy flux through glacier surface layer [W/m2] */
+  strcpy(out_data[OUT_GLAC_OUTFLOW_COEF].varname, "OUT_GLAC_OUTFLOW_COEF");      /* glacier outflow coefficient [fraction] */
+  strcpy(out_data[OUT_GLAC_DELTACC_BAND].varname, "OUT_GLAC_DELTACC_BAND");      /* rate of change of cold content in glacier surface layer [W/m2] */
+  strcpy(out_data[OUT_GLAC_FLUX_BAND].varname, "OUT_GLAC_FLUX_BAND");            /* energy flux through glacier surface layer [W/m2] */
+  strcpy(out_data[OUT_GLAC_WAT_STOR_BAND].varname, "OUT_GLAC_WAT_STOR_BAND");    /* glacier water storage [mm] */
+  strcpy(out_data[OUT_GLAC_AREA_BAND].varname, "OUT_GLAC_AREA_BAND");            /* glacier surface area fraction */
+  strcpy(out_data[OUT_GLAC_MBAL_BAND].varname, "OUT_GLAC_MBAL_BAND");            /* glacier mass balance [mm] */
+  strcpy(out_data[OUT_GLAC_IMBAL_BAND].varname, "OUT_GLAC_IMBAL_BAND");          /* glacier ice mass balance [mm] */
+  strcpy(out_data[OUT_GLAC_ACCUM_BAND].varname, "OUT_GLAC_ACCUM_BAND");          /* glacier ice accumulation from conversion of firn to ice [mm] */
+  strcpy(out_data[OUT_GLAC_MELT_BAND].varname, "OUT_GLAC_MELT_BAND");            /* glacier ice melt [mm] */
+  strcpy(out_data[OUT_GLAC_SUB_BAND].varname, "OUT_GLAC_SUB_BAND");              /* Net sublimation of glacier ice [mm] */
+  strcpy(out_data[OUT_GLAC_INFLOW_BAND].varname, "OUT_GLAC_INFLOW_BAND");        /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+  strcpy(out_data[OUT_GLAC_OUTFLOW_BAND].varname, "OUT_GLAC_OUTFLOW_BAND");      /* glacier water outflow [mm] */
+
   // Set number of elements - default is 1
   for (v=0; v<N_OUTVAR_TYPES; v++) {
     out_data[v].nelem = 1;

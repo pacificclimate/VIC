@@ -350,7 +350,7 @@ extern const char ref_veg_ref_crop[];
 #define SKIP      23 /* place holder for unused data columns */
 
 /***** Output Variable Types *****/
-#define N_OUTVAR_TYPES 160
+#define N_OUTVAR_TYPES 182
 // Water Balance Terms - state variables
 #define OUT_ASAT             0  /* Saturated Area Fraction */
 #define OUT_LAKE_AREA_FRAC   1  /* lake surface area as fraction of the grid cell area [fraction] */
@@ -517,6 +517,44 @@ extern const char ref_veg_ref_crop[];
 #define OUT_POROSITY            155  /* porosity [mm/mm] */
 #define OUT_ZSUM_NODE           156  /* depths of thermal nodes [m] */
 #endif // EXCESS_ICE
+
+//Glacier Water Blance Terms - state variables
+#define OUT_GLAC_WAT_STOR       157   /* glacier water storage [mm] */
+#define OUT_GLAC_AREA           158   /* glacier surface area fraction */
+
+//Glacier Water Balance Terms - fluxes
+#define OUT_GLAC_MBAL           159   /* glacier mass balance [mm] */
+#define OUT_GLAC_IMBAL          160   /* glacier ice mass balance [mm] */
+#define OUT_GLAC_ACCUM          161   /* glacier ice accumulation from conversion of firn to ice [mm] */
+#define OUT_GLAC_MELT           162   /* glacier ice melt [mm] */
+#define OUT_GLAC_SUB            163   /* Net sublimation of glacier ice [mm] */
+#define OUT_GLAC_INFLOW         164   /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+#define OUT_GLAC_OUTFLOW        165   /* glacier water outflow [mm] */
+
+//Glacier Energy Balance Terms - state variables
+#define OUT_GLAC_SURF_TEMP      166   /* glacier surface temperature [C] */
+#define OUT_GLAC_TSURF_FBFLAG   167   /* glacier surface temperature flag */
+
+//Glacier Energy Balance Terms - fluxes
+#define OUT_GLAC_DELTACC        168   /* rate of change of cold content in glacier surface layer [W/m2] */
+#define OUT_GLAC_FLUX           169   /* energy flux through glacier surface layer [W/m2] */
+
+//Glacier Miscellaneous types
+#define OUT_GLAC_OUTFLOW_COEF   170   /* glacier outflow coefficient [fraction] */
+
+//Glacier Band-specific Quantities
+#define OUT_GLAC_DELTACC_BAND   171   /* rate of change of cold content in glacier surface layer [W/m2] */
+#define OUT_GLAC_FLUX_BAND      172   /* energy flux through glacier surface layer [W/m2] */
+#define OUT_GLAC_WAT_STOR_BAND  173   /* glacier water storage [mm] */
+#define OUT_GLAC_AREA_BAND      174   /* glacier surface area fraction */
+#define OUT_GLAC_MBAL_BAND      175   /* glacier mass balance [mm] */
+#define OUT_GLAC_IMBAL_BAND     176   /* glacier ice mass balance [mm] */
+#define OUT_GLAC_ACCUM_BAND     177   /* glacier ice accumulation from conversion of firn to ice [mm] */
+#define OUT_GLAC_MELT_BAND      178   /* glacier ice melt [mm] */
+#define OUT_GLAC_SUB_BAND       179   /* Net sublimation of glacier ice [mm] */
+#define OUT_GLAC_INFLOW_BAND    180   /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+#define OUT_GLAC_OUTFLOW_BAND   181   /* glacier water outflow [mm] */
+
 
 /***** Output BINARY format types *****/
 #define OUT_TYPE_DEFAULT 0 /* Default data type */
@@ -932,7 +970,6 @@ typedef struct {
   double PADJ;               /* Precipitation adjustment factor (-) */
   double T_LAPSE;            /* Temperature lapse rate (C km-1) */
   double PGRAD;              /* Precipitation Gradient (km-1) */
-  double AREA;               /* Grid cell area (m2) */
   double GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */
   double GLAC_SURF_WE;       /* Water equivalent of glacier surface layer (mm) */
   double GLAC_KMIN;          /* Minimum glacier outflow coefficient (-) */
@@ -1382,7 +1419,7 @@ typedef struct {
   This structure stores output information for one variable.
   *******************************************************/
 typedef struct {
-  char		varname[20]; /* name of variable */
+  char		varname[30]; /* name of variable */
   int		write;       /* FALSE = don't write; TRUE = write */
   char		format[10];  /* format, when written to an ascii file;
 		                should match the desired fprintf format specifier, e.g. %.4f */
@@ -1463,13 +1500,14 @@ struct CellBalanceErrors {
 struct FallBackStats {
   FallBackStats() : step_count(0), Tfoliage_fbcount_total(0),
       Tcanopy_fbcount_total(0), Tsnowsurf_fbcount_total(0),
-      Tsurf_fbcount_total(0), Tsoil_fbcount_total(0) {}
+      Tsurf_fbcount_total(0), Tsoil_fbcount_total(0), Tglacsurf_fbcount_total(0) {}
   int step_count;
   int Tfoliage_fbcount_total;
   int Tcanopy_fbcount_total;
   int Tsnowsurf_fbcount_total;
   int Tsurf_fbcount_total;
   int Tsoil_fbcount_total;
+  int Tglacsurf_fbcount_total;
 };
 
 class ProgramState;
