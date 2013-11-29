@@ -22,7 +22,7 @@ def getArguments():
 #MAX_SNOW_TEMP = 6.0;    
 #PADJ = 1.0;             
 #T_LAPSE = 6.5;          
-#PGRAD = 1.0;            
+#PGRAD = 0.0;            
 #GLAC_SURF_THICK = 100.0;
 #GLAC_SURF_WE = 91.7;    
 #GLAC_KMIN = 0.05;       
@@ -31,7 +31,7 @@ def getArguments():
 #GLAC_ALBEDO = 0.3;      
 #GLAC_ROUGH = 0.002;     
 
-valuesToAdd = ["0.85", "0.94", "0.58", "0.82", "0.46", "0.0", "6.0", "1.0", "6.5", "1.0", "100.0", "91.7", "0.05", "0.75", "0.01", "0.3", "0.002"]
+valuesToAdd = ["0.85", "0.94", "0.58", "0.82", "0.46", "0.0", "6.0", "1.0", "6.5", "0.0", "100.0", "91.7", "0.05", "0.75", "0.01", "0.3", "0.002"]
 
 def addAllValues():
 	inputFilename, outputFilename = getArguments()
