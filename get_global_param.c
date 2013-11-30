@@ -233,6 +233,10 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   global_param.resolution    = INVALID;
   global_param.measure_h     = 2.0;
   global_param.wind_h        = 10.0;
+  global_param.glacierAccumStartYear  = INVALID_INT;
+  global_param.glacierAccumStartMonth = INVALID_INT;
+  global_param.glacierAccumStartDay   = INVALID_INT;
+  global_param.glacierAccumInterval   = INVALID_INT;
   for(i = 0; i < 2; i++) {
     global_param.forceyear[i]  = INVALID_INT;
     global_param.forcemonth[i] = 1;
@@ -302,6 +306,18 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       }
       else if(strcasecmp("STARTHOUR",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.starthour);
+      }
+      else if (strcasecmp("GLACIER_ACCUM_START_YEAR", optstr)==0) {
+        sscanf(cmdstr,"%*s %d", &global_param.glacierAccumStartYear);
+      }
+      else if (strcasecmp("GLACIER_ACCUM_START_MONTH", optstr)==0) {
+        sscanf(cmdstr,"%*s %d", &global_param.glacierAccumStartMonth);
+      }
+      else if (strcasecmp("GLACIER_ACCUM_START_DAY", optstr)==0) {
+        sscanf(cmdstr,"%*s %d", &global_param.glacierAccumStartDay);
+      }
+      else if (strcasecmp("GLACIER_ACCUM_INTERVAL", optstr)==0) {
+        sscanf(cmdstr,"%*s %d", &global_param.glacierAccumInterval);
       }
       else if(strcasecmp("NRECS",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.nrecs);

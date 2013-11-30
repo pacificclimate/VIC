@@ -863,6 +863,10 @@ typedef struct {
   int    stateday;   /* Day of the simulation at which to save model state */
   int    statemonth; /* Month of the simulation at which to save model state */
   int    stateyear;  /* Year of the simulation at which to save model state */
+  int    glacierAccumStartYear;   /* Year of date to start glacier accumulation of mass balance */
+  int    glacierAccumStartMonth;  /* Month of date to start glacier accumulation of mass balance */
+  int    glacierAccumStartDay;    /* Day of date to start glacier accumulation of mass balance */
+  int    glacierAccumInterval;    /* Time interval in years between accumulation of glacier mass balance */
 
   // The gridStart variables are defined as the position of the lower left hand corner of the grid.
   double gridStartLat;
