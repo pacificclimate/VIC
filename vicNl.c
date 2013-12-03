@@ -444,6 +444,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
           outputFormat, current_output_data, rec, NEWCELL, state);
 
+      accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), state);
+
       /************************************
        Save model state at assigned date
        (after the final time step of the assigned date)

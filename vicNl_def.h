@@ -1360,9 +1360,11 @@ typedef struct {
 *****************************************************************/
 struct glac_data_struct {
   // Initialize variables to NAN on construction of an object.
-  glac_data_struct() : cold_content(INVALID), surf_temp(INVALID), surf_temp_fbcount(0), surf_temp_fbflag(false),
-      Qnet(INVALID), mass_balance(INVALID), ice_mass_balance(INVALID), accumulation(INVALID), melt(INVALID),
-      vapor_flux(INVALID), water_storage(INVALID), outflow(INVALID), outflow_coef(INVALID) {}
+  glac_data_struct() : cold_content(INVALID), surf_temp(INVALID), surf_temp_fbcount(0),
+      surf_temp_fbflag(false), Qnet(INVALID), mass_balance(INVALID),
+      ice_mass_balance(INVALID), cum_mass_balance(INVALID), accumulation(INVALID),
+      melt(INVALID), vapor_flux(INVALID), water_storage(INVALID), outflow(INVALID),
+      outflow_coef(INVALID) {}
 
   double cold_content;        /* cold content of glacier surface layer */
   double surf_temp;           /* temperature of glacier surface layer, deg-C */
@@ -1371,6 +1373,7 @@ struct glac_data_struct {
   double Qnet;                /* residual of energy balance at ice surface */
   double mass_balance;        /* net water equivalent of both snow and ice */
   double ice_mass_balance;
+  double cum_mass_balance;    /* accumulated mass balance over the user defined interval */
   double accumulation;        /* water equivalent accumulation of ice from snow/firn conversion */
   double melt;                /* water equivalent depth of melting glacier ice */
   double vapor_flux;          /* water equivalent depth of glacier ice sublimation */

@@ -76,7 +76,8 @@ CXXFLAGS = $(CFLAGS)
 
 HDRS = vicNl.h vicNl_def.h global.h snow.h user_def.h mtclim_constants_vic.h mtclim_parameters_vic.h LAKE.h
 
-OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
+OBJS =  accumulateGlacierMassBalance.o \
+        CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
         StabilityCorrection.o advected_sensible_heat.o alloc_atmos.o \
         arno_evap.o calc_air_temperature.o calc_atmos_energy_bal.o \
 	calc_cloud_cover_fraction.o calc_forcing_stats.o calc_longwave.o \
@@ -90,7 +91,7 @@ OBJS =  CalcAerodynamic.o CalcBlowingSnow.o SnowPackEnergyBalance.o \
 	free_vegcon.o frozen_soil.o full_energy.o func_atmos_energy_bal.o \
 	func_atmos_moist_bal.o func_canopy_energy_bal.o \
 	func_surf_energy_bal.o get_dist.o get_force_type.o get_global_param.o \
-	GlacierEnergyBalance.o glacier_melt.o \
+	GlacierEnergyBalance.o GlacierMassBalanceResult.o glacier_melt.o \
 	initialize_atmos.o initialize_model_state.o \
 	initialize_global.o initialize_new_storm.o initialize_snow.o \
 	initialize_soil.o initialize_veg.o latent_heat_from_snow.o latent_heat_from_glacier.o \
