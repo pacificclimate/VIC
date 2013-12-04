@@ -468,7 +468,7 @@ void StateIONetCDF::populateMetaData() {
   metaData[LAKE_SALBEDO] =            StateVariableMetaData("LAKE_SALBEDO");
   metaData[LAKE_SDEPTH] =             StateVariableMetaData("LAKE_SDEPTH");
 
-  // Make type adjustments if required (default type is float).
+  // Make type adjustments if required (default type is double).
   metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
   metaData[INIT_DRY_TIME].type = netCDF::NcType::nc_INT;
   metaData[HRU_VEG_INDEX].type = netCDF::NcType::nc_INT;

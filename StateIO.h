@@ -110,9 +110,9 @@ using StateVariables::NO_DIM;
 // This is just a wrapper class for now in case more attributes are needed in netCDF state files.
 class StateVariableMetaData {
 public:
-  StateVariableMetaData() : name("invalid"), type(netCDF::NcType::nc_FLOAT) {}
+  StateVariableMetaData() : name("invalid"), type(netCDF::NcType::nc_DOUBLE) {}
   StateVariableMetaData(string name, StateVariableDimensionId d1 = NO_DIM, StateVariableDimensionId d2 = NO_DIM,
-      StateVariableDimensionId d3 = NO_DIM, StateVariableDimensionId d4 = NO_DIM) : name(name), type(netCDF::NcType::nc_FLOAT) {
+      StateVariableDimensionId d3 = NO_DIM, StateVariableDimensionId d4 = NO_DIM) : name(name), type(netCDF::NcType::nc_DOUBLE) {
     dimensions.push_back(StateVariables::LAT_DIM);  // All variables are index by lat/long.
     dimensions.push_back(StateVariables::LON_DIM);
     dimensions.push_back(d1);
