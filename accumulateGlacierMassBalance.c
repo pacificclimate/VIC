@@ -10,7 +10,7 @@ void resetAccumulationValues(std::vector<HRU>* hruList) {
   }
 }
 
-void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const ProgramState* state) {
+void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state) {
 
   if (IS_INVALID(state->global_param.glacierAccumStartYear) || IS_INVALID(state->global_param.glacierAccumStartMonth)
       || IS_INVALID(state->global_param.glacierAccumStartDay) || IS_INVALID(state->global_param.glacierAccumInterval)) {
@@ -27,7 +27,7 @@ void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_stru
   if ((abs(nextDate.year - state->global_param.glacierAccumStartYear) % state->global_param.glacierAccumInterval == 0)
       && nextDate.month == state->global_param.glacierAccumStartMonth && nextDate.day == state->global_param.glacierAccumStartDay) {
 
-    GlacierMassBalanceResult result(prcp->hruList, dmy[rec]);
+    GlacierMassBalanceResult result(prcp->hruList, soil, dmy[rec]);
     result.printForDebug();
     //TODO: pass the result object to the glacier dynamics module somehow.
 

@@ -2,21 +2,19 @@
 #define GLACIERMASSBALANCERESULT_H_
 
 #include <vector>
+#include "GraphingEquation.h"
 #include "vicNl_def.h"
 
 struct GlacierMassBalanceResult {
-  GlacierMassBalanceResult(const std::vector<HRU>& hruList, const dmy_struct& dmy);
+  GlacierMassBalanceResult(const std::vector<HRU>& hruList, const soil_con_struct* soil, const dmy_struct& dmy);
   void printForDebug();
 private:
   void calculateEquationFromPoints();
-  double b0;
-  double b1;
-  double b2;
-  double fitError;
+  void calculateFitError();
+  GraphingEquation equation;
   dmy_struct date;
-  std::vector< std::pair<double, double> > graphPoints;
+  std::vector<GraphPoint> graphPoints;
 };
-
 
 
 #endif /* GLACIERMASSBALANCERESULT_H_ */

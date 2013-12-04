@@ -118,7 +118,7 @@
 #include "WriteOutputContext.h"
 
 /*** SubRoutine Prototypes ***/
-void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const ProgramState* state);
+void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state);
 double advected_sensible_heat(double, double, double, double, double);
 atmos_data_struct * alloc_atmos(int, int);
 double arno_evap(layer_data_struct *, layer_data_struct *, double, double, 

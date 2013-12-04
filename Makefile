@@ -92,6 +92,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	func_atmos_moist_bal.o func_canopy_energy_bal.o \
 	func_surf_energy_bal.o get_dist.o get_force_type.o get_global_param.o \
 	GlacierEnergyBalance.o GlacierMassBalanceResult.o glacier_melt.o \
+	GraphingEquation.o \
 	initialize_atmos.o initialize_model_state.o \
 	initialize_global.o initialize_new_storm.o initialize_snow.o \
 	initialize_soil.o initialize_veg.o latent_heat_from_snow.o latent_heat_from_glacier.o \

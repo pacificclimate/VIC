@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 	      read_soilparam().						TJB
 **********************************************************************/
 {
-
   /** Read Model Options **/
   ProgramState state;
   state.initialize_global();
@@ -444,7 +443,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
           outputFormat, current_output_data, rec, NEWCELL, state);
 
-      accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), state);
+      accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date
