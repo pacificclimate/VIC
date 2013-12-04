@@ -332,6 +332,17 @@ out_data_struct *create_output_list(const ProgramState* state) {
   out_data[OUT_SNOW_PACKT_BAND].nelem = state->options.SNOW_BAND;
   out_data[OUT_SNOW_SURFT_BAND].nelem = state->options.SNOW_BAND;
   out_data[OUT_SWE_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_DELTACC_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_FLUX_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_WAT_STOR_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_AREA_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_MBAL_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_IMBAL_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_ACCUM_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_MELT_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_SUB_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_INFLOW_BAND].nelem = state->options.SNOW_BAND;
+  out_data[OUT_GLAC_OUTFLOW_BAND].nelem = state->options.SNOW_BAND;
 
   // Set aggregation method - default is to average over the interval
   for (v=0; v<N_OUTVAR_TYPES; v++) {
@@ -430,6 +441,28 @@ out_data_struct *create_output_list(const ProgramState* state) {
   out_data[OUT_SURFT_FBFLAG].aggtype = AGG_TYPE_SUM;
   out_data[OUT_TCAN_FBFLAG].aggtype = AGG_TYPE_SUM;
   out_data[OUT_TFOL_FBFLAG].aggtype = AGG_TYPE_SUM;
+
+  out_data[OUT_GLAC_WAT_STOR].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_AREA].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_MBAL].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_IMBAL].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_ACCUM].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_MELT].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_SUB].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_INFLOW].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_OUTFLOW].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_SURF_TEMP].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_TSURF_FBFLAG].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_OUTFLOW_COEF].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_WAT_STOR_BAND].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_AREA_BAND].aggtype = AGG_TYPE_END;
+  out_data[OUT_GLAC_MBAL_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_IMBAL_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_ACCUM_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_MELT_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_SUB_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_INFLOW_BAND].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_GLAC_OUTFLOW_BAND].aggtype = AGG_TYPE_SUM;
 
   // Allocate space for data
   for (v=0; v<N_OUTVAR_TYPES; v++) {
