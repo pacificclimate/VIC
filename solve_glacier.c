@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <vicNl.h>
 
-double solve_glacier(double LongUnderOut,       // LW from understory
+double solve_glacier(
+      double BareAlbedo,
+      double LongUnderOut,                      // LW from understory
       double               Tgrnd,               // glacier slab temperature
       double               air_temp,            // air temperature
       double               mu,
@@ -11,9 +13,9 @@ double solve_glacier(double LongUnderOut,       // LW from understory
       double              *AlbedoUnder,
       double              *Le,
       double              *LongUnderIn,         // surface incoming LW
-      double              *NetLongSnow,         // net LW at glacier surface
+      double              *NetLongGlac,         // net LW at glacier surface
       double              *NetShortGrnd,        // net SW reaching ground
-      double              *NetShortSnow,        // net SW at glaciersurface
+      double              *NetShortGlac,        // net SW at glaciersurface
       double              *ShortUnderIn,        // surface incoming SW
       double              *Torg_snow,
       VegConditions       &aero_resist,
@@ -92,20 +94,20 @@ double solve_glacier(double LongUnderOut,       // LW from understory
    energy->NetLongOver = 0;
    energy->LongOverIn  = 0;
 
-   UnderStory = VegConditions::SNOW_COVERED_CASE;         /* ground snow is present or accumulating during time step */
+   UnderStory = VegConditions::GLACIER_SURFACE_CASE;         /* glacier is present */
 
    /** compute net shortwave radiation **/
-   (*AlbedoUnder) = soil->GLAC_ALBEDO;
-   (*NetShortSnow) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
+   (*AlbedoUnder) = BareAlbedo;
+   (*NetShortGlac) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    /** Call glacier ablation algorithm **/
-   ErrorFlag = glacier_melt((*Le), (*NetShortSnow), Tgrnd,
+   ErrorFlag = glacier_melt((*Le), (*NetShortGlac), Tgrnd,
     roughness, aero_resist[UnderStory], aero_resist_used,
     air_temp, (double)dt * SECPHOUR, density,
     displacement[UnderStory],
     *LongUnderIn, pressure, rainfall[WET], vp, vpd,
     wind_speed[UnderStory], ref_height[UnderStory],
-    NetLongSnow, Torg_snow, &melt, &energy->error,
+    NetLongGlac, Torg_snow, &melt, &energy->error,
     &energy->advection,
     &energy->deltaCC_glac, &energy->grnd_flux, &energy->latent,
     &energy->latent_sub,

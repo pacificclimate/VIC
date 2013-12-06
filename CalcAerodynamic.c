@@ -44,11 +44,11 @@ static char vcid[] = "$Id$";
     double Trunk    - Multiplier for Height[0] that indictaes the top of the 
                      trunk space
 
-    VegConditions &aero_resist    contains aerodynamic resistance values
+    VegConditions &aero_resist    contains aerodynamic resistance values for each vegetation condition
     VegConditions &wind_speed     contains wind speeds for each vegetation condition
-    VegConditions &displacement   contains displacement height values
-    VegConditions &ref_height     contains reference height values
-    VegConditions &roughness      contains roughness length values
+    VegConditions &displacement   contains displacement height values for each vegetation condition
+    VegConditions &ref_height     contains reference height values for each vegetation condition
+    VegConditions &roughness      contains roughness length values for each vegetation condition
 
   Returns      : int
 
@@ -133,6 +133,13 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     ref_height.snowCovered   = 2. + Z0_SNOW;
     roughness.snowCovered    = Z0_SNOW;
     displacement.snowCovered = 0.;
+
+    /* Glacier */
+    wind_speed.glacierSurface =  log((2. + Z0_Lower)/Z0_Lower)/log(ref_height.snowFree / Z0_Lower);
+    aero_resist.glacierSurface = log((2. + Z0_Lower)/Z0_Lower)*log(ref_height.snowFree / Z0_Lower) / K2;
+    ref_height.glacierSurface = 2. + Z0_Lower;
+    roughness.glacierSurface = Z0_Lower;
+    displacement.glacierSurface = 0.;
 
   }
   
@@ -223,6 +230,13 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     roughness.snowCovered    = Z0_SNOW;
     displacement.snowCovered = 0.;
 
+    /** Set aerodynamic resistance terms for glacier - not used */
+    ref_height.glacierSurface = 2. + Z0_Lower;
+    roughness.glacierSurface = Z0_Lower;
+    displacement.glacierSurface = 0.;
+    aero_resist.glacierSurface = HUGE_RESIST;
+    //wind_speed.glacierSurface remains INVALID
+
   }
 
   if ( tmp_wind > 0. ) {
@@ -236,6 +250,10 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
       wind_speed.snowCovered *= tmp_wind;
       aero_resist.snowCovered /= tmp_wind;
     }
+    if(IS_VALID(wind_speed.glacierSurface)) {
+      wind_speed.glacierSurface *= tmp_wind;
+      aero_resist.glacierSurface /= tmp_wind;
+    }
   }
   else {
     wind_speed.snowFree *= tmp_wind;
@@ -246,6 +264,9 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     if(IS_VALID(wind_speed.snowCovered))
       wind_speed.snowCovered *= tmp_wind;
     aero_resist.snowCovered = HUGE_RESIST;
+    if(IS_VALID(wind_speed.glacierSurface))
+      wind_speed.glacierSurface *= tmp_wind;
+    aero_resist.glacierSurface = HUGE_RESIST;
   }
   return (0);
 

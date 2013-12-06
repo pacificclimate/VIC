@@ -12,7 +12,6 @@ int surface_fluxes_glac(
        double              *evap_prior_dry,
        double              *evap_prior_wet,
        double               current_prcp_mu,
-       double               surf_atten,
        double              *Melt,
        double              *latent_heat_Le,
        VegConditions       *aero_resist,
@@ -306,7 +305,7 @@ int surface_fluxes_glac(
        temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
        displacement, &step_melt_energy, out_prec, out_rain, out_snow,
        step_ppt, rainfall, ref_height,
-       roughness, snow_inflow, snowfall, &surf_atten, wind_speed,
+       roughness, snow_inflow, snowfall, wind_speed,
        iveg, band, step_dt, rec, hidx,
        veg_class, UnderStory, dmy, *atmos, &(step_energy),
        &(step_snow), soil_con, &step_glacier, state);
@@ -322,7 +321,7 @@ int surface_fluxes_glac(
 
     } else {
 
-      step_melt_glac = solve_glacier(LongUnderOut, Tgrnd, Tair, current_prcp_mu,
+      step_melt_glac = solve_glacier(BareAlbedo, LongUnderOut, Tgrnd, Tair, current_prcp_mu,
           step_prec[WET], state->global_param.wind_h,
           &energy->AlbedoUnder, latent_heat_Le, &LongUnderIn,
           &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,

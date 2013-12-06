@@ -33,7 +33,6 @@ double solve_snow_glac(
       VegConditions       &roughness,
       double              *snow_inflow,
       double              *snowfall,
-      double              *surf_atten,
       VegConditions       &wind_speed,
       int                  iveg,
       int                  band,
@@ -116,12 +115,7 @@ double solve_snow_glac(
   (*ShortUnderIn) = atmos.shortwave[hidx];
   (*LongUnderIn)  = atmos.longwave[hidx];
 
-
-
-
   snow->snow = TRUE; // snow is present during time step
-
-  (*surf_atten) = 1.;  // no overstory vegetation
 
   old_coverage = snow->coverage; // store previous coverage fraction
 
