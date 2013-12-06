@@ -10,7 +10,7 @@ public:
       const double* frost_fract, double AirDens, double EactAir, double Press,
       double latent_heat_Le, double Tcanopy, double Vpd,
       double precipitation_mu, double* Evap, VegConditions& Ra, AeroResistUsed& Ra_used,
-      double* Rainfall, VegConditions& wind_speed, VegConditions::VegetationConditions UnderStory, int iveg, int veg_class,
+      double* Rainfall, VegConditions& wind_speed, VegConditions::VegSurfType UnderStory, int iveg, int veg_class,
       VegConditions& displacement, VegConditions& ref_height, VegConditions& roughness, const float* root,
       double IntRain, double IntSnow, double* Wdew,
       layer_data_struct* layer_wet, layer_data_struct * layer_dry,
@@ -54,7 +54,7 @@ private:
   AeroResistUsed& Ra_used;
   double* Rainfall;
   VegConditions& wind_speed;
-  VegConditions::VegetationConditions UnderStory;
+  VegConditions::VegSurfType UnderStory;
   int iveg;
   int veg_class;
   VegConditions& displacement;

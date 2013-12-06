@@ -37,7 +37,7 @@ double solve_glacier(
       int                  dt,
       int                  rec,
       int                  hidx,
-      VegConditions::VegetationConditions &UnderStory,
+      VegConditions::VegSurfType &UnderStory,
       const dmy_struct    *dmy,
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,

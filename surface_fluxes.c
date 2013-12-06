@@ -155,7 +155,7 @@ int surface_fluxes(char                 overstory,
   int                    UNSTABLE_CNT;
   int                    UNSTABLE_SNOW = FALSE;
   int                    N_steps;
-  VegConditions::VegetationConditions UnderStory;
+  VegConditions::VegSurfType UnderStory;
   int                    dist;
   int                    hidx;     // index of initial element of atmos array
   int                    step_inc; // number of atmos array elements to skip per surface fluxes step

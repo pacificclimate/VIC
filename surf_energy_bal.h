@@ -10,7 +10,7 @@ public:
       double delta_t, double Cs1, double Cs2, double D1, double D2,
       double T1_old, double T2, double Ts_old, double bubble, double dp,
       double expt, double ice0, double kappa1, double kappa2, double max_moist,
-      double moist, const float* root, VegConditions::VegetationConditions UnderStory, int overstory,
+      double moist, const float* root, VegConditions::VegSurfType UnderStory, int overstory,
       double NetShortBare, double NetShortGrnd, double NetShortSnow,
       double Tair, double atmos_density, double atmos_pressure,
       double emissivity, double LongBareIn, double LongSnowIn,
@@ -89,7 +89,7 @@ public:
   double max_moist;
   double moist;
   const float* root;
-  VegConditions::VegetationConditions UnderStory;
+  VegConditions::VegSurfType UnderStory;
   int overstory;
   double NetShortBare;
   double NetShortGrnd;

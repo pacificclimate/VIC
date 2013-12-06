@@ -8,7 +8,7 @@ struct VegConditions {
   double snowCovered;         // Previously index 2
   double glacierSurface;
 
-  enum VegetationConditions { //TODO: rename shorter
+  enum VegSurfType {
     SNOW_FREE_CASE,
     CANOPY_IF_OVERSTORY_CASE,
     SNOW_COVERED_CASE,
@@ -16,7 +16,7 @@ struct VegConditions {
     NUM_VEGETATION_CONDITIONS // End marker to automatically count the number of veg conditions.
   };
   // This operator overload allows array like indexing for this class for the VegetationConditions enum type.
-  double& operator[](VegetationConditions type);
+  double& operator[](VegSurfType type);
 };
 
 

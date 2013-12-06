@@ -4,7 +4,7 @@
 VegConditions::VegConditions() : snowFree(INVALID), canopyIfOverstory(INVALID), snowCovered(INVALID), glacierSurface(INVALID) {
 }
 
-double& VegConditions::operator[](VegetationConditions type) {
+double& VegConditions::operator[](VegSurfType type) {
   switch (type) {
     case SNOW_FREE_CASE:
       return snowFree;

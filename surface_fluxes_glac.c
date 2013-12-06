@@ -57,7 +57,7 @@ int surface_fluxes_glac(
 {
   int                    ErrorFlag;
   int                    N_steps;
-  VegConditions::VegetationConditions UnderStory;
+  VegConditions::VegSurfType UnderStory;
   int                    hidx;     // index of initial element of atmos array
   int                    step_inc; // number of atmos array elements to skip per surface fluxes step
   int                    endhidx;  // index of final element of atmos array

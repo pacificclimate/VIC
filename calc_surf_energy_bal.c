@@ -43,7 +43,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    VegConditions     &wind_speed,
 			    const float       *root,
 			    int                INCLUDE_SNOW,
-			    VegConditions::VegetationConditions UnderStory,
+			    VegConditions::VegSurfType UnderStory,
 			    int                Nnodes,
 			    int                Nveg,
 			    int                band,
@@ -703,7 +703,7 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     double max_moist, double moist,
     const float *root,
     /* meteorological forcing terms */
-    VegConditions::VegetationConditions UnderStory, int overstory,
+    VegConditions::VegSurfType UnderStory, int overstory,
     double NetShortBare,  // net SW that reaches bare ground
     double NetShortGrnd,  // net SW that penetrates snowpack
     double NetShortSnow,  // net SW that reaches snow surface
