@@ -108,7 +108,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	set_output_defaults.o snow_intercept.o snow_melt.o snow_melt_glac.o \
 	snow_utility.o soil_conduction.o \
 	soil_thermal_eqn.o solve_snow.o solve_snow_glac.o solve_glacier.o store_moisture_for_debug.o \
-	surface_fluxes.o surface_fluxes_glac.o svp.o vicNl.o vicerror.o write_atmosdata.o \
+	surface_fluxes.o surface_fluxes_glac.o svp.o VegConditions.o vicNl.o vicerror.o write_atmosdata.o \
 	write_debug.o write_forcing_file.o write_layer.o \
 	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o \
 	write_model_state.o write_snow_data.o write_soilparam.o \

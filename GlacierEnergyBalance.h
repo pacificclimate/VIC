@@ -2,17 +2,18 @@
 #define GLACIERENERGYBALANCE_H_
 
 #include "root_brent.h"
+#include "vicNl.h"
 
 class GlacierEnergyBalance : public RootBrent {
 public:
   GlacierEnergyBalance(
   double Dt,                      /* Model time step (sec) */
   double Ra,                      /* Aerodynamic resistance (s/m) */
-  double *Ra_used,                /* Aerodynamic resistance (s/m) after stability correction */
+  AeroResistUsed& Ra_used,        /* Aerodynamic resistance (s/m) after stability correction */
   /* Vegetation Parameters */
   double Displacement,            /* Displacement height (m) */
   double Z,                       /* Reference height (m) */
-  double *Z0,                     /* surface roughness height (m) */
+  VegConditions& roughness,       /* surface roughness height (m) */
   /* Atmospheric Forcing Variables */
   double AirDens,                 /* Density of air (kg/m3) */
   double EactAir,                 /* Actual vapor pressure of air (Pa) */
@@ -40,7 +41,7 @@ public:
   double *vapor_flux             /* Mass flux of water vapor to or from the intercepted snow (m/timestep) */
   ) :
       Dt(Dt), Ra(Ra), Ra_used(Ra_used), Displacement(Displacement), Z(Z),
-      Z0(Z0), AirDens(AirDens), EactAir(EactAir), LongSnowIn(LongSnowIn),
+      roughness(roughness), AirDens(AirDens), EactAir(EactAir), LongSnowIn(LongSnowIn),
       Lv(Lv), Press(Press), Rain(Rain), NetShortUnder(NetShortUnder), Vpd(Vpd),
       Wind(Wind), OldTSurf(OldTSurf), IceDepth(IceDepth), IceWE(IceWE),
       Tair(Tair), TGrnd(TGrnd), AdvectedEnergy(AdvectedEnergy),
@@ -53,11 +54,11 @@ public:
 private:
   double Dt;                      /* Model time step (sec) */
   double Ra;                      /* Aerodynamic resistance (s/m) */
-  double *Ra_used;                /* Aerodynamic resistance (s/m) after stability correction */
+  AeroResistUsed& Ra_used;        /* Aerodynamic resistance (s/m) after stability correction */
   /* Vegetation Parameters */
   double Displacement;            /* Displacement height (m) */
   double Z;                       /* Reference height (m) */
-  double *Z0;                     /* surface roughness height (m) */
+  VegConditions& roughness;       /* surface roughness height (m) */
   /* Atmospheric Forcing Variables */
   double AirDens;                 /* Density of air (kg/m3) */
   double EactAir;                 /* Actual vapor pressure of air (Pa) */

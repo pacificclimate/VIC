@@ -46,13 +46,13 @@ double CanopyEnergyBal::calculate(double Tfoliage)
 
   if ( IntSnow > 0 ) {
 
-    Ra_used[0] = Ra[0];
-    Ra_used[1] = Ra[1];
+    Ra_used.surface = Ra.snowFree;
+    Ra_used.overstory = Ra.canopyIfOverstory;
 
     /** Added multiplication by 10 to incorporate change in canopy resistance due
 	to smoothing by intercepted snow **/
     if (state->options.AERO_RESIST_CANSNOW == AR_COMBO || state->options.AERO_RESIST_CANSNOW == AR_406 || state->options.AERO_RESIST_CANSNOW == AR_406_LS || state->options.AERO_RESIST_CANSNOW == AR_406_FULL)
-      Ra_used[1] *= 10.;
+      Ra_used.overstory *= 10.;
 
     /** Calculate the vapor mass flux between intercepted snow in 
 	the canopy and the surrounding air mass **/
@@ -61,16 +61,16 @@ double CanopyEnergyBal::calculate(double Tfoliage)
     
     /* Apply stability correction to aerodynamic resistance */
     if (state->options.AERO_RESIST_CANSNOW == AR_COMBO || state->options.AERO_RESIST_CANSNOW == AR_410) {
-      if (Wind[1] > 0.0) {
-        Ra_used[1] /= StabilityCorrection(ref_height[1], displacement[1], Tfoliage, 
-				          Tcanopy, Wind[1], roughness[1]);
+      if (wind_speed.canopyIfOverstory > 0.0) {
+        Ra_used.overstory /= StabilityCorrection(ref_height.canopyIfOverstory, displacement.canopyIfOverstory, Tfoliage,
+				          Tcanopy, wind_speed.canopyIfOverstory, roughness.canopyIfOverstory);
       }
       else
-        Ra_used[1] = HUGE_RESIST;
+        Ra_used.overstory = HUGE_RESIST;
     }
 
     *VaporMassFlux = AirDens * ( EPS / Press ) * (EactAir - EsSnow) 
-      / Ra_used[1] / RHO_W; 
+      / Ra_used.overstory / RHO_W;
 
     if (Vpd == 0.0 && *VaporMassFlux < 0.0)
       *VaporMassFlux = 0.0;
@@ -84,17 +84,17 @@ double CanopyEnergyBal::calculate(double Tfoliage)
     veg_var_wet->throughfall = 0;
 
     if (state->options.AERO_RESIST_CANSNOW == AR_406)
-      Ra_used[1] /= 10;
+      Ra_used.overstory /= 10;
   }
   else {
 
     if (state->options.AERO_RESIST_CANSNOW == AR_406_FULL || state->options.AERO_RESIST_CANSNOW == AR_410 || state->options.AERO_RESIST_CANSNOW == AR_COMBO) {
-      Ra_used[0] = Ra[0];
-      Ra_used[1] = Ra[1];
+      Ra_used.surface = Ra.snowFree;
+      Ra_used.overstory = Ra.canopyIfOverstory;
     }
     else {
-      Ra_used[0] = Ra[0];
-      Ra_used[1] = Ra[0];
+      Ra_used.surface = Ra.snowFree;
+      Ra_used.overstory = Ra.snowFree;
     }
 
     Wdew[WET] = IntRain * 1000.;
@@ -102,8 +102,8 @@ double CanopyEnergyBal::calculate(double Tfoliage)
     prec[DRY] = 0;
     *Evap = canopy_evap(layer_wet, layer_dry, veg_var_wet, veg_var_dry, FALSE, 
 			veg_class, month, precipitation_mu, Wdew, delta_t, *NetRadiation, 
-			Vpd, NetShortOver, Tcanopy, Ra_used[1], displacement[1], 
-			roughness[1], ref_height[1], elevation, prec, 
+			Vpd, NetShortOver, Tcanopy, Ra_used.overstory, displacement.canopyIfOverstory,
+			roughness.canopyIfOverstory, ref_height.canopyIfOverstory, elevation, prec,
 			depth, Wcr, Wpwp, frost_fract, root, state);
     Wdew[WET] /= 1000.;
 
@@ -114,7 +114,7 @@ double CanopyEnergyBal::calculate(double Tfoliage)
 
   /* Calculate the sensible heat flux */
 
-  *SensibleHeat = AirDens * Cp * (Tcanopy - Tfoliage) / Ra_used[1];
+  *SensibleHeat = AirDens * Cp * (Tcanopy - Tfoliage) / Ra_used.overstory;
 
   /* Calculate the advected energy */
 

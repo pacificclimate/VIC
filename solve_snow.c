@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-double solve_snow(char                 overstory,
+double solve_snow(char     overstory,
 		  double               BareAlbedo,
 		  double               LongUnderOut, // LW from understory
 		  double               MIN_RAIN_TEMP,
@@ -26,12 +26,12 @@ double solve_snow(char                 overstory,
 		  double              *NetShortSnow, // net SW at snow surface
 		  double              *ShortUnderIn, // surfave incoming SW
 		  double              *Torg_snow,
-		  double              *aero_resist,
-		  double              *aero_resist_used,
+		  VegConditions       &aero_resist,
+		  AeroResistUsed      &aero_resist_used,
 		  double              *coverage, // best guess snow coverage
 		  double              *delta_coverage, // cover fract change
 		  double              *delta_snow_heat, // change in pack heat
-		  double              *displacement,
+		  VegConditions       &displacement,
 		  double              *gauge_correction,
 		  double              *melt_energy,
 		  double              *out_prec,
@@ -39,12 +39,12 @@ double solve_snow(char                 overstory,
 		  double              *out_snow,
 		  double              *ppt,
 		  double              *rainfall,
-		  double              *ref_height,
-		  double              *roughness,
+		  VegConditions       &ref_height,
+		  VegConditions       &roughness,
 		  double              *snow_inflow,
 		  double              *snowfall,
 		  double              *surf_atten,
-		  double              *wind,
+		  VegConditions       &wind_speed,
 		  const float         *root,
 		  int                  INCLUDE_SNOW,
 		  int                  Nnodes,
@@ -55,7 +55,7 @@ double solve_snow(char                 overstory,
 		  int                  rec,
 		  int                  hidx,
 		  int                  veg_class,
-		  int                 *UnderStory,
+		  VegConditions::VegetationConditions &UnderStory,
 		  const dmy_struct    *dmy,
 		  const atmos_data_struct &atmos,
 		  energy_bal_struct   *energy,
@@ -144,7 +144,6 @@ double solve_snow(char                 overstory,
   double              tmp_Wdew[2];
   double              tmp_grnd_flux;
   double              store_snowfall;
-  double              tmp_ref_height;
   int                 month;
   int                 hour;
   int                 day_in_year;
@@ -199,9 +198,9 @@ double solve_snow(char                 overstory,
   }
 
   /** If first iteration, set UnderStory index **/
-  if ( IS_INVALID(*UnderStory) ) {
-    if ( snow->swq > 0 || snowfall[WET] > 0 ) *UnderStory = 2; // snow covered
-    else *UnderStory = 0; // understory bare
+  if ( UnderStory == VegConditions::NUM_VEGETATION_CONDITIONS ) {
+    if ( snow->swq > 0 || snowfall[WET] > 0 ) UnderStory = VegConditions::SNOW_COVERED_CASE; // snow covered
+    else UnderStory = VegConditions::SNOW_FREE_CASE; // understory bare
   }
 
   /* initialize understory radiation inputs */
@@ -253,8 +252,8 @@ double solve_snow(char                 overstory,
 		       &energy->canopy_sensible, snowfall,
 		       &energy->Tfoliage, &energy->Tfoliage_fbflag, 
            &energy->Tfoliage_fbcount, &snow->tmp_int_storage,
-		       &snow->canopy_vapor_flux, wind, displacement, 
-		       ref_height, roughness, root, *UnderStory, band, 
+		       &snow->canopy_vapor_flux, wind_speed, displacement, 
+		       ref_height, roughness, root, UnderStory, band,
 		       hour, iveg, month, rec, hidx, veg_class, atmos, 
 		       layer_dry, layer_wet, soil_con, veg_var_dry, veg_var_wet, state);
         if ( ErrorFlag == ERROR ) return ( ERROR );
@@ -311,7 +310,7 @@ double solve_snow(char                 overstory,
       (*snow_inflow) += rainfall[WET] + snowfall[WET];
 
       old_swq       = snow->swq; /* store swq for density calculations */
-      (*UnderStory) = 2;         /* ground snow is present of accumulating 
+      UnderStory = VegConditions::SNOW_COVERED_CASE;         /* ground snow is present of accumulating
 				    during time step */
       
 #if SPATIAL_SNOW
@@ -346,11 +345,11 @@ double solve_snow(char                 overstory,
 
       /** Call snow pack accumulation and ablation algorithm **/
       ErrorFlag = snow_melt((*latent_heat_Le), (*NetShortSnow), Tcanopy, Tgrnd, 
-		roughness, aero_resist[*UnderStory], aero_resist_used,
+		roughness, aero_resist[UnderStory], aero_resist_used,
 		air_temp, *coverage, (double)dt * SECPHOUR, atmos.density[hidx],
-		displacement[*UnderStory], snow_grnd_flux, 
+		displacement[UnderStory], snow_grnd_flux,
 		*LongUnderIn, atmos.pressure[hidx], rainfall[WET], snowfall[WET],
-		atmos.vp[hidx], atmos.vpd[hidx], wind[*UnderStory], ref_height[*UnderStory],
+		atmos.vp[hidx], atmos.vpd[hidx], wind_speed[UnderStory], ref_height[UnderStory],
 		NetLongSnow, Torg_snow, &melt, &energy->error, 
 		&energy->advected_sensible, &energy->advection, 
 		&energy->deltaCC, &tmp_grnd_flux, &energy->latent, 
@@ -525,7 +524,7 @@ double solve_snow(char                 overstory,
     *****************************/
 
     /** Initialize variables **/
-    *UnderStory             = 0;
+    UnderStory              = VegConditions::SNOW_FREE_CASE;
     snow->snow              = FALSE;
     energy->Tfoliage        = air_temp;
 

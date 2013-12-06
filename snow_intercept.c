@@ -100,8 +100,8 @@ int snow_intercept(double  Dt,
 		   double *MeltEnergy, 
 		   double *NetLongOver,
 		   double *NetShortOver,
-		   double *Ra,
-		   double *Ra_used,
+		   VegConditions &Ra,
+		   AeroResistUsed &Ra_used,
 		   double *RainFall,
 		   double *SensibleHeat,
 		   double *SnowFall, 
@@ -110,12 +110,12 @@ int snow_intercept(double  Dt,
 		   int    *Tfoliage_fbcount, 
 		   double *TempIntStorage, 
 		   double *VaporMassFlux,
-		   double *Wind,   
-		   double *displacement,
-		   double *ref_height,
-		   double *roughness,
+		   VegConditions &wind_speed,
+		   VegConditions &displacement,
+		   VegConditions &ref_height,
+		   VegConditions &roughness,
 		   const float  *root,
-		   int     UnderStory,
+		   VegConditions::VegetationConditions UnderStory,
 		   int     band, 
 		   int     hour, 
 		   int     iveg, 
@@ -240,8 +240,8 @@ int snow_intercept(double  Dt,
      cold (< -3 to -5 C).                                             
      Schmidt and Troendle 1992 western snow conference paper. */  
   
-  if ((*Tfoliage) < -3.0 && DeltaSnowInt > 0.0 && Wind[1] > 1.0) {
-    BlownSnow = (0.2 * Wind[1] - 0.2) * DeltaSnowInt;
+  if ((*Tfoliage) < -3.0 && DeltaSnowInt > 0.0 && wind_speed.canopyIfOverstory > 1.0) {
+    BlownSnow = (0.2 * wind_speed.canopyIfOverstory - 0.2) * DeltaSnowInt;
     if (BlownSnow >= DeltaSnowInt) 
       BlownSnow = DeltaSnowInt;
     DeltaSnowInt -= BlownSnow;
@@ -333,7 +333,7 @@ int snow_intercept(double  Dt,
         soil_con->Wcr, soil_con->Wpwp, soil_con->depth, soil_con->frost_fract,
         atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx],
         latent_heat_Le, Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra,
-        Ra_used, RainFall, Wind, UnderStory, iveg, veg_class, displacement,
+        Ra_used, RainFall, wind_speed, UnderStory, iveg, veg_class, displacement,
         ref_height, roughness, root, IntRainOrg, *IntSnow, IntRain, layer_wet,
         layer_dry, veg_var_wet, veg_var_dry, LongOverIn, LongUnderOut,
         *NetShortOver, AdvectedEnergy, LatentHeat, LatentHeatSub, LongOverOut,
@@ -368,7 +368,7 @@ int snow_intercept(double  Dt,
         soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
         soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
         atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
-        precipitation_mu, &Evap, Ra, Ra_used, RainFall, Wind, UnderStory, iveg,
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory, iveg,
         veg_class, displacement, ref_height, roughness, root, IntRainOrg,
         *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
         LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
@@ -391,7 +391,7 @@ int snow_intercept(double  Dt,
 					    soil_con->frost_fract, 
 					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
 					    Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
-					    RainFall, Wind, UnderStory, iveg, 
+					    RainFall, wind_speed, UnderStory, iveg, 
 					    veg_class, displacement, ref_height, 
 					    roughness, root, IntRainOrg, *IntSnow, 
 					    IntRain, layer_wet, layer_dry, veg_var_wet, 
@@ -409,7 +409,7 @@ int snow_intercept(double  Dt,
         soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
         soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
         atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
-        precipitation_mu, &Evap, Ra, Ra_used, RainFall, Wind, UnderStory, iveg,
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory, iveg,
         veg_class, displacement, ref_height, roughness, root, IntRainOrg,
         *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
         LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
@@ -603,17 +603,17 @@ double error_print_canopy_energy_bal(double Tfoliage,
     double  Vpd,
     double  mu,
     double *Evap,
-    double *Ra,
-    double *Ra_used,
+    VegConditions &Ra,
+    AeroResistUsed &Ra_used,
     double *Rainfall,
-    double *Wind,
+    VegConditions &wind_speed,
     /* Vegetation Terms */
-    int     UnderStory,
+    VegConditions::VegetationConditions UnderStory,
     int     iveg,
     int     veg_class,
-    double *displacement,
-    double *ref_height,
-    double *roughness,
+    VegConditions &displacement,
+    VegConditions &ref_height,
+    VegConditions &roughness,
     const float  *root,
     /* Water Flux Terms */
     double  IntRain,
@@ -663,24 +663,24 @@ double error_print_canopy_energy_bal(double Tfoliage,
   printf("EactAir = %f\n",  EactAir);
   printf("Press = %f\n",  Press);
   printf("latent_heat_Le = %f\n",  latent_heat_Le);
-  printf("Ra = [%f, %f]\n",  Ra[1], Ra[UnderStory]);
-  printf("Ra_used = %f\n",  *Ra_used);
+  printf("Ra = [%f, %f]\n",  Ra.canopyIfOverstory, Ra[UnderStory]);
+  printf("Ra_used = %f\n",  Ra_used.surface);
   printf("Tcanopy = %f\n",  Tcanopy);
   printf("Vpd = %f\n",  Vpd);
   printf("mu = %f\n",  mu);
 
   printf("Evap = %f\n", *Evap);
   printf("Rainfall = %f\n", *Rainfall);
-  printf("Wind = [%f, %f]\n",  Wind[1], Wind[UnderStory]);
+  printf("Wind = [%f, %f]\n",  wind_speed.canopyIfOverstory, wind_speed[UnderStory]);
 
   /* Vegetation Terms */
   printf("UnderStory = %i\n",     UnderStory);
   printf("iveg = %i\n",     iveg);
   printf("veg_class = %i\n",     veg_class);
 
-  printf("displacement = [%f, %f]\n",  displacement[1], displacement[UnderStory]);
-  printf("ref_height = [%f, %f]\n",  ref_height[1], ref_height[UnderStory]);
-  printf("roughness = [%f, %f]\n",  roughness[1], roughness[UnderStory]);
+  printf("displacement = [%f, %f]\n",  displacement.canopyIfOverstory, displacement[UnderStory]);
+  printf("ref_height = [%f, %f]\n",  ref_height.canopyIfOverstory, ref_height[UnderStory]);
+  printf("roughness = [%f, %f]\n",  roughness.canopyIfOverstory, roughness[UnderStory]);
 
   printf("root = %f\n", *root);
 

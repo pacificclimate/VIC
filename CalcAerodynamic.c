@@ -43,43 +43,35 @@ static char vcid[] = "$Id$";
     double Height  - Height of the vegetation layers (top layer first)
     double Trunk    - Multiplier for Height[0] that indictaes the top of the 
                      trunk space
-    double *U      - Vector of length 3, contains wind for vegetation 
-                     conditions listed below:
-                     [0] is always wind speed for the snow-free case,
-                     [2] is always wind speed for the snow covered case,
-                     [1] will contain the wind speed in the canopy if
-                     OverStory is TRUE, otherwise it is unused.
-    double *Ra     - Vector of length 3, contains aerodynamic resistance 
-                     values for the conditions outlined for *U.  
-    double *Zref   - Vector of length 3, contains reference height 
-                     values for the conditions outlined for *U.  
-    double *Z0     - Vector of length 3, contains roughness length  
-                     values for the conditions outlined for *U.  
-    double *d      - Vector of length 3, contains displacement height 
-                     values for the conditions outlined for *U.  
+
+    VegConditions &aero_resist    contains aerodynamic resistance values
+    VegConditions &wind_speed     contains wind speeds for each vegetation condition
+    VegConditions &displacement   contains displacement height values
+    VegConditions &ref_height     contains reference height values
+    VegConditions &roughness      contains roughness length values
 
   Returns      : int
 
   Modifies     :
-    double *U
-    double *Ra     
-    double *Zref     
-    double *Z0   
-    double *d     
+    VegConditions &aero_resist
+    VegConditions &wind_speed
+    VegConditions &displacement
+    VegConditions &ref_height
+    VegConditions &roughness
    
   Comments     :
 *****************************************************************************/
 int  CalcAerodynamic(char    OverStory,     /* overstory flag */
                      double  Height,        /* vegetation height */
                      double  Trunk,         /* trunk ratio parameter */
-		     double  Z0_SNOW,       /* snow roughness */
-		     double  Z0_SOIL,       /* soil roughness */
+                     double  Z0_SNOW,       /* snow roughness */
+                     double  Z0_SOIL,       /* soil roughness */
                      double  n,             /* wind attenuation parameter */
-                     double *Ra,            /* aerodynamic resistances */
-                     double *U,             /* adjusted wind speed */
-                     double *displacement,  /* vegetation displacement */
-                     double *ref_height,    /* vegetation reference height */
-                     double *roughness)     /* vegetation roughness */
+                     VegConditions& aero_resist,   /* aerodynamic resistances */
+                     VegConditions& wind_speed,    /* adjusted wind speed */
+                     VegConditions& displacement,  /* vegetation displacement */
+                     VegConditions& ref_height,    /* vegetation reference height */
+                     VegConditions& roughness)     /* vegetation roughness */
 {
   /******************************************************************
   Modifications:
@@ -102,7 +94,7 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
   double Zw;
   double tmp_wind;
 
-  tmp_wind = U[0];
+  tmp_wind = wind_speed.snowFree;
 
   K2 = von_K * von_K;
   
@@ -111,43 +103,43 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
   if ( OverStory == FALSE ) {
     
     /* vegetation cover */
-    Z0_Lower = roughness[0];
-    d_Lower  = displacement[0];
+    Z0_Lower = roughness.snowFree;
+    d_Lower  = displacement.snowFree;
     
     /* No snow */
-    U[0]  = log((2. + Z0_Lower)/Z0_Lower)/log((ref_height[0] - d_Lower)/Z0_Lower);
+    wind_speed.snowFree  = log((2. + Z0_Lower)/Z0_Lower)/log((ref_height.snowFree - d_Lower)/Z0_Lower);
     /****** DHSVM ******
-    Ra[0] = log((2. + Z0_Lower)/Z0_Lower) * log((ref_height[0] - d_Lower)/Z0_Lower)
+    aero_resist.snowFree = log((2. + Z0_Lower)/Z0_Lower) * log((ref_height.snowFree - d_Lower)/Z0_Lower)
             /K2;
     ***** Old VIC *****/
-    Ra[0] = log((2. + (1.0/0.63 - 1.0) * d_Lower) / Z0_Lower)
+    aero_resist.snowFree = log((2. + (1.0/0.63 - 1.0) * d_Lower) / Z0_Lower)
           * log((2. + (1.0/0.63 - 1.0) * d_Lower) / (0.1*Z0_Lower)) / K2;
     /******************/
 
     /* Copy bare parameters into canopy top parameters */
-    U[1] = U[0];
-    Ra[1] = Ra[0];
+    wind_speed.canopyIfOverstory = wind_speed.snowFree;
+    aero_resist.canopyIfOverstory = aero_resist.snowFree;
 
     /** Set aerodynamic resistance terms for canopy */
     /* not currently used */
-    ref_height[1]   = ref_height[0];
-    roughness[1]    = roughness[0];
-    displacement[1] = displacement[0];
+    ref_height.canopyIfOverstory   = ref_height.snowFree;
+    roughness.canopyIfOverstory    = roughness.snowFree;
+    displacement.canopyIfOverstory = displacement.snowFree;
 
     /* Snow */
-    U[2] = log((2. + Z0_SNOW)/Z0_SNOW)/log(ref_height[0]/Z0_SNOW);
-    Ra[2] = log((2. + Z0_SNOW)/Z0_SNOW) * log(ref_height[0]/Z0_SNOW)/K2;
+    wind_speed.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW)/log(ref_height.snowFree/Z0_SNOW);
+    aero_resist.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW) * log(ref_height.snowFree/Z0_SNOW)/K2;
     /** Set aerodynamic resistance terms for snow */
-    ref_height[2]   = 2. + Z0_SNOW;
-    roughness[2]    = Z0_SNOW;
-    displacement[2] = 0.;
+    ref_height.snowCovered   = 2. + Z0_SNOW;
+    roughness.snowCovered    = Z0_SNOW;
+    displacement.snowCovered = 0.;
 
   }
   
   /* Overstory present, one or two vegetation layers possible */
   else {
-    Z0_Upper = roughness[0];
-    d_Upper  = displacement[0];
+    Z0_Upper = roughness.snowFree;
+    d_Upper  = displacement.snowFree;
     
     Z0_Lower = Z0_SOIL;
     d_Lower  = 0; 
@@ -161,25 +153,25 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     }
 
     /* Resistance for overstory */
-    Ra[1] = log((ref_height[0]-d_Upper)/Z0_Upper)/K2
+    aero_resist.canopyIfOverstory = log((ref_height.snowFree-d_Upper)/Z0_Upper)/K2
           * (Height/(n*(Zw-d_Upper)) 
           * (exp(n*(1-(d_Upper+Z0_Upper)/Height))-1)
           + (Zw-Height)/(Zw-d_Upper)
-          + log((ref_height[0]-d_Upper)/(Zw-d_Upper)));
+          + log((ref_height.snowFree-d_Upper)/(Zw-d_Upper)));
     
     /* Wind at different levels in the profile */
-    Uw = log((Zw-d_Upper)/Z0_Upper) / log((ref_height[0]-d_Upper)/Z0_Upper);
+    Uw = log((Zw-d_Upper)/Z0_Upper) / log((ref_height.snowFree-d_Upper)/Z0_Upper);
     Uh = Uw - (1-(Height-d_Upper)/(Zw-d_Upper))
-       / log((ref_height[0]-d_Upper)/Z0_Upper);
-    U[1] = Uh * exp(n * ((Z0_Upper+d_Upper)/Height - 1.));
+       / log((ref_height.snowFree-d_Upper)/Z0_Upper);
+    wind_speed.canopyIfOverstory = Uh * exp(n * ((Z0_Upper+d_Upper)/Height - 1.));
     Ut = Uh * exp(n * (Zt/Height - 1.));
     
     /* resistance at the lower boundary */
     
 
     /***** Old VIC *****/
-    U[0]  = log((2. + Z0_Upper)/Z0_Upper)/log((ref_height[0] - d_Upper)/Z0_Upper);
-    Ra[0] = log((2. + (1.0/0.63 - 1.0) * d_Upper) / Z0_Upper)
+    wind_speed.snowFree  = log((2. + Z0_Upper)/Z0_Upper)/log((ref_height.snowFree - d_Upper)/Z0_Upper);
+    aero_resist.snowFree = log((2. + (1.0/0.63 - 1.0) * d_Upper) / Z0_Upper)
           * log((2. + (1.0/0.63 - 1.0) * d_Upper) / (0.1*Z0_Upper)) / K2;
     /******************/
 
@@ -189,18 +181,18 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     /* case 1: the wind profile to a height of 2m above the lower boundary is 
        entirely logarithmic */
     if (Zt > (2. + Z0_SNOW)) {
-      U[2] = Ut*log((2.+Z0_SNOW)/Z0_SNOW)/log(Zt/Z0_SNOW);
-      Ra[2] = log((2.+Z0_SNOW)/Z0_SNOW) * log(Zt/Z0_SNOW)/(K2*Ut);  
+      wind_speed.snowCovered = Ut*log((2.+Z0_SNOW)/Z0_SNOW)/log(Zt/Z0_SNOW);
+      aero_resist.snowCovered = log((2.+Z0_SNOW)/Z0_SNOW) * log(Zt/Z0_SNOW)/(K2*Ut);
     }
     
     /* case 2: the wind profile to a height of 2m above the lower boundary 
        is part logarithmic and part exponential, but the top of the overstory 
        is more than 2 m above the lower boundary */
     else if (Height > (2. + Z0_SNOW)) {
-      U[2] = Uh * exp(n * ((2. + Z0_SNOW)/Height - 1.));
-      Ra[2] = log(Zt/Z0_SNOW) * log(Zt/Z0_SNOW)/
+      wind_speed.snowCovered = Uh * exp(n * ((2. + Z0_SNOW)/Height - 1.));
+      aero_resist.snowCovered = log(Zt/Z0_SNOW) * log(Zt/Z0_SNOW)/
         (K2*Ut) +
-        Height * log((ref_height[0]-d_Upper)/Z0_Upper) / (n*K2*(Zw-d_Upper)) *
+        Height * log((ref_height.snowFree-d_Upper)/Z0_Upper) / (n*K2*(Zw-d_Upper)) *
         (exp(n*(1-Zt/Height)) - exp(n*(1-(Z0_SNOW+2.)/Height)));
     }
     
@@ -209,51 +201,51 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
        logarithmic and part exponential, but only extends to the top of the 
        overstory */
     else {
-      U[2] = Uh;
-      Ra[2] = log(Zt/Z0_SNOW) * log(Zt/Z0_SNOW)/
+      wind_speed.snowCovered = Uh;
+      aero_resist.snowCovered = log(Zt/Z0_SNOW) * log(Zt/Z0_SNOW)/
         (K2*Ut) +
-        Height * log((ref_height[0]-d_Upper)/Z0_Upper) / (n*K2*(Zw-d_Upper)) *
+        Height * log((ref_height.snowFree-d_Upper)/Z0_Upper) / (n*K2*(Zw-d_Upper)) *
         (exp(n*(1-Zt/Height)) - 1);
       fprintf(stderr, "WARNING:  Top of overstory is less than 2 meters above the lower boundary\n");
     }
 
     /** Set aerodynamic resistance terms for canopy */
     /* not currently used */
-    ref_height[1]   = ref_height[0];
-    roughness[1]    = roughness[0];
-    displacement[1] = displacement[0];
-    ref_height[0]   = 2.;
-    roughness[0]    = Z0_Lower;
-    displacement[0] = d_Lower;
+    ref_height.canopyIfOverstory   = ref_height.snowFree;
+    roughness.canopyIfOverstory    = roughness.snowFree;
+    displacement.canopyIfOverstory = displacement.snowFree;
+    ref_height.snowFree   = 2.;
+    roughness.snowFree    = Z0_Lower;
+    displacement.snowFree = d_Lower;
 
     /** Set aerodynamic resistance terms for snow */
-    ref_height[2]   = 2. + Z0_SNOW;
-    roughness[2]    = Z0_SNOW;
-    displacement[2] = 0.;
+    ref_height.snowCovered   = 2. + Z0_SNOW;
+    roughness.snowCovered    = Z0_SNOW;
+    displacement.snowCovered = 0.;
 
   }
 
   if ( tmp_wind > 0. ) {
-    U[0] *= tmp_wind;
-    Ra[0] /= tmp_wind;
-    if(IS_VALID(U[1])) {
-      U[1] *= tmp_wind;
-      Ra[1] /= tmp_wind;
+    wind_speed.snowFree *= tmp_wind;
+    aero_resist.snowFree /= tmp_wind;
+    if(IS_VALID(wind_speed.canopyIfOverstory)) {
+      wind_speed.canopyIfOverstory *= tmp_wind;
+      aero_resist.canopyIfOverstory /= tmp_wind;
     }
-    if(IS_VALID(U[2])) {
-      U[2] *= tmp_wind;
-      Ra[2] /= tmp_wind;
+    if(IS_VALID(wind_speed.snowCovered)) {
+      wind_speed.snowCovered *= tmp_wind;
+      aero_resist.snowCovered /= tmp_wind;
     }
   }
   else {
-    U[0] *= tmp_wind;
-    Ra[0] = HUGE_RESIST;
-    if(IS_VALID(U[1]))
-      U[1] *= tmp_wind;
-    Ra[1] = HUGE_RESIST;
-    if(IS_VALID(U[2]))
-      U[2] *= tmp_wind;
-    Ra[2] = HUGE_RESIST;
+    wind_speed.snowFree *= tmp_wind;
+    aero_resist.snowFree = HUGE_RESIST;
+    if(IS_VALID(wind_speed.canopyIfOverstory))
+      wind_speed.canopyIfOverstory *= tmp_wind;
+    aero_resist.canopyIfOverstory = HUGE_RESIST;
+    if(IS_VALID(wind_speed.snowCovered))
+      wind_speed.snowCovered *= tmp_wind;
+    aero_resist.snowCovered = HUGE_RESIST;
   }
   return (0);
 

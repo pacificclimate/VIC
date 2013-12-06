@@ -296,16 +296,16 @@ double SurfEnergyBal::calculate(double Ts)
     
   /** Compute atmospheric stability correction **/
   /** CHECK THAT THIS WORKS FOR ALL SUMMER SITUATIONS **/
-  if ( wind[UnderStory] > 0.0 && overstory && SNOWING )
-    Ra_used[0] = ra[UnderStory] 
+  if ( wind_speed[UnderStory] > 0.0 && overstory && SNOWING )
+    aero_resist_used.surface = aero_resist[UnderStory]
       / StabilityCorrection(ref_height[UnderStory], 0.f, TMean, Tair, 
-			    wind[UnderStory], roughness[UnderStory]);
-  else if ( wind[UnderStory] > 0.0 )
-    Ra_used[0] = ra[UnderStory] 
+			    wind_speed[UnderStory], roughness[UnderStory]);
+  else if ( wind_speed[UnderStory] > 0.0 )
+    aero_resist_used.surface = aero_resist[UnderStory]
       / StabilityCorrection(ref_height[UnderStory], displacement[UnderStory], 
-			    TMean, Tair, wind[UnderStory], roughness[UnderStory]);
+			    TMean, Tair, wind_speed[UnderStory], roughness[UnderStory]);
   else
-    Ra_used[0] = HUGE_RESIST;
+    aero_resist_used.surface = HUGE_RESIST;
   
   /*************************************************
     Compute Evapotranspiration if not snow covered
@@ -319,15 +319,15 @@ double SurfEnergyBal::calculate(double Ts)
   if ( VEG && !SNOWING && state->veg_lib[veg_class].LAI[month-1] > 0 ) {
     Evap = canopy_evap(layer_wet, layer_dry, veg_var_wet, veg_var_dry, TRUE, 
 		       veg_class, month, precipitation_mu, Wdew, delta_t, NetBareRad, vpd, 
-		       NetShortBare, Tair, Ra_used[1], 
-		       displacement[1], roughness[1], ref_height[1], 
+		       NetShortBare, Tair, aero_resist_used.overstory,
+		       displacement.canopyIfOverstory, roughness.canopyIfOverstory, ref_height.canopyIfOverstory,
 		       (double)soil_con->elevation, rainfall, soil_con->depth, soil_con->Wcr, soil_con->Wpwp,
 		       soil_con->frost_fract, root, state);
   }
   else if(!SNOWING) {
     Evap = arno_evap(layer_wet, layer_dry, NetBareRad, Tair, vpd, 
 		     soil_con->depth[0], max_moist * soil_con->depth[0] * 1000., 
-		     (double)soil_con->elevation, soil_con->b_infilt, Ra_used[0], delta_t, precipitation_mu,
+		     (double)soil_con->elevation, soil_con->b_infilt, aero_resist_used.surface, delta_t, precipitation_mu,
 		     soil_con->resid_moist[0], soil_con->frost_fract, state);
 
   }
@@ -348,7 +348,7 @@ double SurfEnergyBal::calculate(double Ts)
     SurfaceMassFlux = *surface_flux * ice_density / delta_t;
 
     latent_heat_from_snow(atmos_density, vp, latent_heat_Le, atmos_pressure, 
-			  Ra_used[0], TMean, vpd, &temp_latent_heat, 
+			  aero_resist_used.surface, TMean, vpd, &temp_latent_heat,
 			  &temp_latent_heat_sub, &VaporMassFlux,
                           &BlowingMassFlux, &SurfaceMassFlux);
     *latent_heat += temp_latent_heat * snow_coverage;
@@ -366,7 +366,7 @@ double SurfEnergyBal::calculate(double Ts)
     Compute the Sensible Heat Flux from the Surface
   ************************************************/
   if ( snow_coverage < 1 || INCLUDE_SNOW ) {
-    *sensible_heat = atmos_density * Cp * (Tair - (TMean)) / Ra_used[0];
+    *sensible_heat = atmos_density * Cp * (Tair - (TMean)) / aero_resist_used.surface;
     if ( !INCLUDE_SNOW ) (*sensible_heat) *= (1. - snow_coverage);
   }
   else *sensible_heat = 0.;

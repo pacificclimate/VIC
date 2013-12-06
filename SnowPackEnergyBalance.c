@@ -120,9 +120,9 @@ double SnowPackEnergyBalance::calculate(double TSurf)
 
 
   if (Wind > 0.0) 
-    Ra_used[0] = Ra / StabilityCorrection(Z, 0.f, TMean, Tair, Wind, Z0[2]); 
+    Ra_used.surface = Ra / StabilityCorrection(Z, 0.f, TMean, Tair, Wind, roughness.snowCovered);
   else
-    Ra_used[0] = HUGE_RESIST;
+    Ra_used.surface = HUGE_RESIST;
 
   /* Calculate longwave exchange and net radiation */
 
@@ -132,7 +132,7 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   
   /* Calculate the sensible heat flux */
 
-  *SensibleHeat = AirDens * Cp * (Tair - TMean) / Ra_used[0];
+  *SensibleHeat = AirDens * Cp * (Tair - TMean) / Ra_used.surface;
 
 #if SPATIAL_SNOW  
   /* Add in Sensible heat flux turbulent exchange from surrounding 
@@ -140,7 +140,7 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   if ( SnowCoverFract > 0 ) {
     *(AdvectedSensibleHeat) = advected_sensible_heat(SnowCoverFract, 
 						     AirDens, Tair, TGrnd, 
-						     Ra_used[0]);
+						     Ra_used.surface);
   }
   else (*AdvectedSensibleHeat) = 0;
 #else
@@ -157,7 +157,7 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   /* Calculate the saturated vapor pressure in the snow pack, 
      (Equation 3.32, Bras 1990) */
 
-  latent_heat_from_snow(AirDens, EactAir, Lv, Press, Ra_used[0], TMean, Vpd,
+  latent_heat_from_snow(AirDens, EactAir, Lv, Press, Ra_used.surface, TMean, Vpd,
 			LatentHeat, LatentHeatSub, &VaporMassFlux, &BlowingMassFlux, 
 			&SurfaceMassFlux);
 

@@ -836,16 +836,16 @@ void collect_wb_terms(const hru_data_struct&  cell,
     out_data[OUT_WDEW].data[0] += veg_var.Wdew * AreaFactor;
 
   /** record aerodynamic conductance and resistance **/
-  if (cell.aero_resist[0] > SMALL) {
-    tmp_cond1 = (1/cell.aero_resist[0]) * AreaFactor;
+  if (cell.aero_resist.surface > SMALL) {
+    tmp_cond1 = (1/cell.aero_resist.surface) * AreaFactor;
   }
   else {
     tmp_cond1 = HUGE_RESIST;
   }
   out_data[OUT_AERO_COND1].data[0] += tmp_cond1;
   if (overstory) {
-    if (cell.aero_resist[1] > SMALL) {
-      tmp_cond2 = (1/cell.aero_resist[1]) * AreaFactor;
+    if (cell.aero_resist.overstory > SMALL) {
+      tmp_cond2 = (1/cell.aero_resist.overstory) * AreaFactor;
     }
     else {
       tmp_cond2 = HUGE_RESIST;

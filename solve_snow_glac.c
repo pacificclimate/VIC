@@ -17,31 +17,31 @@ double solve_snow_glac(
       double              *NetShortSnow, // net SW at snow surface
       double              *ShortUnderIn, // surfave incoming SW
       double              *Torg_snow,
-      double              *aero_resist,
-      double              *aero_resist_used,
+      VegConditions       &aero_resist,
+      AeroResistUsed      &aero_resist_used,
       double              *coverage, // best guess snow coverage
       double              *delta_coverage, // cover fract change
       double              *delta_snow_heat, // change in pack heat
-      double              *displacement,
+      VegConditions       &displacement,
       double              *melt_energy,
       double              *out_prec,
       double              *out_rain,
       double              *out_snow,
       double              *ppt,
       double              *rainfall,
-      double              *ref_height,
-      double              *roughness,
+      VegConditions       &ref_height,
+      VegConditions       &roughness,
       double              *snow_inflow,
       double              *snowfall,
       double              *surf_atten,
-      double              *wind,
+      VegConditions       &wind_speed,
       int                  iveg,
       int                  band,
       int                  dt,
       int                  rec,
       int                  hidx,
       int                  veg_class,
-      int                 *UnderStory,
+      VegConditions::VegetationConditions &UnderStory,
       const dmy_struct    *dmy,
       const atmos_data_struct &atmos,
       energy_bal_struct   *energy,
@@ -75,7 +75,6 @@ double solve_snow_glac(
   double              rainonly;
   double              tmp_Wdew[2];
   double              tmp_grnd_flux;
-  double              tmp_ref_height;
   int                 month;
   int                 hour;
   int                 day_in_year;
@@ -132,8 +131,7 @@ double solve_snow_glac(
   (*snow_inflow) = rainfall[WET] + snowfall[WET];
 
   old_swq = snow->swq; /* store swq for density calculations */
-  (*UnderStory) = 2; /* ground snow is present of accumulating
-   during time step */
+  UnderStory = VegConditions::SNOW_COVERED_CASE; /* ground snow is present of accumulating during time step */
 
 #if SPATIAL_SNOW
   /* make snowpack uniform at mean depth */
@@ -166,11 +164,11 @@ double solve_snow_glac(
 
   /** Call snow pack accumulation and ablation algorithm **/
   ErrorFlag = snow_melt_glac((*latent_heat_Le), (*NetShortSnow),
-      Tgrnd, roughness, aero_resist[*UnderStory], aero_resist_used,
+      Tgrnd, roughness, aero_resist[UnderStory], aero_resist_used,
       air_temp, *coverage, (double) dt * SECPHOUR, atmos.density[hidx],
-      displacement[*UnderStory], *LongUnderIn,
+      displacement[UnderStory], *LongUnderIn,
       atmos.pressure[hidx], rainfall[WET], snowfall[WET], atmos.vp[hidx],
-      atmos.vpd[hidx], wind[*UnderStory], ref_height[*UnderStory], NetLongSnow,
+      atmos.vpd[hidx], wind_speed[UnderStory], ref_height[UnderStory], NetLongSnow,
       Torg_snow, &melt, &energy->error, &energy->advected_sensible,
       &energy->advection, &energy->deltaCC, &energy->grnd_flux, &energy->latent,
       &energy->latent_sub, &energy->refreeze_energy, &energy->sensible, rec,

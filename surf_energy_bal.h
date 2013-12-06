@@ -1,4 +1,5 @@
 #include "root_brent.h"
+#include "VegConditions.h"
 
 #ifndef SURF_ENERGY_BAL_H_
 #define SURF_ENERGY_BAL_H_
@@ -9,13 +10,13 @@ public:
       double delta_t, double Cs1, double Cs2, double D1, double D2,
       double T1_old, double T2, double Ts_old, double bubble, double dp,
       double expt, double ice0, double kappa1, double kappa2, double max_moist,
-      double moist, const float* root, int UnderStory, int overstory,
+      double moist, const float* root, VegConditions::VegetationConditions UnderStory, int overstory,
       double NetShortBare, double NetShortGrnd, double NetShortSnow,
       double Tair, double atmos_density, double atmos_pressure,
       double emissivity, double LongBareIn, double LongSnowIn,
       double precipitation_mu, double surf_atten, double vp, double vpd,
-      double* Wdew, double* displacement, double* ra, double* Ra_used,
-      double* rainfall, double* ref_height, double* roughness, double* wind,
+      double* Wdew, VegConditions& displacement, VegConditions& aero_resist, AeroResistUsed& aero_resist_used,
+      double* rainfall, VegConditions& ref_height, VegConditions& roughness, VegConditions& wind_speed,
       double latent_heat_Le, double Advection, double OldTSurf, double TPack,
       double Tsnow_surf, double kappa_snow, double melt_energy,
       double snow_coverage, double snow_density, double snow_swq,
@@ -42,8 +43,8 @@ public:
           Tair), atmos_density(atmos_density), atmos_pressure(atmos_pressure), emissivity(
           emissivity), LongBareIn(LongBareIn), LongSnowIn(LongSnowIn), precipitation_mu(
           precipitation_mu), surf_atten(surf_atten), vp(vp), vpd(vpd), Wdew(
-          Wdew), displacement(displacement), ra(ra), Ra_used(Ra_used), rainfall(
-          rainfall), ref_height(ref_height), roughness(roughness), wind(wind), latent_heat_Le(
+          Wdew), displacement(displacement), aero_resist(aero_resist), aero_resist_used(aero_resist_used), rainfall(
+          rainfall), ref_height(ref_height), roughness(roughness), wind_speed(wind_speed), latent_heat_Le(
           latent_heat_Le), Advection(Advection), OldTSurf(OldTSurf), TPack(
           TPack), Tsnow_surf(Tsnow_surf), kappa_snow(kappa_snow), melt_energy(
           melt_energy), snow_coverage(snow_coverage), snow_density(
@@ -88,7 +89,7 @@ public:
   double max_moist;
   double moist;
   const float* root;
-  int UnderStory;
+  VegConditions::VegetationConditions UnderStory;
   int overstory;
   double NetShortBare;
   double NetShortGrnd;
@@ -104,13 +105,13 @@ public:
   double vp;
   double vpd;
   double* Wdew;
-  double* displacement;
-  double* ra;
-  double* Ra_used;
+  VegConditions& displacement;
+  VegConditions& aero_resist;
+  AeroResistUsed& aero_resist_used;
   double* rainfall;
-  double* ref_height;
-  double* roughness;
-  double* wind;
+  VegConditions& ref_height;
+  VegConditions& roughness;
+  VegConditions& wind_speed;
   double latent_heat_Le;
   double Advection;
   double OldTSurf;

@@ -31,19 +31,19 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    double             BareAlbedo,
 			    double             surf_atten,
 			    double             vapor_flux,
-			    double            *aero_resist,
-			    double            *aero_resist_used,
-			    double            *displacement,
+			    VegConditions     &aero_resist,
+			    AeroResistUsed    &aero_resist_used,
+			    VegConditions     &displacement,
 			    double            *melt,
 			    double            *ppt,
 			    double            *rainfall,
-			    double            *ref_height,
-			    double            *roughness,
+			    VegConditions     &ref_height,
+			    VegConditions     &roughness,
 			    double            *snowfall,
-			    double            *wind,
+			    VegConditions     &wind_speed,
 			    const float       *root,
 			    int                INCLUDE_SNOW,
-			    int                UnderStory,
+			    VegConditions::VegetationConditions UnderStory,
 			    int                Nnodes,
 			    int                Nveg,
 			    int                band,
@@ -330,7 +330,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
         emissivity, LongBareIn, LongSnowIn, precipitation_mu, surf_atten,
         VPcanopy, VPDcanopy,
         Wdew, displacement, aero_resist, aero_resist_used,
-        rainfall, ref_height, roughness, wind, latent_heat_Le,
+        rainfall, ref_height, roughness, wind_speed, latent_heat_Le,
         energy->advection, OldTSurf, snow->pack_temp,
         Tsnow_surf, kappa_snow, melt_energy,
         snow_coverage,
@@ -369,7 +369,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					   precipitation_mu, surf_atten, VPcanopy, VPDcanopy, 
 					   Wdew, displacement, aero_resist, aero_resist_used, 
 					   rainfall, ref_height, roughness, 
-					   wind, latent_heat_Le, energy->advection, 
+					   wind_speed, latent_heat_Le, energy->advection, 
 					   OldTSurf, snow->pack_temp, 
 					   Tsnow_surf, 
 					   kappa_snow, melt_energy, 
@@ -410,7 +410,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
           NetShortBare, NetShortGrnd, TmpNetShortSnow, Tair, atmos_density,
           atmos_pressure, emissivity, LongBareIn, LongSnowIn, precipitation_mu,
           surf_atten, VPcanopy, VPDcanopy, Wdew, displacement, aero_resist,
-          aero_resist_used, rainfall, ref_height, roughness, wind,
+          aero_resist_used, rainfall, ref_height, roughness, wind_speed,
           latent_heat_Le, energy->advection, OldTSurf, snow->pack_temp,
           Tsnow_surf, kappa_snow, melt_energy, snow_coverage, snow->density,
           snow->swq, snow->surf_water, &energy->deltaCC,
@@ -448,7 +448,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 					     precipitation_mu, surf_atten, VPcanopy, 
 					     VPDcanopy, Wdew, displacement, 
 					     aero_resist, aero_resist_used, rainfall, ref_height, 
-					     roughness, wind, latent_heat_Le, 
+					     roughness, wind_speed, latent_heat_Le, 
 					     energy->advection, 
 					     OldTSurf, snow->pack_temp, 
 					     Tsnow_surf, 
@@ -494,7 +494,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       NetShortBare, NetShortGrnd, TmpNetShortSnow, Tair, atmos_density,
       atmos_pressure, emissivity, LongBareIn, LongSnowIn, precipitation_mu,
       surf_atten, VPcanopy, VPDcanopy, Wdew, displacement, aero_resist,
-      aero_resist_used, rainfall, ref_height, roughness, wind, latent_heat_Le,
+      aero_resist_used, rainfall, ref_height, roughness, wind_speed, latent_heat_Le,
       energy->advection, OldTSurf, snow->pack_temp, Tsnow_surf, kappa_snow,
       melt_energy, snow_coverage, snow->density, snow->swq, snow->surf_water,
       &energy->deltaCC, &energy->refreeze_energy, &snow->vapor_flux,
@@ -703,15 +703,15 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
     double max_moist, double moist,
     const float *root,
     /* meteorological forcing terms */
-    int UnderStory, int overstory,
+    VegConditions::VegetationConditions UnderStory, int overstory,
     double NetShortBare,  // net SW that reaches bare ground
     double NetShortGrnd,  // net SW that penetrates snowpack
     double NetShortSnow,  // net SW that reaches snow surface
     double Tair, double atmos_density, double atmos_pressure,
     double emissivity, double LongBareIn, double LongSnowIn,
     double precipitation_mu, double surf_atten, double vp, double vpd,
-    double *Wdew, double *displacement, double *ra, double *ra_used,
-    double *rainfall, double *ref_height, double *roughness, double *wind,
+    double *Wdew, VegConditions &displacement, VegConditions &aero_resist, AeroResistUsed &ra_used,
+    double *rainfall, VegConditions &ref_height, VegConditions &roughness, VegConditions &wind_speed,
     /* latent heat terms */
     double Le,
     /* snowpack terms */
@@ -803,13 +803,13 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
   fprintf(stderr, "vpd = %f\n",  vpd);
 
   fprintf(stderr, "*Wdew = %f\n",  *Wdew);
-  fprintf(stderr, "*displacement = %f\n",  *displacement);
-  fprintf(stderr, "*ra = %f\n",  *ra);
-  fprintf(stderr, "*ra_used = %f\n",  *ra_used);
+  fprintf(stderr, "*displacement = %f\n",  displacement.snowCovered);
+  fprintf(stderr, "*ra = %f\n",  aero_resist.snowCovered);
+  fprintf(stderr, "*ra_used = %f\n",  ra_used.surface);
   fprintf(stderr, "*rainfall = %f\n",  *rainfall);
-  fprintf(stderr, "*ref_height = %f\n",  *ref_height);
-  fprintf(stderr, "*roughness = %f\n",  *roughness);
-  fprintf(stderr, "*wind = %f\n",  *wind);
+  fprintf(stderr, "*ref_height = %f\n",  ref_height.snowCovered);
+  fprintf(stderr, "*roughness = %f\n",  roughness.snowCovered);
+  fprintf(stderr, "*wind = %f\n",  wind_speed.snowCovered);
  
   /* latent heat terms */
   fprintf(stderr, "Le = %f\n",   Le);

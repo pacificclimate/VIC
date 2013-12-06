@@ -6,8 +6,8 @@
 #include "vicNl.h"
 // Forward declaration for the error function which just prints out all the variables.
 double ErrorPrintGlacierEnergyBalance(double TSurf, int rec, int iveg, int band,
-    double Dt, double Ra, double *Ra_used, double Displacement, double Z,
-    double *Z0, double AirDens, double EactAir, double LongSnowIn, double Lv,
+    double Dt, double Ra, AeroResistUsed& Ra_used, double Displacement, double Z,
+    VegConditions& roughness, double AirDens, double EactAir, double LongSnowIn, double Lv,
     double Press, double Rain, double NetShortUnder, double Vpd, double Wind,
     double OldTSurf, double IceDepth, double IceWE, double Tair, double TGrnd,
     double *AdvectedEnergy,
@@ -65,9 +65,9 @@ double ErrorPrintGlacierEnergyBalance(double TSurf, int rec, int iveg, int band,
 int glacier_melt(double Le,
     double NetShort,  // net SW at absorbed by glacier
     double Tgrnd,
-    double *Z0,  // roughness
+    VegConditions& roughness,  // roughness
     double aero_resist,  // aerodynamic resistance
-    double *aero_resist_used,  // stability-corrected aerodynamic resistance
+    AeroResistUsed& aero_resist_used,  // stability-corrected aerodynamic resistance
     double air_temp,  // air temperature
     double delta_t,  // time step in secs
     double density,  // atmospheric density
@@ -118,7 +118,7 @@ int glacier_melt(double Le,
 
   /* Calculate the surface energy balance for surf_temp = 0.0 */
   GlacierEnergyBalance glacierEnergy(delta_t, aero_resist, aero_resist_used,
-         displacement, z2, Z0,
+         displacement, z2, roughness,
          density, vp, LongIn, Le, pressure,
          RainFall, NetShort, vpd,
          wind, (*OldTSurf),
@@ -147,7 +147,7 @@ int glacier_melt(double Le,
   else {
     /* Calculate surface layer temperature using "Brent method" */
     GlacierEnergyBalance glacierIterative(delta_t, aero_resist, aero_resist_used,
-        displacement, z2, Z0,
+        displacement, z2, roughness,
         density, vp, LongIn, Le, pressure,
         RainFall, NetShort, vpd,
         wind, (*OldTSurf),
@@ -171,7 +171,7 @@ int glacier_melt(double Le,
         glacier->surf_temp_fbcount++;
       } else {
         error = ErrorPrintGlacierEnergyBalance(glacier->surf_temp, rec, iveg, band,
-            delta_t, aero_resist, aero_resist_used, displacement, z2, Z0,
+            delta_t, aero_resist, aero_resist_used, displacement, z2, roughness,
             density, vp, LongIn, Le, pressure, RainFall, NetShort, vpd, wind,
             (*OldTSurf), soil->GLAC_SURF_THICK, soil->GLAC_SURF_WE, air_temp, Tgrnd,
             &advection, &deltaCC_glac, &grnd_flux,
@@ -183,7 +183,7 @@ int glacier_melt(double Le,
 
     if (glacierIterative.resultIsError(glacier->surf_temp) == false) {  // Result is valid
       GlacierEnergyBalance glacierEnergy(delta_t, aero_resist, aero_resist_used,
-          displacement, z2, Z0,
+          displacement, z2, roughness,
           density, vp, LongIn, Le, pressure,
           RainFall, NetShort, vpd,
           wind, (*OldTSurf),
@@ -235,11 +235,11 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
     int band,
     double Dt,                      /* Model time step (sec) */
     double Ra,                      /* Aerodynamic resistance (s/m) */
-    double *Ra_used,                /* Aerodynamic resistance (s/m) after stability correction */
+    AeroResistUsed& Ra_used,        /* Aerodynamic resistance (s/m) after stability correction */
     /* Vegetation Parameters */
     double Displacement,            /* Displacement height (m) */
     double Z,                       /* Reference height (m) */
-    double *Z0,                     /* surface roughness height (m) */
+    VegConditions& roughness,       /* surface roughness height (m) */
     /* Atmospheric Forcing Variables */
     double AirDens,                 /* Density of air (kg/m3) */
     double EactAir,                 /* Actual vapor pressure of air (Pa) */
@@ -281,10 +281,10 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
 
   /* land surface parameters */
   fprintf(stderr,"Ra = %f\n",Ra);
-  fprintf(stderr, "Ra_used = %f\n", Ra_used[0]);
+  fprintf(stderr, "Ra_used = %f\n", Ra_used.surface);
   fprintf(stderr,"Displacement = %f\n",Displacement);
   fprintf(stderr,"Z = %f\n",Z);
-  fprintf(stderr,"Z0 = %f\n",Z0[0]);
+  fprintf(stderr,"Z0 = %f\n",roughness.snowFree);
 
   /* meteorological terms */
   fprintf(stderr,"AirDens = %f\n",AirDens);

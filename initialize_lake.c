@@ -299,9 +299,10 @@ int initialize_lake (lake_var_struct   *lake,
   }
   lake->soil.rootmoist           = 0.0;
   lake->soil.wetness             = 1.0;
-  for (i=0; i<2; i++) {
-    lake->soil.aero_resist[i]    = 0.0;
-  }
+
+  lake->soil.aero_resist.surface = 0.0;
+  lake->soil.aero_resist.overstory = 0.0;
+
   for (i=0; i<MAX_LAYERS; i++) {
     lake->soil.layer[i].Cs       = cell->layer[i].Cs;
     lake->soil.layer[i].T        = lake->temp[0];

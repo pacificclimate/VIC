@@ -592,6 +592,13 @@ DISP_ALL,
 /***** Data Structures *****/
 class WriteOutputFormat;
 
+/* The types of (stability-corrected) aerodynamic resistance (s/m) that were actually used in flux calculations. */
+struct AeroResistUsed {
+  AeroResistUsed() : surface(INVALID), overstory(INVALID) {}
+  double surface;
+  double overstory;
+};
+
 /** file structures **/
 typedef struct {
   FILE *forcing[2];     /* atmospheric forcing data files */
@@ -1121,7 +1128,7 @@ typedef struct {
   for each grid cell. HRU = Hydrologic Response Unit.
   ******************************************************************/
 typedef struct {
-  double aero_resist[2];               /* The (stability-corrected) aerodynamic
+  AeroResistUsed aero_resist; /* The (stability-corrected) aerodynamic
                                           resistance (s/m) that was actually used
                                           in flux calculations.
 					  [0] = surface (bare soil, non-overstory veg, or snow pack)

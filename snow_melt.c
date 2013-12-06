@@ -119,9 +119,9 @@ static char vcid[] = "$Id$";
 int snow_melt(double latent_heat_Le,
     double NetShortSnow,  // net SW at absorbed by snow
     double Tcanopy, double Tgrnd,
-    double *Z0,  // roughness
+    VegConditions &roughness,  // roughness
     double aero_resist,  // aerodynamic resistance
-    double *aero_resist_used,  // stability-corrected aerodynamic resistance
+    AeroResistUsed &aero_resist_used,  // stability-corrected aerodynamic resistance
     double air_temp,  // air temperature
     double coverage, // snowpack cover fraction
     double delta_t,  // time step in secs
@@ -227,7 +227,7 @@ int snow_melt(double latent_heat_Le,
   /* Calculate the surface energy balance for snow_temp = 0.0 */
   
   SnowPackEnergyBalance snowPack(delta_t, aero_resist, aero_resist_used,
-				   displacement, z2, Z0, 
+				   displacement, z2, roughness, 
 				   density, vp, LongSnowIn, latent_heat_Le, pressure,
 				   RainFall, NetShortSnow, vpd, 
 				   wind, (*OldTSurf), coverage, 
@@ -323,7 +323,7 @@ int snow_melt(double latent_heat_Le,
       /* Calculate surface layer temperature using "Brent method" */
       if (SurfaceSwq > MIN_SWQ_EB_THRES) {
         SnowPackEnergyBalance snowPackEnergyBalance(delta_t, aero_resist, aero_resist_used,
-				     displacement, z2, Z0, 
+				     displacement, z2, roughness, 
 				     density, vp, LongSnowIn, latent_heat_Le, pressure,
 				     RainFall, NetShortSnow, vpd, 
 				     wind, (*OldTSurf), coverage, 
@@ -351,7 +351,7 @@ int snow_melt(double latent_heat_Le,
           else {
 	    error = ErrorPrintSnowPackEnergyBalance(snow->surf_temp, rec, iveg, band,
 					 delta_t, aero_resist, aero_resist_used,
-					 displacement, z2, Z0, 
+					 displacement, z2, roughness, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,
 					 RainFall, NetShortSnow, vpd, 
 					 wind, (*OldTSurf), coverage, 
@@ -376,7 +376,7 @@ int snow_melt(double latent_heat_Le,
       }
       if (IS_VALID(snow->surf_temp) && RootBrent::resultIsError(snow->surf_temp) == false) {
         SnowPackEnergyBalance snowPackEnergyBalanceSurfTemp(delta_t, aero_resist, aero_resist_used,
-					 displacement, z2, Z0, 
+					 displacement, z2, roughness, 
 					 density, vp, LongSnowIn, latent_heat_Le, pressure,
 					 RainFall, NetShortSnow, vpd, 
 					 wind, (*OldTSurf), coverage, 
@@ -567,10 +567,10 @@ double ErrorPrintSnowPackEnergyBalance(double TSurf, int rec, int iveg, int band
     double Dt,                      /* Model time step (sec) */
     /* Vegetation Parameters */
     double Ra,                      /* Aerodynamic resistance (s/m) */
-    double* RaUsed,
+    AeroResistUsed& RaUsed,
     double Displacement,            /* Displacement height (m) */
     double Z,                       /* Reference height (m) */
-    double *Z0,                      /* surface roughness height (m) */
+    VegConditions &roughness,                      /* surface roughness height (m) */
     /* Atmospheric Forcing Variables */
     double AirDens,                 /* Density of air (kg/m3) */
     double EactAir,                 /* Actual vapor pressure of air (Pa) */

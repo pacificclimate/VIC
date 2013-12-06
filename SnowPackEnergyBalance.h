@@ -1,4 +1,5 @@
 #include "root_brent.h"
+#include "VegConditions.h"
 
 #ifndef SNOWPACKENERGYBALANCE_H_
 #define SNOWPACKENERGYBALANCE_H_
@@ -7,10 +8,10 @@ class SnowPackEnergyBalance : public RootBrent {
 public:
   SnowPackEnergyBalance(  double Dt,      /* Model time step (sec) */
       double Ra,                          /* Aerodynamic resistance (s/m) */
-      double* Ra_used,                    /* Aerodynamic resistance (s/m) after stability correction */
+      AeroResistUsed& Ra_used,            /* Aerodynamic resistance (s/m) after stability correction */
       double Displacement,                /* Displacement height (m) */
       double Z,                           /* Reference height (m) */
-      double* Z0,                         /* surface roughness height (m) */
+      VegConditions& roughness,           /* surface roughness height (m) */
       double AirDens,                     /* Density of air (kg/m3) */
       double EactAir,                     /* Actual vapor pressure of air (Pa) */
       double LongSnowIn,                  /* Incoming longwave radiation (W/m2) */
@@ -41,7 +42,7 @@ public:
       double* blowing_flux,               /* Mass flux of water vapor from blowing snow. (m/timestep) */
       double* surface_flux                /* Mass flux of water vapor from pack snow. (m/timestep) */
   ) :
-      Dt(Dt), Ra(Ra), Ra_used(Ra_used), Displacement(Displacement), Z(Z), Z0(Z0), AirDens(AirDens),
+      Dt(Dt), Ra(Ra), Ra_used(Ra_used), Displacement(Displacement), Z(Z), roughness(roughness), AirDens(AirDens),
       EactAir(EactAir), LongSnowIn(LongSnowIn), Lv(Lv), Press(Press), Rain(Rain), NetShortUnder(NetShortUnder),
       Vpd(Vpd), Wind(Wind), OldTSurf(OldTSurf), SnowCoverFract(SnowCoverFract), SnowDepth(SnowDepth),
       SnowDensity(SnowDensity), SurfaceLiquidWater(SurfaceLiquidWater), SweSurfaceLayer(SweSurfaceLayer), Tair(Tair),
@@ -55,10 +56,10 @@ private:
 
   double Dt;
   double Ra;
-  double* Ra_used;
+  AeroResistUsed& Ra_used;
   double Displacement;
   double Z;
-  double* Z0;
+  VegConditions& roughness;
   double AirDens;
   double EactAir;
   double LongSnowIn;

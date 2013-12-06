@@ -125,10 +125,10 @@ int  full_energy(char                 NEWCELL,
   double                 Tend_grnd;
   double                 wind_h;
   double                 height;
-  double                 displacement[3];
-  double                 roughness[3];
-  double                 ref_height[3];
-  double               **aero_resist;
+  VegConditions          displacement;
+  VegConditions          roughness;
+  VegConditions          ref_height;
+  VegConditions          *aero_resist;
   double                 Cv;
   double                 latent_heat_Le;
   double                 Melt[2*MAX_BANDS];
@@ -137,7 +137,7 @@ int  full_energy(char                 NEWCELL,
   double                 rainonly;
   double                 sum_runoff;
   double                 sum_baseflow;
-  double                 tmp_wind[3];
+  VegConditions          wind_speed;
   double                 tmp_mu;
   double                 tmp_total_moist;
   double                 gauge_correction[2];
@@ -171,9 +171,9 @@ int  full_energy(char                 NEWCELL,
   double                 evap_prior[2][MAX_VEG][MAX_BANDS][MAX_LAYERS]; //mm
 
   /* Allocate aero_resist array */
-  aero_resist = (double**) calloc(N_PET_TYPES + 1, sizeof(double*));
+  aero_resist = (VegConditions*) calloc(N_PET_TYPES + 1, sizeof(VegConditions));
   for (int p = 0; p < N_PET_TYPES + 1; p++) {
-    aero_resist[p] = (double*) calloc(3, sizeof(double));
+    aero_resist[p] = VegConditions();
   }
 
   /* set variables for distributed precipitation */
@@ -310,9 +310,10 @@ int  full_energy(char                 NEWCELL,
         for (int p = 0; p < N_PET_TYPES + 1; p++) {
 
           /* Initialize wind speeds */
-          tmp_wind[0] = atmos->wind[state->NR];
-          tmp_wind[1] = INVALID;
-          tmp_wind[2] = INVALID;
+          wind_speed.snowFree = atmos->wind[state->NR];
+          wind_speed.canopyIfOverstory = INVALID;
+          wind_speed.snowCovered = INVALID;
+          wind_speed.glacierSurface = INVALID;
 
           /* Set surface descriptive variables */
           if (p < N_PET_TYPES_NON_NAT) {
@@ -320,32 +321,32 @@ int  full_energy(char                 NEWCELL,
           } else {
             pet_veg_class = veg_class;
           }
-          displacement[0] =
+          displacement.snowFree =
               state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month
                   - 1];
-          roughness[0] =
+          roughness.snowFree =
               state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month
                   - 1];
           overstory = state->veg_lib[pet_veg_class].overstory;
           if (p >= N_PET_TYPES_NON_NAT)
-            if (roughness[0] == 0)
-              roughness[0] = soil_con->rough;
+            if (roughness.snowFree == 0)
+              roughness.snowFree = soil_con->rough;
 
           /* Estimate vegetation height */
-          height = calc_veg_height(displacement[0]);
+          height = calc_veg_height(displacement.snowFree);
 
           /* Estimate reference height */
-          if (displacement[0] < wind_h)
-            ref_height[0] = wind_h;
+          if (displacement.snowFree < wind_h)
+            ref_height.snowFree = wind_h;
           else
-            ref_height[0] = displacement[0] + wind_h + roughness[0];
+            ref_height.snowFree = displacement.snowFree + wind_h + roughness.snowFree;
 
           /* Compute aerodynamic resistance over various surface types */
           /* Do this not only for current veg but also all types of PET */
           int ErrorFlag = CalcAerodynamic(overstory, height,
               state->veg_lib[pet_veg_class].trunk_ratio, soil_con->snow_rough,
               soil_con->rough, state->veg_lib[pet_veg_class].wind_atten,
-              aero_resist[p], tmp_wind, displacement, ref_height, roughness);
+              aero_resist[p], wind_speed, displacement, ref_height, roughness);
           if (ErrorFlag == ERROR)
             return (ERROR);
 
@@ -355,8 +356,8 @@ int  full_energy(char                 NEWCELL,
 
       /* Initialize final aerodynamic resistance values */
       if (soil_con->AreaFract[it->bandIndex] > 0) {
-        it->cell[WET].aero_resist[0] = aero_resist[N_PET_TYPES][0];
-        it->cell[WET].aero_resist[1] = aero_resist[N_PET_TYPES][1];
+        it->cell[WET].aero_resist.surface = aero_resist[N_PET_TYPES].snowFree;
+        it->cell[WET].aero_resist.overstory = aero_resist[N_PET_TYPES].canopyIfOverstory;
       }
 
 
@@ -405,7 +406,7 @@ int  full_energy(char                 NEWCELL,
               surf_atten, &(Melt[it->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
               gauge_correction, &out_prec[it->bandIndex * 2], &out_rain[it->bandIndex * 2],
               &out_snow[it->bandIndex * 2], ref_height, roughness, &snow_inflow[it->bandIndex],
-              tmp_wind, Nbands, Ndist, state->options.Nlayer,
+              wind_speed, Nbands, Ndist, state->options.Nlayer,
               Nveg, it->bandIndex, it->vegIndex, time_step_record, veg_class, atmos,
               dmy, &(it->energy), &(it->cell[DRY]), &(it->cell[WET]), &(it->snow),
               soil_con, &(it->veg_var[DRY]), &(it->veg_var[WET]), &(it->glacier), lag_one,
@@ -418,7 +419,7 @@ int  full_energy(char                 NEWCELL,
               &(Melt[it->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
               gauge_correction, &out_prec[it->bandIndex * 2], &out_rain[it->bandIndex * 2],
               &out_snow[it->bandIndex * 2], ref_height, roughness, &snow_inflow[it->bandIndex],
-              tmp_wind, veg_con[it->vegIndex].root, Nbands, Ndist, state->options.Nlayer,
+              wind_speed, veg_con[it->vegIndex].root, Nbands, Ndist, state->options.Nlayer,
               Nveg, it->bandIndex, dp, it->vegIndex, time_step_record, veg_class, atmos, dmy,
               &(it->energy), &(it->cell[DRY]),
               &(it->cell[WET]), &(it->snow), soil_con,
@@ -499,10 +500,7 @@ int  full_energy(char                 NEWCELL,
     } /** end current vegetation type **/
   } /** end of vegetation loop **/
 
-  for (int p = 0; p < N_PET_TYPES + 1; p++) {
-    free((char *) aero_resist[p]);
-  }
-  free((char *) aero_resist);
+  free(aero_resist);
 
   /****************************
    Calculate Subsidence

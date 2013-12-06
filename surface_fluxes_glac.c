@@ -15,16 +15,16 @@ int surface_fluxes_glac(
        double               surf_atten,
        double              *Melt,
        double              *latent_heat_Le,
-       double             **aero_resist,
-       double              *displacement,
+       VegConditions       *aero_resist,
+       VegConditions       &displacement,
        double              *gauge_correction,
        double              *out_prec,
        double              *out_rain,
        double              *out_snow,
-       double              *ref_height,
-       double              *roughness,
+       VegConditions       &ref_height,
+       VegConditions       &roughness,
        double              *snow_inflow,
-       double              *wind,
+       VegConditions       &wind_speed,
        int                  Nbands,
        int                  Ndist,
        int                  Nlayers,
@@ -58,7 +58,7 @@ int surface_fluxes_glac(
 {
   int                    ErrorFlag;
   int                    N_steps;
-  int                    UnderStory;
+  VegConditions::VegetationConditions UnderStory;
   int                    hidx;     // index of initial element of atmos array
   int                    step_inc; // number of atmos array elements to skip per surface fluxes step
   int                    endhidx;  // index of final element of atmos array
@@ -93,7 +93,7 @@ int surface_fluxes_glac(
   double                 step_out_snow;
   double                 step_ppt[2];
   double                 step_prec[2];
-  double               **step_aero_resist;
+  AeroResistUsed        *step_aero_resist;
   double step_melt_glac;
 
   // Quantities that need to be summed or averaged over multiple snow steps
@@ -150,7 +150,7 @@ int surface_fluxes_glac(
   // cell structure
   double                 store_layerevap[2][MAX_LAYERS];
   double                 store_ppt[2];
-  double                 store_aero_cond_used[2];
+  AeroResistUsed         store_aero_cond_used;
   double                 store_pot_evap[N_PET_TYPES];
 
   // Structures holding values for current snow step
@@ -162,15 +162,12 @@ int surface_fluxes_glac(
   glac_data_struct       step_glacier;
 
   // Structures holding values for current iteration
-  double                 temp_aero_resist[3];
-  double                 temp_aero_resist_used[2];
+  VegConditions          temp_aero_resist;
+  AeroResistUsed         temp_aero_resist_used;
   double                 stability_factor[2];
   double                 step_pot_evap[N_PET_TYPES];
 
-  step_aero_resist = (double**) calloc(N_PET_TYPES, sizeof(double*));
-  for (int p = 0; p < N_PET_TYPES; p++) {
-    step_aero_resist[p] = (double*) calloc(2, sizeof(double));
-  }
+  step_aero_resist = new AeroResistUsed[N_PET_TYPES];
 
   /***********************************************************************
    Set temporary variables - preserves original values until iterations
@@ -233,8 +230,8 @@ int surface_fluxes_glac(
   store_ppt[WET] = 0;
   store_ppt[DRY] = 0;
   step_prec[DRY] = 0;
-  store_aero_cond_used[0] = 0;
-  store_aero_cond_used[1] = 0;
+  store_aero_cond_used.surface = 0;
+  store_aero_cond_used.overstory = 0;
   (*snow_inflow) = 0;
   for (int p = 0; p < N_PET_TYPES; p++) {
     store_pot_evap[p] = 0;
@@ -277,10 +274,10 @@ int surface_fluxes_glac(
     if (state->options.BLOWING && step_snow.swq > 0.) {
       double Ls = (677. - 0.07 * step_snow.surf_temp) * JOULESPCAL * GRAMSPKG;
       step_snow.blowing_flux = CalcBlowingSnow((double) step_dt, Tair,
-          step_snow.last_snow, step_snow.surf_water, wind[2], Ls,
+          step_snow.last_snow, step_snow.surf_water, wind_speed.snowCovered, Ls,
           atmos->density[hidx], atmos->pressure[hidx], atmos->vp[hidx],
-          roughness[2], ref_height[2], step_snow.depth, lag_one, sigma_slope,
-          step_snow.surf_temp, iveg, Nveg, fetch, displacement[1], roughness[1],
+          roughness.snowCovered, ref_height.snowCovered, step_snow.depth, lag_one, sigma_slope,
+          step_snow.surf_temp, iveg, Nveg, fetch, displacement.canopyIfOverstory, roughness.canopyIfOverstory,
           &step_snow.transport);
       if ((int) step_snow.blowing_flux == ERROR) {
         return (ERROR);
@@ -289,11 +286,10 @@ int surface_fluxes_glac(
     } else
       step_snow.blowing_flux = 0.0;
 
-    for (int q = 0; q < 3; q++) {
-      temp_aero_resist[q] = aero_resist[N_PET_TYPES][q];
-    }
-    temp_aero_resist_used[0] = cell_wet->aero_resist[0];
-    temp_aero_resist_used[1] = cell_wet->aero_resist[1];
+    temp_aero_resist = aero_resist[N_PET_TYPES];
+
+    temp_aero_resist_used.surface = cell_wet->aero_resist.surface;
+    temp_aero_resist_used.overstory = cell_wet->aero_resist.overstory;
     step_snow.canopy_vapor_flux = 0;
     step_snow.vapor_flux = 0;
     step_snow.surface_flux = 0;
@@ -310,9 +306,9 @@ int surface_fluxes_glac(
        temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
        displacement, &step_melt_energy, out_prec, out_rain, out_snow,
        step_ppt, rainfall, ref_height,
-       roughness, snow_inflow, snowfall, &surf_atten, wind,
+       roughness, snow_inflow, snowfall, &surf_atten, wind_speed,
        iveg, band, step_dt, rec, hidx,
-       veg_class, &UnderStory, dmy, *atmos, &(step_energy),
+       veg_class, UnderStory, dmy, *atmos, &(step_energy),
        &(step_snow), soil_con, &step_glacier, state);
 
       if (step_melt == ERROR)
@@ -332,8 +328,8 @@ int surface_fluxes_glac(
           &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
           temp_aero_resist, temp_aero_resist_used, displacement,
           &step_melt_energy, out_prec, out_rain, out_snow,
-          step_ppt, rainfall, ref_height, roughness, snowfall, wind, Nveg, iveg,
-          band, step_dt, rec, hidx, &UnderStory, dmy, atmos, &step_energy,
+          step_ppt, rainfall, ref_height, roughness, snowfall, wind_speed, Nveg, iveg,
+          band, step_dt, rec, hidx, UnderStory, dmy, atmos, &step_energy,
           &step_glacier, soil_con, state);
 
       if (step_melt_glac == ERROR) {
@@ -359,32 +355,32 @@ int surface_fluxes_glac(
      Compute Potential Evap
      **************************************/
     // First, determine the stability correction used in the iteration
-    if (temp_aero_resist_used[0] == HUGE_RESIST)
+    if (temp_aero_resist_used.surface == HUGE_RESIST)
       stability_factor[0] = HUGE_RESIST;
     else
-      stability_factor[0] = temp_aero_resist_used[0]
+      stability_factor[0] = temp_aero_resist_used.surface
           / aero_resist[N_PET_TYPES][UnderStory];
-    if (temp_aero_resist_used[1] == temp_aero_resist_used[0])
+    if (temp_aero_resist_used.overstory == temp_aero_resist_used.surface)
       stability_factor[1] = stability_factor[0];
     else {
-      if (temp_aero_resist_used[1] == HUGE_RESIST)
+      if (temp_aero_resist_used.overstory == HUGE_RESIST)
         stability_factor[1] = HUGE_RESIST;
       else
-        stability_factor[1] = temp_aero_resist_used[1]
-            / aero_resist[N_PET_TYPES][1];
+        stability_factor[1] = temp_aero_resist_used.overstory
+            / aero_resist[N_PET_TYPES].canopyIfOverstory;
     }
 
     // Next, loop over pot_evap types and apply the correction to the relevant aerodynamic resistance
     for (int p = 0; p < N_PET_TYPES; p++) {
       if (stability_factor[0] == HUGE_RESIST)
-        step_aero_resist[p][0] = HUGE_RESIST;
+        step_aero_resist[p].surface = HUGE_RESIST;
       else
-        step_aero_resist[p][0] = aero_resist[p][UnderStory]
+        step_aero_resist[p].surface = aero_resist[p][UnderStory]
             * stability_factor[0];
       if (stability_factor[1] == HUGE_RESIST)
-        step_aero_resist[p][1] = HUGE_RESIST;
+        step_aero_resist[p].overstory = HUGE_RESIST;
       else
-        step_aero_resist[p][1] = aero_resist[p][1] * stability_factor[1];
+        step_aero_resist[p].overstory = aero_resist[p].canopyIfOverstory * stability_factor[1];
     }
 
     // Finally, compute pot_evap
@@ -399,14 +395,14 @@ int surface_fluxes_glac(
     for (int dist = 0; dist < Ndist; dist++) {
       store_ppt[dist] += step_ppt[dist];
     }
-    if (temp_aero_resist_used[0] > 0)
-      store_aero_cond_used[0] += 1 / temp_aero_resist_used[0];
+    if (temp_aero_resist_used.surface > 0)
+      store_aero_cond_used.surface += 1 / temp_aero_resist_used.surface;
     else
-      store_aero_cond_used[0] += HUGE_RESIST;
-    if (temp_aero_resist_used[1] > 0)
-      store_aero_cond_used[1] += 1 / temp_aero_resist_used[1];
+      store_aero_cond_used.surface += HUGE_RESIST;
+    if (temp_aero_resist_used.overstory > 0)
+      store_aero_cond_used.overstory += 1 / temp_aero_resist_used.overstory;
     else
-      store_aero_cond_used[1] += HUGE_RESIST;
+      store_aero_cond_used.overstory += HUGE_RESIST;
 
     store_melt += step_melt;
     store_vapor_flux += step_snow.vapor_flux;
@@ -562,25 +558,22 @@ int surface_fluxes_glac(
     evap_prior_dry[lidx] = store_layerevap[DRY][lidx];
 #endif
   }
-  if (store_aero_cond_used[0] > 0 && store_aero_cond_used[0] < HUGE_RESIST)
-    cell_wet->aero_resist[0] = 1 / (store_aero_cond_used[0] / (double) N_steps);
-  else if (store_aero_cond_used[0] >= HUGE_RESIST)
-    cell_wet->aero_resist[0] = 0;
+  if (store_aero_cond_used.surface > 0 && store_aero_cond_used.surface < HUGE_RESIST)
+    cell_wet->aero_resist.surface = 1 / (store_aero_cond_used.surface / (double) N_steps);
+  else if (store_aero_cond_used.surface >= HUGE_RESIST)
+    cell_wet->aero_resist.surface = 0;
   else
-    cell_wet->aero_resist[0] = HUGE_RESIST;
-  if (store_aero_cond_used[1] > 0 && store_aero_cond_used[1] < HUGE_RESIST)
-    cell_wet->aero_resist[1] = 1 / (store_aero_cond_used[1] / (double) N_steps);
-  else if (store_aero_cond_used[1] >= HUGE_RESIST)
-    cell_wet->aero_resist[1] = 0;
+    cell_wet->aero_resist.surface = HUGE_RESIST;
+  if (store_aero_cond_used.overstory > 0 && store_aero_cond_used.overstory < HUGE_RESIST)
+    cell_wet->aero_resist.overstory = 1 / (store_aero_cond_used.overstory / (double) N_steps);
+  else if (store_aero_cond_used.overstory >= HUGE_RESIST)
+    cell_wet->aero_resist.overstory = 0;
   else
-    cell_wet->aero_resist[1] = HUGE_RESIST;
+    cell_wet->aero_resist.overstory = HUGE_RESIST;
   for (int p = 0; p < N_PET_TYPES; p++)
     cell_wet->pot_evap[p] = store_pot_evap[p] / (double) N_steps;
 
-  for (int p = 0; p < N_PET_TYPES; p++) {
-    free((char *) step_aero_resist[p]);
-  }
-  free((char *) step_aero_resist);
+  delete [] step_aero_resist;
 
   /********************************************************
    Compute Runoff, Baseflow, and Soil Moisture Transport
