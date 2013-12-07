@@ -183,6 +183,41 @@ void verifyGlobalAttributes(const NcFile& file) {
   }
 }
 
+void addGlobalAttributes(NcFile* netCDF, const ProgramState* state) {
+  // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
+  netCDF->putAtt("title", "VIC output.");
+  std::string source = std::string("VIC ") + version + ". ";
+  source += "(Built from source: " + getSourceVersion() + ").";
+  std::string history = "Created by " + source + ".\n";
+  history += " Compiled on: " + getDateOfCompilation() + ".\n";
+  history += " Compiled by machine: " + getCompilationMachineInfo() + ".\n";
+  history += " Model run by machine: " + getRuntimeMachineInfo();
+
+  netCDF->putAtt("model_start_year", netCDF::ncInt, state->global_param.startyear);
+  netCDF->putAtt("model_start_month", netCDF::ncInt, state->global_param.startmonth);
+  netCDF->putAtt("model_start_day", netCDF::ncInt, state->global_param.startday);
+  netCDF->putAtt("model_start_hour", netCDF::ncInt, state->global_param.starthour);
+
+  // Add global attributes specified in the global input file.
+  // Special cases for "source" and "history" attributes: they can't be overwritten, just appended to.
+  for (std::vector<std::pair<std::string, std::string> >::const_iterator it =
+      state->global_param.netCDFGlobalAttributes.begin();
+      it != state->global_param.netCDFGlobalAttributes.end(); ++it) {
+    if (it->first.compare("source") == 0) {
+      source += it->second;
+    } else if (it->first.compare("history") == 0) {
+      history += it->second;
+    } else {
+      netCDF->putAtt(it->first, it->second);
+    }
+  }
+
+  netCDF->putAtt("source", source.c_str());
+  netCDF->putAtt("history", history.c_str());
+  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
+  netCDF->putAtt("Conventions", "CF-1.6");
+}
+
 int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
   dmy_struct endTime;
   endTime.year = state->global_param.endyear;
@@ -197,45 +232,24 @@ int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
 void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
 
-  // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
-  ncFile.putAtt("title", "VIC output.");
-  std::string source = std::string("VIC ") + version + ". ";
-  source += "(Built from source: " + getSourceVersion() + ").";
-  std::string history = "Created by " + source + ".\n";
-  history += " Compiled on: " + getDateOfCompilation() + ".\n";
-  history += " Compiled by machine: " + getCompilationMachineInfo() + ".\n";
-  history += " Model run by machine: " + getRuntimeMachineInfo();
+  addGlobalAttributes(&ncFile, state);
 
-  // Add global attributes specified in the global input file.
-  // Special cases for "source" and "history" attributes: they can't be overwritten, just appended to.
-  for (std::vector<std::pair<std::string, std::string> >::const_iterator it = state->global_param.netCDFGlobalAttributes.begin();
-      it != state->global_param.netCDFGlobalAttributes.end(); ++it) {
-    if (it->first.compare("source") == 0) {
-      source += it->second;
-    } else if (it->first.compare("history") == 0) {
-      history += it->second;
-    } else {
-      ncFile.putAtt(it->first, it->second);
-    }
-  }
-
-  ncFile.putAtt("source", source.c_str());
-  ncFile.putAtt("history", history.c_str());
-
-  ncFile.putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
-  ncFile.putAtt("Conventions", "CF-1.6");
+  ncFile.putAtt("model_end_year", netCDF::ncInt, state->global_param.endyear);
+  ncFile.putAtt("model_end_month", netCDF::ncInt, state->global_param.endmonth);
+  ncFile.putAtt("model_end_day", netCDF::ncInt, state->global_param.endday);
 
   verifyGlobalAttributes(ncFile);
 
   // Set up the dimensions and variables.
   int timeSize = getLengthOfTimeDimension(state);
+  int valuesSize = MAX_BANDS;
   fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld, time: %d\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions, timeSize);
 
   NcDim latDim = ncFile.addDim("lat", (size_t)state->global_param.gridNumLatDivisions);
   NcDim lonDim = ncFile.addDim("lon", (size_t)state->global_param.gridNumLonDivisions);
   NcDim bounds = ncFile.addDim("bnds", 2);
   NcDim timeDim = ncFile.addDim("time", timeSize);
-  NcDim valuesDim = ncFile.addDim("depth", MAX_BANDS);  // This dimension allows for variables which are actually arrays of values.
+  NcDim valuesDim = ncFile.addDim("depth", valuesSize);  // This dimension allows for variables which are actually arrays of values.
 
 
   // Define the coordinate variables.
@@ -285,10 +299,23 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   timeVar.putAtt("units", ss.str());
   timeVar.putAtt("bounds", "time_bnds");
   timeVar.putAtt("calendar", "gregorian");
+  std::vector<size_t> start, count;
+  start.push_back(0);
+  count.push_back(1);
+  for (int i = 0; i < timeSize; i++) {
+    start[0] = i;
+    float index = i;
+    timeVar.putVar(start, count, &index);
+  }
 
   valuesVar.putAtt("standard name", "z_dim");
   valuesVar.putAtt("long name", "array values");
   valuesVar.putAtt("units", "z_dim");
+  for (int i = 0; i < valuesSize; i++) {
+    start[0] = i;
+    float index = i;
+    valuesVar.putVar(start, count, &index);
+  }
 
 
   out_data_struct* out_data_defaults = create_output_list(state);

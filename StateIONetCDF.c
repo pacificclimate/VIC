@@ -15,13 +15,8 @@ using netCDF::ncFloat;
 using netCDF::ncInt;
 
 // The following functions are defined in the WriteOutputNetCDF.c file.
-std::string getCompilationMachineInfo();
-std::string getDateOfCompilation();
-std::string getRuntimeMachineInfo();
-std::string getSourceVersion();
+void addGlobalAttributes(NcFile* netCDF, const ProgramState* state);
 void verifyGlobalAttributes(const NcFile& file);
-
-extern const char* version; // Defined in global.h
 
 // List of strings that are used in more than one place (prevents spelling mistakes in separate places and is more maintainable).
 const std::string stateYear = "state_year";
@@ -129,33 +124,7 @@ void StateIONetCDF::initializeOutput() {
 
   netCDF = new NcFile(filename.c_str(), NcFile::replace, NcFile::nc4);
 
-  // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
-  netCDF->putAtt("title", "VIC output.");
-  std::string source = std::string("VIC ") + version + ". ";
-  source += "(Built from source: " + getSourceVersion() + ").";
-  std::string history = "Created by " + source + ".\n";
-  history += " Compiled on: " + getDateOfCompilation() + ".\n";
-  history += " Compiled by machine: " + getCompilationMachineInfo() + ".\n";
-  history += " Model run by machine: " + getRuntimeMachineInfo();
-
-  // Add global attributes specified in the global input file.
-  // Special cases for "source" and "history" attributes: they can't be overwritten, just appended to.
-  for (std::vector<std::pair<std::string, std::string> >::const_iterator it =
-      state->global_param.netCDFGlobalAttributes.begin();
-      it != state->global_param.netCDFGlobalAttributes.end(); ++it) {
-    if (it->first.compare("source") == 0) {
-      source += it->second;
-    } else if (it->first.compare("history") == 0) {
-      history += it->second;
-    } else {
-      netCDF->putAtt(it->first, it->second);
-    }
-  }
-
-  netCDF->putAtt("source", source.c_str());
-  netCDF->putAtt("history", history.c_str());
-  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
-  netCDF->putAtt("Conventions", "CF-1.6");
+  addGlobalAttributes(netCDF, state);
 
   /* Write save state date information */
   netCDF->putAtt(stateYear, netCDF::ncInt, state->global_param.stateyear);
