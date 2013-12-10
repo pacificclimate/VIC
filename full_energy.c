@@ -167,8 +167,6 @@ int  full_energy(char                 NEWCELL,
   double                 total_meltwater = 0; //mm
   double                 tmp_depth = 0, tmp_depth_prior = 0; //m
   double                 ppt[2]; 
-  double                 moist_prior[2][MAX_VEG][MAX_BANDS][MAX_LAYERS]; //mm
-  double                 evap_prior[2][MAX_VEG][MAX_BANDS][MAX_LAYERS]; //mm
 
   /* Allocate aero_resist array */
   aero_resist = new VegConditions [N_PET_TYPES + 1];
@@ -403,8 +401,7 @@ int  full_energy(char                 NEWCELL,
         if (hru->isGlacier) {  // If this HRU contains glacier then perform different, glacier specific, calculations.
 
           ErrorFlag = surface_fluxes_glac(bare_albedo, height, ice0[hru->bandIndex],
-              moist0[hru->bandIndex], SubsidenceUpdate, evap_prior[DRY][hru->vegIndex][hru->bandIndex],
-              evap_prior[WET][hru->vegIndex][hru->bandIndex], prcp->mu[hru->vegIndex],
+              moist0[hru->bandIndex], SubsidenceUpdate, prcp->mu[hru->vegIndex],
               &(Melt[hru->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
               gauge_correction, &out_prec[hru->bandIndex * 2], &out_rain[hru->bandIndex * 2],
               &out_snow[hru->bandIndex * 2], ref_height, roughness, &snow_inflow[hru->bandIndex],
@@ -416,8 +413,7 @@ int  full_energy(char                 NEWCELL,
 
         } else {              // Otherwise, run the model calculations as normal.
           ErrorFlag = surface_fluxes(overstory, bare_albedo, height, ice0[hru->bandIndex],
-              moist0[hru->bandIndex], SubsidenceUpdate, evap_prior[DRY][hru->vegIndex][hru->bandIndex],
-              evap_prior[WET][hru->vegIndex][hru->bandIndex], prcp->mu[hru->vegIndex], surf_atten,
+              moist0[hru->bandIndex], SubsidenceUpdate, prcp->mu[hru->vegIndex], surf_atten,
               &(Melt[hru->bandIndex * 2]), &latent_heat_Le, aero_resist, displacement,
               gauge_correction, &out_prec[hru->bandIndex * 2], &out_rain[hru->bandIndex * 2],
               &out_snow[hru->bandIndex * 2], ref_height, roughness, &snow_inflow[hru->bandIndex],

@@ -520,8 +520,8 @@ double StabilityCorrection(double, double, double, double, double, double);
 void   store_moisture_for_debug(int,int,double *, std::vector<HRU>&,
 				const soil_con_struct *, const ProgramState*);
 
-int surface_fluxes(char, double, double, double, double, int, double *,
-    double *, double, double, double *, double *, VegConditions *,
+int surface_fluxes(char, double, double, double, double, int,
+    double, double, double *, double *, VegConditions *,
     VegConditions &, double *, double *, double *, double *, VegConditions &,
     VegConditions &, double *, VegConditions &, const float *, int, int, int,
     int, int, int, int, int, int, atmos_data_struct *, const dmy_struct *,
@@ -530,8 +530,7 @@ int surface_fluxes(char, double, double, double, double, int, double *,
     veg_var_struct *, float, float, float, const ProgramState *);
 
 int surface_fluxes_glac(double BareAlbedo, double height, double ice0,
-    double moist0, int SubsidenceUpdate, double *evap_prior_dry,
-    double *evap_prior_wet, double current_prcp_mu,
+    double moist0, int SubsidenceUpdate, double current_prcp_mu,
     double *Melt, double *latent_heat_Le, VegConditions *aero_resist,
     VegConditions &displacement, double *gauge_correction, double *out_prec,
     double *out_rain, double *out_snow, VegConditions &ref_height,

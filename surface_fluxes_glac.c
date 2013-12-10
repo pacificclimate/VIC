@@ -9,8 +9,6 @@ int surface_fluxes_glac(
        double               ice0,
        double               moist0,
        int                  SubsidenceUpdate,
-       double              *evap_prior_dry,
-       double              *evap_prior_wet,
        double               current_prcp_mu,
        double              *Melt,
        double              *latent_heat_Le,

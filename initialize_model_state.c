@@ -775,7 +775,6 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
   int      ErrorFlag;
   double   Zsum;
   double   tmpdp, tmpadj, Bexp;
-  double   moist[MAX_VEG][MAX_BANDS][MAX_LAYERS];
 
   double Tnode_prior[MAX_NODES];
   double Zsum_prior[MAX_NODES];
@@ -894,13 +893,14 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
               soil_con->FS_ACTIVE, state);
         }
 
+        double moist[MAX_LAYERS];
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++)
-          moist[it->vegIndex][it->bandIndex][lidx] = it->cell[WET].layer[lidx].moist;
+          moist[lidx] = it->cell[WET].layer[lidx].moist;
 
         /* set soil moisture properties for all soil thermal nodes */
         if (!(state->options.LAKES && veg_con->LAKE != 0)) {
           ErrorFlag = distribute_node_moisture_properties(&it->energy, soil_con,
-              moist[it->vegIndex][it->bandIndex], state);
+              moist, state);
           if (ErrorFlag == ERROR)
             return (ErrorFlag);
         }
