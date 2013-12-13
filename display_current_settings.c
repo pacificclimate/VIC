@@ -141,7 +141,6 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   fprintf(stderr,"MAX_LAKE_NODES\t\t%2d\n",MAX_LAKE_NODES);
   fprintf(stderr,"MAX_LAYERS\t\t%2d\n",MAX_LAYERS);
   fprintf(stderr,"MAX_NODES\t\t%2d\n",MAX_NODES);
-  fprintf(stderr,"MAX_VEG\t\t\t%2d\n",MAX_VEG);
   fprintf(stderr,"\n");
   fprintf(stderr,"Snow Constants:\n");
   fprintf(stderr,"TraceSnow\t\t%f\n",TraceSnow);

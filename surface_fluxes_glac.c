@@ -9,6 +9,8 @@ int surface_fluxes_glac(
        double               ice0,
        double               moist0,
        int                  SubsidenceUpdate,
+       double              *evap_prior_dry,
+       double              *evap_prior_wet,
        HRU&                 hru,
        double              *Melt,
        double              *latent_heat_Le,
@@ -541,8 +543,8 @@ int surface_fluxes_glac(
     hru.cell[WET].layer[lidx].evap = store_layerevap[WET][lidx];
     hru.cell[DRY].layer[lidx].evap = store_layerevap[DRY][lidx];
 #if EXCESS_ICE
-    hru.evap_prior[WET][lidx] = store_layerevap[WET][lidx];
-    hru.evap_prior[DRY][lidx] = store_layerevap[DRY][lidx];
+    evap_prior[WET][lidx] = store_layerevap[WET][lidx];
+    evap_prior[DRY][lidx] = store_layerevap[DRY][lidx];
 #endif
   }
   if (store_aero_cond_used.surface > 0 && store_aero_cond_used.surface < HUGE_RESIST)

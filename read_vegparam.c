@@ -97,10 +97,6 @@ void read_vegparam(FILE *vegparam,
     fprintf(stderr, "Error in vegetation file.  Grid cell %d not found\n", cell.soil_con.gridcel);
     exit(99);
   }
-  if(numHRUs >= MAX_VEG) {
-    sprintf(ErrStr,"Vegetation parameter file wants more vegetation tiles in grid cell %i (%i) than are allowed by MAX_VEG (%i) [NOTE: bare soil class is assumed].  Edit vicNl_def.h and recompile.",cell.soil_con.gridcel,numHRUs+1,MAX_VEG);
-    nrerror(ErrStr);
-  }
 
   cell.Cv_sum = 0.0;
 

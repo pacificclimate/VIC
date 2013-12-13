@@ -121,11 +121,12 @@ int initialize_model_state(cell_info_struct* cell,
   double   Tair;
   double   tmp;
   double  *M;
-  double   moist[MAX_VEG][MAX_BANDS][MAX_LAYERS];
+  const int NUM_HRU = cell->prcp.hruList.size();
+  double   moist[NUM_HRU][MAX_LAYERS];
 #if SPATIAL_FROST
-  double   ice[MAX_VEG][MAX_BANDS][MAX_LAYERS][FROST_SUBAREAS];
+  double   ice[NUM_HRU][MAX_LAYERS][FROST_SUBAREAS];
 #else
-  double   ice[MAX_VEG][MAX_BANDS][MAX_LAYERS];
+  double   ice[NUM_HRU][MAX_LAYERS];
 #endif // SPATIAL_FROST
   double   Aufwc, Bufwc;
   double   Clake;
@@ -387,7 +388,8 @@ int initialize_model_state(cell_info_struct* cell,
 
 
     /****** initialize moist and ice ************/
-    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+    int hruIndex = 0;
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, ++hruIndex) {
 
       // Initialize soil for existing vegetation types
       double Cv = it->veg_con.Cv;
@@ -395,13 +397,13 @@ int initialize_model_state(cell_info_struct* cell,
       if (Cv > 0) {
         hru_data_struct& cellRef = it->cell[WET];
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          moist[it->vegIndex][it->bandIndex][lidx] = cellRef.layer[lidx].moist;
+          moist[hruIndex][lidx] = cellRef.layer[lidx].moist;
 
 #if SPATIAL_FROST
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-          ice[it->vegIndex][it->bandIndex][lidx][frost_area] = cellRef.layer[lidx].soil_ice[frost_area];
+          ice[hruIndex][lidx][frost_area] = cellRef.layer[lidx].soil_ice[frost_area];
 #else
-          ice[it->vegIndex][it->bandIndex][lidx] = cellRef.layer[lidx].soil_ice;
+          ice[hruIndex][lidx] = cellRef.layer[lidx].soil_ice;
 #endif
         }
       }
@@ -444,7 +446,8 @@ int initialize_model_state(cell_info_struct* cell,
     cell->soil_con.Zsum_node[1] = cell->soil_con.depth[0];
     cell->soil_con.Zsum_node[2] = dp;
 
-    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+    int hruIndex = 0;
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, ++hruIndex) {
       // Initialize soil for existing vegetation types
       double Cv = it->veg_con.Cv;
 
@@ -457,12 +460,12 @@ int initialize_model_state(cell_info_struct* cell,
 
         /* Initialize soil layer thicknesses */
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          moist[it->vegIndex][it->bandIndex][lidx] = it->cell[WET].layer[lidx].moist;
+          moist[hruIndex][lidx] = it->cell[WET].layer[lidx].moist;
 #if SPATIAL_FROST
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-          ice[it->vegIndex][it->bandIndex][lidx][frost_area] = 0.;
+          ice[hruIndex][lidx][frost_area] = 0.;
 #else
-          ice[it->vegIndex][it->bandIndex][lidx] = 0.;
+          ice[hruIndex][lidx] = 0.;
 #endif
         }
       }
@@ -474,7 +477,8 @@ int initialize_model_state(cell_info_struct* cell,
     ground heat flux, and no Initial Condition File Given 
   *****************************************************************/
   else if(!state->options.QUICK_FLUX) {
-    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+    int hruIndex = 0;
+    for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, ++hruIndex) {
       // Initialize soil for existing vegetation types
       double Cv = it->veg_con.Cv;
 
@@ -572,12 +576,12 @@ int initialize_model_state(cell_info_struct* cell,
 
         //initialize moisture and ice for each soil layer
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-          moist[it->vegIndex][it->bandIndex][lidx] = it->cell[WET].layer[lidx].moist;
+          moist[hruIndex][lidx] = it->cell[WET].layer[lidx].moist;
 #if SPATIAL_FROST
           for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
-          ice[veg][band][lidx][frost_area] = 0.;
+          ice[hruIndex][lidx][frost_area] = 0.;
 #else
-          ice[it->vegIndex][it->bandIndex][lidx] = 0.;
+          ice[hruIndex][lidx] = 0.;
 #endif
         }
       }
@@ -614,7 +618,8 @@ int initialize_model_state(cell_info_struct* cell,
   ******************************************/
 
   FIRST_VEG = TRUE;
-  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+  int hruIndex = 0;
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, ++hruIndex) {
     // Initialize soil for existing vegetation types
     double Cv = it->veg_con.Cv;
 
@@ -638,7 +643,7 @@ int initialize_model_state(cell_info_struct* cell,
         }
 
         /* set soil moisture properties for all soil thermal nodes */
-        ErrorFlag = distribute_node_moisture_properties(&it->energy, &cell->soil_con, moist[it->vegIndex][it->bandIndex], state);
+        ErrorFlag = distribute_node_moisture_properties(&it->energy, &cell->soil_con, moist[hruIndex], state);
         if (ErrorFlag == ERROR)
           return (ErrorFlag);
 
@@ -646,13 +651,13 @@ int initialize_model_state(cell_info_struct* cell,
         for (int curDist = 0; curDist < Ndist; curDist++) {
           hru_data_struct& cellRef = it->cell[curDist];
           for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
-            cellRef.layer[lidx].moist = moist[it->vegIndex][it->bandIndex][lidx];
+            cellRef.layer[lidx].moist = moist[hruIndex][lidx];
 #if SPATIAL_FROST
             for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ )
 
-            cellRef.layer[lidx].soil_ice[frost_area] = ice[veg][band][lidx][frost_area];
+            cellRef.layer[lidx].soil_ice[frost_area] = ice[hruIndex][lidx][frost_area];
 #else
-            cellRef.layer[lidx].soil_ice = ice[it->vegIndex][it->bandIndex][lidx];
+            cellRef.layer[lidx].soil_ice = ice[hruIndex][lidx];
 #endif
           }
           if (state->options.QUICK_FLUX) {
