@@ -101,7 +101,7 @@
 				  cell */
 #define MAX_LAYERS     3       /* maximum number of soil moisture layers */
 #define MAX_NODES      50      /* maximum number of soil thermal nodes */
-#define MAX_BANDS      10      /* maximum number of snow bands */
+#define MAX_BANDS      15      /* maximum number of snow bands */
 #define MAX_FRONTS     3       /* maximum number of freezing and thawing 
 				  front depths to store */
 #define MAX_LAKE_NODES 20      /* maximum number of lake thermal nodes */

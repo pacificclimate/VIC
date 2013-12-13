@@ -4,7 +4,7 @@
 
 static char vcid[] = "$Id$";
 
-void write_vegparam(veg_con_struct *veg_con, const ProgramState* state)
+void write_vegparam(const cell_info_struct& cell, const ProgramState* state)
 /**********************************************************************
 	write_vegparam		Dag Lohmann	January 1996
 
@@ -23,12 +23,12 @@ void write_vegparam(veg_con_struct *veg_con, const ProgramState* state)
   int vegclass;
 
   printf("Vegetation Parameters:\n");
-  printf("\tvegetat_type_num = %d\n",  veg_con[0].vegetat_type_num);
+  printf("\tnumber of HRUs = %d\n",  (int)cell.prcp.hruList.size());
 
-  for (i = 0; i < veg_con[0].vegetat_type_num; i++) {
-    vegclass = veg_con[i].veg_class;
+  for (std::vector<HRU>::const_iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+    vegclass = hru->veg_con.veg_class;
     printf("\n\tveg_class            = %d\n",  state->veg_lib[vegclass].veg_class);
-    printf("\tCv                   = %f\n", veg_con[i].Cv);
+    printf("\tCv                   = %f\n", hru->veg_con.Cv);
     if(state->veg_lib[vegclass].overstory)
       printf("\tOverstory            = TRUE\n");
     else 
@@ -37,9 +37,9 @@ void write_vegparam(veg_con_struct *veg_con, const ProgramState* state)
     printf("\trmin                 = %f s/m\n", state->veg_lib[vegclass].rmin);
     for(l=0;l<state->options.ROOT_ZONES;l++)
       printf("\tzone_depth _fract%d   = %f %f\n",l+1,
-	     veg_con[i].zone_depth[l],veg_con[i].zone_fract[l]);
+          hru->veg_con.zone_depth[l],hru->veg_con.zone_fract[l]);
     for(l=0;l<state->options.Nlayer;l++)
-      printf("\troot_percent%d        = %f\n",l+1,veg_con[i].root[l]);
+      printf("\troot_percent%d        = %f\n",l+1,hru->veg_con.root[l]);
     for (j = 0; j < 12; j++) 
       printf("\tLAI[%02d]             = %f\n",j,state->veg_lib[vegclass].LAI[j]);
     for (j = 0; j < 12; j++) 

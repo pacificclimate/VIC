@@ -132,10 +132,8 @@ int initialize_model_state(cell_info_struct* cell,
   double   precipitation_mu;
   double   surf_swq;
   double   pack_swq;
-  double   TreeAdjustFactor[MAX_BANDS];
   double   sum_mindepth = 0, sum_depth_pre = 0, sum_depth_post = 0, tmp_mindepth = 0; //Excess Ice option variables
 
-  int Nveg = cell->veg_con[0].vegetat_type_num;
   double surf_temp = cell->atmos[0].air_temp[state->NR];
 
   // Initialize soil depths
@@ -148,10 +146,10 @@ int initialize_model_state(cell_info_struct* cell,
   if ( surf_temp < -1. ) surf_temp = -1.;
   
   // initialize storm parameters to start a new simulation
-  cell->init_STILL_STORM = (char *)calloc((Nveg+1),sizeof(char)); // Sets all elements to zero (FALSE)
-  cell->init_DRY_TIME    = (int *)malloc((Nveg+1)*sizeof(int));
-  for (int veg = 0; veg <= Nveg; veg++)
-    cell->init_DRY_TIME[veg] = INVALID_INT;
+  for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
+    hru->init_STILL_STORM = 0;
+    hru->init_DRY_TIME = INVALID_INT;
+  }
   
   /********************************************
     Initialize all snow pack variables 
@@ -165,9 +163,9 @@ int initialize_model_state(cell_info_struct* cell,
     - some may be reset if state file present
   ********************************************/
 
-  initialize_soil(cell->prcp.hruList, WET, &cell->soil_con, cell->veg_con, state);
+  initialize_soil(cell->prcp.hruList, WET, &cell->soil_con, state);
   if ( state->options.DIST_PRCP )
-    initialize_soil(cell->prcp.hruList, DRY, &cell->soil_con, cell->veg_con, state);
+    initialize_soil(cell->prcp.hruList, DRY, &cell->soil_con, state);
 
   /********************************************
     Initialize all vegetation variables 
@@ -183,8 +181,13 @@ int initialize_model_state(cell_info_struct* cell,
   ********************************************/
 
   if ( state->options.LAKES && cell->lake_con.Cl[0] > 0) {
-    ErrorFlag = initialize_lake(&cell->prcp.lake_var, cell->lake_con, &cell->soil_con, &(cell->prcp.getHRUElement(cell->lake_con.lake_idx, 0)->cell[WET]), surf_temp, 0);
-    if (ErrorFlag == ERROR) return(ErrorFlag);
+    for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
+      if (hru->veg_con.veg_class == cell->lake_con.lake_idx) {
+        hru->veg_con.LAKE = 1;
+        ErrorFlag = initialize_lake(&cell->prcp.lake_var, cell->lake_con, &cell->soil_con, &(hru->cell[WET]), surf_temp, 0);
+        if (ErrorFlag == ERROR) return(ErrorFlag);
+      }
+    }
   }
 
   /********************************************
@@ -254,7 +257,7 @@ int initialize_model_state(cell_info_struct* cell,
     }
 #endif
 
-    read_initial_model_state(initStateFilename, cell, Nveg, Ndist, state);
+    read_initial_model_state(initStateFilename, cell, cell->prcp.hruList.size(), Ndist, state);
 
 #if EXCESS_ICE
     // calculate dynamic soil and veg properties if excess_ice is present
@@ -306,7 +309,7 @@ int initialize_model_state(cell_info_struct* cell,
       }
 
       /*********** update root fractions ***************/
-      calc_root_fractions(cell->veg_con, soil_con);
+      calc_root_fractions(cell->prcp.hruList, soil_con);
 
 #if VERBOSE
       /* write changes to screen */
@@ -387,7 +390,7 @@ int initialize_model_state(cell_info_struct* cell,
     for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
 
       // Initialize soil for existing vegetation types
-      double Cv = cell->veg_con[it->vegIndex].Cv;
+      double Cv = it->veg_con.Cv;
 
       if (Cv > 0) {
         hru_data_struct& cellRef = it->cell[WET];
@@ -443,7 +446,7 @@ int initialize_model_state(cell_info_struct* cell,
 
     for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       // Initialize soil for existing vegetation types
-      double Cv = cell->veg_con[it->vegIndex].Cv;
+      double Cv = it->veg_con.Cv;
 
       if (Cv > 0) {
         /* Initialize soil node temperatures */
@@ -473,7 +476,7 @@ int initialize_model_state(cell_info_struct* cell,
   else if(!state->options.QUICK_FLUX) {
     for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
       // Initialize soil for existing vegetation types
-      double Cv = cell->veg_con[it->vegIndex].Cv;
+      double Cv = it->veg_con.Cv;
 
       if (Cv > 0) {
 
@@ -585,18 +588,12 @@ int initialize_model_state(cell_info_struct* cell,
     CASE 4: Unknown option
   *********************************/
   else {
-    for (int veg = 0; veg <= Nveg; veg++) {
+    for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
       // Initialize soil for existing vegetation types
-      double Cv = cell->veg_con[veg].Cv;
 
-      if (Cv > 0) {
-        for (int band = 0; band < state->options.SNOW_BAND; band++) {
-          // Initialize soil for existing snow elevation bands
-          if (cell->soil_con.AreaFract[band] > 0.) {
-            for (int index = 0; index < state->options.Nlayer; index++) {
-              cell->soil_con.dz_node[index] = 1.;
-            }
-          }
+      if (hru->veg_con.Cv > 0) {
+        for (int index = 0; index < state->options.Nlayer; index++) {
+          cell->soil_con.dz_node[index] = 1.;
         }
       }
     }
@@ -619,7 +616,7 @@ int initialize_model_state(cell_info_struct* cell,
   FIRST_VEG = TRUE;
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
     // Initialize soil for existing vegetation types
-    double Cv = cell->veg_con[it->vegIndex].Cv;
+    double Cv = it->veg_con.Cv;
 
     if (Cv > 0) {
       // Initialize soil for existing snow elevation bands
@@ -728,20 +725,6 @@ int initialize_model_state(cell_info_struct* cell,
     for (int index = 0; index < state->options.Nnode - 1; index++) {
       it->energy.T_fbcount[index] = 0;
     }
-  }
-
-  //TODO: TreeAdjustFactor is a local variable that is not used anywhere... why do we need to compute this at all?
-  // Compute treeline adjustment factors
-  for (int band = 0; band < state->options.SNOW_BAND; band++ ) {
-    if ( cell->soil_con.AboveTreeLine[band] ) {
-      double Cv = 0;
-      for (int veg = 0 ; veg < cell->veg_con[0].vegetat_type_num ; veg++ ) {
-        if ( state->veg_lib[cell->veg_con[veg].veg_class].overstory )
-          Cv += cell->veg_con[veg].Cv;
-      }
-      TreeAdjustFactor[band] = 1. / ( 1. - Cv );
-    }
-    else TreeAdjustFactor[band] = 1.;
   }
 
   return(0);

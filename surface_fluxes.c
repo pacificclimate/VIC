@@ -20,7 +20,7 @@ int surface_fluxes(char                 overstory,
 		   double               ice0,
 		   double               moist0,
 		   int                  SubsidenceUpdate,
-		   double               current_prcp_mu,
+		   HRU&                 hru,
 		   double               surf_atten,
 		   double              *Melt,
 		   double              *latent_heat_Le,
@@ -38,10 +38,7 @@ int surface_fluxes(char                 overstory,
 		   int                  Nbands,
 		   int                  Ndist,
 		   int                  Nlayers,
-		   int                  Nveg,
-		   int                  band,
 		   int                  dp,
-		   int                  iveg,
 		   int                  rec,
 		   int                  veg_class,
 		   atmos_data_struct   *atmos,
@@ -419,8 +416,8 @@ int surface_fluxes(char                 overstory,
     /** Solve energy balance for all sub-model time steps **/
 
     /* set air temperature and precipitation for this snow band */
-    Tair = atmos->air_temp[hidx] + soil_con->Tfactor[band];
-    step_prec[WET] = atmos->prec[hidx] / current_prcp_mu * soil_con->Pfactor[band];
+    Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
+    step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];
 
     // initialize ground surface temperaure
     Tgrnd = energy->T[0];
@@ -446,7 +443,7 @@ int surface_fluxes(char                 overstory,
           step_snow.last_snow, step_snow.surf_water, wind_speed.snowCovered, Ls,
           atmos->density[hidx], atmos->pressure[hidx], atmos->vp[hidx],
           roughness.snowCovered, ref_height.snowCovered, step_snow.depth, lag_one, sigma_slope,
-          step_snow.surf_temp, iveg, Nveg, fetch, displacement.canopyIfOverstory, roughness.canopyIfOverstory,
+          step_snow.surf_temp, hru.isArtificialBareSoil, fetch, displacement.canopyIfOverstory, roughness.canopyIfOverstory,
           &step_snow.transport);
       if ((int) step_snow.blowing_flux == ERROR) {
         return (ERROR);
@@ -536,7 +533,7 @@ int surface_fluxes(char                 overstory,
 
         /** Solve snow accumulation, ablation and interception **/
         step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
-            soil_con->MIN_RAIN_TEMP, soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, current_prcp_mu,
+            soil_con->MIN_RAIN_TEMP, soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, hru.mu,
             step_prec[WET], snow_grnd_flux, state->global_param.wind_h, &energy->AlbedoUnder,
             &step_Evap, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
             &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,
@@ -544,8 +541,8 @@ int surface_fluxes(char                 overstory,
             displacement, gauge_correction, &step_melt_energy, &step_out_prec,
             &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
             roughness, snow_inflow, snowfall, &surf_atten, wind_speed, root,
-            UNSTABLE_SNOW, state->options.Nnode, Nveg, iveg, band, step_dt, rec, hidx,
-            veg_class, UnderStory, dmy, *atmos, &(iter_snow_energy),
+            UNSTABLE_SNOW, state->options.Nnode, step_dt, rec, hidx,
+            veg_class, hru.isArtificialBareSoil, UnderStory, dmy, *atmos, &(iter_snow_energy),
             iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
             &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]), state);
 
@@ -576,13 +573,13 @@ int surface_fluxes(char                 overstory,
             iter_snow_energy.latent_sub, iter_snow_energy.sensible, Tcanopy,
             VPDcanopy, VPcanopy, iter_snow_energy.advection,
             step_snow.coldcontent, delta_coverage, dp, ice0, step_melt_energy,
-            moist0, current_prcp_mu, iter_snow.coverage,
+            moist0, hru.mu, iter_snow.coverage,
             (step_snow.depth + iter_snow.depth) / 2., BareAlbedo, surf_atten,
             iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
             displacement, &step_melt, step_ppt, rainfall, ref_height, roughness,
-            snowfall, wind_speed, root, INCLUDE_SNOW, UnderStory, state->options.Nnode, Nveg,
-            band, step_dt, hidx, iveg, state->options.Nlayer, (int) overstory, rec,
-            veg_class, atmos, &(dmy[rec]), &iter_soil_energy, iter_layer[DRY],
+            snowfall, wind_speed, root, INCLUDE_SNOW, UnderStory, state->options.Nnode,
+            step_dt, hidx, state->options.Nlayer, (int) overstory, rec,
+            veg_class, hru.isArtificialBareSoil, atmos, &(dmy[rec]), &iter_soil_energy, iter_layer[DRY],
             iter_layer[WET], &(iter_snow), soil_con, &iter_soil_veg_var[DRY],
             &iter_soil_veg_var[WET], state->global_param.nrecs, state);
 
@@ -717,7 +714,7 @@ int surface_fluxes(char                 overstory,
 
     for (dist = 0; dist < Ndist; dist++) {
 
-      if (iveg != Nveg) {
+      if (hru.isArtificialBareSoil == false) {
         if (step_snow.snow) {
           store_throughfall[dist] += snow_veg_var[dist].throughfall;
           store_canopyevap[dist] += snow_veg_var[dist].canopyevap;
@@ -744,16 +741,16 @@ int surface_fluxes(char                 overstory,
     else
       store_aero_cond_used.overstory += HUGE_RESIST;
 
-    if (iveg != Nveg)
+    if (hru.isArtificialBareSoil == false)
       store_canopy_vapor_flux += step_snow.canopy_vapor_flux;
     store_melt += step_melt;
     store_vapor_flux += step_snow.vapor_flux;
     store_surface_flux += step_snow.surface_flux;
     store_blowing_flux += step_snow.blowing_flux;
 
-    out_prec[0] += step_out_prec * current_prcp_mu;
-    out_rain[0] += step_out_rain * current_prcp_mu;
-    out_snow[0] += step_out_snow * current_prcp_mu;
+    out_prec[0] += step_out_prec * hru.mu;
+    out_rain[0] += step_out_rain * hru.mu;
+    out_snow[0] += step_out_snow * hru.mu;
 
     if (INCLUDE_SNOW) {
       /* copy needed flux terms to the snowpack */
@@ -891,7 +888,7 @@ int surface_fluxes(char                 overstory,
    Store vegetation variable sums for sub-model time steps
    **********************************************************/
 
-  if (iveg != Nveg) {
+  if (hru.isArtificialBareSoil == false) {
     veg_var_wet->throughfall = store_throughfall[WET];
     veg_var_dry->throughfall = store_throughfall[DRY];
     veg_var_wet->canopyevap = store_canopyevap[WET];
@@ -947,7 +944,7 @@ int surface_fluxes(char                 overstory,
   cell_dry->inflow = ppt[DRY];
 
   ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
-      SubsidenceUpdate, current_prcp_mu, band, rec, iveg, state);
+      SubsidenceUpdate, hru.mu, hru.bandIndex, rec, state);
 
   return (ErrorFlag);
 #if EXCESS_ICE

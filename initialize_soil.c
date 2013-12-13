@@ -7,7 +7,6 @@ static char vcid[] = "$Id$";
 void initialize_soil (std::vector<HRU>& elements,
                       int                dist,
                       soil_con_struct   *soil_con,
-                      veg_con_struct    *veg_con,
                       const ProgramState *state)
 /**********************************************************************
 	initialize_soil		Keith Cherkauer		July 31, 1996

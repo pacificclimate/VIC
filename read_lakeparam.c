@@ -7,7 +7,7 @@ static char vcid[] = "$Id$";
 
 lake_con_struct read_lakeparam(FILE            *lakeparam, 
 			       soil_con_struct  soil_con, 
-			       veg_con_struct  *veg_con,
+			       std::vector<HRU>& hruList,
 			       const ProgramState* state)
 /**********************************************************************
 	read_lakeparam		Laura Bowling		2000
@@ -102,7 +102,13 @@ lake_con_struct read_lakeparam(FILE            *lakeparam,
   // read lake parameters from file
   fscanf(lakeparam, "%d", &temp.lake_idx);
   if (temp.lake_idx >= 0) {
-    veg_con[temp.lake_idx].LAKE = 1;
+
+    for (std::vector<HRU>::iterator hru = hruList.begin(); hru != hruList.end(); ++hru) {
+      if (hru->veg_con.veg_class == temp.lake_idx) {
+        hru->veg_con.LAKE = 1;
+      }
+    }
+
     fscanf(lakeparam, "%d", &temp.numnod);
     if (temp.numnod < 1) {
       sprintf(tmpstr, "Number of vertical lake nodes (%d) for cell %d specified in the lake parameter file is < 1; increase this number to at least 1.", temp.numnod, soil_con.gridcel);

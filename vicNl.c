@@ -271,15 +271,15 @@ int initializeCell(cell_info_struct& cell,
 #if !OUTPUT_FORCE
   make_in_files(&filep, &filenames, &cell.soil_con, state);
   /** Read Grid Cell Vegetation Parameters **/
-  cell.veg_con = read_vegparam(filep.vegparam, cell.soil_con.gridcel, num_veg_types, state);
-  calc_root_fractions(cell.veg_con, &cell.soil_con, state);
+  read_vegparam(filep.vegparam, cell, num_veg_types, state);
+  calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
 #if LINK_DEBUG
   if (state->debug.PRT_VEGE)
-    write_vegparam(cell.veg_con, state);
+    write_vegparam(cell, state);
 #endif /* LINK_DEBUG*/
 
   if (state->options.LAKES)
-    cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.veg_con, state);
+    cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.prcp.hruList, state);
 
   #endif // !OUTPUT_FORCE
 
@@ -287,9 +287,6 @@ int initializeCell(cell_info_struct& cell,
 
       /** Read Elevation Band Data if Used **/
       read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
-
-      /** Make Precipitation Distribution Control Structure **/
-      cell.prcp.make_dist_prcp(cell.veg_con[0].vegetat_type_num, state->options.SNOW_BAND);
 
   #endif // !OUTPUT_FORCE
       /**************************************************
@@ -309,7 +306,7 @@ int initializeCell(cell_info_struct& cell,
   if (state->debug.PRT_ATMOS)
     write_atmosdata(cell.atmos, state->global_param.nrecs, state);
 #endif
-  cell.writeDebug.initialize(cell.veg_con[0].vegetat_type_num, state);
+  cell.writeDebug.initialize(cell.prcp.hruList.size(), state);
   /**************************************************
    Initialize Energy Balance and Snow Variables
    **************************************************/
@@ -498,17 +495,14 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     close_files(&filep, &filenames, state->options.COMPRESS, state);
     free_out_data(&current_output_data);
 
-    cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].veg_con[0].vegetat_type_num, state);
+    cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);
     free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
-    free_dist_prcp(&cell_data_structs[cellidx].prcp, cell_data_structs[cellidx].veg_con[0].vegetat_type_num);
-    free_vegcon(&cell_data_structs[cellidx].veg_con);
+    free_vegcon(cell_data_structs[cellidx]);
     free(cell_data_structs[cellidx].soil_con.AreaFract);
     free(cell_data_structs[cellidx].soil_con.BandElev);
     free(cell_data_structs[cellidx].soil_con.Tfactor);
     free(cell_data_structs[cellidx].soil_con.Pfactor);
     free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
-    free(cell_data_structs[cellidx].init_STILL_STORM);
-    free(cell_data_structs[cellidx].init_DRY_TIME);
   } /* End Grid Loop */
 
 }

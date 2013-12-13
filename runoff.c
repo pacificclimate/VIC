@@ -13,7 +13,6 @@ int  runoff(hru_data_struct  *cell_wet,
 	    double             precipitation_mu,
 	    int                band,
 	    int                rec,
-	    int                iveg,
 	    const ProgramState *state)
 /**********************************************************************
 	runoff.c	Keith Cherkauer		May 18, 1996

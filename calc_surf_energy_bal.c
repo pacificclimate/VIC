@@ -45,15 +45,13 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 			    int                INCLUDE_SNOW,
 			    VegConditions::VegSurfType UnderStory,
 			    int                Nnodes,
-			    int                Nveg,
-			    int                band,
 			    int                dt,
 			    int                hour,
-			    int                iveg,
 			    int                nlayer,
 			    int                overstory,
 			    int                rec,
 			    int                veg_class,
+			    bool               isArtificialBareSoil,
 			    atmos_data_struct *atmos,
 			    const dmy_struct  *dmy,
 			    energy_bal_struct *energy,
@@ -225,7 +223,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
     Tnew_fbcount[nidx] = 0;
   }
 
-  if(iveg!=Nveg) {
+  if(isArtificialBareSoil == false) {
     if(state->veg_lib[veg_class].LAI[dmy->month-1] > 0.0) VEG = TRUE;
     else VEG = FALSE;
   }
@@ -320,7 +318,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       EXP_TRANS = state->options.EXP_TRANS;
     }
 
-    SurfEnergyBal surfEnergyBalIterative(rec, nrecs, dmy->month, VEG, veg_class, iveg, delta_t, Cs1, Cs2, D1, D2,
+    SurfEnergyBal surfEnergyBalIterative(rec, nrecs, dmy->month, VEG, veg_class, delta_t, Cs1, Cs2, D1, D2,
         T1_old, T2, Ts_old, bubble, dp,
         expt, ice0, kappa1, kappa2,
         max_moist, moist, root,
@@ -355,7 +353,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       }
       else {
         fprintf(stderr, "SURF_DT = %.2f\n", SURF_DT);
-        error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
+        error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG,
 					   veg_class, delta_t, Cs1, Cs2, D1, D2, 
 					   T1_old, T2, Ts_old, 
 					   bubble, dp,
@@ -405,7 +403,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       FIRST_SOLN[0] = TRUE;
       
       SurfEnergyBal surfEnergyBalIter2(rec, nrecs, dmy->month, VEG, veg_class,
-          iveg, delta_t, Cs1, Cs2, D1, D2, T1_old, T2, Ts_old, bubble, dp, expt,
+          delta_t, Cs1, Cs2, D1, D2, T1_old, T2, Ts_old, bubble, dp, expt,
           ice0, kappa1, kappa2, max_moist, moist, root, UnderStory, overstory,
           NetShortBare, NetShortGrnd, TmpNetShortSnow, Tair, atmos_density,
           atmos_pressure, emissivity, LongBareIn, LongSnowIn, precipitation_mu,
@@ -433,8 +431,8 @@ double calc_surf_energy_bal(double             latent_heat_Le,
           Tsurf_fbcount++;
         }
         else {
-	  error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG, iveg,
-					     veg_class, delta_t, Cs1, Cs2, D1, 
+	  error = error_print_surf_energy_bal(Tsurf, dmy->year, dmy->month, dmy->day, dmy->hour, VEG,
+	             veg_class, delta_t, Cs1, Cs2, D1,
 					     D2, T1_old, T2, Ts_old, 
 					     bubble, dp,
 					     expt, ice0, kappa1, kappa2, 
@@ -488,7 +486,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
   if ( state->options.QUICK_SOLVE && !state->options.QUICK_FLUX )
     // Reset model so that it solves thermal fluxes for full soil column
     FIRST_SOLN[0] = TRUE;
-  SurfEnergyBal surfEnergyBal(rec, nrecs, dmy->month, VEG, veg_class, iveg,
+  SurfEnergyBal surfEnergyBal(rec, nrecs, dmy->month, VEG, veg_class,
       delta_t, Cs1, Cs2, D1, D2, T1_old, T2, Ts_old, bubble, dp, expt, ice0,
       kappa1, kappa2, max_moist, moist, root, UnderStory, overstory,
       NetShortBare, NetShortGrnd, TmpNetShortSnow, Tair, atmos_density,
@@ -523,11 +521,11 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 
     }
     calc_layer_average_thermal_props(energy, layer_wet, layer_dry, layer, soil_con, 
-				     Nnodes, iveg, Tnew_node, state);
+				     Nnodes, veg_class, Tnew_node, state);
 
   /** Store precipitation that reaches the surface */
   if ( !snow->snow && !INCLUDE_SNOW ) {
-    if ( iveg != Nveg ) {
+    if ( isArtificialBareSoil == false ) {
       if ( state->veg_lib[veg_class].LAI[dmy->month-1] <= 0.0 ) {
 	veg_var_wet->throughfall = rainfall[WET];
 	ppt[WET] = veg_var_wet->throughfall;
@@ -694,7 +692,7 @@ double calc_surf_energy_bal(double             latent_heat_Le,
 }
 
 double error_print_surf_energy_bal(double Ts, int year, int month, int day, int hour,
-    int iveg, int VEG, int veg_class,
+    int VEG, int veg_class,
     double delta_t,
     /* soil layer terms */
     double Cs1, double Cs2, double D1, double D2, double T1_old, double T2,
@@ -748,7 +746,6 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
 
   /* Print Variables */
   /* general model terms */
-  fprintf(stderr, "iveg = %i\n", iveg);
   fprintf(stderr, "year = %i\n", year);
   fprintf(stderr, "month = %i\n", month);
   fprintf(stderr, "day = %i\n", day);
@@ -860,14 +857,14 @@ double error_print_surf_energy_bal(double Ts, int year, int month, int day, int 
   fprintf(stderr, "*snow_flux = %f\n",  *snow_flux);
   fprintf(stderr, "*store_error = %f\n",  *store_error);
 
-  write_layer(layer_wet, iveg, state->options.Nlayer, soil_con->frost_fract);
+  write_layer(layer_wet, veg_class, state->options.Nlayer, soil_con->frost_fract);
 
   if(state->options.DIST_PRCP)
-    write_layer(layer_dry, iveg, state->options.Nlayer, soil_con->frost_fract);
+    write_layer(layer_dry, veg_class, state->options.Nlayer, soil_con->frost_fract);
 
-  write_vegvar(&(veg_var_wet[0]),iveg);
+  write_vegvar(&(veg_var_wet[0]),veg_class);
   if(state->options.DIST_PRCP)
-    write_vegvar(&(veg_var_dry[0]),iveg);
+    write_vegvar(&(veg_var_dry[0]),veg_class);
 
   if(!state->options.QUICK_FLUX) {
     fprintf(stderr,"Node\tT\tTnew\tZsum\tkappa\tCs\tmoist\tbubble\texpt\tmax_moist\tice\n");

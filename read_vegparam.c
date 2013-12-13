@@ -2,15 +2,27 @@
 #include <stdlib.h>
 #include "vicNl.h"
 #include <string.h>
+#include <sstream>
 
 static char vcid[] = "$Id$";
 
 void ttrim( char *string );
 
-veg_con_struct *read_vegparam(FILE *vegparam,
-                              int   gridcel,
-                              int   Nveg_type,
-                              const ProgramState* state)
+HRU initHRU(veg_con_struct& veg, const ProgramState* state) {
+  HRU hru;
+  hru.vegIndex = veg.veg_class;
+  hru.energy.frozen = FALSE;
+  hru.isGlacier = (veg.veg_class == state->options.GLACIER_ID);
+  hru.isArtificialBareSoil = false;
+  hru.veg_con = veg;
+  hru.mu = 1;
+  return hru;
+}
+
+void read_vegparam(FILE *vegparam,
+                   cell_info_struct& cell,
+                   int   Nveg_type,
+                   const ProgramState* state)
 /**********************************************************************
   read_vegparam.c    Keith Cherkauer and Dag Lohmann       1997
 
@@ -49,9 +61,7 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   2010-Apr-28 Replaced GLOBAL_LAI with VEGPARAM_LAI and LAI_SRC.	TJB
 **********************************************************************/
 {
-  veg_con_struct *temp;
-  int             vegcel, vegetat_type_num, skip, veg_class;
-  int             MaxVeg;
+  int             vegcel, numHRUs, skip, veg_class;
   int             NoOverstory;
   char            str[500];
   char            ErrStr[MAXSTRING];
@@ -59,7 +69,6 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   char            tmpline[MAXSTRING];
   const char      delimiters[] = " \t";
   char            *token;
-  char            *vegarr[500];
   size_t	  length;
 
   if(state->options.VEGPARAM_LAI) skip=2;
@@ -71,12 +80,12 @@ veg_con_struct *read_vegparam(FILE *vegparam,
   rewind(vegparam);
 #endif  
 
-  while ( ( fscanf(vegparam, "%d %d", &vegcel, &vegetat_type_num) == 2 ) && vegcel != gridcel ){
-    if (vegetat_type_num < 0) {
-      sprintf(ErrStr,"ERROR number of vegetation tiles (%i) given for cell %i is < 0.\n",vegetat_type_num,vegcel);
+  while ( ( fscanf(vegparam, "%d %d", &vegcel, &numHRUs) == 2 ) && vegcel != cell.soil_con.gridcel ){
+    if (numHRUs < 0) {
+      sprintf(ErrStr,"ERROR number of vegetation tiles (%i) given for cell %i is < 0.\n",numHRUs,vegcel);
       nrerror(ErrStr);
     }
-    for (int i = 0; i <= vegetat_type_num * skip; i++){
+    for (int i = 0; i <= numHRUs * skip; i++){
       if ( fgets(str, 500, vegparam) == NULL ){
         sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading root zones and LAI\n",vegcel);
         nrerror(ErrStr);
@@ -84,179 +93,142 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     }
   }
   fgets(str, 500, vegparam); // read newline at end of veg class line to advance to next line
-  if (vegcel != gridcel) {
-    fprintf(stderr, "Error in vegetation file.  Grid cell %d not found\n",
-            gridcel);
+  if (vegcel != cell.soil_con.gridcel) {
+    fprintf(stderr, "Error in vegetation file.  Grid cell %d not found\n", cell.soil_con.gridcel);
     exit(99);
   }
-  if(vegetat_type_num >= MAX_VEG) {
-    sprintf(ErrStr,"Vegetation parameter file wants more vegetation tiles in grid cell %i (%i) than are allowed by MAX_VEG (%i) [NOTE: bare soil class is assumed].  Edit vicNl_def.h and recompile.",gridcel,vegetat_type_num+1,MAX_VEG);
+  if(numHRUs >= MAX_VEG) {
+    sprintf(ErrStr,"Vegetation parameter file wants more vegetation tiles in grid cell %i (%i) than are allowed by MAX_VEG (%i) [NOTE: bare soil class is assumed].  Edit vicNl_def.h and recompile.",cell.soil_con.gridcel,numHRUs+1,MAX_VEG);
     nrerror(ErrStr);
   }
 
-  // Make sure to allocate extra memory for bare soil tile
-  // and optionally an above-treeline veg tile
-  MaxVeg = vegetat_type_num+1;
-  if ( state->options.AboveTreelineVeg >= 0 )
-    MaxVeg++;
+  cell.Cv_sum = 0.0;
 
-  /** Allocate memory for vegetation grid cell parameters **/
-  temp = (veg_con_struct*) calloc( MaxVeg, sizeof(veg_con_struct));
-  temp[0].Cv_sum = 0.0;
-
-  for (int i = 0; i < vegetat_type_num; i++) {
-    temp[i].zone_depth = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
-    temp[i].zone_fract = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
-    temp[i].vegetat_type_num = vegetat_type_num;
+  for (int i = 0; i < numHRUs; i++) {
+    veg_con_struct curVeg;
+    curVeg.zone_depth = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
+    curVeg.zone_fract = (float*)calloc(state->options.ROOT_ZONES,sizeof(float));
 
     // Read the root zones line
     if ( fgets( line, MAXSTRING, vegparam ) == NULL ){
-      sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading vegetat_type_num %d\n",vegcel,vegetat_type_num);
+      sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading HRU number %d\n",vegcel,i);
       nrerror(ErrStr);
     }
     strcpy(tmpline, line);
     ttrim( tmpline );
-    token = strtok (tmpline, delimiters);    /*  token => veg_class, move 'line' pointer to next field */  
-    int Nfields = 0;
-    vegarr[Nfields] = (char*)calloc( 500, sizeof(char));
-    strcpy(vegarr[Nfields],token);
-    Nfields++;
 
-    token = strtok (NULL, delimiters);
-    while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
-    while ( token != NULL ) {
-      vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
-      strcpy(vegarr[Nfields],token);
-      Nfields++;
-      token = strtok (NULL, delimiters);
-      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+    if (sscanf(tmpline, "%d %lf", &curVeg.veg_class, &curVeg.Cv) != 2) {
+      throw VICException("Error while reading veg class and Cv from vegetation parameter file");
     }
+
+    float depth_sum = 0;
+    float sum = 0.;
+    for (int zone = 0; zone < state->options.ROOT_ZONES; zone++) {
+      if (sscanf(tmpline, "%f %f", &curVeg.zone_depth[zone], &curVeg.zone_fract[zone]) != 2) {
+        throw VICException("Error while reading root zones in the vegetation parameter file");
+      }
+      depth_sum += curVeg.zone_depth[zone];
+      sum += curVeg.zone_fract[zone];
+    }
+    if(depth_sum <= 0) {
+      throw VICException("Root zone depths must sum to a value greater than 0.");
+    }
+    if (sum != 1.) {
+      fprintf(stderr, "WARNING: Root zone fractions sum to more than 1 ( = %f), normalizing fractions.  If the sum is large, check that your vegetation parameter file is in the form - <zone 1 depth> <zone 1 fract> <zone 2 depth> <zone 2 fract> ...\n", sum);
+      for (int j = 0; j < state->options.ROOT_ZONES; j++) {
+        curVeg.zone_fract[j] /= sum;
+      }
+    }
+
+    if (state->options.BLOWING) {
+      sscanf(tmpline, "%f %f %f", &curVeg.sigma_slope, &curVeg.lag_one, &curVeg.fetch);
+      if( curVeg.sigma_slope <= 0. || curVeg.lag_one <= 0.) {
+        sprintf(str,"Deviation of terrain slope must be greater than 0.");
+        nrerror(str);
+      }
+      if( curVeg.fetch < 1.0  ) {
+        sprintf(str,"ERROR - BLOWING parameter fetch should be >> 1 but cell %i has fetch = %.2f\n", cell.soil_con.gridcel, curVeg.fetch );
+        nrerror(str);
+      }
+    }
+
+    int curBandIndex = INVALID_INT;
+    sscanf(tmpline, "%d", &curBandIndex);
 
     int NfieldsMax = 2 + 2 * state->options.ROOT_ZONES;  /* Number of expected fields this line */
     if( state->options.BLOWING ){
       NfieldsMax += 3;
     }
-    if ( Nfields != NfieldsMax ) {
-      sprintf(ErrStr,"ERROR - cell %d - expecting %d fields but found %d in veg line %s\n",gridcel,NfieldsMax, Nfields, line);
-      nrerror(ErrStr);
-    }
 
-    temp[i].LAKE = 0;
-    temp[i].veg_class = atoi( vegarr[0] );
-    temp[i].Cv = atof( vegarr[1] );
-    float depth_sum = 0;
-    float sum = 0.;
-    for(int j=0;j<state->options.ROOT_ZONES;j++) {
-      temp[i].zone_depth[j] = atof( vegarr[2 + j*2] );
-      temp[i].zone_fract[j] = atof( vegarr[3 + j*2] );
-      depth_sum += temp[i].zone_depth[j];
-      sum += temp[i].zone_fract[j];
-    }
-    if(depth_sum <= 0) {
-      sprintf(str,"Root zone depths must sum to a value greater than 0.");
-      nrerror(str);
-    }
-    if (sum != 1.) {
-      fprintf(stderr, "WARNING: Root zone fractions sum to more than 1 ( = %f), normalizing fractions.  If the sum is large, check that your vegetation parameter file is in the form - <zone 1 depth> <zone 1 fract> <zone 2 depth> <zone 2 fract> ...\n", sum);
-      for (int j = 0; j < state->options.ROOT_ZONES; j++) {
-        temp[i].zone_fract[j] /= sum;
-      }
-    }
-
-    if(state->options.BLOWING) {
-      int j = 2 * state->options.ROOT_ZONES;
-      temp[i].sigma_slope = atof( vegarr[2 + j] );
-      temp[i].lag_one = atof( vegarr[3 + j] );
-      temp[i].fetch = atof( vegarr[4 + j]) ;
-      if( temp[i].sigma_slope <= 0. || temp[i].lag_one <= 0.) {
-        sprintf(str,"Deviation of terrain slope must be greater than 0.");
-        nrerror(str);
-      }
-      if( temp[i].fetch < 1.0  ) {
-	sprintf(str,"ERROR - BLOWING parameter fetch should be >> 1 but cell %i has fetch = %.2f\n", gridcel, temp[i].fetch );
-        nrerror(str);
-      }
-    }
+    curVeg.LAKE = 0;
 
     veg_class = INVALID_INT;
     for(int j=0;j<Nveg_type;j++)
-      if(temp[i].veg_class == state->veg_lib[j].veg_class)
-	veg_class = j;
+      if(curVeg.veg_class == state->veg_lib[j].veg_class)
+        veg_class = j;
     if(IS_INVALID(veg_class)) {
-      sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", temp[i].veg_class, i, gridcel);
+      sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", curVeg.veg_class, i, cell.soil_con.gridcel);
       nrerror(ErrStr);
     }
     else
-      temp[i].veg_class = veg_class;
+      curVeg.veg_class = veg_class;
 
-    temp[0].Cv_sum += temp[i].Cv;
+    cell.Cv_sum += curVeg.Cv;
 
-    for(int k=0; k<Nfields; k++)
-      free(vegarr[k]);
-
-    if ( state->options.VEGPARAM_LAI ) {
+    if ( state->options.VEGPARAM_LAI && state->options.LAI_SRC == LAI_FROM_VEGPARAM) {
       // Read the LAI line
-      if ( fgets( line, MAXSTRING, vegparam ) == NULL ){
-        sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading LAI for vegetat_type_num %d\n",vegcel,vegetat_type_num);
+      if (fgets( line, MAXSTRING, vegparam ) == NULL) {
+        sprintf(ErrStr,"ERROR unexpected EOF for cell %i while reading LAI for HRU number %d\n",vegcel,i);
         nrerror(ErrStr);
-      }      
-      Nfields = 0;
-      vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
+      }
       strcpy(tmpline, line);
       ttrim( tmpline );
-      token = strtok (tmpline, delimiters); 
-      strcpy(vegarr[Nfields],token);
-      Nfields++;
- 
-      while( ( token = strtok (NULL, delimiters)) != NULL ){
-        vegarr[Nfields] = (char*)calloc( 500, sizeof(char));      
-        strcpy(vegarr[Nfields],token);
-        Nfields++;
-      }
-      NfieldsMax = 12; /* For LAI */
-      if ( Nfields != NfieldsMax ) {
-        sprintf(ErrStr,"ERROR - cell %d - expecting %d LAI values but found %d in line %s\n",gridcel, NfieldsMax, Nfields, line);
-        nrerror(ErrStr);
-      }
 
-      for (int j = 0; j < 12; j++ ) {
-        if (state->options.LAI_SRC == LAI_FROM_VEGPARAM) {
-          state->veg_lib[temp[i].veg_class].LAI[j] = atof( vegarr[j] );
-          if (state->veg_lib[temp[i].veg_class].overstory && state->veg_lib[temp[i].veg_class].LAI[j] == 0) {
-            sprintf(ErrStr,"ERROR: cell %d, veg tile %d: the specified veg class (%d) is listed as an overstory class in the veg LIBRARY, but the LAI given in the veg PARAM FILE for this tile for month %d is 0.\n",gridcel, i+1, temp[i].veg_class+1, j+1);
-            nrerror(ErrStr);
-          }
-          state->veg_lib[temp[i].veg_class].Wdmax[j] =
-	    LAI_WATER_FACTOR * state->veg_lib[temp[i].veg_class].LAI[j];
+      for (int j = 0; j < 12; j++) {
+        //TODO: it is wrong to change program state here, should LAI be moved to the HRU class?
+        if (sscanf(tmpline, "%lf", &state->veg_lib[curVeg.veg_class].LAI[j]) != 1) {
+          std::stringstream ss("Error reading LAI values ");
+          ss << "at gridcell " << cell.soil_con.gridcel << " for month " << j;
+          throw VICException(ss.str());
         }
+        if (state->veg_lib[curVeg.veg_class].overstory && state->veg_lib[curVeg.veg_class].LAI[j] == 0) {
+          std::stringstream ss("Error: cell ");
+          ss << cell.soil_con.gridcel << ", veg type " << curVeg.veg_class << " the specified veg class is listed as an overstory class in the veg LIBRARY, but the LAI given in the veg PARAM FILE for this tile for month " << j << " is 0.";
+          throw VICException(ss.str());
+        }
+        state->veg_lib[curVeg.veg_class].Wdmax[j] = LAI_WATER_FACTOR * state->veg_lib[curVeg.veg_class].LAI[j];
       }
-      for(int k=0; k<Nfields; k++)
-        free(vegarr[k]);
     }
 
     // Determine if cell contains non-overstory vegetation
-    if (state->options.COMPUTE_TREELINE && !state->veg_lib[temp[i].veg_class].overstory )
+    if (state->options.COMPUTE_TREELINE && !state->veg_lib[curVeg.veg_class].overstory )
       NoOverstory++;
 
-  }
+    //Create the HRU and add it to the vector.
+    HRU e = initHRU(curVeg, state);
+    e.bandIndex = curBandIndex;
+    cell.prcp.hruList.push_back(e);
+  } // end of loop
 
   // Determine if we have bare soil
-  if(temp[0].Cv_sum>1.0){
-    fprintf(stderr,"WARNING: Cv exceeds 1.0 at grid cell %d, fractions being adjusted to equal 1\n", gridcel);
-    for(int j=0;j<vegetat_type_num;j++)
-      temp[j].Cv = temp[j].Cv / temp[0].Cv_sum;
-    temp[0].Cv_sum = 1.;
+  if(cell.Cv_sum>1.0){
+    fprintf(stderr,"WARNING: Cv exceeds 1.0 at grid cell %d, fractions being adjusted to equal 1\n", cell.soil_con.gridcel);
+    for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+      hru->veg_con.Cv = hru->veg_con.Cv / cell.Cv_sum;
+    }
+    cell.Cv_sum = 1.;
   }
-  else if(temp[0].Cv_sum>0.99 && temp[0].Cv_sum<1.0){
-    fprintf(stderr,"WARNING: Cv > 0.99 and Cv < 1.0 at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", gridcel);
-    for(int j=0;j<vegetat_type_num;j++)
-      temp[j].Cv = temp[j].Cv / temp[0].Cv_sum;
-    temp[0].Cv_sum = 1.;
+  else if(cell.Cv_sum>0.99 && cell.Cv_sum<1.0){
+    fprintf(stderr,"WARNING: Cv > 0.99 and Cv < 1.0 at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", cell.soil_con.gridcel);
+    for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+      hru->veg_con.Cv = hru->veg_con.Cv / cell.Cv_sum;
+    }
+    cell.Cv_sum = 1.;
   }
 
   // Handle veg above the treeline
   if ( state->options.SNOW_BAND > 1 && state->options.COMPUTE_TREELINE
-       && ( !NoOverstory && temp[0].Cv_sum == 1. ) ) {
+       && ( !NoOverstory && cell.Cv_sum == 1. ) ) {
 
     // All vegetation in the current cell is defined with overstory.
     // Add default non-overstory vegetation so that snow bands above treeline
@@ -265,9 +237,10 @@ veg_con_struct *read_vegparam(FILE *vegparam,
     if ( state->options.AboveTreelineVeg < 0 ) {
 
       // Above treeline snowband should be treated as bare soil
-      for (int j = 0; j < vegetat_type_num; j++ )
-        temp[j].Cv -= ( 0.001 / (float)vegetat_type_num );
-      temp[0].Cv_sum -= 0.001;
+      for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+        hru->veg_con.Cv -= ( 0.001 / (float)numHRUs );
+      }
+      cell.Cv_sum -= 0.001;
 
     }
     else {
@@ -275,84 +248,87 @@ veg_con_struct *read_vegparam(FILE *vegparam,
       // Above treeline snowband should use the defined vegetation
       // add vegetation to typenum
       // check that veg type exists in library and does not have overstory
-      if(vegetat_type_num > 0) {
+      veg_con_struct treeVeg;
 
-        for (int j = 0; j < vegetat_type_num; j++ ) {
-          temp[j].Cv -= ( 0.001 / (float)vegetat_type_num );
-          temp[j].vegetat_type_num++;
+      if(numHRUs > 0) {
+
+        for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+          hru->veg_con.Cv -= ( 0.001 / (float)numHRUs );
         }
 
-        temp[vegetat_type_num].Cv         = 0.001;
-        temp[vegetat_type_num].veg_class  = state->options.AboveTreelineVeg;
-        temp[vegetat_type_num].Cv_sum     = temp[vegetat_type_num-1].Cv_sum;
-        temp[vegetat_type_num].zone_depth = (float*)calloc( state->options.ROOT_ZONES,
-                                                  sizeof(float));
-        temp[vegetat_type_num].zone_fract = (float*)calloc( state->options.ROOT_ZONES,
-                                                  sizeof(float));
-        temp[vegetat_type_num].vegetat_type_num = vegetat_type_num+1;
+
+        treeVeg.Cv         = 0.001;
+        treeVeg.veg_class  = state->options.AboveTreelineVeg;
+        treeVeg.zone_depth = (float*)calloc( state->options.ROOT_ZONES,sizeof(float));
+        treeVeg.zone_fract = (float*)calloc( state->options.ROOT_ZONES,sizeof(float));
 
         // Since root zones are not defined they are copied from the last
         // vegetation type.
+        veg_con_struct* lastVeg = &cell.prcp.hruList[cell.prcp.hruList.size() - 1].veg_con;
         for (int j = 0; j < state->options.ROOT_ZONES; j++ ) {
-          temp[vegetat_type_num].zone_depth[j]
-            = temp[vegetat_type_num-1].zone_depth[j];
-          temp[vegetat_type_num].zone_fract[j]
-            = temp[vegetat_type_num-1].zone_fract[j];
+          treeVeg.zone_depth[j] = lastVeg->zone_depth[j];
+          treeVeg.zone_fract[j] = lastVeg->zone_fract[j];
         }
-
       }
 
       // Identify current vegetation class
       veg_class = INVALID_INT;
       for (int j = 0; j < Nveg_type; j++ ) {
-        if(temp[vegetat_type_num].veg_class == state->veg_lib[j].veg_class) {
+        if(treeVeg.veg_class == state->veg_lib[j].veg_class) {
           veg_class = j;
           break;
         }
       }
       if ( IS_INVALID(veg_class) ) {
-        sprintf(ErrStr,"The vegetation class id %i defined for above-treeline from cell %i is not defined in the vegetation library file.", temp[vegetat_type_num].veg_class, gridcel);
-        nrerror(ErrStr);
+        std::stringstream ss;
+        ss << "The vegetation class id " << treeVeg.veg_class << " defined for above-treeline from cell " << cell.soil_con.gridcel << " is not defined in the vegetation library file.";
+        throw VICException(ss.str());
       }
       else {
-        temp[vegetat_type_num].veg_class = veg_class;
+        treeVeg.veg_class = veg_class;
       }
+
+      HRU treeHru = initHRU(treeVeg, state);
+      treeHru.bandIndex = state->options.SNOW_BAND - 1; //TODO: currently set to the top snow band. Should a new HRU be added to all bands instead?
+      cell.prcp.hruList.push_back(treeHru);
 
       if (state->veg_lib[veg_class].overstory ) {
-        sprintf(ErrStr,"Vegetation class %i is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.", state->veg_lib[veg_class].veg_class );
-        nrerror(ErrStr);
+        std::stringstream ss;
+        ss << "Vegetation class " << state->veg_lib[veg_class].veg_class << "is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.";
+        throw VICException(ss.str());
       }
-
     }
-
   }
 
   // Bare soil tile
-  if (temp[0].Cv_sum < 1.) {
-    int j = vegetat_type_num;
-    temp[j].veg_class = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
-    temp[j].Cv = 1.0 - temp[0].Cv_sum;
-    // Don't allocate any root-zone-related arrays
-    if(state->options.BLOWING) {
-      if (vegetat_type_num > 0) {
-        temp[j].sigma_slope = temp[0].sigma_slope;
-        temp[j].lag_one = temp[0].lag_one;
-        temp[j].fetch = temp[0].fetch;
+  if (cell.Cv_sum < 1.) {
+    double CvPerBand = (1.0 - cell.Cv_sum) / (double)state->options.SNOW_BAND;
+    // A bare soil HRU is added to each elevation.
+    for (int band = 0; band < state->options.SNOW_BAND; band++) {
+      veg_con_struct bareSoilVeg;
+      bareSoilVeg.veg_class = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
+      bareSoilVeg.Cv = CvPerBand;
+      // Don't allocate any root-zone-related arrays
+      if(state->options.BLOWING) {
+        if (numHRUs > 0) {
+          bareSoilVeg.sigma_slope = cell.prcp.hruList[0].veg_con.sigma_slope;
+          bareSoilVeg.lag_one = cell.prcp.hruList[0].veg_con.lag_one;
+          bareSoilVeg.fetch = cell.prcp.hruList[0].veg_con.fetch;
+        }
+        else {
+          bareSoilVeg.sigma_slope = 0.005;
+          bareSoilVeg.lag_one = 0.95;
+          bareSoilVeg.fetch = 2000;
+        }
       }
-      else {
-        temp[j].sigma_slope = 0.005;
-        temp[j].lag_one = 0.95;
-        temp[j].fetch = 2000;
-      }
+      HRU bareSoil = initHRU(bareSoilVeg, state);
+      bareSoil.bandIndex = band;
+      bareSoil.isArtificialBareSoil = true;
+      cell.prcp.hruList.push_back(bareSoil);
     }
+    cell.Cv_sum = 1;
   }
-
-  return temp;
 } 
-
-
-
-
 
 
 /* trim trailing newlines */

@@ -116,9 +116,7 @@ int snow_intercept(double  Dt,
 		   VegConditions &roughness,
 		   const float  *root,
 		   VegConditions::VegSurfType UnderStory,
-		   int     band, 
 		   int     hour, 
-		   int     iveg, 
 		   int     month, 
 		   int     rec,
 		   int     hidx,
@@ -329,11 +327,11 @@ int snow_intercept(double  Dt,
     *AlbedoOver = soil_con->NEW_SNOW_ALB; // albedo of intercepted snow in canopy
     *NetShortOver = (1. - *AlbedoOver) * ShortOverIn; // net SW in canopy
 
-    CanopyEnergyBal canopyEnergyBal(band, month, rec, Dt, soil_con->elevation,
+    CanopyEnergyBal canopyEnergyBal(month, rec, Dt, soil_con->elevation,
         soil_con->Wcr, soil_con->Wpwp, soil_con->depth, soil_con->frost_fract,
         atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx],
         latent_heat_Le, Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra,
-        Ra_used, RainFall, wind_speed, UnderStory, iveg, veg_class, displacement,
+        Ra_used, RainFall, wind_speed, UnderStory, veg_class, displacement,
         ref_height, roughness, root, IntRainOrg, *IntSnow, IntRain, layer_wet,
         layer_dry, veg_var_wet, veg_var_dry, LongOverIn, LongUnderOut,
         *NetShortOver, AdvectedEnergy, LatentHeat, LatentHeatSub, LongOverOut,
@@ -364,11 +362,11 @@ int snow_intercept(double  Dt,
 
   if ( IS_VALID(Tupper) && IS_VALID(Tlower) ) {
 
-    CanopyEnergyBal canopyEnergyBalance(band, month, rec, Dt,
+    CanopyEnergyBal canopyEnergyBalance(month, rec, Dt,
         soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
         soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
         atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
-        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory, iveg,
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory,
         veg_class, displacement, ref_height, roughness, root, IntRainOrg,
         *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
         LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
@@ -384,14 +382,14 @@ int snow_intercept(double  Dt,
         (*Tfoliage_fbcount)++;
       }
       else { 
-        Qnet = error_print_canopy_energy_bal(*Tfoliage, band, month, rec, Dt,
+        Qnet = error_print_canopy_energy_bal(*Tfoliage, month, rec, Dt,
 					    soil_con->elevation, 
 					    soil_con->Wcr, soil_con->Wpwp, 
 					    soil_con->depth, 
 					    soil_con->frost_fract, 
 					    atmos.density[hidx], atmos.vp[hidx], atmos.pressure[hidx], latent_heat_Le,
 					    Tcanopy, atmos.vpd[hidx], precipitation_mu, &Evap, Ra, Ra_used,
-					    RainFall, wind_speed, UnderStory, iveg, 
+					    RainFall, wind_speed, UnderStory,
 					    veg_class, displacement, ref_height, 
 					    roughness, root, IntRainOrg, *IntSnow, 
 					    IntRain, layer_wet, layer_dry, veg_var_wet, 
@@ -405,11 +403,11 @@ int snow_intercept(double  Dt,
         return( ERROR );
       }
     }
-    CanopyEnergyBal foliageCanopyEnergyBal(band, month, rec, Dt,
+    CanopyEnergyBal foliageCanopyEnergyBal(month, rec, Dt,
         soil_con->elevation, soil_con->Wcr, soil_con->Wpwp, soil_con->depth,
         soil_con->frost_fract, atmos.density[hidx], atmos.vp[hidx],
         atmos.pressure[hidx], latent_heat_Le, Tcanopy, atmos.vpd[hidx],
-        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory, iveg,
+        precipitation_mu, &Evap, Ra, Ra_used, RainFall, wind_speed, UnderStory,
         veg_class, displacement, ref_height, roughness, root, IntRainOrg,
         *IntSnow, IntRain, layer_wet, layer_dry, veg_var_wet, veg_var_dry,
         LongOverIn, LongUnderOut, *NetShortOver, AdvectedEnergy, LatentHeat,
@@ -585,7 +583,6 @@ int snow_intercept(double  Dt,
 
 double error_print_canopy_energy_bal(double Tfoliage,
     /* General Model Parameters */
-    int     band,
     int     month,
     int     rec,
     double  delta_t,
@@ -609,7 +606,6 @@ double error_print_canopy_energy_bal(double Tfoliage,
     VegConditions &wind_speed,
     /* Vegetation Terms */
     VegConditions::VegSurfType UnderStory,
-    int     iveg,
     int     veg_class,
     VegConditions &displacement,
     VegConditions &ref_height,
@@ -644,7 +640,6 @@ double error_print_canopy_energy_bal(double Tfoliage,
   fprintf(stderr, "ERROR: snow_intercept failed to converge to a solution in root_brent.  Variable values will be dumped to the screen, check for invalid values.\n");
 
   /* General Model Parameters */
-  printf("band = %i\n", band);
   printf("month = %i\n",     month);
   printf("rec = %i\n", rec);
   
@@ -675,7 +670,6 @@ double error_print_canopy_energy_bal(double Tfoliage,
 
   /* Vegetation Terms */
   printf("UnderStory = %i\n",     UnderStory);
-  printf("iveg = %i\n",     iveg);
   printf("veg_class = %i\n",     veg_class);
 
   printf("displacement = [%f, %f]\n",  displacement.canopyIfOverstory, displacement[UnderStory]);
@@ -690,14 +684,14 @@ double error_print_canopy_energy_bal(double Tfoliage,
 
   printf("Wdew = %f\n", *Wdew);
 
-  write_layer(layer_wet, iveg, state->options.Nlayer, frost_fract);
+  write_layer(layer_wet, veg_class, state->options.Nlayer, frost_fract);
 
   if(state->options.DIST_PRCP)
-    write_layer(layer_dry, iveg, state->options.Nlayer, frost_fract);
+    write_layer(layer_dry, veg_class, state->options.Nlayer, frost_fract);
 
-  write_vegvar(&(veg_var_wet[0]),iveg);
+  write_vegvar(&(veg_var_wet[0]),veg_class);
   if(state->options.DIST_PRCP)
-    write_vegvar(&(veg_var_dry[0]),iveg);
+    write_vegvar(&(veg_var_dry[0]),veg_class);
 
   /* Energy Flux Terms */
   fprintf(stderr, "LongOverIn = %f\n",  LongOverIn);

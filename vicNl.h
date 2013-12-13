@@ -138,7 +138,7 @@ void   calc_netlongwave(double *, double, double, double);
 double calc_netshort(double, int, double, double *);
 double calc_rainonly(double,double,double,double,double);
 double calc_rc(double,double,float,double,double,double,double,char);
-void   calc_root_fractions(veg_con_struct *, soil_con_struct *, const ProgramState*);
+void   calc_root_fractions(std::vector<HRU>&, soil_con_struct *, const ProgramState*);
 double calc_snow_coverage(int *, double, double, double, double, double, 
                           double, double, double *, double *, double *, 
                           double *, double *);
@@ -153,9 +153,11 @@ int calc_soil_thermal_fluxes(int, double *, double *, char *, int *, double *,
     const double *, double *, double *, double *, double *, double *,
     double ** const *, int, int, int, int, const ProgramState*);
 
-double CalcBlowingSnow(double, double, int, double, double, double, double, 
-                       double, double, double, double, double, float, 
-                       float, double, int, int, float, double, double, double *); 
+double CalcBlowingSnow(double Dt, double Tair, int LastSnow,
+    double SurfaceLiquidWater, double Wind, double Ls, double AirDens,
+    double Press, double EactAir, double ZO, double Zrh, double snowdepth,
+    float lag_one, float sigma_slope, double Tsnow, bool isArtificialBareSoil,
+    float fe, double displacement, double roughness, double *TotalTransport);
 double calc_atmos_energy_bal(double, double, double, double, double, double, 
                              double, double, double, double, double, double, 
                              double, double, double, double, 
@@ -164,16 +166,25 @@ double calc_atmos_energy_bal(double, double, double, double, double, double,
 int    calc_layer_average_thermal_props(energy_bal_struct *, layer_data_struct *,
 					layer_data_struct *, layer_data_struct *,
 					const soil_con_struct *, int, int, double *, const ProgramState*);
-double calc_surf_energy_bal(double, double, double, double, double, double,
-    double, double, double, double, double, double, double, double, double,
-    double, double, double, double, double, double, double, double, double,
-    double, double, double, VegConditions &, AeroResistUsed &, VegConditions &,
-    double *, double *, double *, VegConditions &, VegConditions &, double *,
-    VegConditions &, const float *, int, VegConditions::VegSurfType, int, int, int, int, int, int, int,
-    int, int, int, atmos_data_struct *,
-    const dmy_struct *, energy_bal_struct *, layer_data_struct *,
-    layer_data_struct *, snow_data_struct *, const soil_con_struct *,
-    veg_var_struct *, veg_var_struct *, int, const ProgramState*);
+double calc_surf_energy_bal(double latent_heat_Le, double LongUnderIn,
+    double NetLongSnow, double NetShortGrnd, double NetShortSnow,
+    double OldTSurf, double ShortUnderIn, double SnowAlbedo, double SnowLatent,
+    double SnowLatentSub, double SnowSensible, double Tair, double VPDcanopy,
+    double VPcanopy, double advection, double coldcontent,
+    double delta_coverage, double dp, double ice0, double melt_energy,
+    double moist, double precipitation_mu, double snow_coverage,
+    double snow_depth, double BareAlbedo, double surf_atten, double vapor_flux,
+    VegConditions &aero_resist, AeroResistUsed &aero_resist_used,
+    VegConditions &displacement, double *melt, double *ppt, double *rainfall,
+    VegConditions &ref_height, VegConditions &roughness, double *snowfall,
+    VegConditions &wind_speed, const float *root, int INCLUDE_SNOW,
+    VegConditions::VegSurfType UnderStory, int Nnodes, int dt, int hour,
+    int nlayer, int overstory, int rec, int veg_class,
+    bool isArtificialBareSoil, atmos_data_struct *atmos, const dmy_struct *dmy,
+    energy_bal_struct *energy, layer_data_struct *layer_dry,
+    layer_data_struct *layer_wet, snow_data_struct *snow,
+    const soil_con_struct *soil_con, veg_var_struct *veg_var_dry,
+    veg_var_struct *veg_var_wet, int nrecs, const ProgramState* state);
 double calc_trans(double, double);
 double calc_veg_displacement(double);
 double calc_veg_height(double);
@@ -231,13 +242,13 @@ double error_print_atmos_energy_bal(double Tcanopy, double LatentHeat,
 double error_print_atmos_moist_bal(double VPcanopy, double InLatent, double Lv,
     double Ra, double atmos_density, double gamma, double vp,
     double *AtmosLatent, char *ErrorString);
-double error_print_canopy_energy_bal(double Tfoliage, int band, int month,
+double error_print_canopy_energy_bal(double Tfoliage, int month,
     int rec, double delta_t, const double elevation, const double *Wcr,
     const double *Wpwp, const double *depth, const double *frost_fract,
     double AirDens, double EactAir, double Press, double latent_heat_Le,
     double Tcanopy, double Vpd, double mu, double *Evap, VegConditions &Ra,
     AeroResistUsed &Ra_used, double *Rainfall, VegConditions &wind_speed,
-    VegConditions::VegSurfType UnderStory, int iveg, int veg_class,
+    VegConditions::VegSurfType UnderStory, int veg_class,
     VegConditions &displacement, VegConditions &ref_height,
     VegConditions &roughness, const float *root, double IntRain, double IntSnow,
     double *Wdew, layer_data_struct *layer_wet, layer_data_struct *layer_dry,
@@ -247,19 +258,19 @@ double error_print_canopy_energy_bal(double Tfoliage, int band, int month,
     double *NetLongOver, double *NetRadiation, double *RefreezeEnergy,
     double *SensibleHeat, double *VaporMassFlux, char *ErrorString,
     const ProgramState* state);
-double ErrorPrintSnowPackEnergyBalance(double TSurf, int rec, int iveg,
-    int band, double Dt, double Ra, AeroResistUsed& RaUsed, double Displacement,
-    double Z, VegConditions& Z0, double AirDens, double EactAir, double LongSnowIn,
+double ErrorPrintSnowPackEnergyBalance(double TSurf, int rec, double Dt,
+    double Ra, AeroResistUsed& RaUsed, double Displacement, double Z,
+    VegConditions &roughness, double AirDens, double EactAir, double LongSnowIn,
     double Lv, double Press, double Rain, double ShortRad, double Vpd,
     double Wind, double OldTSurf, double SnowCoverFract, double SnowDensity,
     double SurfaceLiquidWater, double SweSurfaceLayer, double Tair,
     double TGrnd, double *AdvectedEnergy, double *AdvectedSensibleHeat,
-    double *DeltaColdContent, double *GroundFlux,
-    double *LatentHeat, double *LatentHeatSub, double *NetLongSnow,
-    double *RefreezeEnergy, double *SensibleHeat, double *VaporMassFlux,
-    double *BlowingMassFlux, double *SurfaceMassFlux, char *ErrorString);
-double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec, int iveg,
-    int band, double Dt, double Ra, AeroResistUsed& RaUsed, double Displacement,
+    double *DeltaColdContent, double *GroundFlux, double *LatentHeat,
+    double *LatentHeatSub, double *NetLongSnow, double *RefreezeEnergy,
+    double *SensibleHeat, double *VaporMassFlux, double *BlowingMassFlux,
+    double *SurfaceMassFlux, char *ErrorString);
+double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec,
+    double Dt, double Ra, AeroResistUsed& RaUsed, double Displacement,
     double Z, VegConditions& Z0, double AirDens, double EactAir, double LongSnowIn,
     double Lv, double Press, double Rain, double ShortRad, double Vpd,
     double Wind, double OldTSurf, double SnowCoverFract, double SnowDensity,
@@ -275,7 +286,7 @@ double error_print_solve_T_profile(double T, double TL, double TU, double T0,
     char *ErrorString);
 
 double error_print_surf_energy_bal(double Ts, int year, int month, int day,
-    int hour, int iveg, int VEG, int veg_class, double delta_t, double Cs1,
+    int hour, int VEG, int veg_class, double delta_t, double Cs1,
     double Cs2, double D1, double D2, double T1_old, double T2, double Ts_old,
     double bubble, double dp, double expt, double ice0, double kappa1,
     double kappa2, double max_moist, double moist, const float *root,
@@ -323,14 +334,13 @@ layer_data_struct find_average_layer(layer_data_struct *, layer_data_struct *,
 void   find_sublayer_temperatures(layer_data_struct *, double *, double *,
 				  double *, double, double, int, int);
 void   free_atmos(int nrecs, atmos_data_struct **atmos);
-void   free_dist_prcp(dist_prcp_struct *, int);
 void   free_dmy(dmy_struct **dmy);
-void   free_vegcon(veg_con_struct **);
+void   free_vegcon(cell_info_struct& cell);
 void   free_veglib(veg_lib_struct **);
 void   free_out_data(out_data_struct **);
 int    full_energy(char, int, atmos_data_struct *, dist_prcp_struct *,
 		     const dmy_struct *, lake_con_struct *, const soil_con_struct *,
-		     const veg_con_struct *, WriteDebug*, const ProgramState*);
+		     WriteDebug*, const ProgramState*);
 double func_aero_resist(double,double,double,double,double);
 double func_atmos_moist_bal(double VPcanopy, double InLatentHeat, double Lv,
     double Ra, double atmos_density, double gamma, double atmospheric_vp);
@@ -349,9 +359,9 @@ void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *n
 
 int initialize_model_state(cell_info_struct*, dmy_struct, filep_struct, int, const char*, const ProgramState *);
 
-int    initialize_new_storm(std::vector<HRU>&, int, int, int, double, double, const ProgramState *);
+int    initialize_new_storm(HRU&, int, double, const ProgramState*);
 void   initialize_snow(std::vector<HRU>&);
-void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, veg_con_struct *, const ProgramState*);
+void   initialize_soil(std::vector<HRU>&, int, soil_con_struct *, const ProgramState*);
 void initialize_veg(std::vector<HRU>&, int);
 
 int latitudeToIndex(double lat, const ProgramState* state);
@@ -384,8 +394,7 @@ FILE  *open_file(const char *string, const char *type);
 
 void parse_output_info(const char*, out_data_file_struct *, out_data_struct *, ProgramState*);
 double penman(double, double, double, double, double, double, double);
-void   prepare_full_energy(int, int, int, dist_prcp_struct *, 
-			   const soil_con_struct *, double *, double *, const ProgramState*);
+void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
 int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
 
@@ -400,16 +409,16 @@ soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
-veg_con_struct *read_vegparam(FILE *, int, int, const ProgramState*);
-int redistribute_during_storm(std::vector<HRU>&, int,
-      int, int, double, double, double, double *, const ProgramState*);
+void read_vegparam(FILE *, cell_info_struct&, int, const ProgramState*);
+int redistribute_during_storm(HRU& hru, int rec, double Wdmax, double new_mu,
+    double *max_moist, const ProgramState* state);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
 			     double *, double *, double *, int);
 unsigned char redistribute_moisture_for_storm(double *, double *, double, 
 					      double, double);
 int    runoff(hru_data_struct *, hru_data_struct *,
               energy_bal_struct *, const soil_con_struct *, double *,
-              int, double, int, int, int, const ProgramState*);
+              int, double, int, int, const ProgramState*);
 
 void set_max_min_hour(double *, int, int *, int *);
 void set_node_parameters(double *, double *, double *, double *, double *,
@@ -426,7 +435,7 @@ int snow_intercept(double, double, double, double, double, double, double,
     VegConditions &, AeroResistUsed &, double *, double *, double *, double *,
     char *, int *, double *, double *, VegConditions &, VegConditions &,
     VegConditions &, VegConditions &, const float *,
-    VegConditions::VegSurfType, int, int, int, int, int, int, int,
+    VegConditions::VegSurfType, int, int, int, int, int,
     const atmos_data_struct &, layer_data_struct *, layer_data_struct *,
     const soil_con_struct *, veg_var_struct *, veg_var_struct *,
     const ProgramState*);
@@ -435,7 +444,7 @@ int    snow_melt(double, double, double, double, VegConditions &, double, AeroRe
                  double, double, double, double, double, double, 
                  double *, double *, double *, double *, double *, double *, 
                  double *, double *, double *, double *, double *, double *, 
-                 int, int, int, int, snow_data_struct *, const soil_con_struct *, const ProgramState*);
+                 int, int, snow_data_struct *, const soil_con_struct *, const ProgramState*);
 
 int snow_melt_glac(double latent_heat_Le, double NetShortSnow, double Tgrnd,
     VegConditions& roughness, double aero_resist, AeroResistUsed &aero_resist_used, double air_temp,
@@ -446,7 +455,7 @@ int snow_melt_glac(double latent_heat_Le, double NetShortSnow, double Tgrnd,
     double *save_advected_sensible, double *save_advection,
     double *save_deltaCC, double *save_grnd_flux, double *save_latent,
     double *save_latent_sub, double *save_refreeze_energy,
-    double *save_sensible, int rec, int iveg, int band, snow_data_struct *snow,
+    double *save_sensible, int rec, snow_data_struct *snow,
     const soil_con_struct *soil_con, glac_data_struct *glacier,
     const ProgramState* state);
 
@@ -457,7 +466,7 @@ int glacier_melt(double Le, double NetShort, double Tgrnd, VegConditions& roughn
     double wind, double z2, double *NetLong, double *OldTSurf, double *melt,
     double *save_Qnet, double *save_advection,
     double *save_deltaCC_glac, double *save_grnd_flux, double *save_latent,
-    double *save_latent_sub, double *save_sensible, int rec, int iveg, int band,
+    double *save_latent_sub, double *save_sensible, int rec,
     glac_data_struct *glacier, const soil_con_struct*, const ProgramState *state);
 double soil_conductivity(double, double, double, double, double, double, double, double);
 void   soil_thermal_calc(soil_con_struct *, layer_data_struct *,
@@ -469,7 +478,7 @@ double solve_snow(char, double, double, double, double, double, double, double,
     AeroResistUsed &, double *, double *, double *, VegConditions &, double *,
     double *, double *, double *, double *, double *, double *, VegConditions &,
     VegConditions &, double *, double *, double *, VegConditions &,
-    const float *, int, int, int, int, int, int, int, int, int,
+    const float *, int, int, int, int, int, int, bool,
     VegConditions::VegSurfType &, const dmy_struct *,
     const atmos_data_struct &, energy_bal_struct *, layer_data_struct *,
     layer_data_struct *, snow_data_struct *, const soil_con_struct *,
@@ -485,8 +494,8 @@ double solve_snow_glac(double BareAlbedo, double LongUnderOut, double Tgrnd,
     double *out_prec, double *out_rain, double *out_snow, double *ppt,
     double *rainfall, VegConditions &ref_height, VegConditions &roughness,
     double *snow_inflow, double *snowfall,
-    VegConditions &wind_speed, int iveg, int band, int dt, int rec, int hidx,
-    int veg_class, VegConditions::VegSurfType &UnderStory,
+    VegConditions &wind_speed, int dt, int rec, int hidx,
+    VegConditions::VegSurfType &UnderStory,
     const dmy_struct *dmy, const atmos_data_struct &atmos,
     energy_bal_struct *energy, snow_data_struct *snow,
     const soil_con_struct *soil_con, glac_data_struct *glacier,
@@ -500,7 +509,7 @@ double solve_glacier(double BareAlbedo, double LongUnderOut, double Tgrnd, doubl
     VegConditions &displacement, double *melt_energy, double *out_prec,
     double *out_rain, double *out_snow, double *ppt, double *rainfall,
     VegConditions &ref_height, VegConditions &roughness, double *snowfall,
-    VegConditions &wind_speed, int Nveg, int iveg, int band, int dt, int rec,
+    VegConditions &wind_speed, int dt, int rec,
     int hidx, VegConditions::VegSurfType &UnderStory, const dmy_struct *dmy,
     atmos_data_struct *atmos, energy_bal_struct *energy,
     glac_data_struct *glacier, const soil_con_struct* soil,
@@ -517,31 +526,27 @@ int solve_T_profile_implicit(double *, double *, double *, double *,
     const soil_con_struct*, const ProgramState*);
 
 double StabilityCorrection(double, double, double, double, double, double);
-void   store_moisture_for_debug(int,int,double *, std::vector<HRU>&,
-				const soil_con_struct *, const ProgramState*);
+void   store_moisture_for_debug(const HRU&, const soil_con_struct *, const ProgramState*);
 
 int surface_fluxes(char, double, double, double, double, int,
-    double, double, double *, double *, VegConditions *,
+    HRU&, double, double *, double *, VegConditions *,
     VegConditions &, double *, double *, double *, double *, VegConditions &,
     VegConditions &, double *, VegConditions &, const float *, int, int, int,
-    int, int, int, int, int, int, atmos_data_struct *, const dmy_struct *,
+    int, int, int, atmos_data_struct *, const dmy_struct *,
     energy_bal_struct *, hru_data_struct *, hru_data_struct *,
     snow_data_struct *, const soil_con_struct*, veg_var_struct *,
     veg_var_struct *, float, float, float, const ProgramState *);
 
 int surface_fluxes_glac(double BareAlbedo, double height, double ice0,
-    double moist0, int SubsidenceUpdate, double current_prcp_mu,
-    double *Melt, double *latent_heat_Le, VegConditions *aero_resist,
+    double moist0, int SubsidenceUpdate, HRU& hru, double *Melt,
+    double *latent_heat_Le, VegConditions *aero_resist,
     VegConditions &displacement, double *gauge_correction, double *out_prec,
     double *out_rain, double *out_snow, VegConditions &ref_height,
     VegConditions &roughness, double *snow_inflow, VegConditions &wind_speed,
-    int Nbands, int Ndist, int Nlayers, int Nveg, int band, int iveg, int rec,
+    int Nbands, int Ndist, int Nlayers, int rec,
     int veg_class, atmos_data_struct *atmos, const dmy_struct *dmy,
-    energy_bal_struct *energy, hru_data_struct *cell_dry,
-    hru_data_struct *cell_wet, snow_data_struct *snow,
-    const soil_con_struct *soil_con, veg_var_struct *veg_var_dry,
-    veg_var_struct *veg_var_wet, glac_data_struct *glacier, float lag_one,
-    float sigma_slope, float fetch, const ProgramState *state);
+    const soil_con_struct *soil_con, float lag_one, float sigma_slope,
+    float fetch, const ProgramState *state);
 
 double svp(double);
 double svp_slope(double);
@@ -567,7 +572,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state);
 void write_snow_data(snow_data_struct, int, int);
 void write_soilparam(soil_con_struct *, const ProgramState*);
-void write_vegparam(veg_con_struct *, const ProgramState*);
+void write_vegparam(const cell_info_struct&, const ProgramState*);
 void write_vegvar(veg_var_struct *, int);
 
 void zero_output_list(out_data_struct *);

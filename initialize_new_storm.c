@@ -5,11 +5,8 @@
 
 static char vcid[] = "$Id$";
 
-int  initialize_new_storm(std::vector<HRU>& hruList,
-			  int                 veg,
-			  int                 Nveg,
+int  initialize_new_storm(HRU& hru,
 			  int                 rec,
-			  double              old_mu,
 			  double              new_mu,
 			  const ProgramState *state) {
 /**********************************************************************
@@ -26,83 +23,77 @@ int  initialize_new_storm(std::vector<HRU>& hruList,
   2007-Apr-04 Modified to return to main subroutine on cell error GCT/KAC
 **********************************************************************/
 
+  double old_mu = hru.mu;
+
   /** Redistribute Soil Moisture **/
-  for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
-    // Only loop over bands for this veg index.
-    if (it->vegIndex == veg) {
-      for (int layer = 0; layer < state->options.Nlayer; layer++) {
+  for (int layer = 0; layer < state->options.Nlayer; layer++) {
 
-        hru_data_struct& cellWet = it->cell[WET];
-        hru_data_struct& cellDry = it->cell[DRY];
+    hru_data_struct& cellWet = hru.cell[WET];
+    hru_data_struct& cellDry = hru.cell[DRY];
 
-        double temp_wet = cellWet.layer[layer].moist;
-        double temp_dry = cellDry.layer[layer].moist;
-        unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
-            new_mu);
-        if (error) {
-          fprintf(stderr,
-              "moist does not balance before new storm: %f -> %f record %i\n",
-              cellWet.layer[layer].moist * new_mu
-                  + cellDry.layer[layer].moist * (1. - new_mu),
-              temp_wet + temp_dry, rec);
-          return (ERROR);
-        }
-        cellWet.layer[layer].moist = temp_wet;
-        cellDry.layer[layer].moist = temp_dry;
-
-#if SPATIAL_FROST
-        for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
-          temp_wet = cellWet.layer[layer].soil_ice[frost_area];
-          temp_dry = cellDry.layer[layer].soil_ice[frost_area];
-#else
-        temp_wet = cellWet.layer[layer].soil_ice;
-        temp_dry = cellDry.layer[layer].soil_ice;
-#endif
-        error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
-            new_mu);
-        if (error) {
-#if SPATIAL_FROST
-          fprintf(stderr,"ice does not balance before new storm: %f -> %f record %i\n",
-              cellWet.layer[layer].soil_ice[frost_area] * new_mu
-              + cellDry.layer[layer].soil_ice[frost_area]
-              * (1. - new_mu), temp_wet + temp_dry, rec);
-#else
-          fprintf(stderr,
-              "ice does not balance before new storm: %f -> %f record %i\n",
-              cellWet.layer[layer].soil_ice * new_mu
-                  + cellDry.layer[layer].soil_ice * (1. - new_mu),
-              temp_wet + temp_dry, rec);
-#endif
-          return (ERROR);
-        }
-#if SPATIAL_FROST
-        cellWet.layer[layer].soil_ice[frost_area] = temp_wet;
-        cellDry.layer[layer].soil_ice[frost_area] = temp_dry;
-      }
-#else
-        cellWet.layer[layer].soil_ice = temp_wet;
-        cellDry.layer[layer].soil_ice = temp_dry;
-#endif 
-      }
-
-      /****************************************
-       Redistribute Stored Water in Vegetation
-       ****************************************/
-      if (veg < Nveg) {
-        double temp_wet = it->veg_var[WET].Wdew;
-        double temp_dry = it->veg_var[DRY].Wdew;
-        unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu,
-            new_mu);
-        if (error) {
-          fprintf(stderr, "Wdew does not balance before new storm: %f -> %f record %i\n",
-              it->veg_var[WET].Wdew * new_mu + it->veg_var[DRY].Wdew * (1. - new_mu),
-              temp_wet + temp_dry, rec);
-          return (ERROR);
-        }
-        it->veg_var[WET].Wdew = temp_wet;
-        it->veg_var[DRY].Wdew = temp_dry;
-      }
+    double temp_wet = cellWet.layer[layer].moist;
+    double temp_dry = cellDry.layer[layer].moist;
+    unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry,
+        old_mu, new_mu);
+    if (error) {
+      fprintf(stderr,
+          "moist does not balance before new storm: %f -> %f record %i\n",
+          cellWet.layer[layer].moist * new_mu
+              + cellDry.layer[layer].moist * (1. - new_mu), temp_wet + temp_dry,
+          rec);
+      return (ERROR);
     }
+    cellWet.layer[layer].moist = temp_wet;
+    cellDry.layer[layer].moist = temp_dry;
+
+#if SPATIAL_FROST
+    for (int frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++ ) {
+      temp_wet = cellWet.layer[layer].soil_ice[frost_area];
+      temp_dry = cellDry.layer[layer].soil_ice[frost_area];
+#else
+    temp_wet = cellWet.layer[layer].soil_ice;
+    temp_dry = cellDry.layer[layer].soil_ice;
+#endif
+    error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu, new_mu);
+    if (error) {
+#if SPATIAL_FROST
+      fprintf(stderr,"ice does not balance before new storm: %f -> %f record %i\n",
+          cellWet.layer[layer].soil_ice[frost_area] * new_mu
+          + cellDry.layer[layer].soil_ice[frost_area]
+          * (1. - new_mu), temp_wet + temp_dry, rec);
+#else
+      fprintf(stderr,
+          "ice does not balance before new storm: %f -> %f record %i\n",
+          cellWet.layer[layer].soil_ice * new_mu
+              + cellDry.layer[layer].soil_ice * (1. - new_mu),
+          temp_wet + temp_dry, rec);
+#endif
+      return (ERROR);
+    }
+#if SPATIAL_FROST
+    cellWet.layer[layer].soil_ice[frost_area] = temp_wet;
+    cellDry.layer[layer].soil_ice[frost_area] = temp_dry;
+  }
+#else
+    cellWet.layer[layer].soil_ice = temp_wet;
+    cellDry.layer[layer].soil_ice = temp_dry;
+#endif 
+  }
+
+  /****************************************
+   Redistribute Stored Water in Vegetation
+   ****************************************/
+  if (hru.isArtificialBareSoil == false) {
+    double temp_wet = hru.veg_var[WET].Wdew;
+    double temp_dry = hru.veg_var[DRY].Wdew;
+    unsigned char error = average_moisture_for_storm(&temp_wet, &temp_dry, old_mu, new_mu);
+    if (error) {
+      fprintf(stderr,"Wdew does not balance before new storm: %f -> %f record %i\n",
+          hru.veg_var[WET].Wdew * new_mu + hru.veg_var[DRY].Wdew * (1. - new_mu), temp_wet + temp_dry, rec);
+      return (ERROR);
+    }
+    hru.veg_var[WET].Wdew = temp_wet;
+    hru.veg_var[DRY].Wdew = temp_dry;
   }
   return (0);
 }

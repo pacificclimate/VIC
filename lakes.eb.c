@@ -1868,8 +1868,8 @@ void energycalc (double *finaltemp, double *sumjoule, int numnod, double dz, dou
 }
 
 int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist_prcp_struct *prcp,
-		    int rec, HRU* hruElement, double lakefrac, soil_con_struct soil_con,
-		    veg_con_struct veg_con, int SubsidenceUpdate, double total_meltwater, const ProgramState* state)
+		    int rec, HRU& hruElement, double lakefrac, soil_con_struct soil_con,
+		    int SubsidenceUpdate, double total_meltwater, const ProgramState* state)
 
 /**********************************************************************
  * This routine calculates the water balance of the lake
@@ -2052,14 +2052,14 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
 
     // Lake must fill soil to saturation in the newly-flooded area
     for(j=0; j<state->options.Nlayer; j++) {
-      delta_moist[j] += (soil_con.max_moist[j]-hruElement->cell[WET].layer[j].moist)*(max_newfraction-lakefrac)/(1-lakefrac); // mm over (1-lakefrac)
+      delta_moist[j] += (soil_con.max_moist[j]-hruElement.cell[WET].layer[j].moist)*(max_newfraction-lakefrac)/(1-lakefrac); // mm over (1-lakefrac)
     }
     for(j=0; j<state->options.Nlayer; j++) {
       lake->recharge += (delta_moist[j]) / 1000. * (1-lakefrac) * lake_con.basin[0]; // m^3
     }
 
     // Above-ground storage in newly-flooded area is liberated and goes to lake
-    abovegrnd_storage = (hruElement->veg_var[WET].Wdew/1000. + hruElement->snow.snow_canopy + hruElement->snow.swq) * (max_newfraction-lakefrac) * lake_con.basin[0];
+    abovegrnd_storage = (hruElement.veg_var[WET].Wdew/1000. + hruElement.snow.snow_canopy + hruElement.snow.swq) * (max_newfraction-lakefrac) * lake_con.basin[0];
     lake->recharge -= abovegrnd_storage;
 
     // Fill the soil to saturation if possible in inundated area
@@ -2074,13 +2074,13 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
       lake->recharge = lake->volume-lake->ice_water_eq;
       lake->volume = lake->ice_water_eq;
 
-      Recharge = 1000.*lake->recharge/((max_newfraction-lakefrac)*lake_con.basin[0]) + (hruElement->veg_var[WET].Wdew + hruElement->snow.snow_canopy*1000. + hruElement->snow.swq*1000.); // mm over area that has been flooded
+      Recharge = 1000.*lake->recharge/((max_newfraction-lakefrac)*lake_con.basin[0]) + (hruElement.veg_var[WET].Wdew + hruElement.snow.snow_canopy*1000. + hruElement.snow.swq*1000.); // mm over area that has been flooded
 
       for(j=0; j<state->options.Nlayer; j++) {
 
-        if(Recharge > (soil_con.max_moist[j]-hruElement->cell[WET].layer[j].moist)) {
-          Recharge -= (soil_con.max_moist[j]-hruElement->cell[WET].layer[j].moist);
-          delta_moist[j] = (soil_con.max_moist[j]-hruElement->cell[WET].layer[j].moist)*(max_newfraction-lakefrac)/(1-lakefrac); // mm over (1-lakefrac)
+        if(Recharge > (soil_con.max_moist[j]-hruElement.cell[WET].layer[j].moist)) {
+          Recharge -= (soil_con.max_moist[j]-hruElement.cell[WET].layer[j].moist);
+          delta_moist[j] = (soil_con.max_moist[j]-hruElement.cell[WET].layer[j].moist)*(max_newfraction-lakefrac)/(1-lakefrac); // mm over (1-lakefrac)
         }
         else {
           delta_moist[j] = Recharge*(max_newfraction-lakefrac)/(1-lakefrac); // mm over (1-lakefrac)
@@ -2107,7 +2107,7 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
     liq += (soil_con.max_moist[lindex] - cellRef.layer[lindex].soil_ice[frost_area])*frost_fract[frost_area];
   }
 #else
-  liq = soil_con.max_moist[lindex] - hruElement->cell[WET].layer[lindex].soil_ice;
+  liq = soil_con.max_moist[lindex] - hruElement.cell[WET].layer[lindex].soil_ice;
 #endif
   resid_moist = soil_con.resid_moist[lindex] * soil_con.depth[lindex] * 1000.;
 
@@ -2291,12 +2291,12 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
       if(isave_n > 0)
 	lake->temp[k] = Tnew[k]/isave_n;
       else
-	lake->temp[k] = hruElement->energy.Tsurf;
+	lake->temp[k] = hruElement.energy.Tsurf;
     }	
   }
  
   if(lake->activenod == isave_n && isave_n == 0)
-    lake->temp[k] = hruElement->energy.Tsurf;
+    lake->temp[k] = hruElement.energy.Tsurf;
 
   /**********************************************************************
       5. Rescale the fluxes in the lake and the wetland by the change in lake area;
@@ -2305,13 +2305,13 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
    **********************************************************************/
   // Wetland
   if (newfraction < 1.0) { // wetland exists at end of time step
-    advect_soil_veg_storage(lakefrac, max_newfraction, newfraction, delta_moist, &soil_con, &veg_con, &(hruElement->cell[WET]), &(hruElement->veg_var[WET]), lake_con, state);
-    rescale_soil_veg_fluxes((1-lakefrac), (1-newfraction), &(hruElement->cell[WET]), &(hruElement->veg_var[WET]), state);
-    advect_snow_storage(lakefrac, max_newfraction, newfraction, &(hruElement->snow));
-    rescale_snow_energy_fluxes((1-lakefrac), (1-newfraction), &(hruElement->snow), &(hruElement->energy));
-    for (j=0; j<state->options.Nlayer; j++) moist[j] = hruElement->cell[WET].layer[j].moist;
+    advect_soil_veg_storage(lakefrac, max_newfraction, newfraction, delta_moist, &soil_con, &hruElement.veg_con, &(hruElement.cell[WET]), &(hruElement.veg_var[WET]), lake_con, state);
+    rescale_soil_veg_fluxes((1-lakefrac), (1-newfraction), &(hruElement.cell[WET]), &(hruElement.veg_var[WET]), state);
+    advect_snow_storage(lakefrac, max_newfraction, newfraction, &(hruElement.snow));
+    rescale_snow_energy_fluxes((1-lakefrac), (1-newfraction), &(hruElement.snow), &(hruElement.energy));
+    for (j=0; j<state->options.Nlayer; j++) moist[j] = hruElement.cell[WET].layer[j].moist;
 
-    ErrorFlag = distribute_node_moisture_properties(&hruElement->energy,
+    ErrorFlag = distribute_node_moisture_properties(&hruElement.energy,
         &soil_con, moist, state);
 
     if ( ErrorFlag == ERROR ) {
@@ -2323,11 +2323,11 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
   else if (lakefrac < 1.0) { // wetland is gone at end of time step, but existed at beginning of step
     if (lakefrac > 0.0) { // lake also existed at beginning of step
       for (j=0; j<state->options.Nlayer; j++) {
-        lake->evapw += hruElement->cell[WET].layer[j].evap*0.001*(1.-lakefrac)*lake_con.basin[0];
+        lake->evapw += hruElement.cell[WET].layer[j].evap*0.001*(1.-lakefrac)*lake_con.basin[0];
       }
-      lake->evapw +=hruElement->veg_var[WET].canopyevap*0.001*(1.-lakefrac)*lake_con.basin[0];
-      lake->evapw +=hruElement->snow.canopy_vapor_flux*(1.-lakefrac)*lake_con.basin[0];
-      lake->evapw +=hruElement->snow.vapor_flux*(1.-lakefrac)*lake_con.basin[0];
+      lake->evapw +=hruElement.veg_var[WET].canopyevap*0.001*(1.-lakefrac)*lake_con.basin[0];
+      lake->evapw +=hruElement.snow.canopy_vapor_flux*(1.-lakefrac)*lake_con.basin[0];
+      lake->evapw +=hruElement.snow.vapor_flux*(1.-lakefrac)*lake_con.basin[0];
     }
   }
 
@@ -2352,15 +2352,15 @@ int water_balance (lake_var_struct *lake, lake_con_struct lake_con, int dt, dist
         lake->snow.coverage = 0;
     }
     else { // lake didn't exist at beginning of time step; create new lake
-      initialize_lake(lake, lake_con, &soil_con, &(hruElement->cell[WET]), hruElement->energy.T[0], 1);
+      initialize_lake(lake, lake_con, &soil_con, &(hruElement.cell[WET]), hruElement.energy.T[0], 1);
     }
   }
   else if (lakefrac > 0.0) { // lake is gone at end of time step, but existed at beginning of step
     if (lakefrac < 1.0) { // wetland also existed at beginning of step
-      hruElement->cell[WET].layer[0].evap += 1000.*lake->evapw/((1.-newfraction)*lake_con.basin[0]);
-      hruElement->cell[WET].runoff += 1000.*lake->runoff_out/((1.-newfraction)*lake_con.basin[0]);
-      hruElement->cell[WET].baseflow += 1000.*lake->baseflow_out/((1.-newfraction)*lake_con.basin[0]);
-      hruElement->cell[WET].inflow += 1000.*lake->baseflow_out/((1.-newfraction)*lake_con.basin[0]);
+      hruElement.cell[WET].layer[0].evap += 1000.*lake->evapw/((1.-newfraction)*lake_con.basin[0]);
+      hruElement.cell[WET].runoff += 1000.*lake->runoff_out/((1.-newfraction)*lake_con.basin[0]);
+      hruElement.cell[WET].baseflow += 1000.*lake->baseflow_out/((1.-newfraction)*lake_con.basin[0]);
+      hruElement.cell[WET].inflow += 1000.*lake->baseflow_out/((1.-newfraction)*lake_con.basin[0]);
     }
   }
 

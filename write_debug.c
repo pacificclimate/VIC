@@ -16,36 +16,36 @@ WriteDebug::WriteDebug() :
 {
 }
 
-void WriteDebug::initialize(int Nveg, const ProgramState* state) {
+void WriteDebug::initialize(int numHRUs, const ProgramState* state) {
   if(state->debug.PRT_FLUX && state->options.FULL_ENERGY) {
-    ENERGY_ERROR      = (double *)calloc(Nveg+1,sizeof(double));
-    ENERGY_ERROR_CALC = (double *)calloc(Nveg+1,sizeof(double));
-    INSHORT           = (double *)calloc(Nveg+1,sizeof(double));
-    OUTSHORT          = (double *)calloc(Nveg+1,sizeof(double));
-    INLONG            = (double *)calloc(Nveg+1,sizeof(double));
-    OUTLONG           = (double *)calloc(Nveg+1,sizeof(double));
-    SENSIBLE          = (double *)calloc(Nveg+1,sizeof(double));
-    LATENT            = (double *)calloc(Nveg+1,sizeof(double));
-    GRND_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
-    ADVECTION         = (double *)calloc(Nveg+1,sizeof(double));
-    DELTA_H           = (double *)calloc(Nveg+1,sizeof(double));
-    DELTA_CC          = (double *)calloc(Nveg+1,sizeof(double));
-    SNOW_FLUX         = (double *)calloc(Nveg+1,sizeof(double));
-    REFREEZEENERGY    = (double *)calloc(Nveg+1,sizeof(double));
+    ENERGY_ERROR      = (double *)calloc(numHRUs+1,sizeof(double));
+    ENERGY_ERROR_CALC = (double *)calloc(numHRUs+1,sizeof(double));
+    INSHORT           = (double *)calloc(numHRUs+1,sizeof(double));
+    OUTSHORT          = (double *)calloc(numHRUs+1,sizeof(double));
+    INLONG            = (double *)calloc(numHRUs+1,sizeof(double));
+    OUTLONG           = (double *)calloc(numHRUs+1,sizeof(double));
+    SENSIBLE          = (double *)calloc(numHRUs+1,sizeof(double));
+    LATENT            = (double *)calloc(numHRUs+1,sizeof(double));
+    GRND_FLUX         = (double *)calloc(numHRUs+1,sizeof(double));
+    ADVECTION         = (double *)calloc(numHRUs+1,sizeof(double));
+    DELTA_H           = (double *)calloc(numHRUs+1,sizeof(double));
+    DELTA_CC          = (double *)calloc(numHRUs+1,sizeof(double));
+    SNOW_FLUX         = (double *)calloc(numHRUs+1,sizeof(double));
+    REFREEZEENERGY    = (double *)calloc(numHRUs+1,sizeof(double));
   }
   if(state->debug.PRT_BALANCE) {
-    INIT_MOIST  = (double *)calloc(Nveg+1,sizeof(double));
-    MOIST_ERROR = (double **)calloc(Nveg+1,sizeof(double*));
-    INFLOW      = (double *)calloc(Nveg+1,sizeof(double));
-    RUNOFF      = (double *)calloc(Nveg+1,sizeof(double));
-    BASEFLOW    = (double *)calloc(Nveg+1,sizeof(double));
-    EVAP        = (double *)calloc(Nveg+1,sizeof(double));
-    for(int i=0;i<=Nveg;i++)
+    INIT_MOIST  = (double *)calloc(numHRUs+1,sizeof(double));
+    MOIST_ERROR = (double **)calloc(numHRUs+1,sizeof(double*));
+    INFLOW      = (double *)calloc(numHRUs+1,sizeof(double));
+    RUNOFF      = (double *)calloc(numHRUs+1,sizeof(double));
+    BASEFLOW    = (double *)calloc(numHRUs+1,sizeof(double));
+    EVAP        = (double *)calloc(numHRUs+1,sizeof(double));
+    for(int i=0;i<=numHRUs;i++)
       MOIST_ERROR[i] = (double *)calloc(state->options.Nlayer+3,sizeof(double));
   }
 }
 
-void WriteDebug::cleanup(int Nveg, const ProgramState* state) {
+void WriteDebug::cleanup(int numHRUs, const ProgramState* state) {
   if(state->debug.PRT_FLUX && state->options.FULL_ENERGY) {
     free((char *)ENERGY_ERROR);
     free((char *)ENERGY_ERROR_CALC);
@@ -63,7 +63,7 @@ void WriteDebug::cleanup(int Nveg, const ProgramState* state) {
     free((char *)REFREEZEENERGY);
   }
   if(state->debug.PRT_BALANCE) {
-    for(int i=0;i<=Nveg;i++) free((char *)MOIST_ERROR[i]);
+    for(int i=0;i<=numHRUs;i++) free((char *)MOIST_ERROR[i]);
     free((char *)INIT_MOIST);
     free((char *)MOIST_ERROR);
     free((char *)INFLOW);

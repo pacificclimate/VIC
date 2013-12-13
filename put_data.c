@@ -182,30 +182,34 @@ int  put_data(cell_info_struct  *cell,
   else 
     Ndist = 1;
 
+  double bandCv [MAX_BANDS];
+  // Initialize to zero.
+  for (int band = 0; band < MAX_BANDS; band++) {
+    bandCv[band] = 0;
+  }
+
+  for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
+    if (state->veg_lib[hru->veg_con.veg_class].overstory) {
+      if (state->options.LAKES && hru->veg_con.LAKE) {
+        // Fraction of tile that is flooded
+        Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
+        bandCv[hru->bandIndex] += hru->veg_con.Cv * (1 - Clake);
+      } else {
+        bandCv[hru->bandIndex] += hru->veg_con.Cv;
+      }
+    }
+  }
+
   // Compute treeline adjustment factors
   for (int band = 0; band < state->options.SNOW_BAND; band++) {
     if (cell->soil_con.AboveTreeLine[band]) {
-      Cv = 0;
-      for (int veg = 0; veg < cell->veg_con[0].vegetat_type_num; veg++) {
-        if (state->veg_lib[cell->veg_con[veg].veg_class].overstory) {
-          if (state->options.LAKES && cell->veg_con[veg].LAKE) {
-            if (band == 0) {
-              // Fraction of tile that is flooded
-              Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
-              Cv += cell->veg_con[veg].Cv * (1 - Clake);
-            }
-          } else {
-            Cv += cell->veg_con[veg].Cv;
-          }
-        }
-      }
-      TreeAdjustFactor[band] = 1. / (1. - Cv);
-    } else
+      TreeAdjustFactor[band] = 1. / (1. - bandCv[band]);
+    } else {
       TreeAdjustFactor[band] = 1.;
-    if (TreeAdjustFactor[band] != 1 && rec == 0)
-      fprintf(stderr,
-          "WARNING: Tree adjust factor for band %i is equal to %f.\n", band,
-          TreeAdjustFactor[band]);
+    }
+    if (TreeAdjustFactor[band] != 1 && rec == 0) {
+      fprintf(stderr, "WARNING: Tree adjust factor for band %i is equal to %f.\n", band, TreeAdjustFactor[band]);
+    }
   }
 
   cv_baresoil = 0;
@@ -248,12 +252,12 @@ int  put_data(cell_info_struct  *cell,
    ****************************************/
   for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
 
-    Cv = cell->veg_con[hru->vegIndex].Cv;
+    Cv = hru->veg_con.Cv;
     Clake = 0;
     Nbands = state->options.SNOW_BAND;
     IsWet = false;
 
-    if (hru->vegIndex < cell->veg_con[0].vegetat_type_num || !hru->isGlacier)
+    if (hru->isArtificialBareSoil == false || !hru->isGlacier)
       HasVeg = true;
     else
       HasVeg = false;
@@ -263,13 +267,13 @@ int  put_data(cell_info_struct  *cell,
     if ( Cv > 0) {
 
       // Check if this is lake/wetland tile
-      if (state->options.LAKES && cell->veg_con[hru->vegIndex].LAKE) {
+      if (state->options.LAKES && hru->veg_con.LAKE) {
         Clake = cell->prcp.lake_var.sarea/cell->lake_con.basin[0];
         Nbands = 1;
         IsWet = true;
       }
 
-      overstory = state->veg_lib[cell->veg_con[hru->vegIndex].veg_class].overstory;
+      overstory = state->veg_lib[hru->veg_con.veg_class].overstory;
 
       /*********************************
         Store Output for all Bands 
@@ -282,7 +286,7 @@ int  put_data(cell_info_struct  *cell,
           ThisTreeAdjust = 1;
         }
 
-        if(ThisAreaFract > 0. && ( hru->vegIndex == cell->veg_con[0].vegetat_type_num
+        if(ThisAreaFract > 0. && ( hru->isArtificialBareSoil
            || ( !cell->soil_con.AboveTreeLine[band] || (cell->soil_con.AboveTreeLine[band] && !overstory)))) {
 
           /*******************************************************
@@ -290,9 +294,9 @@ int  put_data(cell_info_struct  *cell,
           *******************************************************/
           for (int dist = 0; dist < Ndist; dist++ ) {
             if(dist==0) 
-              precipitation_mu = cell->prcp.mu[hru->vegIndex];
+              precipitation_mu = hru->mu;
             else 
-              precipitation_mu = 1. - cell->prcp.mu[hru->vegIndex];
+              precipitation_mu = 1. - hru->mu;
 
             /** compute running totals of various landcovers **/
             if (HasVeg)
@@ -392,7 +396,7 @@ int  put_data(cell_info_struct  *cell,
            Record Water Balance Terms
            *********************************/
             collect_wb_terms(cell->prcp.lake_var.soil,
-                             cell->prcp.getHRUElement(0, 0)->veg_var[WET],
+                             hru->veg_var[WET],
                              cell->prcp.lake_var.snow,
                              invalidGlacier,
                              cell->prcp.lake_var,
@@ -1210,17 +1214,17 @@ void collect_eb_terms(const energy_bal_struct& energy,
 
   /** record glacier band variables **/
   if(HasGlac){
-    out_data[OUT_GLAC_DELTACC_BAND].data[0] += energy.deltaCC_glac * Cv * lakefactor;
-    out_data[OUT_GLAC_FLUX_BAND].data[0] += energy.glacier_flux * Cv * lakefactor;
-    out_data[OUT_GLAC_WAT_STOR_BAND].data[0] += glacier.water_storage * bandFactor * 1000.;
-    out_data[OUT_GLAC_AREA_BAND].data[0] += bandFactor;
-    out_data[OUT_GLAC_MBAL_BAND].data[0] += glacier.mass_balance * bandFactor * 1000.;
-    out_data[OUT_GLAC_IMBAL_BAND].data[0] +=  glacier.ice_mass_balance * bandFactor * 1000.;
-    out_data[OUT_GLAC_ACCUM_BAND].data[0] +=  glacier.accumulation * bandFactor * 1000.;
-    out_data[OUT_GLAC_MELT_BAND].data[0] +=  glacier.melt * bandFactor * 1000.;
-    out_data[OUT_GLAC_SUB_BAND].data[0] +=  glacier.vapor_flux * bandFactor * 1000.;
-    out_data[OUT_GLAC_INFLOW_BAND].data[0] +=  glacier.inflow * bandFactor * 1000.;
-    out_data[OUT_GLAC_OUTFLOW_BAND].data[0] +=  glacier.outflow * bandFactor * 1000.;
+    out_data[OUT_GLAC_DELTACC_BAND].data[band] += energy.deltaCC_glac * Cv * lakefactor;
+    out_data[OUT_GLAC_FLUX_BAND].data[band] += energy.glacier_flux * Cv * lakefactor;
+    out_data[OUT_GLAC_WAT_STOR_BAND].data[band] += glacier.water_storage * bandFactor * 1000.;
+    out_data[OUT_GLAC_AREA_BAND].data[band] += bandFactor;
+    out_data[OUT_GLAC_MBAL_BAND].data[band] += glacier.mass_balance * bandFactor * 1000.;
+    out_data[OUT_GLAC_IMBAL_BAND].data[band] +=  glacier.ice_mass_balance * bandFactor * 1000.;
+    out_data[OUT_GLAC_ACCUM_BAND].data[band] +=  glacier.accumulation * bandFactor * 1000.;
+    out_data[OUT_GLAC_MELT_BAND].data[band] +=  glacier.melt * bandFactor * 1000.;
+    out_data[OUT_GLAC_SUB_BAND].data[band] +=  glacier.vapor_flux * bandFactor * 1000.;
+    out_data[OUT_GLAC_INFLOW_BAND].data[band] +=  glacier.inflow * bandFactor * 1000.;
+    out_data[OUT_GLAC_OUTFLOW_BAND].data[band] +=  glacier.outflow * bandFactor * 1000.;
   }
 
 }

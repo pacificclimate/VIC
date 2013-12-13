@@ -5,7 +5,7 @@
 #include "GlacierEnergyBalance.h"
 #include "vicNl.h"
 // Forward declaration for the error function which just prints out all the variables.
-double ErrorPrintGlacierEnergyBalance(double TSurf, int rec, int iveg, int band,
+double ErrorPrintGlacierEnergyBalance(double TSurf, int rec,
     double Dt, double Ra, AeroResistUsed& Ra_used, double Displacement, double Z,
     VegConditions& roughness, double AirDens, double EactAir, double LongSnowIn, double Lv,
     double Press, double Rain, double NetShortUnder, double Vpd, double Wind,
@@ -89,8 +89,6 @@ int glacier_melt(double Le,
     double *save_latent_sub,
     double *save_sensible,
     int rec,
-    int iveg,
-    int               band,
     glac_data_struct *glacier,
     const soil_con_struct* soil,
     const ProgramState *state)
@@ -170,7 +168,7 @@ int glacier_melt(double Le,
         glacier->surf_temp_fbflag = 1;
         glacier->surf_temp_fbcount++;
       } else {
-        error = ErrorPrintGlacierEnergyBalance(glacier->surf_temp, rec, iveg, band,
+        error = ErrorPrintGlacierEnergyBalance(glacier->surf_temp, rec,
             delta_t, aero_resist, aero_resist_used, displacement, z2, roughness,
             density, vp, LongIn, Le, pressure, RainFall, NetShort, vpd, wind,
             (*OldTSurf), soil->GLAC_SURF_THICK, soil->GLAC_SURF_WE, air_temp, Tgrnd,
@@ -231,8 +229,6 @@ int glacier_melt(double Le,
 double ErrorPrintGlacierEnergyBalance(double TSurf,
     /* General Model Parameters */
     int rec,
-    int iveg,
-    int band,
     double Dt,                      /* Model time step (sec) */
     double Ra,                      /* Aerodynamic resistance (s/m) */
     AeroResistUsed& Ra_used,        /* Aerodynamic resistance (s/m) after stability correction */
@@ -275,8 +271,6 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
   /* general model terms */
   fprintf(stderr, "TSurf = %f\n", TSurf);
   fprintf(stderr, "rec = %i\n", rec);
-  fprintf(stderr, "iveg = %i\n", iveg);
-  fprintf(stderr, "band = %i\n", band);
   fprintf(stderr, "Dt = %f\n",Dt);
 
   /* land surface parameters */

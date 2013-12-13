@@ -31,9 +31,6 @@ double solve_glacier(
       VegConditions       &roughness,
       double              *snowfall,
       VegConditions       &wind_speed,
-      int                  Nveg,
-      int                  iveg,
-      int                  band,
       int                  dt,
       int                  rec,
       int                  hidx,
@@ -112,7 +109,7 @@ double solve_glacier(
     &energy->deltaCC_glac, &energy->grnd_flux, &energy->latent,
     &energy->latent_sub,
     &energy->sensible,
-    rec, iveg, band, glacier, soil, state);
+    rec, glacier, soil, state);
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall

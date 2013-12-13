@@ -48,13 +48,11 @@ double solve_snow(char     overstory,
 		  const float         *root,
 		  int                  INCLUDE_SNOW,
 		  int                  Nnodes,
-		  int                  Nveg,
-		  int                  iveg,
-		  int                  band,
 		  int                  dt,
 		  int                  rec,
 		  int                  hidx,
 		  int                  veg_class,
+		  bool                 isArtificialBareSoil,
 		  VegConditions::VegSurfType &UnderStory,
 		  const dmy_struct    *dmy,
 		  const atmos_data_struct &atmos,
@@ -186,14 +184,14 @@ double solve_snow(char     overstory,
   if ( ( snow->swq > 0 || snowfall[WET] > 0.
 	 || (snow->snow_canopy>0. && overstory) ) ) {
     if ( precipitation_mu != 1 && state->options.FULL_ENERGY ) {
-      fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i,\t vegetation type = %i",
-	      precipitation_mu, rec, iveg);
+      fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i",
+	      precipitation_mu, rec);
       return( ERROR );
     }
     else if ( precipitation_mu != 1 ) {
       fprintf(stderr,"WARNING: Snow is falling, but mu not equal to 1 (%f)\n",
 	      precipitation_mu);
-      fprintf(stderr,"\trec = %i, veg = %i, hour = %i\n",rec,iveg,hour);
+      fprintf(stderr,"\trec = %i, hour = %i\n",rec,hour);
     }
   }
 
@@ -222,7 +220,7 @@ double solve_snow(char     overstory,
       
     /** Compute Radiation Balance over Snow **/ 
     
-    if ( iveg != Nveg ) {
+    if ( isArtificialBareSoil == false ) {
       
       /****************************************
 	Check Vegetation for Intercepted Snow
@@ -253,8 +251,8 @@ double solve_snow(char     overstory,
 		       &energy->Tfoliage, &energy->Tfoliage_fbflag, 
            &energy->Tfoliage_fbcount, &snow->tmp_int_storage,
 		       &snow->canopy_vapor_flux, wind_speed, displacement, 
-		       ref_height, roughness, root, UnderStory, band,
-		       hour, iveg, month, rec, hidx, veg_class, atmos, 
+		       ref_height, roughness, root, UnderStory,
+		       hour, month, rec, hidx, veg_class, atmos,
 		       layer_dry, layer_wet, soil_con, veg_var_dry, veg_var_wet, state);
         if ( ErrorFlag == ERROR ) return ( ERROR );
 
@@ -355,7 +353,7 @@ double solve_snow(char     overstory,
 		&energy->deltaCC, &tmp_grnd_flux, &energy->latent, 
 		&energy->latent_sub, &energy->refreeze_energy, 
 		&energy->sensible, INCLUDE_SNOW,
-		rec, iveg, band, snow, soil_con, state);
+		rec, snow, soil_con, state);
       if ( ErrorFlag == ERROR ) return ( ERROR );
 
       // store melt water

@@ -87,7 +87,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	check_files.o check_state_file.o close_files.o cmd_proc.o \
 	compress_files.o compute_dz.o compute_pot_evap.o compute_treeline.o \
 	compute_zwt.o correct_precip.o display_current_settings.o dist_prec.o \
-	estimate_T1.o free_dist_prcp.o \
+	estimate_T1.o \
 	free_vegcon.o frozen_soil.o full_energy.o func_atmos_energy_bal.o \
 	func_atmos_moist_bal.o func_canopy_energy_bal.o \
 	func_surf_energy_bal.o get_dist.o get_force_type.o get_global_param.o \
@@ -96,7 +96,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	initialize_atmos.o initialize_model_state.o \
 	initialize_global.o initialize_new_storm.o initialize_snow.o \
 	initialize_soil.o initialize_veg.o latent_heat_from_snow.o latent_heat_from_glacier.o \
-	make_dist_prcp.o make_dmy.o \
+	make_dmy.o \
 	make_in_and_outfiles.o massrelease.o \
 	modify_Ksat.o mtclim_vic.o mtclim_wrapper.o newt_raph_func_fast.o nrerror.o \
 	open_debug.o open_file.o open_state_file.o \

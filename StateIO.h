@@ -89,7 +89,6 @@ enum StateVariableDimensionId {
   FROST_LAYER_AREAS_DIM,
   FROST_AREAS_DIM,
   HRU_DIM,
-  VEG_DIM,
   DIST_DIM,
 };
 }

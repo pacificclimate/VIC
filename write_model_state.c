@@ -71,9 +71,8 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
 	      values will be stored.						TJB
 *********************************************************************/
 {
-  int    Nbands;
-
-  Nbands = state->options.SNOW_BAND;
+  int Nbands = state->options.SNOW_BAND;
+  int numHRUs = cell->prcp.hruList.size();
 
   StateIOContext context(filename, StateIO::Writer, state);
   StateIO* writer = context.stream;
@@ -84,7 +83,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   writer->notifyDimensionUpdate(StateVariables::LON_DIM, longitudeToIndex(cell->soil_con.lng, state));
 
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
-  writer->write(&cell->veg_con[0].vegetat_type_num, 1, StateVariables::VEG_TYPE_NUM);
+  writer->write(&numHRUs, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
 
   processCellForStateFile(cell, writer, state);
@@ -137,18 +136,6 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   
   /* Output for all vegetation types */
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, stream->notifyDimensionUpdate(HRU_DIM)) {
-    
-    // Do the following only once per vegetation type
-    if (it->bandIndex == 0) {
-      stream->notifyDimensionUpdate(VEG_DIM, it->vegIndex);
-      // Store distributed precipitation fraction
-      stream->process(&cell->prcp.mu[it->vegIndex], 1, PRCP_MU);
-
-      // Store distributed precipitation variables
-      stream->process(&cell->init_STILL_STORM[it->vegIndex], 1, INIT_STILL_STORM);
-      stream->process(&cell->init_DRY_TIME[it->vegIndex], 1, INIT_DRY_TIME);
-      stream->processNewline();
-    }
 
     /* Output for all snow bands */
     /* Write cell identification information */
@@ -169,6 +156,11 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
         throw VICException(ss.str());
       }
     }
+
+    stream->process(&(it->mu), 1, PRCP_MU);
+    stream->process(&(it->init_STILL_STORM), 1, INIT_STILL_STORM);
+    stream->process(&(it->init_DRY_TIME), 1, INIT_DRY_TIME);
+    stream->processNewline();
 
     for (int dist = 0; dist < Ndist; dist++) {
       stream->notifyDimensionUpdate(DIST_DIM, dist);
@@ -212,7 +204,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 #endif // SPATIAL_FROST
 
       /* Write dew storage */
-      if (it->vegIndex < cell->veg_con[0].vegetat_type_num) {
+      if (it->isArtificialBareSoil == false) {
         stream->process(&it->veg_var[dist].Wdew, 1, HRU_VEG_VAR_WDEW);
       }
     }

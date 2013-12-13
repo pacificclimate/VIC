@@ -108,7 +108,7 @@ int lakeice(double *, double, double, double, double, int,
 void latsens(double,double, double, double, double, double, double, double,
 	     double *, double *, double);
 float lkdrag(float, double, double, double, double);
-lake_con_struct read_lakeparam(FILE *, soil_con_struct, veg_con_struct *, const ProgramState*);
+lake_con_struct read_lakeparam(FILE *, soil_con_struct, std::vector<HRU>&, const ProgramState*);
 void rescale_soil_veg_fluxes(double, double, hru_data_struct *, veg_var_struct *, const ProgramState*);
 void rescale_snow_energy_fluxes(double, double, snow_data_struct *, energy_bal_struct *);
 void rescale_snow_storage(double, double, snow_data_struct *);
@@ -120,7 +120,7 @@ double specheat (double);
 void temp_area(double, double, double, double *, double *, double *, double *, int, double *, int, double, double, double*, double *, double *);
 void tracer_mixer(double *, int *, int, double*, int, double, double, double *);
 void tridia(int, double *, double *, double *, double *, double *);
-int water_balance (lake_var_struct *, lake_con_struct, int, dist_prcp_struct *, int, HRU*, double, soil_con_struct, veg_con_struct, int, double, const ProgramState*);
+int water_balance (lake_var_struct *, lake_con_struct, int, dist_prcp_struct *, int, HRU&, double, soil_con_struct, int, double, const ProgramState*);
 
 int  water_energy_balance(int, double*, double*, int, int, double, double, double, double, double, double, double, double, double, double, double, double, double, double *, double *, double *, double*, double *, double *, double *, double, double *, double *, double *, double *, double *, double);
 int water_under_ice(int, double,  double, double *, double *, double, int, double, double, double, double *, double *, double *, double *, int, double, double, double, double *);

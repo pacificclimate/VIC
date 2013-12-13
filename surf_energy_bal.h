@@ -6,7 +6,7 @@
 
 class SurfEnergyBal : public RootBrent {
 public:
-  SurfEnergyBal(int rec, int nrecs, int month, int VEG, int veg_class, int iveg,
+  SurfEnergyBal(int rec, int nrecs, int month, int VEG, int veg_class,
       double delta_t, double Cs1, double Cs2, double D1, double D2,
       double T1_old, double T2, double Ts_old, double bubble, double dp,
       double expt, double ice0, double kappa1, double kappa2, double max_moist,
@@ -34,8 +34,8 @@ public:
       double* latent_heat_sub, double* sensible_heat, double* snow_flux,
       double* store_error, const ProgramState* state) :
 
-      rec(rec), nrecs(nrecs), month(month), VEG(VEG), veg_class(veg_class), iveg(
-          iveg), delta_t(delta_t), Cs1(Cs1), Cs2(Cs2), D1(D1), D2(D2), T1_old(
+      rec(rec), nrecs(nrecs), month(month), VEG(VEG), veg_class(veg_class),
+          delta_t(delta_t), Cs1(Cs1), Cs2(Cs2), D1(D1), D2(D2), T1_old(
           T1_old), T2(T2), Ts_old(Ts_old), bubble(bubble), dp(dp), expt(expt), ice0(
           ice0), kappa1(kappa1), kappa2(kappa2), max_moist(max_moist), moist(
           moist), root(root), UnderStory(UnderStory), overstory(overstory), NetShortBare(
@@ -71,7 +71,6 @@ public:
   int month;
   int VEG;
   int veg_class;
-  int iveg;
   double delta_t;
   double Cs1;
   double Cs2;

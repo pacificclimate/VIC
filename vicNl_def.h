@@ -1020,12 +1020,10 @@ typedef struct {
   *******************************************************************/
 typedef struct {
   double  Cv;               /* fraction of vegetation coverage */ 
-  double  Cv_sum;           /* total fraction of vegetation coverage */
   float   root[MAX_LAYERS]; /* percent of roots in each soil layer (fraction) */
   float  *zone_depth;       /* depth of root zone */
   float  *zone_fract;       /* fraction of roots within root zone */
   int     veg_class;        /* vegetation class reference number */
-  int     vegetat_type_num; /* number of vegetation types in the grid cell */
   float   sigma_slope;      /* Std. deviation of terrain slope for each vegetation class. */
   float   lag_one;          /* Lag one gradient autocorrelation of terrain slope */
   float   fetch;            /* Average fetch length for each vegetation class. */
@@ -1304,7 +1302,7 @@ typedef struct {
   double wfrac;                   /* Width of lake outlet, expressed as fraction of lake perimeter */
   // Initial conditions
   double depth_in;                /* Initial lake depth (distance from surface to deepest point) (m) */
-  int    lake_idx;                /* index number of the lake/wetland veg tile */
+  int    lake_idx;                /* veg type of the lake/wetland veg tiles */
 } lake_con_struct;
 
 /*****************************************************************
@@ -1403,8 +1401,13 @@ struct HRU {
   snow_data_struct snow;      /* Stores snow variables */
   veg_var_struct veg_var[2];  /* Stores vegetation variables (wet and dry) */
   glac_data_struct glacier;   /* Stores glacier specific variables (which are initialized to INVALID if there is no glacier present */
+  veg_con_struct  veg_con;    /* Stores vegetation parameters of this HRU */
 
+  char            init_STILL_STORM;
+  int             init_DRY_TIME;
+  double          mu;         /* fraction of grid cell that receives precipitation */
   bool isGlacier;             /* Does this HRU contain glacier? */
+  bool isArtificialBareSoil;  /* Was this HRU added automatically (as bare soil) to make the cell Cv fractions add to 1? */
   int vegIndex;
   int bandIndex;
 };
@@ -1416,17 +1419,8 @@ struct HRU {
   cell (for use with the distributed precipitation model).
 *****************************************************************/
 struct dist_prcp_struct{
-  void make_dist_prcp(int  nveg, const int NUM_SNOW_BAND);
-  double             *mu;         /* fraction of grid cell that receives precipitation */
   lake_var_struct     lake_var;   /* Stores lake/wetland variables */
   std::vector<HRU>    hruList;
-
-  HRU* getHRUElement(int veg, int band) {
-    int index = (veg * NUM_BANDS) + band;
-    return &hruList[index];
-  }
-private:
-  int NUM_BANDS;
 };
 
 /*******************************************************
@@ -1544,8 +1538,8 @@ struct WriteDebug {
       veg_var_struct *veg_var, const dmy_struct *dmy, double out_short,
       double precipitation_mu, int Nveg, int veg, int rec,
       int dist, char NEWCELL, const ProgramState *state);
-  void initialize(int Nveg, const ProgramState* state);
-  void cleanup(int Nveg, const ProgramState* state);
+  void initialize(int numHRUs, const ProgramState* state);
+  void cleanup(int numHRUs, const ProgramState* state);
 private:
   bool        FIRST;
   double    **MOIST_ERROR;
@@ -1577,14 +1571,12 @@ private:
   dynamics model. Previously "cell_data_struct" in vicNL.c
   ***********************************************************/
 struct cell_info_struct {
-  cell_info_struct() : init_STILL_STORM(NULL), init_DRY_TIME(NULL), veg_con(NULL), atmos(NULL) {}
+  cell_info_struct() : Cv_sum(0), atmos(NULL) {}
   soil_con_struct  soil_con;
-  char            *init_STILL_STORM;
-  int             *init_DRY_TIME;
   char             ErrStr[MAXSTRING];
+  double           Cv_sum;           /* total fraction of vegetation coverage */
   WriteDebug      writeDebug;
   dist_prcp_struct prcp;
-  veg_con_struct  *veg_con;
   lake_con_struct  lake_con;
   save_data_struct save_data;
   atmos_data_struct *atmos;

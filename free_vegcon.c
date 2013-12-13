@@ -4,7 +4,7 @@
  
 static char vcid[] = "$Id$";
 
-void free_vegcon(veg_con_struct **veg_con)
+void free_vegcon(cell_info_struct& cell)
 /**********************************************************************
   free_vegcon.c	            Keith Cherkauer	  September 25, 1998
 
@@ -12,13 +12,8 @@ void free_vegcon(veg_con_struct **veg_con)
 
 **********************************************************************/
 {
- 
-  int i;
-  
-  for(i=0;i<veg_con[0][0].vegetat_type_num;i++) { 
-    free((char *)veg_con[0][i].zone_depth);
-    free((char *)veg_con[0][i].zone_fract);
+  for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
+    free(hru->veg_con.zone_depth);
+    free(hru->veg_con.zone_fract);
   }
-  free((char *)veg_con[0]);
-
 }

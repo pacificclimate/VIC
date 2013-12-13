@@ -366,7 +366,6 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[FROST_LAYER_AREAS_DIM] = StateVariableDimension("frost_layer_subareas", state->options.Nlayer * FROST_SUBAREAS);
   metaDimensions[FROST_AREAS_DIM] = StateVariableDimension("frost_subareas", FROST_SUBAREAS);
   metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->veg_lib->NVegLibTypes * MAX_BANDS);
-  metaDimensions[VEG_DIM] = StateVariableDimension("vegetation", state->veg_lib->NVegLibTypes);
   metaDimensions[DIST_DIM] = StateVariableDimension("dist", 2); // Wet and dry.
 }
 
@@ -381,9 +380,9 @@ void StateIONetCDF::populateMetaData() {
   metaData[SOIL_DEPTH] =              StateVariableMetaData("SOIL_DEPTH", LAYERS_DIM);
   metaData[SOIL_EFFECTIVE_POROSITY] = StateVariableMetaData("SOIL_EFFECTIVE_POROSITY", LAYERS_DIM);
   metaData[SOIL_DP] =                 StateVariableMetaData("SOIL_DP");
-  metaData[PRCP_MU] =                 StateVariableMetaData("PRCP_MU", VEG_DIM);
-  metaData[INIT_STILL_STORM] =        StateVariableMetaData("INIT_STILL_STORM", VEG_DIM);
-  metaData[INIT_DRY_TIME] =           StateVariableMetaData("INIT_DRY_TIME", VEG_DIM);
+  metaData[PRCP_MU] =                 StateVariableMetaData("PRCP_MU", HRU_DIM);
+  metaData[INIT_STILL_STORM] =        StateVariableMetaData("INIT_STILL_STORM", HRU_DIM);
+  metaData[INIT_DRY_TIME] =           StateVariableMetaData("INIT_DRY_TIME", HRU_DIM);
   metaData[HRU_VEG_INDEX] =           StateVariableMetaData("HRU_VEG_INDEX", HRU_DIM);
   metaData[HRU_BAND_INDEX] =          StateVariableMetaData("HRU_BAND_INDEX", HRU_DIM);
   metaData[LAYER_MOIST] =             StateVariableMetaData("LAYER_MOIST", HRU_DIM, DIST_DIM, LAYERS_DIM);

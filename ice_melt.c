@@ -274,7 +274,7 @@ int ice_melt(double            z2,
 					 wind, Ls, density,
 					 pressure, vp, Z0,
 					 z2, snow->depth, .95, 0.005,
-					 snow->surf_temp, 0, 1, 100.,
+					 snow->surf_temp, false, 100.,
 					 .067, .0123, &snow->transport);
     if ( (int)snow->blowing_flux == ERROR ) {
       fprintf( stderr, "ERROR: ice_melt.c has an error from the call to CalcBlowingSnow\n");

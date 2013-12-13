@@ -6,10 +6,7 @@
 static char vcid[] = "$Id$";
 
 #if LINK_DEBUG
-void store_moisture_for_debug(int                       iveg,
-		                          int                       Nveg,
-                              double                    *mu,
-                              std::vector<HRU>&         hruList,
+void store_moisture_for_debug(const HRU&         hru,
                               const soil_con_struct     *soil_con,
                               const ProgramState*       state) {
 /****************************************************************
@@ -26,36 +23,30 @@ void store_moisture_for_debug(int                       iveg,
     Ndist = 1;
   Nbands = state->options.SNOW_BAND;
 
-  for (std::vector<HRU>::iterator it = hruList.begin(); it != hruList.end(); ++it) {
+  int band = hru.bandIndex;
 
-    if (it->vegIndex != iveg) continue;
-    int band = it->bandIndex;
-
-    if (soil_con->AreaFract[band] > 0) {
+  if (soil_con->AreaFract[band] > 0) {
+    for (int dist = 0; dist < Ndist; dist++)
+      for (int i = 0; i < state->options.Nlayer + 3; i++)
+        state->debug.store_moist[dist][band][i] = 0.;
+    if (hru.isArtificialBareSoil == false) {
       for (int dist = 0; dist < Ndist; dist++)
-        for (int i = 0; i < state->options.Nlayer + 3; i++)
-          state->debug.store_moist[dist][band][i] = 0.;
-      if (iveg < Nveg) {
-        for (int dist = 0; dist < Ndist; dist++)
-          state->debug.store_moist[dist][band][0] +=
-              it->veg_var[dist].Wdew;
-        state->debug.store_moist[WET][band][0] += (it->snow.snow_canopy)
-            * 1000.;
-      }
-      for (int dist = 0; dist < Ndist; dist++)
+        state->debug.store_moist[dist][band][0] += hru.veg_var[dist].Wdew;
+      state->debug.store_moist[WET][band][0] += (hru.snow.snow_canopy) * 1000.;
+    }
+    for (int dist = 0; dist < Ndist; dist++)
+      state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
+          state->debug.store_moist[dist][band][0];
+    state->debug.store_moist[WET][band][1] += (hru.snow.swq * 1000.);
+    for (int dist = 0; dist < Ndist; dist++)
+      state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
+          state->debug.store_moist[dist][band][1];
+    for (int i = 0; i < state->options.Nlayer; i++) {
+      for (int dist = 0; dist < Ndist; dist++) {
+        state->debug.store_moist[dist][band][i + 2] =
+            hru.cell[dist].layer[i].moist;
         state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
-            state->debug.store_moist[dist][band][0];
-      state->debug.store_moist[WET][band][1] += (it->snow.swq * 1000.);
-      for (int dist = 0; dist < Ndist; dist++)
-        state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
-            state->debug.store_moist[dist][band][1];
-      for (int i = 0; i < state->options.Nlayer; i++) {
-        for (int dist = 0; dist < Ndist; dist++) {
-          state->debug.store_moist[dist][band][i + 2] =
-              it->cell[dist].layer[i].moist;
-          state->debug.store_moist[dist][band][state->options.Nlayer + 2] +=
-              state->debug.store_moist[dist][band][i + 2];
-        }
+            state->debug.store_moist[dist][band][i + 2];
       }
     }
   }

@@ -34,12 +34,9 @@ double solve_snow_glac(
       double              *snow_inflow,
       double              *snowfall,
       VegConditions       &wind_speed,
-      int                  iveg,
-      int                  band,
       int                  dt,
       int                  rec,
       int                  hidx,
-      int                  veg_class,
       VegConditions::VegSurfType &UnderStory,
       const dmy_struct    *dmy,
       const atmos_data_struct &atmos,
@@ -101,14 +98,14 @@ double solve_snow_glac(
   /** verify that distributed precipitation fraction equals 1 if
       snow is present or falling **/
     if ( precipitation_mu != 1 && state->options.FULL_ENERGY ) {
-      fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i,\t vegetation type = %i",
-        precipitation_mu, rec, iveg);
+      fprintf(stderr,"ERROR: Snow model cannot be used if mu (%f) is not equal to 1.\n\tsolve_snow.c: record = %i",
+        precipitation_mu, rec);
       return( ERROR );
     }
     else if ( precipitation_mu != 1 ) {
       fprintf(stderr,"WARNING: Snow is falling, but mu not equal to 1 (%f)\n",
         precipitation_mu);
-      fprintf(stderr,"\trec = %i, veg = %i, hour = %i\n",rec,iveg,hour);
+      fprintf(stderr,"\trec = %i, hour = %i\n",rec,hour);
     }
 
   /* initialize understory radiation inputs */
@@ -166,7 +163,7 @@ double solve_snow_glac(
       Torg_snow, &melt, &energy->error, &energy->advected_sensible,
       &energy->advection, &energy->deltaCC, &energy->grnd_flux, &energy->latent,
       &energy->latent_sub, &energy->refreeze_energy, &energy->sensible, rec,
-      iveg, band, snow, soil_con, glacier, state);
+      snow, soil_con, glacier, state);
 
   if (ErrorFlag == ERROR) return (ERROR);
 

@@ -113,8 +113,7 @@ double CalcBlowingSnow( double Dt,
 			float lag_one,
 			float sigma_slope,
 			double Tsnow, 
-			int iveg, 
-			int Nveg, 
+			bool isArtificialBareSoil,
 			float fe,
 			double displacement,
 			double roughness,
@@ -174,7 +173,7 @@ double CalcBlowingSnow( double Dt,
   //  fprintf(stderr,"wind=%f, Uo=%f\n",Wind, Uo);
 
   /* Check for bare soil case. */
-  if(iveg == Nveg) {
+  if(isArtificialBareSoil) {
     fe = 1500;
     sigma_slope = .0002;
   }

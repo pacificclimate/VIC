@@ -28,7 +28,7 @@ int snow_melt_glac(double latent_heat_Le,
     double *save_Qnet, double *save_advected_sensible, double *save_advection,
     double *save_deltaCC, double *save_grnd_flux, double *save_latent,
     double *save_latent_sub, double *save_refreeze_energy,
-    double *save_sensible, int rec, int iveg, int band, snow_data_struct *snow,
+    double *save_sensible, int rec, snow_data_struct *snow,
     const soil_con_struct *soil_con, glac_data_struct *glacier,
     const ProgramState* state) {
   double error;
@@ -240,8 +240,8 @@ int snow_melt_glac(double latent_heat_Le,
           snow->surf_temp_fbflag = 1;
           snow->surf_temp_fbcount++;
         } else {
-          error = ErrorPrintSnowPackEnergyBalanceGlacier(snow->surf_temp, rec, iveg,
-              band, delta_t, aero_resist, aero_resist_used, displacement, z2,
+          error = ErrorPrintSnowPackEnergyBalanceGlacier(snow->surf_temp, rec,
+              delta_t, aero_resist, aero_resist_used, displacement, z2,
               roughness, density, vp, LongSnowIn, latent_heat_Le, pressure, RainFall,
               NetShortSnow, vpd, wind, (*OldTSurf), coverage, snow->density,
               snow->surf_water, SurfaceSwq, air_temp, Tgrnd,
@@ -419,8 +419,8 @@ int snow_melt_glac(double latent_heat_Le,
   return (0);
 }
 
-double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec, int iveg,
-    int band, double Dt, /* Model time step (sec) */
+double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec,
+    double Dt, /* Model time step (sec) */
     /* Vegetation Parameters */
     double Ra, /* Aerodynamic resistance (s/m) */
     AeroResistUsed& RaUsed,
@@ -466,8 +466,6 @@ double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec, int iveg,
 
   /* general model terms */
   fprintf(stderr, "rec = %i\n", rec);
-  fprintf(stderr, "iveg = %i\n", iveg);
-  fprintf(stderr, "band = %i\n", band);
   fprintf(stderr, "Dt = %f\n", Dt);
 
   /* land surface parameters */
