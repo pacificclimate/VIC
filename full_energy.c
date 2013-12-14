@@ -263,92 +263,89 @@ int  full_energy(char                 NEWCELL,
 
       }
 
-      if (hru->bandIndex == 0) {
-        /* Initialize precipitation storage */
-        for (int j = 0; j < 2 * MAX_BANDS; j++) {
-          out_prec[j] = 0;
-          out_rain[j] = 0;
-          out_snow[j] = 0;
-        }
+      /* Initialize precipitation storage */
+      for (int j = 0; j < 2 * MAX_BANDS; j++) {
+        out_prec[j] = 0;
+        out_rain[j] = 0;
+        out_snow[j] = 0;
+      }
 
-        /** Define vegetation class number **/
-        veg_class = hru->veg_con.veg_class;
+      /** Define vegetation class number **/
+      veg_class = hru->veg_con.veg_class;
 
-        /** Assign wind_h **/
-        /** Note: this is ignored below **/
-        wind_h = state->veg_lib[veg_class].wind_h;
+      /** Assign wind_h **/
+      /** Note: this is ignored below **/
+      wind_h = state->veg_lib[veg_class].wind_h;
 
-        /** Compute Surface Attenuation due to Vegetation Coverage **/
-        if (hru->isGlacier) {
-          surf_atten = 1;   /* not used  in the glacier case */
+      /** Compute Surface Attenuation due to Vegetation Coverage **/
+      if (hru->isGlacier) {
+        surf_atten = 1;   /* not used  in the glacier case */
+      } else {
+        surf_atten = exp(-state->veg_lib[veg_class].rad_atten * state->veg_lib[veg_class].LAI[dmy[time_step_record].month - 1]);
+      }
+
+      /* Initialize soil thermal properties for the top two layers */
+      prepare_full_energy(*hru, state->options.Nnode, soil_con, moist0, ice0, state);
+
+      /** Compute Bare (free of snow) Albedo **/
+      if (hru->isGlacier) {
+        bare_albedo = soil_con->GLAC_ALBEDO;
+      } else {
+        bare_albedo = state->veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
+      }
+
+      /*************************************
+       Compute the aerodynamic resistance
+       for current veg cover and various
+       types of potential evap
+       *************************************/
+
+      /* Loop over types of potential evap, plus current veg */
+      /* Current veg will be last */
+      for (int p = 0; p < N_PET_TYPES + 1; p++) {
+
+        /* Initialize wind speeds */
+        wind_speed.snowFree = atmos->wind[state->NR];
+        wind_speed.canopyIfOverstory = INVALID;
+        wind_speed.snowCovered = INVALID;
+        wind_speed.glacierSurface = INVALID;
+
+        /* Set surface descriptive variables */
+        if (p < N_PET_TYPES_NON_NAT) {
+          pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
         } else {
-          surf_atten = exp(-state->veg_lib[veg_class].rad_atten * state->veg_lib[veg_class].LAI[dmy[time_step_record].month - 1]);
+          pet_veg_class = veg_class;
         }
 
-        /* Initialize soil thermal properties for the top two layers */
-        prepare_full_energy(*hru, state->options.Nnode, soil_con, moist0, ice0, state);
-
-        /** Compute Bare (free of snow) Albedo **/
-        if (hru->isGlacier) {
-          bare_albedo = soil_con->GLAC_ALBEDO;
+        if (pet_veg_class == state->options.GLACIER_ID) {
+          displacement.snowFree = 0;
+          roughness.snowFree = soil_con->GLAC_ROUGH;
+          overstory = FALSE;
         } else {
-          bare_albedo = state->veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
+          displacement.snowFree = state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
+          roughness.snowFree = state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month - 1];
+          overstory = state->veg_lib[pet_veg_class].overstory;
+          if (p >= N_PET_TYPES_NON_NAT)
+            if (roughness.snowFree == 0)
+              roughness.snowFree = soil_con->rough;
         }
+        /* Estimate vegetation height */
+        height = calc_veg_height(displacement.snowFree);
 
-        /*************************************
-         Compute the aerodynamic resistance
-         for current veg cover and various
-         types of potential evap
-         *************************************/
+        /* Estimate reference height */
+        if (displacement.snowFree < wind_h)
+          ref_height.snowFree = wind_h;
+        else
+          ref_height.snowFree = displacement.snowFree + wind_h + roughness.snowFree;
 
-        /* Loop over types of potential evap, plus current veg */
-        /* Current veg will be last */
-        for (int p = 0; p < N_PET_TYPES + 1; p++) {
-
-          /* Initialize wind speeds */
-          wind_speed.snowFree = atmos->wind[state->NR];
-          wind_speed.canopyIfOverstory = INVALID;
-          wind_speed.snowCovered = INVALID;
-          wind_speed.glacierSurface = INVALID;
-
-          /* Set surface descriptive variables */
-          if (p < N_PET_TYPES_NON_NAT) {
-            pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
-          } else {
-            pet_veg_class = veg_class;
-          }
-
-          if (pet_veg_class == state->options.GLACIER_ID) {
-            displacement.snowFree = 0;
-            roughness.snowFree = soil_con->GLAC_ROUGH;
-            overstory = FALSE;
-          } else {
-            displacement.snowFree = state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
-            roughness.snowFree = state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month - 1];
-            overstory = state->veg_lib[pet_veg_class].overstory;
-            if (p >= N_PET_TYPES_NON_NAT)
-              if (roughness.snowFree == 0)
-                roughness.snowFree = soil_con->rough;
-          }
-          /* Estimate vegetation height */
-          height = calc_veg_height(displacement.snowFree);
-
-          /* Estimate reference height */
-          if (displacement.snowFree < wind_h)
-            ref_height.snowFree = wind_h;
-          else
-            ref_height.snowFree = displacement.snowFree + wind_h + roughness.snowFree;
-
-          /* Compute aerodynamic resistance over various surface types */
-          /* Do this not only for current veg but also all types of PET */
-          int ErrorFlag = CalcAerodynamic(overstory, height,
-              state->veg_lib[pet_veg_class].trunk_ratio, soil_con->snow_rough,
-              soil_con->rough, state->veg_lib[pet_veg_class].wind_atten,
-              aero_resist[p], wind_speed, displacement, ref_height, roughness);
-          if (ErrorFlag == ERROR)
-            return (ERROR);
-
-        }
+        /* Compute aerodynamic resistance over various surface types */
+        /* Do this not only for current veg but also all types of PET */
+        int ErrorFlag = CalcAerodynamic(overstory, height,
+            state->veg_lib[pet_veg_class].trunk_ratio, soil_con->snow_rough,
+            soil_con->rough, state->veg_lib[pet_veg_class].wind_atten,
+            aero_resist[p], wind_speed, displacement, ref_height, roughness);
+        if (ErrorFlag == ERROR)
+          return (ERROR);
 
       }
 

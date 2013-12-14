@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "vicNl.h"
 #include <string.h>
+#include <string>
 #include <sstream>
 
 static char vcid[] = "$Id$";
@@ -17,6 +18,13 @@ HRU initHRU(veg_con_struct& veg, const ProgramState* state) {
   hru.veg_con = veg;
   hru.mu = 1;
   return hru;
+}
+
+// For any type T, get the next value from the provided stream.
+template<class T> void getValueFromStream(std::stringstream& stream, T& value) {
+  if (!(stream >> value)) {
+    throw VICException("Error in read_vegparam, not enough inputs on line containing " + stream.str());
+  }
 }
 
 void read_vegparam(FILE *vegparam,
@@ -112,17 +120,16 @@ void read_vegparam(FILE *vegparam,
     }
     strcpy(tmpline, line);
     ttrim( tmpline );
+    std::stringstream stream(tmpline);
 
-    if (sscanf(tmpline, "%d %lf", &curVeg.veg_class, &curVeg.Cv) != 2) {
-      throw VICException("Error while reading veg class and Cv from vegetation parameter file");
-    }
+    getValueFromStream(stream, curVeg.veg_class);
+    getValueFromStream(stream, curVeg.Cv);
 
     float depth_sum = 0;
     float sum = 0.;
     for (int zone = 0; zone < state->options.ROOT_ZONES; zone++) {
-      if (sscanf(tmpline, "%f %f", &curVeg.zone_depth[zone], &curVeg.zone_fract[zone]) != 2) {
-        throw VICException("Error while reading root zones in the vegetation parameter file");
-      }
+      getValueFromStream(stream, curVeg.zone_depth[zone]);
+      getValueFromStream(stream, curVeg.zone_fract[zone]);
       depth_sum += curVeg.zone_depth[zone];
       sum += curVeg.zone_fract[zone];
     }
@@ -137,7 +144,9 @@ void read_vegparam(FILE *vegparam,
     }
 
     if (state->options.BLOWING) {
-      sscanf(tmpline, "%f %f %f", &curVeg.sigma_slope, &curVeg.lag_one, &curVeg.fetch);
+      getValueFromStream(stream, curVeg.sigma_slope);
+      getValueFromStream(stream, curVeg.lag_one);
+      getValueFromStream(stream, curVeg.fetch);
       if( curVeg.sigma_slope <= 0. || curVeg.lag_one <= 0.) {
         sprintf(str,"Deviation of terrain slope must be greater than 0.");
         nrerror(str);
@@ -149,7 +158,7 @@ void read_vegparam(FILE *vegparam,
     }
 
     int curBandIndex = INVALID_INT;
-    sscanf(tmpline, "%d", &curBandIndex);
+    getValueFromStream(stream,curBandIndex);
 
     int NfieldsMax = 2 + 2 * state->options.ROOT_ZONES;  /* Number of expected fields this line */
     if( state->options.BLOWING ){
@@ -179,13 +188,15 @@ void read_vegparam(FILE *vegparam,
       }
       strcpy(tmpline, line);
       ttrim( tmpline );
+      std::stringstream laiStream(tmpline);
 
       for (int j = 0; j < 12; j++) {
         //TODO: it is wrong to change program state here, should LAI be moved to the HRU class?
-        if (sscanf(tmpline, "%lf", &state->veg_lib[curVeg.veg_class].LAI[j]) != 1) {
-          std::stringstream ss("Error reading LAI values ");
-          ss << "at gridcell " << cell.soil_con.gridcel << " for month " << j;
-          throw VICException(ss.str());
+        try {
+          getValueFromStream(laiStream, state->veg_lib[curVeg.veg_class].LAI[j]);
+        } catch (std::exception e) {
+          fprintf(stderr, "Error reading LAI values at gridcell %d for month %d\n", cell.soil_con.gridcel, j);
+          throw;
         }
         if (state->veg_lib[curVeg.veg_class].overstory && state->veg_lib[curVeg.veg_class].LAI[j] == 0) {
           std::stringstream ss("Error: cell ");
