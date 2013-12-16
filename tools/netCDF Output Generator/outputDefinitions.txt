@@ -163,3 +163,40 @@
 #define OUT_POROSITY            155  /* porosity [mm/mm] */
 #define OUT_ZSUM_NODE           156  /* depths of thermal nodes [m] */
 #endif // EXCESS_ICE
+//Glacier Water Blance Terms - state variables
+OUT_GLAC_WAT_STOR       ,   /* glacier water storage [mm] */
+OUT_GLAC_AREA           ,   /* glacier surface area fraction [fraction] */
+
+//Glacier Water Balance Terms - fluxes
+OUT_GLAC_MBAL           ,   /* glacier mass balance [mm] */
+OUT_GLAC_IMBAL          ,   /* glacier ice mass balance [mm] */
+OUT_GLAC_ACCUM          ,   /* glacier ice accumulation from conversion of firn to ice [mm] */
+OUT_GLAC_MELT           ,   /* glacier ice melt [mm] */
+OUT_GLAC_SUB            ,   /* Net sublimation of glacier ice [mm] */
+OUT_GLAC_INFLOW         ,   /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+OUT_GLAC_OUTFLOW        ,   /* glacier water outflow [mm] */
+
+//Glacier Energy Balance Terms - state variables
+OUT_GLAC_SURF_TEMP      ,   /* glacier surface temperature [C] */
+OUT_GLAC_TSURF_FBFLAG   ,   /* glacier surface temperature flag [fraction] */
+
+//Glacier Energy Balance Terms - fluxes
+OUT_GLAC_DELTACC        ,   /* rate of change of cold content in glacier surface layer [W/m2] */
+OUT_GLAC_FLUX           ,   /* energy flux through glacier surface layer [W/m2] */
+
+//Glacier Miscellaneous types
+OUT_GLAC_OUTFLOW_COEF   ,   /* glacier outflow coefficient [fraction] */
+
+//Glacier Band-specific Quantities
+OUT_GLAC_DELTACC_BAND   ,   /* rate of change of cold content in glacier surface layer [W/m2] */
+OUT_GLAC_FLUX_BAND      ,   /* energy flux through glacier surface layer [W/m2] */
+OUT_GLAC_WAT_STOR_BAND  ,   /* glacier water storage [mm] */
+OUT_GLAC_AREA_BAND      ,   /* glacier surface area fraction [fraction] */
+OUT_GLAC_MBAL_BAND      ,   /* glacier mass balance [mm] */
+OUT_GLAC_IMBAL_BAND     ,   /* glacier ice mass balance [mm] */
+OUT_GLAC_ACCUM_BAND     ,   /* glacier ice accumulation from conversion of firn to ice [mm] */
+OUT_GLAC_MELT_BAND      ,   /* glacier ice melt [mm] */
+OUT_GLAC_SUB_BAND       ,   /* Net sublimation of glacier ice [mm] */
+OUT_GLAC_INFLOW_BAND    ,   /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+OUT_GLAC_OUTFLOW_BAND   ,   /* glacier water outflow [mm] */
+

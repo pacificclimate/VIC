@@ -20,6 +20,7 @@ for line in metaDataContents:
 			m = hashlib.md5()
 			m.update(item)
 			tempName += str(int(m.hexdigest(), 16))
+			tempName = item		# ignore FIXME_md5hash, just put in the VIC internal variable name
 			searchString = ".*" + item + "\s.*/\*\s*(.*?)\s*\[(.*?)\].*\s*\*/"
 			definition = re.findall(searchString, dataContents)
 			unitString = definition[0][1]
