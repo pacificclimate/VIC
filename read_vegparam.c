@@ -194,7 +194,7 @@ void read_vegparam(FILE *vegparam,
         //TODO: it is wrong to change program state here, should LAI be moved to the HRU class?
         try {
           getValueFromStream(laiStream, state->veg_lib[curVeg.veg_class].LAI[j]);
-        } catch (std::exception e) {
+        } catch (std::exception& e) {
           fprintf(stderr, "Error reading LAI values at gridcell %d for month %d\n", cell.soil_con.gridcel, j);
           throw;
         }

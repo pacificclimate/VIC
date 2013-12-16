@@ -281,6 +281,7 @@ void read_atmos_data(FILE                 *infile,
         case NC_DOUBLE:
         default:
           assert(0);
+          break;
       }
 
       rec = nforcesteps;
