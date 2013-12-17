@@ -26,7 +26,7 @@ void write_vegparam(const cell_info_struct& cell, const ProgramState* state)
   printf("\tnumber of HRUs = %d\n",  (int)cell.prcp.hruList.size());
 
   for (std::vector<HRU>::const_iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
-    vegclass = hru->veg_con.veg_class;
+    vegclass = hru->veg_con.vegIndex;
     printf("\n\tveg_class            = %d\n",  state->veg_lib[vegclass].veg_class);
     printf("\tCv                   = %f\n", hru->veg_con.Cv);
     if(state->veg_lib[vegclass].overstory)

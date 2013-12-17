@@ -139,18 +139,18 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
     /* Output for all snow bands */
     /* Write cell identification information */
-    int originalVeg = it->vegIndex;
+    int originalVeg = it->veg_con.vegIndex;
     int originalBand = it->bandIndex;
 
-    stream->process(&(it->vegIndex), 1, HRU_VEG_INDEX);
+    stream->process(&(it->veg_con.vegIndex), 1, HRU_VEG_INDEX);
     stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX);
 
     // The following is read specific and there is nothing we can do about it.
     if (stream->getType() == StateIO::Reader) {
-      if (originalVeg != it->vegIndex || originalBand != it->bandIndex) {
+      if (originalVeg != it->veg_con.vegIndex || originalBand != it->bandIndex) {
         std::stringstream ss;
         ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")\n";
-        ss << "do not match those currently requested (veg = " << it->vegIndex << ", band = " << it->bandIndex << "). \n";
+        ss << "do not match those currently requested (veg = " << it->veg_con.vegIndex << ", band = " << it->bandIndex << "). \n";
         ss << "At HRU dimension index: " << stream->getCurrentDimensionIndex(HRU_DIM) << "\n";
         ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
         throw VICException(ss.str());

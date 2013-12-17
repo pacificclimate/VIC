@@ -11,9 +11,8 @@ void ttrim( char *string );
 
 HRU initHRU(veg_con_struct& veg, const ProgramState* state) {
   HRU hru;
-  hru.vegIndex = veg.veg_class;
   hru.energy.frozen = FALSE;
-  hru.isGlacier = (veg.veg_class == state->options.GLACIER_ID);
+  hru.isGlacier = (veg.vegClass == state->options.GLACIER_ID);
   hru.isArtificialBareSoil = false;
   hru.veg_con = veg;
   hru.mu = 1;
@@ -69,7 +68,7 @@ void read_vegparam(FILE *vegparam,
   2010-Apr-28 Replaced GLOBAL_LAI with VEGPARAM_LAI and LAI_SRC.	TJB
 **********************************************************************/
 {
-  int             vegcel, numHRUs, skip, veg_class;
+  int             vegcel, numHRUs, skip;
   int             NoOverstory;
   char            str[500];
   char            ErrStr[MAXSTRING];
@@ -122,7 +121,7 @@ void read_vegparam(FILE *vegparam,
     ttrim( tmpline );
     std::stringstream stream(tmpline);
 
-    getValueFromStream(stream, curVeg.veg_class);
+    getValueFromStream(stream, curVeg.vegClass);
     getValueFromStream(stream, curVeg.Cv);
 
     float depth_sum = 0;
@@ -167,16 +166,16 @@ void read_vegparam(FILE *vegparam,
 
     curVeg.LAKE = 0;
 
-    veg_class = INVALID_INT;
+    int veg_index = INVALID_INT;
     for(int j=0;j<Nveg_type;j++)
-      if(curVeg.veg_class == state->veg_lib[j].veg_class)
-        veg_class = j;
-    if(IS_INVALID(veg_class)) {
-      sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", curVeg.veg_class, i, cell.soil_con.gridcel);
+      if(curVeg.vegClass == state->veg_lib[j].veg_class)
+        veg_index = j;
+    if(IS_INVALID(veg_index)) {
+      sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", curVeg.vegClass, i, cell.soil_con.gridcel);
       nrerror(ErrStr);
     }
     else
-      curVeg.veg_class = veg_class;
+      curVeg.vegIndex = veg_index;
 
     cell.Cv_sum += curVeg.Cv;
 
@@ -193,22 +192,22 @@ void read_vegparam(FILE *vegparam,
       for (int j = 0; j < 12; j++) {
         //TODO: it is wrong to change program state here, should LAI be moved to the HRU class?
         try {
-          getValueFromStream(laiStream, state->veg_lib[curVeg.veg_class].LAI[j]);
+          getValueFromStream(laiStream, state->veg_lib[curVeg.vegIndex].LAI[j]);
         } catch (std::exception& e) {
           fprintf(stderr, "Error reading LAI values at gridcell %d for month %d\n", cell.soil_con.gridcel, j);
           throw;
         }
-        if (state->veg_lib[curVeg.veg_class].overstory && state->veg_lib[curVeg.veg_class].LAI[j] == 0) {
+        if (state->veg_lib[curVeg.vegIndex].overstory && state->veg_lib[curVeg.vegIndex].LAI[j] == 0) {
           std::stringstream ss("Error: cell ");
-          ss << cell.soil_con.gridcel << ", veg type " << curVeg.veg_class << " the specified veg class is listed as an overstory class in the veg LIBRARY, but the LAI given in the veg PARAM FILE for this tile for month " << j << " is 0.";
+          ss << cell.soil_con.gridcel << ", veg type " << curVeg.vegClass << " the specified veg class is listed as an overstory class in the veg LIBRARY, but the LAI given in the veg PARAM FILE for this tile for month " << j << " is 0.";
           throw VICException(ss.str());
         }
-        state->veg_lib[curVeg.veg_class].Wdmax[j] = LAI_WATER_FACTOR * state->veg_lib[curVeg.veg_class].LAI[j];
+        state->veg_lib[curVeg.vegIndex].Wdmax[j] = LAI_WATER_FACTOR * state->veg_lib[curVeg.vegIndex].LAI[j];
       }
     }
 
     // Determine if cell contains non-overstory vegetation
-    if (state->options.COMPUTE_TREELINE && !state->veg_lib[curVeg.veg_class].overstory )
+    if (state->options.COMPUTE_TREELINE && !state->veg_lib[curVeg.vegIndex].overstory )
       NoOverstory++;
 
     //Create the HRU and add it to the vector.
@@ -265,7 +264,7 @@ void read_vegparam(FILE *vegparam,
 
 
         treeVeg.Cv         = 0.001;
-        treeVeg.veg_class  = state->options.AboveTreelineVeg;
+        treeVeg.vegClass  = state->options.AboveTreelineVeg;
         treeVeg.zone_depth = (float*)calloc( state->options.ROOT_ZONES,sizeof(float));
         treeVeg.zone_fract = (float*)calloc( state->options.ROOT_ZONES,sizeof(float));
 
@@ -279,29 +278,29 @@ void read_vegparam(FILE *vegparam,
       }
 
       // Identify current vegetation class
-      veg_class = INVALID_INT;
+      int veg_index = INVALID_INT;
       for (int j = 0; j < Nveg_type; j++ ) {
-        if(treeVeg.veg_class == state->veg_lib[j].veg_class) {
-          veg_class = j;
+        if(treeVeg.vegClass == state->veg_lib[j].veg_class) {
+          veg_index = j;
           break;
         }
       }
-      if ( IS_INVALID(veg_class) ) {
+      if ( IS_INVALID(veg_index) ) {
         std::stringstream ss;
-        ss << "The vegetation class id " << treeVeg.veg_class << " defined for above-treeline from cell " << cell.soil_con.gridcel << " is not defined in the vegetation library file.";
+        ss << "The vegetation class id " << treeVeg.vegClass << " defined for above-treeline from cell " << cell.soil_con.gridcel << " is not defined in the vegetation library file.";
         throw VICException(ss.str());
       }
       else {
-        treeVeg.veg_class = veg_class;
+        treeVeg.vegIndex = veg_index;
       }
 
       HRU treeHru = initHRU(treeVeg, state);
       treeHru.bandIndex = state->options.SNOW_BAND - 1; //TODO: currently set to the top snow band. Should a new HRU be added to all bands instead?
       cell.prcp.hruList.push_back(treeHru);
 
-      if (state->veg_lib[veg_class].overstory ) {
+      if (state->veg_lib[veg_index].overstory ) {
         std::stringstream ss;
-        ss << "Vegetation class " << state->veg_lib[veg_class].veg_class << "is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.";
+        ss << "Vegetation class " << state->veg_lib[veg_index].veg_class << "is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.";
         throw VICException(ss.str());
       }
     }
@@ -313,7 +312,8 @@ void read_vegparam(FILE *vegparam,
     // A bare soil HRU is added to each elevation.
     for (int band = 0; band < state->options.SNOW_BAND; band++) {
       veg_con_struct bareSoilVeg;
-      bareSoilVeg.veg_class = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
+      bareSoilVeg.vegClass = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
+      bareSoilVeg.vegIndex = Nveg_type;
       bareSoilVeg.Cv = CvPerBand;
       // Don't allocate any root-zone-related arrays
       if(state->options.BLOWING) {

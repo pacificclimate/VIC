@@ -142,7 +142,7 @@ int  dist_prec(cell_info_struct* cell,
         } else
           month = dmy[time_step_record].month - 1;
         if (it->isArtificialBareSoil == false)
-          Wdmax = state->veg_lib[it->veg_con.veg_class].Wdmax[month];
+          Wdmax = state->veg_lib[it->veg_con.vegIndex].Wdmax[month];
         else
           Wdmax = 0;
         redistribute_during_storm(*it, time_step_record, Wdmax, NEW_MU, cell->soil_con.max_moist, state);

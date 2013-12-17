@@ -141,7 +141,7 @@ void calc_root_fractions(std::vector<HRU>& hruList,
     }
     if(dum == 0.0){
       sprintf(ErrStr,"Root fractions sum equals zero: %f , Vege Class: %d\n",
-	      dum, hru->veg_con.veg_class);
+	      dum, hru->veg_con.vegClass);
       nrerror(ErrStr);
     }
     for (layer=0;layer<state->options.Nlayer;layer++) {

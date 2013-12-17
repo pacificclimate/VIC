@@ -189,7 +189,7 @@ int  put_data(cell_info_struct  *cell,
   }
 
   for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
-    if (state->veg_lib[hru->veg_con.veg_class].overstory) {
+    if (state->veg_lib[hru->veg_con.vegIndex].overstory) {
       if (state->options.LAKES && hru->veg_con.LAKE) {
         // Fraction of tile that is flooded
         Clake = cell->prcp.lake_var.sarea / cell->lake_con.basin[0];
@@ -273,7 +273,7 @@ int  put_data(cell_info_struct  *cell,
         IsWet = true;
       }
 
-      overstory = state->veg_lib[hru->veg_con.veg_class].overstory;
+      overstory = state->veg_lib[hru->veg_con.vegIndex].overstory;
 
       /*********************************
         Store Output for all Bands 

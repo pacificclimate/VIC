@@ -183,7 +183,7 @@ int initialize_model_state(cell_info_struct* cell,
 
   if ( state->options.LAKES && cell->lake_con.Cl[0] > 0) {
     for (std::vector<HRU>::iterator hru = cell->prcp.hruList.begin(); hru != cell->prcp.hruList.end(); ++hru) {
-      if (hru->veg_con.veg_class == cell->lake_con.lake_idx) {
+      if (hru->veg_con.vegClass == cell->lake_con.lake_idx) {
         hru->veg_con.LAKE = 1;
         ErrorFlag = initialize_lake(&cell->prcp.lake_var, cell->lake_con, &cell->soil_con, &(hru->cell[WET]), surf_temp, 0);
         if (ErrorFlag == ERROR) return(ErrorFlag);
@@ -340,7 +340,7 @@ int initialize_model_state(cell_info_struct* cell,
             fprintf(stderr,
                 "WARNING: Initial soil moisture (%f mm) exceeds maximum (%f mm) in layer %d for veg tile %d and snow band%d.  Resetting to maximum.\n",
                 cellRef.layer[lidx].moist, cell->soil_con.max_moist[lidx], lidx,
-                it->vegIndex, it->bandIndex);
+                it->veg_con.vegIndex, it->bandIndex);
 #if SPATIAL_FROST
             for ( frost_area = 0; frost_area < FROST_SUBAREAS; frost_area++)
             cellRef.layer[lidx].soil_ice[frost_area] *= cell->soil_con.max_moist[lidx]/cellRef.layer[lidx].moist;
@@ -367,7 +367,7 @@ int initialize_model_state(cell_info_struct* cell,
 
       // Override possible bad values of soil moisture under lake coming from state file
       // (ideally we wouldn't store these in the state file in the first place)
-      if (state->options.LAKES && it->vegIndex == cell->lake_con.lake_idx) {
+      if (state->options.LAKES && it->veg_con.vegClass == cell->lake_con.lake_idx) {
         for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
           cell->prcp.lake_var.soil.layer[lidx].moist =
               cell->soil_con.max_moist[lidx];
@@ -843,7 +843,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
     Update soil thermal node temperatures via linear interpolation.
   ******************************************/
   for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
-    if (veg_con[it->vegIndex].Cv > 0) {
+    if (veg_con[it->veg_con.vegIndex].Cv > 0) {
       if (soil_con->AreaFract[it->bandIndex] > 0.) {
         //set previous temperatures
         for (int index = 0; index < Nnodes; index++)
@@ -864,7 +864,7 @@ int update_thermal_nodes(dist_prcp_struct    *prcp,
   ******************************************/  
   FIRST_VEG = TRUE;
   for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
-    if (veg_con[it->vegIndex].Cv > 0) {
+    if (veg_con[it->veg_con.vegIndex].Cv > 0) {
       // Initialize soil for existing snow elevation bands
       if (soil_con->AreaFract[it->bandIndex] > 0.) {
         /** Set soil properties for all soil nodes **/

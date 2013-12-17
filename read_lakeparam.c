@@ -104,7 +104,7 @@ lake_con_struct read_lakeparam(FILE            *lakeparam,
   if (temp.lake_idx >= 0) {
 
     for (std::vector<HRU>::iterator hru = hruList.begin(); hru != hruList.end(); ++hru) {
-      if (hru->veg_con.veg_class == temp.lake_idx) {
+      if (hru->veg_con.vegClass == temp.lake_idx) {
         hru->veg_con.LAKE = 1;
       }
     }

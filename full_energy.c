@@ -107,7 +107,7 @@ int  full_energy(char                 NEWCELL,
 {
   char                   overstory;
   int                    Ndist;
-  int                    veg_class;
+  int                    veg_class_index;
   int                    Nbands;
   int                    ErrorFlag;
   int                    frost_area;
@@ -271,17 +271,17 @@ int  full_energy(char                 NEWCELL,
       }
 
       /** Define vegetation class number **/
-      veg_class = hru->veg_con.veg_class;
+      veg_class_index = hru->veg_con.vegIndex;
 
       /** Assign wind_h **/
       /** Note: this is ignored below **/
-      wind_h = state->veg_lib[veg_class].wind_h;
+      wind_h = state->veg_lib[veg_class_index].wind_h;
 
       /** Compute Surface Attenuation due to Vegetation Coverage **/
       if (hru->isGlacier) {
         surf_atten = 1;   /* not used  in the glacier case */
       } else {
-        surf_atten = exp(-state->veg_lib[veg_class].rad_atten * state->veg_lib[veg_class].LAI[dmy[time_step_record].month - 1]);
+        surf_atten = exp(-state->veg_lib[veg_class_index].rad_atten * state->veg_lib[veg_class_index].LAI[dmy[time_step_record].month - 1]);
       }
 
       /* Initialize soil thermal properties for the top two layers */
@@ -291,7 +291,7 @@ int  full_energy(char                 NEWCELL,
       if (hru->isGlacier) {
         bare_albedo = soil_con->GLAC_ALBEDO;
       } else {
-        bare_albedo = state->veg_lib[veg_class].albedo[dmy[time_step_record].month - 1];
+        bare_albedo = state->veg_lib[veg_class_index].albedo[dmy[time_step_record].month - 1];
       }
 
       /*************************************
@@ -314,7 +314,7 @@ int  full_energy(char                 NEWCELL,
         if (p < N_PET_TYPES_NON_NAT) {
           pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
         } else {
-          pet_veg_class = veg_class;
+          pet_veg_class = veg_class_index;
         }
 
         if (pet_veg_class == state->options.GLACIER_ID) {
@@ -402,7 +402,7 @@ int  full_energy(char                 NEWCELL,
               displacement, gauge_correction, &out_prec[hru->bandIndex * 2],
               &out_rain[hru->bandIndex * 2], &out_snow[hru->bandIndex * 2],
               ref_height, roughness, &snow_inflow[hru->bandIndex], wind_speed,
-              Nbands, Ndist, state->options.Nlayer, time_step_record, veg_class,
+              Nbands, Ndist, state->options.Nlayer, time_step_record, veg_class_index,
               atmos, dmy, soil_con, lag_one, sigma_slope, fetch, state);
 
         } else {              // Otherwise, run the model calculations as normal.
@@ -415,7 +415,7 @@ int  full_energy(char                 NEWCELL,
               &out_snow[hru->bandIndex * 2], ref_height, roughness,
               &snow_inflow[hru->bandIndex], wind_speed, hru->veg_con.root,
               Nbands, Ndist, state->options.Nlayer, dp, time_step_record,
-              veg_class, atmos, dmy, &(hru->energy), &(hru->cell[DRY]),
+              veg_class_index, atmos, dmy, &(hru->energy), &(hru->cell[DRY]),
               &(hru->cell[WET]), &(hru->snow), soil_con, &(hru->veg_var[DRY]),
               &(hru->veg_var[WET]), lag_one, sigma_slope, fetch, state);
           }

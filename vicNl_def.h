@@ -1023,7 +1023,8 @@ typedef struct {
   float   root[MAX_LAYERS]; /* percent of roots in each soil layer (fraction) */
   float  *zone_depth;       /* depth of root zone */
   float  *zone_fract;       /* fraction of roots within root zone */
-  int     veg_class;        /* vegetation class reference number */
+  int     vegIndex;         /* INDEX of the veg class in the vegetation library */
+  int     vegClass;         /* vegetation CLASS reference number */
   float   sigma_slope;      /* Std. deviation of terrain slope for each vegetation class. */
   float   lag_one;          /* Lag one gradient autocorrelation of terrain slope */
   float   fetch;            /* Average fetch length for each vegetation class. */
@@ -1408,7 +1409,6 @@ struct HRU {
   double          mu;         /* fraction of grid cell that receives precipitation */
   bool isGlacier;             /* Does this HRU contain glacier? */
   bool isArtificialBareSoil;  /* Was this HRU added automatically (as bare soil) to make the cell Cv fractions add to 1? */
-  int vegIndex;
   int bandIndex;
 };
 
