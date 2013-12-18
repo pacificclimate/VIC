@@ -41,7 +41,7 @@ int getVegIndex(int vegClass, const ProgramState* state) {
         << " defined for above-treeline is not defined in the vegetation library file.";
     throw VICException(ss.str());
   }
-  return vegClass;
+  return veg_index;
 }
 
 void read_vegparam(FILE *vegparam,
