@@ -1366,11 +1366,11 @@ typedef struct {
 *****************************************************************/
 struct glac_data_struct {
   // Initialize variables to NAN on construction of an object.
-  glac_data_struct() : cold_content(INVALID), surf_temp(INVALID), surf_temp_fbcount(0),
+  glac_data_struct() : cold_content(INVALID), surf_temp(0), surf_temp_fbcount(0),
       surf_temp_fbflag(false), Qnet(INVALID), mass_balance(INVALID),
       ice_mass_balance(INVALID), cum_mass_balance(INVALID), accumulation(INVALID),
       melt(INVALID), vapor_flux(INVALID), water_storage(INVALID), outflow(INVALID),
-      outflow_coef(INVALID) {}
+      outflow_coef(INVALID), inflow(INVALID) {}
 
   double cold_content;        /* cold content of glacier surface layer */
   double surf_temp;           /* temperature of glacier surface layer, deg-C */
