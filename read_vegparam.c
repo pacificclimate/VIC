@@ -26,6 +26,24 @@ template<class T> void getValueFromStream(std::stringstream& stream, T& value) {
   }
 }
 
+int getVegIndex(int vegClass, const ProgramState* state) {
+// Identify current vegetation class
+  int veg_index = INVALID_INT;
+  for (int j = 0; j < state->num_veg_types; j++) {
+    if (vegClass == state->veg_lib[j].veg_class) {
+      veg_index = j;
+      break;
+    }
+  }
+  if (IS_INVALID(veg_index)) {
+    std::stringstream ss;
+    ss << "The vegetation class id " << vegClass
+        << " defined for above-treeline is not defined in the vegetation library file.";
+    throw VICException(ss.str());
+  }
+  return vegClass;
+}
+
 void read_vegparam(FILE *vegparam,
                    cell_info_struct& cell,
                    const ProgramState* state)
@@ -165,16 +183,7 @@ void read_vegparam(FILE *vegparam,
 
     curVeg.LAKE = 0;
 
-    int veg_index = INVALID_INT;
-    for(int j=0;j< state->num_veg_types;j++)
-      if(curVeg.vegClass == state->veg_lib[j].veg_class)
-        veg_index = j;
-    if(IS_INVALID(veg_index)) {
-      sprintf(ErrStr,"The vegetation class id %i in vegetation tile %i from cell %i is not defined in the vegetation library file.", curVeg.vegClass, i, cell.soil_con.gridcel);
-      nrerror(ErrStr);
-    }
-    else
-      curVeg.vegIndex = veg_index;
+    curVeg.vegIndex = getVegIndex(curVeg.vegClass, state);
 
     cell.Cv_sum += curVeg.Cv;
 
@@ -276,30 +285,15 @@ void read_vegparam(FILE *vegparam,
         }
       }
 
-      // Identify current vegetation class
-      int veg_index = INVALID_INT;
-      for (int j = 0; j < state->num_veg_types; j++ ) {
-        if(treeVeg.vegClass == state->veg_lib[j].veg_class) {
-          veg_index = j;
-          break;
-        }
-      }
-      if ( IS_INVALID(veg_index) ) {
-        std::stringstream ss;
-        ss << "The vegetation class id " << treeVeg.vegClass << " defined for above-treeline from cell " << cell.soil_con.gridcel << " is not defined in the vegetation library file.";
-        throw VICException(ss.str());
-      }
-      else {
-        treeVeg.vegIndex = veg_index;
-      }
+      treeVeg.vegIndex = getVegIndex(treeVeg.vegClass, state);
 
       HRU treeHru = initHRU(treeVeg, state);
       treeHru.bandIndex = state->options.SNOW_BAND - 1; //TODO: currently set to the top snow band. Should a new HRU be added to all bands instead?
       cell.prcp.hruList.push_back(treeHru);
 
-      if (state->veg_lib[veg_index].overstory ) {
+      if (state->veg_lib[treeVeg.vegIndex].overstory ) {
         std::stringstream ss;
-        ss << "Vegetation class " << state->veg_lib[veg_index].veg_class << "is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.";
+        ss << "Vegetation class " << state->veg_lib[treeVeg.vegIndex].veg_class << "is defined to have overstory, so it cannot be used as the default vegetation type for above canopy snow bands.";
         throw VICException(ss.str());
       }
     }

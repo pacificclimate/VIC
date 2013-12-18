@@ -348,6 +348,7 @@ double get_avg_temp(double, double, double *, double *, int);
 double get_dist(double, double, double, double);
 void   get_force_type(char *, int, int *, ProgramState*);
 void   get_next_time_step(int *, int *, int *, int *, int *, int);
+int    getVegIndex(int vegClass, const ProgramState* state);
 
 double hermint(double, int, double *, double *, double *, double *, double *);
 void   hermite(int, double *, double *, double *, double *, double *);
