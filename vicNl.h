@@ -409,7 +409,7 @@ soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
-void read_vegparam(FILE *, cell_info_struct&, int, const ProgramState*);
+void read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
 int redistribute_during_storm(HRU& hru, int rec, double Wdmax, double new_mu,
     double *max_moist, const ProgramState* state);
 void   redistribute_moisture(layer_data_struct *, double *, double *,

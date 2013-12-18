@@ -16,13 +16,13 @@ void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
     dmy_struct* dmy, ProgramState& state);
 
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
-    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    filep_struct filep, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, const ProgramState* state);
 
 int initializeCell(cell_info_struct& cell,
     filep_struct filep, dmy_struct* dmy, filenames_struct filenames,
-    int num_veg_types, const ProgramState* state);
+    const ProgramState* state);
 
 int main(int argc, char *argv[])
 /**********************************************************************
@@ -134,8 +134,7 @@ int main(int argc, char *argv[])
   state.open_debug();
 #endif
   /** Read Vegetation Library File **/
-  int num_veg_types = 0;
-  state.veg_lib = read_veglib(filep.veglib, &num_veg_types, state.options.LAI_SRC);
+  state.veg_lib = read_veglib(filep.veglib, &state.num_veg_types, state.options.LAI_SRC);
 #endif // !OUTPUT_FORCE
 
   /** Make Date Data Structure **/
@@ -158,7 +157,7 @@ int main(int argc, char *argv[])
   }
 #endif // !OUTPUT_FORCE
 
-  runModel(cell_data_structs, filep, num_veg_types, filenames, out_data_files, out_data, dmy, &state);
+  runModel(cell_data_structs, filep, filenames, out_data_files, out_data, dmy, &state);
 
   /** cleanup **/
   free_dmy(&dmy);
@@ -242,7 +241,7 @@ void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
 
 int initializeCell(cell_info_struct& cell,
     filep_struct filep, dmy_struct* dmy, filenames_struct filenames,
-    int num_veg_types, const ProgramState* state) {
+    const ProgramState* state) {
 
   const int Ndist = state->options.DIST_PRCP ? 2 : 1;
 
@@ -271,7 +270,7 @@ int initializeCell(cell_info_struct& cell,
 #if !OUTPUT_FORCE
   make_in_files(&filep, &filenames, &cell.soil_con, state);
   /** Read Grid Cell Vegetation Parameters **/
-  read_vegparam(filep.vegparam, cell, num_veg_types, state);
+  read_vegparam(filep.vegparam, cell, state);
   calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
 #if LINK_DEBUG
   if (state->debug.PRT_VEGE)
@@ -366,7 +365,7 @@ void printThreadInformation() {
  Run Model for all Active Grid Cells
  ************************************/
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
-    filep_struct filep, int num_veg_types, filenames_struct filenames,
+    filep_struct filep, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, const ProgramState* state) {
 
@@ -378,7 +377,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     int initError = 0;
     //#pragma omp critical(initCells)
     {
-      initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, num_veg_types, state);
+      initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     }
     // Skip to the next cell if unable to initialize the current cell.
     if (initError == ERROR) {

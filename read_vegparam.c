@@ -28,7 +28,6 @@ template<class T> void getValueFromStream(std::stringstream& stream, T& value) {
 
 void read_vegparam(FILE *vegparam,
                    cell_info_struct& cell,
-                   int   Nveg_type,
                    const ProgramState* state)
 /**********************************************************************
   read_vegparam.c    Keith Cherkauer and Dag Lohmann       1997
@@ -167,7 +166,7 @@ void read_vegparam(FILE *vegparam,
     curVeg.LAKE = 0;
 
     int veg_index = INVALID_INT;
-    for(int j=0;j<Nveg_type;j++)
+    for(int j=0;j< state->num_veg_types;j++)
       if(curVeg.vegClass == state->veg_lib[j].veg_class)
         veg_index = j;
     if(IS_INVALID(veg_index)) {
@@ -279,7 +278,7 @@ void read_vegparam(FILE *vegparam,
 
       // Identify current vegetation class
       int veg_index = INVALID_INT;
-      for (int j = 0; j < Nveg_type; j++ ) {
+      for (int j = 0; j < state->num_veg_types; j++ ) {
         if(treeVeg.vegClass == state->veg_lib[j].veg_class) {
           veg_index = j;
           break;
@@ -312,8 +311,8 @@ void read_vegparam(FILE *vegparam,
     // A bare soil HRU is added to each elevation.
     for (int band = 0; band < state->options.SNOW_BAND; band++) {
       veg_con_struct bareSoilVeg;
-      bareSoilVeg.vegClass = Nveg_type; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
-      bareSoilVeg.vegIndex = Nveg_type;
+      bareSoilVeg.vegClass = state->num_veg_types; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
+      bareSoilVeg.vegIndex = state->num_veg_types;
       bareSoilVeg.Cv = CvPerBand;
       // Don't allocate any root-zone-related arrays
       if(state->options.BLOWING) {

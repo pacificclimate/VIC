@@ -1599,6 +1599,7 @@ public:
 #endif
   Error_struct Error;
   param_set_struct param_set;
+  int num_veg_types;
   int NR;  /* array index for atmos struct that indicates the model step avarage or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   void initialize_global();
