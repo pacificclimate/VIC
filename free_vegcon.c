@@ -13,7 +13,13 @@ void free_vegcon(cell_info_struct& cell)
 **********************************************************************/
 {
   for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
-    free(hru->veg_con.zone_depth);
-    free(hru->veg_con.zone_fract);
+    if (hru->veg_con.zone_depth != NULL) {
+      free(hru->veg_con.zone_depth);
+      hru->veg_con.zone_depth = NULL;
+    }
+    if (hru->veg_con.zone_fract != NULL) {
+      free(hru->veg_con.zone_fract);
+      hru->veg_con.zone_fract = NULL;
+    }
   }
 }

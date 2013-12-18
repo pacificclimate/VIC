@@ -1018,7 +1018,8 @@ typedef struct {
   This structure stores information about the vegetation coverage of
   the current grid cell.
   *******************************************************************/
-typedef struct {
+struct veg_con_struct {
+  veg_con_struct() : zone_depth(NULL), zone_fract(NULL) {}
   double  Cv;               /* fraction of vegetation coverage */ 
   float   root[MAX_LAYERS]; /* percent of roots in each soil layer (fraction) */
   float  *zone_depth;       /* depth of root zone */
@@ -1029,7 +1030,7 @@ typedef struct {
   float   lag_one;          /* Lag one gradient autocorrelation of terrain slope */
   float   fetch;            /* Average fetch length for each vegetation class. */
   int     LAKE;             /* TRUE = this tile is a lake/wetland tile */
-} veg_con_struct;
+};
 
 /******************************************************************
   This structure stores parameters for individual vegetation types.

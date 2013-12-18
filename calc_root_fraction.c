@@ -38,6 +38,7 @@ void calc_root_fractions(std::vector<HRU>& hruList,
   Nhrus      = hruList.size();
 
   for(std::vector<HRU>::iterator hru = hruList.begin(); hru != hruList.end(); ++hru) {
+    if (hru->isArtificialBareSoil) continue;    // Skip added bare soil HRUs (zone_fract and zone_depth have not been allocated for these)
     sum_depth  = 0;
     sum_fract  = 0;
     layer      = 0;
