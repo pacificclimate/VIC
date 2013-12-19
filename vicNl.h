@@ -533,7 +533,7 @@ int surface_fluxes(char, double, double, double, double, int, double*, double*,
     HRU&, double, double *, double *, VegConditions *,
     VegConditions &, double *, double *, double *, double *, VegConditions &,
     VegConditions &, double *, VegConditions &, const float *, int, int, int,
-    int, int, int, atmos_data_struct *, const dmy_struct *,
+    double, int, int, atmos_data_struct *, const dmy_struct *,
     energy_bal_struct *, hru_data_struct *, hru_data_struct *,
     snow_data_struct *, const soil_con_struct*, veg_var_struct *,
     veg_var_struct *, float, float, float, const ProgramState *);
