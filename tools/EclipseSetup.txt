@@ -34,3 +34,6 @@ This is a guide for setting up the VIC project in the Eclipse Integrated Develop
 		-Click Index -> Rebuild
 	-The errors should disappear and intellisense and auto complete should work properly.
 		-If not see: http://stackoverflow.com/questions/7905025/string-could-not-resolved-error-in-eclipse-for-c
+	-On the top menu click Run -> Run Configurations, open the Arguments tab and add the arguments (such as "-g glb_file.txt")
+		-Deselect the Use default checkbox and change the working directory (usually the location of the global input file)
+		-Click Apply, Click Close
