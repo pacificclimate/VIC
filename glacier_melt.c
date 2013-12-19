@@ -110,7 +110,7 @@ int glacier_melt(double Le,
   char ErrorString[MAXSTRING];
 
   /* SnowFall = snowfall / 1000.;*/ /* convet to m */
-  RainFall = rainfall / 1000.; /* convet to m */
+ RainFall = rainfall;
 
   (*OldTSurf) = glacier->surf_temp;
 
@@ -132,11 +132,10 @@ int glacier_melt(double Le,
   Qnet = glacierEnergy.calculate((double)0.0);
 
   /* If Qnet == 0.0, then set the surface temperature to 0.0 */
-  if (abs(Qnet) < 2e-7) {
+  if (std::abs(Qnet) < 2e-7) {
     glacier->surf_temp = 0.;
     melt_energy = NetShort + (*NetLong) + sensible_heat
-        + latent_heat + latent_heat_sub
-        - ice_density * CH_ICE * (glacier->surf_temp - (*OldTSurf)) / delta_t;
+        + latent_heat + latent_heat_sub + advection;
     GlacMelt = melt_energy / (Lf * RHO_W) * delta_t;
     GlacCC = 0.;
   }
@@ -211,7 +210,7 @@ int glacier_melt(double Le,
 
   /*  printf("%d %d %g\n", y, x, MassBalanceError);*/
 
-  melt[0] *= 1000.; /* converts back to mm */
+  /*melt[0] *= 1000.;*/ /* converts back to mm */
   /* glacier->mass_error         = MassBalanceError; */
   glacier->cold_content = GlacCC;
   glacier->vapor_flux *= -1.;

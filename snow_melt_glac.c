@@ -64,8 +64,8 @@ int snow_melt_glac(double latent_heat_Le,
 
   char ErrorString[MAXSTRING];
 
-  SnowFall = snowfall / 1000.; /* convet to m */
-  RainFall = rainfall / 1000.; /* convet to m */
+  SnowFall = snowfall;
+  RainFall = rainfall;
 
   InitialSwq = snow->swq;
   (*OldTSurf) = snow->surf_temp;
@@ -402,7 +402,7 @@ int snow_melt_glac(double latent_heat_Le,
 
   /*  printf("%d %d %g\n", y, x, MassBalanceError);*/
 
-  melt[0] *= 1000.; /* converts back to mm */
+  /* melt[0] *= 1000.; */ /* converts back to mm */
   snow->mass_error = MassBalanceError;
   snow->coldcontent = SurfaceCC;
   snow->vapor_flux *= -1.;

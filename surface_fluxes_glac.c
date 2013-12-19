@@ -237,7 +237,7 @@ int surface_fluxes_glac(
 
     /* set air temperature and precipitation for this snow band */
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
-    step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];
+    step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex] / 1000.0;  // convert to m
 
     rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP,
         soil_con->MIN_RAIN_TEMP, hru.mu);

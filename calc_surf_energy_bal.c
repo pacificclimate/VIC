@@ -520,28 +520,28 @@ double calc_surf_energy_bal(double             latent_heat_Le,
       Tnew_node[2] = T2;
 
     }
-    calc_layer_average_thermal_props(energy, layer_wet, layer_dry, layer, soil_con, 
-				     Nnodes, veg_class, Tnew_node, state);
+  calc_layer_average_thermal_props(energy, layer_wet, layer_dry, layer,
+      soil_con, Nnodes, veg_class, Tnew_node, state);
 
   /** Store precipitation that reaches the surface */
-  if ( !snow->snow && !INCLUDE_SNOW ) {
-    if ( isArtificialBareSoil == false ) {
-      if ( state->veg_lib[veg_class].LAI[dmy->month-1] <= 0.0 ) {
-	veg_var_wet->throughfall = rainfall[WET];
-	ppt[WET] = veg_var_wet->throughfall;
-	if ( state->options.DIST_PRCP ) {
-	  veg_var_dry->throughfall = rainfall[DRY];
-	  ppt[DRY] = veg_var_dry->throughfall;
-	}
+  if (!snow->snow && !INCLUDE_SNOW) {
+    if (isArtificialBareSoil == false) {
+      if (state->veg_lib[veg_class].LAI[dmy->month - 1] <= 0.0) {
+        veg_var_wet->throughfall = rainfall[WET];
+        ppt[WET] = veg_var_wet->throughfall;
+        if (state->options.DIST_PRCP) {
+          veg_var_dry->throughfall = rainfall[DRY];
+          ppt[DRY] = veg_var_dry->throughfall;
+        }
+      } else {
+        ppt[WET] = veg_var_wet->throughfall;
+        if (state->options.DIST_PRCP)
+          ppt[DRY] = veg_var_dry->throughfall;
       }
-      else {
-	ppt[WET] = veg_var_wet->throughfall;
-	if(state->options.DIST_PRCP) ppt[DRY] = veg_var_dry->throughfall;
-      }
-    }
-    else {
+    } else {
       ppt[WET] = rainfall[WET];
-      if ( state->options.DIST_PRCP ) ppt[DRY] = rainfall[DRY];
+      if (state->options.DIST_PRCP)
+        ppt[DRY] = rainfall[DRY];
     }
   }
 
