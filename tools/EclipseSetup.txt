@@ -1,0 +1,36 @@
+This is a guide for setting up the VIC project in the Eclipse Integrated Development Environment.
+
+1. Download and Install Eclipse:
+
+	Choose either the C++ Development Tools option or install the CDT later on top of a general Eclipse installation (using Help -> Install New Software).
+	http://www.eclipse.org/downloads/
+
+2. Install the necessary NetCDF libraries.
+	-The NetCDF C library is used to read input forcing files (ie this is <netcdf.h>)
+	-Install the C library http://www.unidata.ucar.edu/software/netcdf/docs/
+	
+	-The NetCDF C++ library is used to read/write NetCDF outputs (ie this is <netcdf>)
+		-If you have trouble installing the NetCDF C++ library and don't want NetCDF outputs
+		then set NETCDF_OUTPUT_AVAILABLE to FALSE in user_def.h and the project should compile.
+	-Download from https://www.unidata.ucar.edu/software/netcdf/docs/cxx4/
+	./configure --enable-cxx-4
+	make
+	sudo make install
+
+3. Set up the VIC project in Eclipse.
+
+	-In Eclipse go to File -> New -> C++ Project
+	-Type a project name (such as VIC)
+	-For project type, choose Makefile project -> Empty Project
+	-Deselect the "Use default location" checkbox and choose the folder location on disk where the VIC source code is located.
+	-Click Next, Finish
+	-The source files should appear in the Project Explorer pane.
+	-Open up vicNl.c in Eclipse by double clicking on the file name in the Project Explorer pane.
+	-There are probably errors (it will actually build correctly because it uses the makefile, but the Eclipse indexer can't find the included files)
+	-Go to Project -> Properties -> C/C++ Build -> Tool Chain Editor
+		-Change the Current Toolchain option from none, to an existing tool chain (Linux GCC)
+		-Click Apply, Click OK
+	-Right click the project folder name (VIC) in the Project Explorer
+		-Click Index -> Rebuild
+	-The errors should disappear and intellisense and auto complete should work properly.
+		-If not see: http://stackoverflow.com/questions/7905025/string-could-not-resolved-error-in-eclipse-for-c
