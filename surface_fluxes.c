@@ -421,7 +421,7 @@ int surface_fluxes(char                 overstory,
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
     step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];
 
-    // initialize ground surface temperaure
+    // initialize ground surface temperature
     Tgrnd = energy->T[0];
 
     // initialize canopy terms
@@ -734,6 +734,8 @@ int surface_fluxes(char                 overstory,
 
       store_ppt[dist] += step_ppt[dist];
     }
+
+
     if (iter_aero_resist_used.surface > 0)
       store_aero_cond_used.surface += 1 / iter_aero_resist_used.surface;
     else

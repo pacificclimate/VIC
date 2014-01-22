@@ -293,7 +293,7 @@ double SurfEnergyBal::calculate(double Ts)
   }
   (*NetLongBare)   = (LongBareIn - (1. - snow_coverage) * LongBareOut); // net LW snow-free area
   NetBareRad = (NetShortBare + (*NetLongBare) + *grnd_flux + *deltaH + *fusion);
-    
+
   /** Compute atmospheric stability correction **/
   /** CHECK THAT THIS WORKS FOR ALL SUMMER SITUATIONS **/
   if ( wind_speed[UnderStory] > 0.0 && overstory && SNOWING )
