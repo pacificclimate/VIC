@@ -64,8 +64,8 @@ int snow_melt_glac(double latent_heat_Le,
 
   char ErrorString[MAXSTRING];
 
-  SnowFall = snowfall;
-  RainFall = rainfall;
+  SnowFall = snowfall / 1000.; /* convert to m */
+  RainFall = rainfall / 1000.; /* convert to m */
 
   InitialSwq = snow->swq;
   (*OldTSurf) = snow->surf_temp;

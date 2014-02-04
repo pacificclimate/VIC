@@ -128,11 +128,12 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
 
     /* Snow */
     /** Set aerodynamic resistance terms for snow */
-    ref_height.snowCovered   = 2. + Z0_SNOW;
-    roughness.snowCovered    = Z0_SNOW;
+    ref_height.snowCovered = 2. + Z0_SNOW;
+    roughness.snowCovered = Z0_SNOW;
     displacement.snowCovered = 0.;
     wind_speed.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW)/log(ref_height.snowCovered/Z0_SNOW);
     aero_resist.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW) * log(ref_height.snowCovered/Z0_SNOW)/K2;
+    ref_height.snowCovered = 2. + Z0_SNOW;
 
     /* Glacier */
     ref_height.glacierSurface = 2. + Z0_Lower;
@@ -140,6 +141,7 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     displacement.glacierSurface = 0.;
     wind_speed.glacierSurface =  log((2. + Z0_Lower)/Z0_Lower)/log(ref_height.glacierSurface / Z0_Lower);
     aero_resist.glacierSurface = log((2. + Z0_Lower)/Z0_Lower)*log(ref_height.glacierSurface / Z0_Lower) / K2;
+    ref_height.glacierSurface = 2. + Z0_Lower;
 
   }
   

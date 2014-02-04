@@ -317,7 +317,7 @@ int  full_energy(char                 NEWCELL,
           pet_veg_class = veg_class_index;
         }
 
-        if (hru->veg_con.vegClass == state->options.GLACIER_ID) {
+        if ((hru->veg_con.vegClass == state->options.GLACIER_ID) && (pet_veg_class == veg_class_index)) {
           displacement.snowFree = 0;
           roughness.snowFree = soil_con->GLAC_ROUGH;
           overstory = FALSE;

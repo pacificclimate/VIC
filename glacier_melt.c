@@ -109,8 +109,8 @@ int glacier_melt(double Le,
 
   char ErrorString[MAXSTRING];
 
-  /* SnowFall = snowfall / 1000.;*/ /* convet to m */
- RainFall = rainfall;
+  /* SnowFall = snowfall / 1000.;*/ /* convert to m */
+ RainFall = rainfall / 1000.; /* convert to m */
 
   (*OldTSurf) = glacier->surf_temp;
 

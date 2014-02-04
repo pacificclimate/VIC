@@ -113,7 +113,7 @@ double solve_glacier(
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall
-   ppt[WET] = (melt + rainfall[WET]);
+   ppt[WET] = (melt + rainfall[WET]/1000.); /* convert rainfall to m */
 
    // store glacier albedo
    energy->AlbedoUnder = *AlbedoUnder;
