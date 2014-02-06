@@ -468,7 +468,7 @@ int surface_fluxes_glac(
     ppt[dist] = store_ppt[dist];
   }
 
-  hru.glacier.mass_balance = out_prec[WET] - hru.snow.melt - hru.glacier.melt - hru.snow.vapor_flux - hru.glacier.vapor_flux;
+  hru.glacier.mass_balance = out_prec[WET]/1000. - hru.snow.melt - hru.glacier.melt - hru.snow.vapor_flux - hru.glacier.vapor_flux; /* convert out_prec[WET] to m */
   hru.glacier.ice_mass_balance = hru.glacier.accumulation - hru.glacier.melt - hru.glacier.vapor_flux;
 
   /******************************************************
