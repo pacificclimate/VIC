@@ -257,10 +257,10 @@ int  put_data(cell_info_struct  *cell,
     Nbands = state->options.SNOW_BAND;
     IsWet = false;
 
-    if (hru->isArtificialBareSoil == false || !hru->isGlacier)
-      HasVeg = true;
-    else
+    if (hru->isArtificialBareSoil == true || hru->isGlacier)
       HasVeg = false;
+    else
+      HasVeg = true;
 
     HasGlac = hru->isGlacier;
 
@@ -300,15 +300,15 @@ int  put_data(cell_info_struct  *cell,
 
             /** compute running totals of various landcovers **/
             if (HasVeg)
-              cv_veg += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+              cv_veg += Cv * precipitation_mu * ThisTreeAdjust;
             else
-              cv_baresoil += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+              cv_baresoil += Cv * precipitation_mu * ThisTreeAdjust;
             if (overstory)
-              cv_overstory += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+              cv_overstory += Cv * precipitation_mu * ThisTreeAdjust;
             if (hru->snow.swq > 0.0)
-              cv_snow += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+              cv_snow += Cv * precipitation_mu * ThisTreeAdjust;
             if (HasGlac) {
-              cv_glacier += Cv * precipitation_mu * ThisAreaFract * ThisTreeAdjust;
+              cv_glacier += Cv * precipitation_mu * ThisTreeAdjust;
             }
 
 	    /*********************************
