@@ -7,6 +7,7 @@ static char vcid[] = "$Id$";
 double calc_water_balance_error(int    rec,
 				double inflow,
 				double outflow,
+				double glac_icebal,
 				double storage,
 				int    Nrecs,
 				CellBalanceErrors* errors) {
@@ -29,7 +30,7 @@ double calc_water_balance_error(int    rec,
     return(0.0);
   }
   else {
-    error = inflow - outflow - (storage - errors->water_last_storage);
+    error = inflow - outflow - (storage - errors->water_last_storage) - glac_icebal;
     errors->water_cum_error += error;
     if(fabs(error)>fabs(errors->water_max_error) && fabs(error)>1e-5) {
       errors->water_max_error = error;

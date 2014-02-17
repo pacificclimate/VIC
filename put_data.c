@@ -17,7 +17,7 @@ int  put_data(cell_info_struct  *cell,
   in an array for later output to the output files.
 
   modifications:
-  06-24-98  modified for new distributed presipitation data structures KAC
+  06-24-98  modified for new distributed precipitation data structures KAC
   01-20-00 modified to deal with simplified frozen soil moisture layers
            and frost depth / thaw depth accounting                 KAC
   03-08-00 modified to eliminate extra lines for storing bare
@@ -30,7 +30,7 @@ int  put_data(cell_info_struct  *cell,
            algorithm.                                              LCB
   03-12-03 modified to add additional energy balance variable storage
            when output of snow bands is selected.                  KAC
-  03-12-03 Modifed to add AboveTreeLine to soil_con_struct so that
+  03-12-03 Modified to add AboveTreeLine to soil_con_struct so that
            the model can make use of the computed treeline.     KAC
   30-Oct-03 Snow_flux was incorrectly set to Tcanopy.  Fixed.   TJB
   25-Aug-04 Sub_snow was incorrectly set to blowing_flux.  Now it is
@@ -157,6 +157,7 @@ int  put_data(cell_info_struct  *cell,
   double                  cv_glacier;
   double                  inflow;
   double                  outflow;
+  double                  glac_icebal;
   double                  storage;
   double                  TreeAdjustFactor[MAX_BANDS];
   double                  ThisAreaFract;
@@ -599,6 +600,7 @@ int  put_data(cell_info_struct  *cell,
     ********************/
   inflow  = out_data[OUT_PREC].data[0] + out_data[OUT_LAKE_CHAN_IN].data[0]; // mm over grid cell
   outflow = out_data[OUT_EVAP].data[0] + out_data[OUT_RUNOFF].data[0] + out_data[OUT_BASEFLOW].data[0]; // mm over grid cell
+  glac_icebal = out_data[OUT_GLAC_IMBAL].data[0];
   storage = 0.;
   for(int index=0;index<state->options.Nlayer;index++)
     if(state->options.MOISTFRACT)
@@ -606,8 +608,8 @@ int  put_data(cell_info_struct  *cell,
 	* cell->soil_con.depth[index] * 1000;
     else
       storage += out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index];
-  storage += out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0] + out_data[OUT_WDEW].data[0] + out_data[OUT_SURFSTOR].data[0];
-  out_data[OUT_WATER_ERROR].data[0] = calc_water_balance_error(rec,inflow,outflow,storage, state->global_param.nrecs, &cell->cellErrors);
+  storage += out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0] + out_data[OUT_WDEW].data[0] + out_data[OUT_SURFSTOR].data[0] + out_data[OUT_GLAC_WAT_STOR].data[0];
+  out_data[OUT_WATER_ERROR].data[0] = calc_water_balance_error(rec,inflow,outflow,glac_icebal,storage, state->global_param.nrecs, &cell->cellErrors);
   
   /********************
     Check Energy Balance

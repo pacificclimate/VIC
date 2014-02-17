@@ -590,7 +590,7 @@ int surface_fluxes_glac(
 
   hru.glacier.water_storage = wt;
   hru.glacier.outflow = qt;
-  hru.cell[WET].runoff = qt;
+  hru.cell[WET].runoff = qt * 1000.; /* convert to mm; keeps units consistent with surface_fluxes.c */
   hru.glacier.outflow_coef = kt;
 
 #if EXCESS_ICE

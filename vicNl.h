@@ -189,7 +189,7 @@ double calc_trans(double, double);
 double calc_veg_displacement(double);
 double calc_veg_height(double);
 double calc_veg_roughness(double);
-double calc_water_balance_error(int, double, double, double, int, CellBalanceErrors*);
+double calc_water_balance_error(int, double, double, double, double, int, CellBalanceErrors*);
 double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     veg_var_struct *, char, int, int, double, double *, double, double, double,
     double, double, double, double, double, double, double, double *, const double *,
