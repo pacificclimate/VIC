@@ -30,6 +30,7 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   TMean = TSurf;
   Density = RHO_W;
+  IceDepth /= 1000.;
 
   /* Correct aerodynamic conductance for stable conditions
      Note: If air temp >> glacier temp then aero_cond -> 0 (i.e. very stable)
@@ -79,18 +80,22 @@ double GlacierEnergyBalance::calculate(double TSurf) {
     *AdvectedEnergy = 0.;
 
   /* Calculate change in cold content */
-  *DeltaColdContent = CH_ICE * IceWE * (TSurf - OldTSurf) / (Dt);
+  /* *DeltaColdContent = CH_ICE * IceWE * (TSurf - OldTSurf) / (Dt); */
+  *DeltaColdContent = CH_ICE * IceDepth * (TSurf - OldTSurf) / (Dt);
 
   /* Calculate Ground Heat Flux */
   /* Estimate of ice thermal conductivity (at atmospheric pressure) adapted from Slack (1980), Table 1; assumes
        linear relationship between Tmean and K above -75C */
-  *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth / (Dt);
+  /* *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth / (Dt); */
+  *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth;
 
   /* Calculate energy balance error at the snowpack surface */
   Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy;
-  RestTerm = Fbal - *DeltaColdContent + *GroundFlux;
+  /* RestTerm = Fbal - *DeltaColdContent + *GroundFlux; */
+  RestTerm = Fbal - *DeltaColdContent;
 
-  if (TSurf == 0.0 && Fbal >= 0.) RestTerm = 0.;
+  /* Melting occurs when surface at melting point and surface energy flux is positive */
+  if (TSurf == 0.0 && RestTerm >= 0.) RestTerm = 0.;
 
   return RestTerm;
 }

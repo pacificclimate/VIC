@@ -109,7 +109,7 @@ int snow_melt_glac(double latent_heat_Le,
   else
     snow->surf_temp = 0.0;
 
-  /* Add dense Firn to glacier/remove firn snow pack */
+  /* Add firn to glacier/remove firn from snow pack */
   if (PackSwq > 0.0) {
     if (snow->density > SNOW_SURF_DENSITY) {
       double zco = (CUTOFF_DENSITY - SNOW_SURF_DENSITY) * (snow->depth / 2) / (snow->density - SNOW_SURF_DENSITY);

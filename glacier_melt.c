@@ -132,10 +132,11 @@ int glacier_melt(double Le,
   Qnet = glacierEnergy.calculate((double)0.0);
 
   /* If Qnet == 0.0, then set the surface temperature to 0.0 */
-  if (std::abs(Qnet) < 2e-7) {
+  /* if (std::abs(Qnet) < 2e-7) { */
+  if (Qnet == 0.0) {
     glacier->surf_temp = 0.;
     melt_energy = NetShort + (*NetLong) + sensible_heat
-        + latent_heat + latent_heat_sub + advection;
+        + latent_heat + latent_heat_sub + advection - deltaCC_glac;
     GlacMelt = melt_energy / (Lf * RHO_W) * delta_t;
     GlacCC = 0.;
   }
@@ -290,7 +291,7 @@ double ErrorPrintGlacierEnergyBalance(double TSurf,
   fprintf(stderr,"Vpd = %f\n",Vpd);
   fprintf(stderr,"Wind = %f\n",Wind);
 
-  /* glacer terms */
+  /* glacier terms */
   fprintf(stderr,"OldTSurf = %f\n",OldTSurf);
   fprintf(stderr, "IceDepth = %f\n", IceDepth);
   fprintf(stderr, "IceWE = %f\n", IceWE);
