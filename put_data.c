@@ -1215,18 +1215,19 @@ void collect_eb_terms(const energy_bal_struct& energy,
   out_data[OUT_GRND_FLUX_BAND].data[band] -= energy.grnd_flux * bandFactor;
 
   /** record glacier band variables **/
+  /** as glaciers only occupy a portion of each band, don't multipy by band factor **/
   if(HasGlac){
-    out_data[OUT_GLAC_DELTACC_BAND].data[band] += energy.deltaCC_glac * Cv * lakefactor;
-    out_data[OUT_GLAC_FLUX_BAND].data[band] += energy.glacier_flux * Cv * lakefactor;
-    out_data[OUT_GLAC_WAT_STOR_BAND].data[band] += glacier.water_storage * bandFactor * 1000.;
+    out_data[OUT_GLAC_DELTACC_BAND].data[band] += energy.deltaCC_glac;
+    out_data[OUT_GLAC_FLUX_BAND].data[band] += energy.glacier_flux;
+    out_data[OUT_GLAC_WAT_STOR_BAND].data[band] += glacier.water_storage * 1000.;
     out_data[OUT_GLAC_AREA_BAND].data[band] += bandFactor;
-    out_data[OUT_GLAC_MBAL_BAND].data[band] += glacier.mass_balance * bandFactor * 1000.;
-    out_data[OUT_GLAC_IMBAL_BAND].data[band] +=  glacier.ice_mass_balance * bandFactor * 1000.;
-    out_data[OUT_GLAC_ACCUM_BAND].data[band] +=  glacier.accumulation * bandFactor * 1000.;
-    out_data[OUT_GLAC_MELT_BAND].data[band] +=  glacier.melt * bandFactor * 1000.;
-    out_data[OUT_GLAC_SUB_BAND].data[band] +=  glacier.vapor_flux * bandFactor * 1000.;
-    out_data[OUT_GLAC_INFLOW_BAND].data[band] +=  glacier.inflow * bandFactor * 1000.;
-    out_data[OUT_GLAC_OUTFLOW_BAND].data[band] +=  glacier.outflow * bandFactor * 1000.;
+    out_data[OUT_GLAC_MBAL_BAND].data[band] += glacier.mass_balance * 1000.;
+    out_data[OUT_GLAC_IMBAL_BAND].data[band] +=  glacier.ice_mass_balance * 1000.;
+    out_data[OUT_GLAC_ACCUM_BAND].data[band] +=  glacier.accumulation * 1000.;
+    out_data[OUT_GLAC_MELT_BAND].data[band] +=  glacier.melt * 1000.;
+    out_data[OUT_GLAC_SUB_BAND].data[band] +=  glacier.vapor_flux * 1000.;
+    out_data[OUT_GLAC_INFLOW_BAND].data[band] +=  glacier.inflow * 1000.;
+    out_data[OUT_GLAC_OUTFLOW_BAND].data[band] +=  glacier.outflow * 1000.;
   }
 
 }
