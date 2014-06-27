@@ -41,7 +41,7 @@ static char vcid[] = "$Id$";
     double Zref[0]     - Reference height for windspeed
     double n        - Attenuation coefficient for wind in the overstory
     double Height  - Height of the vegetation layers (top layer first)
-    double Trunk    - Multiplier for Height[0] that indictaes the top of the 
+    double Trunk    - Multiplier for Height[0] that indicates the top of the
                      trunk space
 
     VegConditions &aero_resist    contains aerodynamic resistance values for each vegetation condition

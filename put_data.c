@@ -1215,7 +1215,7 @@ void collect_eb_terms(const energy_bal_struct& energy,
   out_data[OUT_GRND_FLUX_BAND].data[band] -= energy.grnd_flux * bandFactor;
 
   /** record glacier band variables **/
-  /** as glaciers only occupy a portion of each band, don't multipy by band factor **/
+  /** as glaciers only occupy a portion of each band, don't multiply by band factor **/
   if(HasGlac){
     out_data[OUT_GLAC_DELTACC_BAND].data[band] += energy.deltaCC_glac;
     out_data[OUT_GLAC_FLUX_BAND].data[band] += energy.glacier_flux;

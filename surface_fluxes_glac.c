@@ -52,7 +52,7 @@ int surface_fluxes_glac(
   int                    step_inc; // number of atmos array elements to skip per surface fluxes step
   int                    endhidx;  // index of final element of atmos array
   int                    step_dt;  // time length of surface fluxes step
-  double                 LongUnderIn; // inmoing LW to ground surface
+  double                 LongUnderIn; // incoming LW to ground surface
   double                 LongUnderOut; // outgoing LW from ground surface
   double                 NetLongSnow; // net LW over snowpack
   double                 NetShortSnow; // net SW over understory

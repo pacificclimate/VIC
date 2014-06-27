@@ -18,17 +18,18 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Internal Routine Variables */
 
-  double Density;                 /* Density of water/ice at TMean (kg/m3) */
+  double Density;                 /* Density of water/ice at TSurf (kg/m3) */
   double NetRad;                  /* Net radiation exchange at surface (W/m2) */
   double RestTerm;                /* Rest term in surface energy balance (W/m2) */
-  double TMean;                   /* Average temperature for time step (C) */
+  double TMean;                   /* Average ice surface layer temperature for time step (C) */
+  double OldTMean;
   double Tmp;
   double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
   double Fbal;                    /* Energy balance at glacier surface */
 
-  /* Calculate active temp for energy balance as average of old and new  */
 
-  TMean = TSurf;
+  TMean = (TSurf + TGrnd)/2;
+  OldTMean = (OldTSurf + TGrnd)/2;
   Density = RHO_W;
   IceDepth /= 1000.;
 
@@ -43,19 +44,19 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
 
   if (Wind > 0.0)
-    Ra_used.surface = Ra / StabilityCorrection(Z, 0.f, TMean, Tair, Wind, roughness.snowCovered);
+    Ra_used.surface = Ra / StabilityCorrection(Z, 0.f, TSurf, Tair, Wind, roughness.snowCovered);
   else
     Ra_used.surface = HUGE_RESIST;
 
   /* Calculate longwave exchange and net radiation */
 
-  Tmp = TMean + KELVIN;
+  Tmp = TSurf + KELVIN;
   (*NetLongUnder) = LongSnowIn - STEFAN_B * Tmp * Tmp * Tmp * Tmp;
   NetRad = NetShortUnder + (*NetLongUnder);
 
   /* Calculate the sensible heat flux */
 
-  *SensibleHeat = AirDens * Cp * (Tair - TMean) / Ra_used.surface;
+  *SensibleHeat = AirDens * Cp * (Tair - TSurf) / Ra_used.surface;
 
   /* Convert sublimation terms from m/timestep to kg/m2s */
   VaporMassFlux = *vapor_flux * Density / Dt;
@@ -65,7 +66,7 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   /* Calculate the saturated vapor pressure,
      (Equation 3.32, Bras 1990) */
 
-   latent_heat_from_glacier(AirDens, EactAir, Lv, Press, Ra_used.surface, TMean, Vpd,
+   latent_heat_from_glacier(AirDens, EactAir, Lv, Press, Ra_used.surface, TSurf, Vpd,
       LatentHeat, LatentHeatSub, &VaporMassFlux);
 
   /* Convert sublimation terms from kg/m2s to m/timestep */
@@ -74,20 +75,20 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   /* Calculate advected heat flux from rain
      Equation 7.3.12 from H.B.H. for rain falling on melting snowpack */
 
-  if ( TMean == 0 )
+  if ( TSurf == 0 )
     *AdvectedEnergy = (CH_WATER * (Tair) * Rain) / (Dt);
   else
     *AdvectedEnergy = 0.;
 
   /* Calculate change in cold content */
   /* *DeltaColdContent = CH_ICE * IceWE * (TSurf - OldTSurf) / (Dt); */
-  *DeltaColdContent = CH_ICE * IceDepth * (TSurf - OldTSurf) / (Dt);
+  *DeltaColdContent = CH_ICE * IceDepth * (TMean - OldTMean) / (Dt);
 
   /* Calculate Ground Heat Flux */
   /* Estimate of ice thermal conductivity (at atmospheric pressure) adapted from Slack (1980), Table 1; assumes
-       linear relationship between Tmean and K above -75C */
-  /* *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth / (Dt); */
-  *GroundFlux = (GLAC_K_ICE + TMean*(-0.0142)) * (TGrnd - TMean) / IceDepth;
+       linear relationship between TSurf and K above -75C */
+  /* *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth / (Dt); */
+  *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth;
 
   /* Calculate energy balance error at the snowpack surface */
   Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy;
