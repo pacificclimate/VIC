@@ -113,6 +113,9 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   else
     Ndist = 1;
 
+
+////////////////
+
   /* Write soil thermal node deltas */
   stream->process(cell->soil_con.dz_node, state->options.Nnode, SOIL_DZ_NODE);
 
@@ -125,15 +128,26 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 #if EXCESS_ICE
   /* Write soil depth */
   stream->process(cell->soil_con.depth, state->options.Nlayer, SOIL_DEPTH);
-  
+
   /* Write effective porosity */
   stream->process(cell->soil_con.effective_porosity, state->options.Nlayer, SOIL_EFFECTIVE_POROSITY);
-  
+
   /* Write damping depth */
   stream->process(&cell->soil_con.dp, 1, SOIL_DP);
   stream->processNewline();
+
+  stream->process(cell->soil_con.min_depth, state->options.Nlayer, SOIL_MIN_DEPTH); //new
+  stream->process(cell->soil_con.porosity_node, state->options.Nnode, SOIL_POROSITY_NODE); //new
+  stream->process(cell->soil_con.effective_porosity_node, state->options.Nnode, SOIL_EFFECTIVE_POROSITY_NODE); //new
+  stream->process(cell->soil_con.subsidence, state->options.Nlayer, SOIL_SUBSIDENCE); //new
 #endif
-  
+
+
+#if SPATIAL_SNOW
+  stream->process(&cell->soil_con.depth_full_snow_cover, 1, SOIL_DEPTH_FULL_SNOW_COVER); //new
+#endif
+
+
   /* Output for all vegetation types */
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, stream->notifyDimensionUpdate(HRU_DIM)) {
 
@@ -142,8 +156,10 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     int originalVeg = it->veg_con.vegClass;
     int originalBand = it->bandIndex;
 
-    stream->process(&(it->veg_con.vegClass), 1, HRU_VEG_INDEX);
-    stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX);
+//    stream->process(&(it->veg_con.vegClass), 1, HRU_VEG_INDEX); //not necessary
+
+
+//    stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX); //not necessary
 
     // The following is read specific and there is nothing we can do about it.
     if (stream->getType() == StateIO::Reader) {
@@ -161,10 +177,12 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     stream->process(&(it->mu), 1, PRCP_MU);
     stream->process(&(it->init_STILL_STORM), 1, INIT_STILL_STORM);
     stream->process(&(it->init_DRY_TIME), 1, INIT_DRY_TIME);
+
     stream->processNewline();
 
     for (int dist = 0; dist < Ndist; dist++) {
       stream->notifyDimensionUpdate(DIST_DIM, dist);
+
 
       hru_data_struct& cellRef = it->cell[dist];
       /* Write total soil moisture */
@@ -176,6 +194,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       for (int lidx = 0; lidx < state->options.Nlayer; lidx++) {
         cellRef.layer[lidx].moist = soilMoisture[lidx];   // This is read specific (no-op for write).
       }
+
 
       /* Write average ice content */
 
@@ -208,23 +227,56 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       if (it->isArtificialBareSoil == false) {
         stream->process(&it->veg_var[dist].Wdew, 1, HRU_VEG_VAR_WDEW);
       }
+
     }
 
     /* Write snow data */
-    stream->process(&it->snow.last_snow, 1, SNOW_LAST_SNOW);
-    stream->process(&it->snow.MELTING, 1, SNOW_MELTING);
+
+    stream->process(&it->snow.albedo, 1, SNOW_ALBEDO); //new
+	stream->process(&it->snow.canopy_albedo, 1, SNOW_CANOPY_ALBEDO); //new
+	stream->process(&it->snow.coldcontent, 1, SNOW_COLD_CONTENT);
     stream->process(&it->snow.coverage, 1, SNOW_COVERAGE);
-    stream->process(&it->snow.swq, 1, SNOW_SWQ);
-    stream->process(&it->snow.surf_temp, 1, SNOW_SURF_TEMP);
-    stream->process(&it->snow.surf_water, 1, SNOW_SURF_WATER);
+    stream->process(&it->snow.density, 1, SNOW_DENSITY);
+    stream->process(&it->snow.depth, 1, SNOW_DEPTH); //new
+    stream->process(&it->snow.last_snow, 1, SNOW_LAST_SNOW);
+//    stream->process(&it->snow.MELTING, 1, SNOW_MELTING); //not necessary
     stream->process(&it->snow.pack_temp, 1, SNOW_PACK_TEMP);
     stream->process(&it->snow.pack_water, 1, SNOW_PACK_WATER);
-    stream->process(&it->snow.density, 1, SNOW_DENSITY);
-    stream->process(&it->snow.coldcontent, 1, SNOW_COLD_CONTENT);
     stream->process(&it->snow.snow_canopy, 1, SNOW_CANOPY);
+    stream->process(&it->snow.surf_temp, 1, SNOW_SURF_TEMP);
+    stream->process(&it->snow.surf_temp_fbcount, 1, SNOW_SURF_TEMP_FBCOUNT); //new
+	stream->process(&it->snow.surf_temp_fbflag, 1, SNOW_SURF_TEMP_FBFLAG); //new
+    stream->process(&it->snow.surf_water, 1, SNOW_SURF_WATER);
+    stream->process(&it->snow.swq, 1, SNOW_SWQ);
+    stream->process(&it->snow.tmp_int_storage, 1, SNOW_TMP_INT_STORAGE); //new
+    stream->process(&it->snow.surface_flux, 1, SNOW_SURFACE_FLUX); //new
+	stream->process(&it->snow.vapor_flux, 1, SNOW_VAPOR_FLUX); //new
+
+
+    /* Write glacier data */
+    stream->process(&it->glacier.surf_temp, 1, GLAC_SURF_TEMP); //new
+    stream->process(&it->glacier.surf_temp_fbcount, 1, GLAC_SURF_TEMP_FBCOUNT); //new
+    stream->process(&it->glacier.surf_temp_fbflag, 1, GLAC_SURF_TEMP_FBFLAG); //new
+    stream->process(&it->glacier.Qnet, 1, GLAC_QNET); //new
+    stream->process(&it->glacier.cum_mass_balance, 1, GLAC_CUM_MASS_BALANCE); //new
+    stream->process(&it->glacier.vapor_flux, 1, GLAC_VAPOR_FLUX); //new
+    stream->process(&it->glacier.water_storage, 1, GLAC_WATER_STORAGE); //new
+
 
     /* Write soil thermal node temperatures */
     stream->process(it->energy.T, state->options.Nnode, ENERGY_T);
+//    stream->process(it->energy.T_fbflag, state->options.Nnode, ENERGY_T_FBFLAG); //new //not necessary
+    stream->process(it->energy.T_fbcount, state->options.Nnode, ENERGY_T_FBCOUNT); //new
+//    stream->process(&it->energy.Tcanopy_fbflag, 1, ENERGY_TCANOPY_FBFLAG); //new //not necessary
+    stream->process(&it->energy.Tcanopy_fbcount, 1, ENERGY_TCANOPY_FBCOUNT); //new
+    stream->process(&it->energy.Tfoliage, 1, ENERGY_TFOLIAGE); //new
+//    stream->process(&it->energy.Tfoliage_fbflag, 1, ENERGY_TFOLIAGE_FBFLAG); //new //not necessary
+    stream->process(&it->energy.Tfoliage_fbcount, 1, ENERGY_TFOLIAGE_FBCOUNT); //new
+//    stream->process(&it->energy.Tsurf_fbflag, 1, ENERGY_TSURF_FBFLAG); //new //not necessary
+    stream->process(&it->energy.Tsurf_fbcount, 1, ENERGY_TSURF_FBCOUNT); //new
+
+
+
 
     stream->processNewline();
   }

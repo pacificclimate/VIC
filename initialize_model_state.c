@@ -240,6 +240,78 @@ int initialize_model_state(cell_info_struct* cell,
   }  
 #endif // QUICK_FS
 
+
+
+  // initialize miscellaneous energy balance terms
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+	  /* Set fluxes to 0 */
+	  it->energy.advected_sensible = 0.0;
+	  it->energy.advection         = 0.0;
+	  it->energy.AtmosError        = 0.0;
+	  it->energy.AtmosLatent       = 0.0;
+	  it->energy.AtmosLatentSub    = 0.0;
+	  it->energy.AtmosSensible     = 0.0;
+	  it->energy.canopy_advection  = 0.0;
+	  it->energy.canopy_latent     = 0.0;
+	  it->energy.canopy_latent_sub = 0.0;
+	  it->energy.canopy_refreeze   = 0.0;
+	  it->energy.canopy_sensible   = 0.0;
+	  it->energy.deltaCC           = 0.0;
+	  it->energy.deltaH            = 0.0;
+	  it->energy.error             = 0.0;
+	  it->energy.fusion            = 0.0;
+	  it->energy.grnd_flux         = 0.0;
+	  it->energy.latent            = 0.0;
+	  it->energy.latent_sub        = 0.0;
+	  it->energy.longwave          = 0.0;
+	  it->energy.LongOverIn        = 0.0;
+	  it->energy.LongUnderIn       = 0.0;
+	  it->energy.LongUnderOut      = 0.0;
+	  it->energy.melt_energy       = 0.0;
+	  it->energy.NetLongAtmos      = 0.0;
+	  it->energy.NetLongOver       = 0.0;
+	  it->energy.NetLongUnder      = 0.0;
+	  it->energy.NetShortAtmos     = 0.0;
+	  it->energy.NetShortGrnd      = 0.0;
+	  it->energy.NetShortOver      = 0.0;
+	  it->energy.NetShortUnder     = 0.0;
+	  it->energy.out_long_canopy   = 0.0;
+	  it->energy.out_long_surface  = 0.0;
+	  it->energy.refreeze_energy   = 0.0;
+	  it->energy.sensible          = 0.0;
+	  it->energy.shortwave         = 0.0;
+	  it->energy.ShortOverIn       = 0.0;
+	  it->energy.ShortUnderIn      = 0.0;
+	  it->energy.snow_flux         = 0.0;
+	  it->energy.AlbedoLake        = 0.0; //new
+	  it->energy.AlbedoOver        = 0.0; //new
+	  it->energy.fdepth[0]         = 0.0; //new
+	  it->energy.fdepth[1]         = 0.0; //new
+	  it->energy.fdepth[2]         = 0.0; //new
+	  it->energy.tdepth[0]         = 0.0; //new
+	  it->energy.tdepth[1]         = 0.0; //new
+	  it->energy.tdepth[2]         = 0.0; //new
+	  it->energy.unfrozen          = 0.0; //new
+	  it->energy.glacier_flux      = 0.0; //new
+
+	  /* Initial estimate of LongUnderOut for use by snow_intercept() */
+	  tmp = it->energy.T[0] + KELVIN;
+	  it->energy.LongUnderOut = STEFAN_B * tmp * tmp * tmp * tmp;
+	  it->energy.Tfoliage     = Tair + cell->soil_con.Tfactor[it->bandIndex];
+
+	  it->veg_var[0].canopyevap   = 0.0; //new
+	  it->veg_var[1].canopyevap   = 0.0; //new
+
+	  it->cell[0].layer[0].T      = 0.0; //new
+	  it->cell[0].layer[1].T      = 0.0; //new
+	  it->cell[0].layer[2].T      = 0.0; //new
+	  it->cell[1].layer[0].T      = 0.0; //new
+	  it->cell[1].layer[1].T      = 0.0; //new
+	  it->cell[1].layer[2].T      = 0.0; //new
+
+  }
+
+
   /************************************************************************
     CASE 1: Not using quick ground heat flux, and initial conditions files 
     provided
@@ -257,6 +329,7 @@ int initialize_model_state(cell_info_struct* cell,
       sum_depth_pre += cell->soil_con.depth[lidx];
     }
 #endif
+
 
     read_initial_model_state(initStateFilename, cell, cell->prcp.hruList.size(), Ndist, state);
 
@@ -672,55 +745,68 @@ int initialize_model_state(cell_info_struct* cell,
           find_0_degree_fronts(&it->energy, cell->soil_con.Zsum_node, it->energy.T, state->options.Nnode);
       }
     }
+    else if(Cv <= 0 || cell->soil_con.AreaFract[it->bandIndex] <= 0.) //new
+    {
+    	for(int nidx=0; nidx < state->options.Nnode; nidx++) //new
+    	{
+    		it->energy.moist[nidx] = 0; //new
+    		it->energy.kappa_node[nidx] = 0; //new
+    		it->energy.ice_content[nidx] = 0; //new
+    		it->energy.Cs_node[nidx] = 0; //new
+    	}
+
+    }
+
+
   }	
 
   // initialize miscellaneous energy balance terms
-  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
-      /* Set fluxes to 0 */
-      it->energy.advected_sensible = 0.0;
-      it->energy.advection         = 0.0;
-      it->energy.AtmosError        = 0.0;
-      it->energy.AtmosLatent       = 0.0;
-      it->energy.AtmosLatentSub    = 0.0;
-      it->energy.AtmosSensible     = 0.0;
-      it->energy.canopy_advection  = 0.0;
-      it->energy.canopy_latent     = 0.0;
-      it->energy.canopy_latent_sub = 0.0;
-      it->energy.canopy_refreeze   = 0.0;
-      it->energy.canopy_sensible   = 0.0;
-      it->energy.deltaCC           = 0.0;
-      it->energy.deltaH            = 0.0;
-      it->energy.error             = 0.0;
-      it->energy.fusion            = 0.0;
-      it->energy.grnd_flux         = 0.0;
-      it->energy.latent            = 0.0;
-      it->energy.latent_sub        = 0.0;
-      it->energy.longwave          = 0.0;
-      it->energy.LongOverIn        = 0.0;
-      it->energy.LongUnderIn       = 0.0;
-      it->energy.LongUnderOut      = 0.0;
-      it->energy.melt_energy       = 0.0;
-      it->energy.NetLongAtmos      = 0.0;
-      it->energy.NetLongOver       = 0.0;
-      it->energy.NetLongUnder      = 0.0;
-      it->energy.NetShortAtmos     = 0.0;
-      it->energy.NetShortGrnd      = 0.0;
-      it->energy.NetShortOver      = 0.0;
-      it->energy.NetShortUnder     = 0.0;
-      it->energy.out_long_canopy   = 0.0;
-      it->energy.out_long_surface  = 0.0;
-      it->energy.refreeze_energy   = 0.0;
-      it->energy.sensible          = 0.0;
-      it->energy.shortwave         = 0.0;
-      it->energy.ShortOverIn       = 0.0;
-      it->energy.ShortUnderIn      = 0.0;
-      it->energy.snow_flux         = 0.0;
-      /* Initial estimate of LongUnderOut for use by snow_intercept() */
-      tmp = it->energy.T[0] + KELVIN;
-      it->energy.LongUnderOut = STEFAN_B * tmp * tmp * tmp * tmp;
-      it->energy.Tfoliage     = Tair + cell->soil_con.Tfactor[it->bandIndex];
-
-  }
+//  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+//      /* Set fluxes to 0 */
+//      it->energy.advected_sensible = 0.0;
+//      it->energy.advection         = 0.0;
+//      it->energy.AtmosError        = 0.0;
+//      it->energy.AtmosLatent       = 0.0;
+//      it->energy.AtmosLatentSub    = 0.0;
+//      it->energy.AtmosSensible     = 0.0;
+//      it->energy.canopy_advection  = 0.0;
+//      it->energy.canopy_latent     = 0.0;
+//      it->energy.canopy_latent_sub = 0.0;
+//      it->energy.canopy_refreeze   = 0.0;
+//      it->energy.canopy_sensible   = 0.0;
+//      it->energy.deltaCC           = 0.0;
+//      it->energy.deltaH            = 0.0;
+//      it->energy.error             = 0.0;
+//      it->energy.fusion            = 0.0;
+//      it->energy.grnd_flux         = 0.0;
+//      it->energy.latent            = 0.0;
+//      it->energy.latent_sub        = 0.0;
+//      it->energy.longwave          = 0.0;
+//      it->energy.LongOverIn        = 0.0;
+//      it->energy.LongUnderIn       = 0.0;
+//      it->energy.LongUnderOut      = 0.0;
+//      it->energy.melt_energy       = 0.0;
+//      it->energy.NetLongAtmos      = 0.0;
+//      it->energy.NetLongOver       = 0.0;
+//      it->energy.NetLongUnder      = 0.0;
+//      it->energy.NetShortAtmos     = 0.0;
+//      it->energy.NetShortGrnd      = 0.0;
+//      it->energy.NetShortOver      = 0.0;
+//      it->energy.NetShortUnder     = 0.0;
+//      it->energy.out_long_canopy   = 0.0;
+//      it->energy.out_long_surface  = 0.0;
+//      it->energy.refreeze_energy   = 0.0;
+//      it->energy.sensible          = 0.0;
+//      it->energy.shortwave         = 0.0;
+//      it->energy.ShortOverIn       = 0.0;
+//      it->energy.ShortUnderIn      = 0.0;
+//      it->energy.snow_flux         = 0.0;
+//      /* Initial estimate of LongUnderOut for use by snow_intercept() */
+//      tmp = it->energy.T[0] + KELVIN;
+//      it->energy.LongUnderOut = STEFAN_B * tmp * tmp * tmp * tmp;
+//      it->energy.Tfoliage     = Tair + cell->soil_con.Tfactor[it->bandIndex];
+//
+//  }
 
   // initialize Tfallback counters
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
@@ -734,6 +820,12 @@ int initialize_model_state(cell_info_struct* cell,
 
   return(0);
 }
+
+
+
+
+
+
 
 
 int update_thermal_nodes(dist_prcp_struct    *prcp,

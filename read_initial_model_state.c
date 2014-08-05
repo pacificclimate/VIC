@@ -149,4 +149,5 @@ void read_initial_model_state(const char* initStateFilename, cell_info_struct *c
       cell->prcp.lake_var.snow.depth = 1000. * cell->prcp.lake_var.snow.swq / cell->prcp.lake_var.snow.density;
   }
 
+
 }

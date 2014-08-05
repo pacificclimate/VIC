@@ -6,7 +6,7 @@
  
 static char vcid[] = "$Id$";
 
-void close_files(const filep_struct         *filep,
+void close_files(const filep_struct   *filep,
                  filenames_struct     *fnames,
                  bool                 compress,
                  const ProgramState   *state)

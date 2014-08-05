@@ -157,6 +157,23 @@ soil_con_struct read_soilparam(FILE *soilparam,
 #endif
   soil_con_struct temp;
 
+  for (int i=0; i < MAX_NODES; i++) //new
+  {
+	  temp.dz_node[i] = 0.0; //new
+	  temp.Zsum_node[i] = 0.0; //new
+	  temp.max_moist_node[i] = 0.0; //new
+	  temp.porosity_node[i] = 0.0; //new
+	  temp.effective_porosity_node[i] = 0.0; //new
+  }
+
+  for (int i=0; i < MAX_LAYERS; i++) //new
+   {
+ 	  temp.min_depth[i] = 0.0; //new
+ 	  temp.effective_porosity[i] = 0.0; //new
+ 	  temp.Wcr_FRACT[i] = 0.0; //new
+ 	  temp.subsidence[i] = 0.0; //new
+   }
+
     /** Read plain ASCII soil parameter file **/
     if((fscanf(soilparam, "%d", &flag))!=EOF) {
       if(flag) *RUN_MODEL=TRUE;

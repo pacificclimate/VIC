@@ -136,6 +136,12 @@ std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHou
   mapping["OUT_GLAC_SUB_BAND"] =    VariableMetaData("mm", "OUT_GLAC_SUB_BAND", "", "Net sublimation of glacier ice", "");
   mapping["OUT_GLAC_INFLOW_BAND"] =     VariableMetaData("mm", "OUT_GLAC_INFLOW_BAND", "", "glacier water inflow from snow melt, ice melt and rainfall", "");
   mapping["OUT_GLAC_OUTFLOW_BAND"] =    VariableMetaData("mm", "OUT_GLAC_OUTFLOW_BAND", "", "glacier water outflow", "");
+  mapping["OUT_SHORTWAVE"] =    VariableMetaData("mm", "OUT_SHORTWAVE", "", "glacier SHORTWAVE", ""); //new
+  mapping["OUT_LONGWAVE"] =    VariableMetaData("mm", "OUT_LONGWAVE", "", "glacier LONGWAVE", ""); //new
+  mapping["OUT_DENSITY"] =    VariableMetaData("mm", "OUT_DENSITY", "", "glacier DENSITY", ""); //new
+  mapping["OUT_VP"] =    VariableMetaData("mm", "OUT_VP", "", "glacier VP", ""); //new
+  mapping["OUT_PRESSURE"] =    VariableMetaData("mm", "OUT_PRESSURE", "", "glacier PRESSURE", ""); //new
+
   return mapping;
 }
 

@@ -9,9 +9,10 @@
 #include <unistd.h>
 #include <sstream>
 
+
 static char vcid[] = "$Id: vicNl.c,v 5.14.2.19 2011/01/05 22:35:53 vicadmin Exp $";
 
-void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
+void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     dmy_struct* dmy, ProgramState& state);
 
@@ -142,8 +143,8 @@ int main(int argc, char *argv[])
   /** Initial state **/
 
   std::vector<cell_info_struct> cell_data_structs;
-  readForcingData(cell_data_structs, filep, filenames, dmy, state);
-  state.initGrid(cell_data_structs);
+  readSoilData(cell_data_structs, filep, filenames, dmy, state);
+  state.initGrid(cell_data_structs); // Calculate the grid cell parameters. This is used for NetCDF outputs.
   initializeNetCDFOutput(&filenames, out_data_files, &state);
 
   // Initialize state input/output if necessary.
@@ -203,31 +204,32 @@ void sanityCheckNumberOfCells(const int nCells, const ProgramState* state) {
   }
 }
 
-void readForcingData(std::vector<cell_info_struct>& cell_data_structs,
+void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     dmy_struct* dmy, ProgramState& state) {
 
   /*****************************************
    * Read soil for all "active" grid cells *
    *****************************************/
-  char done_reading_forcings = FALSE, is_valid_soil_cell;
+  char done_reading_soil_file = FALSE, is_valid_soil_cell;
   int nallocatedcells = 10; /* arbitrary */
   int currentCellNumber = 0;
 
   double *lat = NULL;
   double *lng = NULL;
   int    *cellnum = NULL;
+
   soil_con_struct temp_soil_con;
-  while (!done_reading_forcings) {
+  while (!done_reading_soil_file) {
     if (state.options.ARC_SOIL) {
       assert(0); // presently unsupported; maybe support vector functionality later?
       int  Ncells = 0;  // This will be initialized in read_soilparam_arc
       temp_soil_con = read_soilparam_arc(filep.soilparam, filenames.soil_dir, &Ncells, &is_valid_soil_cell, currentCellNumber, lat, lng, cellnum, &state);
       currentCellNumber++;
       if (currentCellNumber == Ncells)
-        done_reading_forcings = TRUE;
+        done_reading_soil_file = TRUE;
     } else {
-      temp_soil_con = read_soilparam(filep.soilparam, filenames.soil_dir, &is_valid_soil_cell, &done_reading_forcings, &state);
+      temp_soil_con = read_soilparam(filep.soilparam, filenames.soil_dir, &is_valid_soil_cell, &done_reading_soil_file, &state);
     }
     if (is_valid_soil_cell) {
       cell_info_struct currentCell;
@@ -267,6 +269,7 @@ int initializeCell(cell_info_struct& cell,
       }
   #endif /* QUICK_FS */
 
+
 #if !OUTPUT_FORCE
   make_in_files(&filep, &filenames, &cell.soil_con, state);
   /** Read Grid Cell Vegetation Parameters **/
@@ -280,7 +283,9 @@ int initializeCell(cell_info_struct& cell,
   if (state->options.LAKES)
     cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.prcp.hruList, state);
 
-  #endif // !OUTPUT_FORCE
+#else //new
+  make_in_files(&filep, &filenames, &cell.soil_con, state);  //new
+#endif // !OUTPUT_FORCE
 
   #if !OUTPUT_FORCE
 
@@ -292,12 +297,12 @@ int initializeCell(cell_info_struct& cell,
        Initialize Meteological Forcing Values That
        Have not Been Specifically Set
        **************************************************/
-
   #if VERBOSE
       fprintf(stderr, "Initializing Forcing Data\n");
   #endif /* VERBOSE */
 
   /** allocate memory for the atmos_data_struct **/
+//      filep.forcing_ncid[0]=65536; //delete
   cell.atmos = alloc_atmos(state->global_param.nrecs, state->NR);
   initialize_atmos(cell.atmos, dmy, filep.forcing, filep.forcing_ncid, &cell.soil_con, state);
 
@@ -309,7 +314,6 @@ int initializeCell(cell_info_struct& cell,
   /**************************************************
    Initialize Energy Balance and Snow Variables
    **************************************************/
-
   #if VERBOSE
       fprintf(stderr, "Model State Initialization\n");
   #endif /* VERBOSE */
@@ -412,7 +416,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
     // forcing data array is dumped into a new set of files.
-    write_forcing_file(cell_data_structs[cellidx].atmos, global_param.nrecs, outputFormat, out_data);
+    write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state);
     continue;
 #endif
 
@@ -439,18 +443,27 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
           outputFormat, current_output_data, rec, NEWCELL, state);
 
+      int counter = 0; //delete
+      for (std::vector<HRU>::iterator it = cell_data_structs[cellidx].prcp.hruList.begin(); it != cell_data_structs[cellidx].prcp.hruList.end(); ++it) //delete
+      {
+      	counter++; //delete
+      	int tempppp = 0; //delete
+      }
+
       accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date
        (after the final time step of the assigned date)
        ************************************/
+      int Eclipse1 = 1000;
       if (state->options.SAVE_STATE == TRUE
           && (dmy[rec].year == state->global_param.stateyear
-              && dmy[rec].month == state->global_param.statemonth
-              && dmy[rec].day == state->global_param.stateday
-              && (rec + 1 == state->global_param.nrecs
-                  || dmy[rec + 1].day != state->global_param.stateday))) {
+          && dmy[rec].month == state->global_param.statemonth
+          && dmy[rec].day == state->global_param.stateday
+          && (rec + 1 == state->global_param.nrecs
+          || dmy[rec + 1].day != state->global_param.stateday)))
+      {
         write_model_state(&cell_data_structs[cellidx], filenames.statefile, state);
       }
 
@@ -491,7 +504,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #endif /* QUICK_FS */
 
     outputFormat->cleanup();
-    close_files(&filep, &filenames, state->options.COMPRESS, state);
+    if(state->param_set.FORCE_FORMAT[0] == NETCDF) //new
+    	close_files(&filep, &filenames, state->options.COMPRESS, state);
+
     free_out_data(&current_output_data);
 
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);

@@ -60,6 +60,30 @@ int StateIOASCII::write(const double* data, int numValues, const StateVariables:
   return errorCode;
 }
 
+int StateIOASCII::write(const float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  int errorCode = 0;
+  for (int i = 0; i < numValues; i++) {
+    if (!firstValueOnLine) {
+      errorCode += fprintf(file, " ");
+    }
+    firstValueOnLine = false;
+    errorCode += fprintf(file, "%.18e", data[i]);
+  }
+  return errorCode;
+}
+
+int StateIOASCII::write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  int errorCode = 0;
+  for (int i = 0; i < numValues; i++) {
+    if (!firstValueOnLine) {
+      errorCode += fprintf(file, " ");
+    }
+    firstValueOnLine = false;
+    errorCode += fprintf(file, "%d", data[i]);
+  }
+  return errorCode;
+}
+
 int StateIOASCII::write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   int errorCode = 0;
   for (int i = 0; i < numValues; i++) {
@@ -97,6 +121,28 @@ int StateIOASCII::read(double* data, int numValues, const StateVariables::StateM
   int numRead = 0;
   for (int i = 0; i < numValues; i++) {
     numRead += fscanf(file, "%lf", &data[i]);  //TODO: possibly read " %lf"
+  }
+  if (feof(file)) {
+    throw VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
+
+int StateIOASCII::read(float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  int numRead = 0;
+  for (int i = 0; i < numValues; i++) {
+    numRead += fscanf(file, "%f", &data[i]);
+  }
+  if (feof(file)) {
+    throw VICException("End of model state file found unexpectedly");
+  }
+  return numRead;
+}
+
+int StateIOASCII::read(bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  int numRead = 0;
+  for (int i = 0; i < numValues; i++) {
+    numRead += fscanf(file, "%d", &data[i]);
   }
   if (feof(file)) {
     throw VICException("End of model state file found unexpectedly");

@@ -679,15 +679,12 @@ typedef struct {
 					    aero_resist for ET;
 					    i.e. 406_FULL AND 410 */
   char   BLOWING;        /* TRUE = calculate sublimation from blowing snow */
-  char   COMPUTE_TREELINE; /* TRUE = Determine treeline and exclude overstory
-			      vegetation from higher elevations */
+  char   COMPUTE_TREELINE; /* TRUE = Determine treeline and exclude overstory vegetation from higher elevations */
   char   CONTINUEONERROR;/* TRUE = VIC will continue to run after a cell has an error */
   char   CORRPREC;       /* TRUE = correct precipitation for gage undercatch */
   char   DIST_PRCP;      /* TRUE = Use distributed precipitation model */
-  char   EQUAL_AREA;     /* TRUE = RESOLUTION stores grid cell area in km^2;
-			    FALSE = RESOLUTION stores grid cell side length in degrees */
-  char   EXP_TRANS;      /* TRUE = Uses grid transform for exponential node 
-			    distribution for soil heat flux calculations*/
+  char   EQUAL_AREA;     /* TRUE = RESOLUTION stores grid cell area in km^2; FALSE = RESOLUTION stores grid cell side length in degrees */
+  char   EXP_TRANS;      /* TRUE = Uses grid transform for exponential node distribution for soil heat flux calculations*/
   char   FROZEN_SOIL;    /* TRUE = Use frozen soils code */
   char   FULL_ENERGY;    /* TRUE = Use full energy code */
   char   GRND_FLUX_TYPE; /* "GF_406"  = use (flawed) formulas for ground flux, deltaH, and fusion
@@ -698,41 +695,28 @@ typedef struct {
                                         flux formula from VIC 4.1.0 and also take surf_atten into account in
                                         deltaH and fusion
                             default = GF_410 */
-  char   IMPLICIT;       /* TRUE = Use implicit solution when computing 
-			    soil thermal fluxes */
-  char   JULY_TAVG_SUPPLIED; /* If TRUE and COMPUTE_TREELINE is also true,
-			        then average July air temperature will be read
-			        from soil file and used in calculating treeline */
+  char   IMPLICIT;       /* TRUE = Use implicit solution when computing soil thermal fluxes */
+  char   JULY_TAVG_SUPPLIED; /* If TRUE and COMPUTE_TREELINE is also true, then average July air temperature will be read from soil file and used in calculating treeline */
   char   LAKES;          /* TRUE = use lake energy code */
   char   LW_CLOUD;       /* Longwave cloud formulation; "LW_CLOUD_x" = code for LW cloud formulation - see LW_CLOUD codes above */
   char   LW_TYPE;        /* Longwave clear sky algorithm; "LW_x" = code for LW algorithm - see LW codes above */
-  float  MIN_WIND_SPEED; /* Minimum wind speed in m/s that can be used by 
-			    the model. **/
+  float  MIN_WIND_SPEED; /* Minimum wind speed in m/s that can be used by the model. **/
   char   MTCLIM_SWE_CORR;/* TRUE = correct MTCLIM's downward shortwave radiation estimate in presence of snow */
   int    Nlayer;         /* Number of layers in model */
   int    Nnode;          /* Number of soil thermal nodes in the model */
-  char   NOFLUX;         /* TRUE = Use no flux lower bondary when computing 
-			    soil thermal fluxes */
+  char   NOFLUX;         /* TRUE = Use no flux lower bondary when computing soil thermal fluxes */
   char   PLAPSE;         /* TRUE = If air pressure not supplied as an
 			    input forcing, compute it by lapsing sea-level
 			    pressure by grid cell average elevation;
 			    FALSE = air pressure set to constant 95.5 kPa */
-  float  PREC_EXPT;      /* Exponential that controls the fraction of a
-			    grid cell that receives rain during a storm
-			    of given intensity */
+  float  PREC_EXPT;      /* Exponential that controls the fraction of a grid cell that receives rain during a storm of given intensity */
   int    ROOT_ZONES;     /* Number of root zones used in simulation */
-  char   QUICK_FLUX;     /* TRUE = Use Liang et al., 1999 formulation for
-			    ground heat flux, if FALSE use explicit finite
-			    difference method */
-  char   QUICK_SOLVE;    /* TRUE = Use Liang et al., 1999 formulation for 
-			    iteration, but explicit finite difference
-			    method for final step. */
+  char   QUICK_FLUX;     /* TRUE = Use Liang et al., 1999 formulation for ground heat flux, if FALSE use explicit finite difference method */
+  char   QUICK_SOLVE;    /* TRUE = Use Liang et al., 1999 formulation for iteration, but explicit finite difference method for final step. */
   char   SNOW_ALBEDO;    /* USACE: Use algorithm of US Army Corps of Engineers, 1956; SUN1999: Use algorithm of Sun et al., JGR, 1999 */
   char   SNOW_DENSITY;   /* DENS_BRAS: Use algorithm of Bras, 1990; DENS_SNTHRM: Use algorithm of SNTHRM89 adapted for 1-layer pack */
-  int    SNOW_BAND;      /* Number of elevation bands over which to solve the 
-			    snow model */
-  int    SNOW_STEP;      /* Time step in hours to use when solving the 
-			    snow model */
+  int    SNOW_BAND;      /* Number of elevation bands over which to solve the snow model */
+  int    SNOW_STEP;      /* Time step in hours to use when solving the snow model */
   float  SW_PREC_THRESH; /* Minimum daily precipitation [mm] that can cause "dimming" of incoming shortwave radiation */
   char   TFALLBACK;      /* TRUE = when any temperature iterations fail to converge,
                                    use temperature from previous time step; the number
@@ -752,13 +736,11 @@ typedef struct {
 
   // input options
   char   ALMA_INPUT;     /* TRUE = input variables are in ALMA-compliant units; FALSE = standard VIC units */
-  char   ARC_SOIL;       /* TRUE = use ARC/INFO gridded ASCII files for soil 
-			    parameters*/
+  char   ARC_SOIL;       /* TRUE = use ARC/INFO gridded ASCII files for soil  parameters*/
   char   BASEFLOW;       /* ARNO: read Ds, Dm, Ws, c; NIJSSEN2001: read d1, d2, d3, d4 */
   int    GRID_DECIMAL;   /* Number of decimal places in grid file extensions */
   char   VEGPARAM_LAI;   /* TRUE = veg param file contains monthly LAI values */
-  char   LAI_SRC;        /* LAI_FROM_VEGLIB = read LAI values from veg library file
-                            LAI_FROM_VEGPARAM = read LAI values from the veg param file */
+  char   LAI_SRC;        /* LAI_FROM_VEGLIB = read LAI values from veg library file LAI_FROM_VEGPARAM = read LAI values from the veg param file */
   char   LAKE_PROFILE;   /* TRUE = user-specified lake/area profile */
   char   ORGANIC_FRACT;  /* TRUE = organic matter fraction of each layer is read from the soil parameter file; otherwise set to 0.0. */
 
@@ -858,8 +840,7 @@ typedef struct {
   int    forceday[2];   /* day forcing files starts */
   int    forcehour[2];  /* hour forcing files starts */
   int    forcemonth[2]; /* month forcing files starts */
-  int    forceskip[2];  /* number of model time steps to skip at the start of
-			the forcing file */
+  int    forceskip[2];  /* number of model time steps to skip at the start ofthe forcing file */
   int    forceyear[2];  /* year forcing files start */
   int    nrecs;      /* Number of time steps simulated */
   int    skipyear;   /* Number of years to skip before writing output data */
@@ -889,26 +870,16 @@ typedef struct {
   This structure stores the soil parameters for a grid cell.
   ***********************************************************/
 typedef struct {
-  int      FS_ACTIVE;                 /* if TRUE frozen soil algorithm is 
-					 active in current grid cell */
-  double   Ds;                        /* fraction of maximum subsurface flow 
-					 rate */
-  double   Dsmax;                     /* maximum subsurface flow rate 
-					 (mm/day) */
-  double   Ksat[MAX_LAYERS];          /* saturated hydraulic  conductivity 
-					 (mm/day) */
-  double   Wcr[MAX_LAYERS];           /* critical moisture level for soil 
-					 layer, evaporation is no longer 
-					 affected moisture stress in the 
-					 soil (mm) */
-  double   Wpwp[MAX_LAYERS];          /* soil moisture content at permanent 
-					 wilting point (mm) */
+  int      FS_ACTIVE;                 /* if TRUE frozen soil algorithm is active in current grid cell */
+  double   Ds;                        /* fraction of maximum subsurface flow rate */
+  double   Dsmax;                     /* maximum subsurface flow rate (mm/day) */
+  double   Ksat[MAX_LAYERS];          /* saturated hydraulic  conductivity (mm/day) */
+  double   Wcr[MAX_LAYERS];           /* critical moisture level for soil layer, evaporation is no longer affected moisture stress in the soil (mm) */
+  double   Wpwp[MAX_LAYERS];          /* soil moisture content at permanent wilting point (mm) */
   double   Ws;                        /* fraction of maximum soil moisture */
 #if EXCESS_ICE
-  double   Ds_orig;                   /* fraction of maximum subsurface flow 
-					 rate */
-  double   Dsmax_orig;                /* maximum subsurface flow rate 
-					 (mm/day) */
+  double   Ds_orig;                   /* fraction of maximum subsurface flow rate */
+  double   Dsmax_orig;                /* maximum subsurface flow rate (mm/day) */
   double   Ws_orig;                   /* fraction of maximum soil moisture */
 #endif  
   double   alpha[MAX_NODES];          /* thermal solution constant */
@@ -932,10 +903,8 @@ typedef struct {
   double   Zsum_node[MAX_NODES];      /* thermal node depth (m) */
   double   expt[MAX_LAYERS];          /* layer-specific exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6 */
   double   expt_node[MAX_NODES];      /* node-specific exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6 */
-
   double   frost_fract[FROST_SUBAREAS]; /* spatially distributed frost coverage fractions */
   double   frost_slope;               // slope of frost distribution
-
   double   gamma[MAX_NODES];          /* thermal solution constant */
   double   init_moist[MAX_LAYERS];    /* initial layer moisture level (mm) */
   double   max_infil;                 /* maximum infiltration rate */
@@ -956,10 +925,8 @@ typedef struct {
   double  *Pfactor;                   /* Change in Precipitation due to elevation (fract) in each snow elevation band */
   double  *Tfactor;                   /* Change in temperature due to elevation (C) in each snow elevation band */
   char    *AboveTreeLine;             /* Flag to indicate if band is above the treeline */
-
   double **ufwc_table_layer[MAX_LAYERS];
   double **ufwc_table_node[MAX_NODES]; 
-
   float    elevation;                 /* grid cell elevation (m) */
   float    lat;                       /* grid cell central latitude */
   float    lng;                       /* grid cell central longitude */
@@ -982,23 +949,23 @@ typedef struct {
   double   Wpwp_FRACT[MAX_LAYERS];
   double   subsidence[MAX_LAYERS];      /* subsidence of soil layer, mm*/
   // glacier variables
-  double NEW_SNOW_ALB;       /* New snow albedo (-)            */
-  double SNOW_ALB_ACCUM_A;   /* Accumulation albedo decay (-)  */
-  double SNOW_ALB_ACCUM_B;   /* Accumulation exponent (-)      */
-  double SNOW_ALB_THAW_A;    /* Melt albedo decay (-)          */
-  double SNOW_ALB_THAW_B;    /* Melt exponent (-)              */
-  double MIN_RAIN_TEMP;      /* Air temperature below which all precip occurs as snow (C) */
-  double MAX_SNOW_TEMP;      /* Air temperature above which all precip occurs as rain (C) */
-  double PADJ;               /* Precipitation adjustment factor (-) */
-  double T_LAPSE;            /* Temperature lapse rate (C km-1) */
-  double PGRAD;              /* Precipitation Gradient (km-1) */
-  double GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */
-  double GLAC_SURF_WE;       /* Water equivalent of glacier surface layer (mm) */
-  double GLAC_KMIN;          /* Minimum glacier outflow coefficient (-) */
-  double GLAC_DK;            /* Maximum glacier outflow coefficient (-) */
-  double GLAC_A;             /* Outflow parameter (-) */
-  double GLAC_ALBEDO;        /* Glacier ice surface albedo (-) */
-  double GLAC_ROUGH;         /* Glacier ice surface roughness (m) */
+  double   NEW_SNOW_ALB;       /* New snow albedo (-)            */
+  double   SNOW_ALB_ACCUM_A;   /* Accumulation albedo decay (-)  */
+  double   SNOW_ALB_ACCUM_B;   /* Accumulation exponent (-)      */
+  double   SNOW_ALB_THAW_A;    /* Melt albedo decay (-)          */
+  double   SNOW_ALB_THAW_B;    /* Melt exponent (-)              */
+  double   MIN_RAIN_TEMP;      /* Air temperature below which all precip occurs as snow (C) */
+  double   MAX_SNOW_TEMP;      /* Air temperature above which all precip occurs as rain (C) */
+  double   PADJ;               /* Precipitation adjustment factor (-) */
+  double   T_LAPSE;            /* Temperature lapse rate (C km-1) */
+  double   PGRAD;              /* Precipitation Gradient (km-1) */
+  double   GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */
+  double   GLAC_SURF_WE;       /* Water equivalent of glacier surface layer (mm) */
+  double   GLAC_KMIN;          /* Minimum glacier outflow coefficient (-) */
+  double   GLAC_DK;            /* Maximum glacier outflow coefficient (-) */
+  double   GLAC_A;             /* Outflow parameter (-) */
+  double   GLAC_ALBEDO;        /* Glacier ice surface albedo (-) */
+  double   GLAC_ROUGH;         /* Glacier ice surface roughness (m) */
 
 } soil_con_struct;
 
@@ -1036,28 +1003,21 @@ struct veg_con_struct {
   This structure stores parameters for individual vegetation types.
   ******************************************************************/
 typedef struct {
-  char   overstory;        /* TRUE = overstory present, important for snow 
-			      accumulation in canopy */
+  char   overstory;        /* TRUE = overstory present, important for snow accumulation in canopy */
   double LAI[12];          /* monthly leaf area index */
   double Wdmax[12];        /* maximum monthly dew holding capacity (mm) */
-  double albedo[12];       /* vegetation albedo (added for full energy) 
-			      (fraction) */
+  double albedo[12];       /* vegetation albedo (added for full energy) (fraction) */
   double displacement[12]; /* vegetation displacement height (m) */
   double emissivity[12];   /* vegetation emissivity (fraction) */
   int    NVegLibTypes;     /* number of vegetation classes defined in library */
-  double rad_atten;        /* radiation attenuation due to canopy, 
-			      default = 0.5 (N/A) */
+  double rad_atten;        /* radiation attenuation due to canopy, default = 0.5 (N/A) */
   double rarc;             /* architectural resistance (s/m) */
   double rmin;             /* minimum stomatal resistance (s/m) */
   double roughness[12];    /* vegetation roughness length (m) */
-  double trunk_ratio;      /* ratio of trunk height to tree height, 
-			      default = 0.2 (fraction) */
-  double wind_atten;       /* wind attenuation through canopy, 
-			      default = 0.5 (N/A) */
+  double trunk_ratio;      /* ratio of trunk height to tree height, default = 0.2 (fraction) */
+  double wind_atten;       /* wind attenuation through canopy, default = 0.5 (N/A) */
   double wind_h;           /* height at which wind is measured (m) */
-  float  RGL;              /* Value of solar radiation below which there 
-			      will be no transpiration (ranges from 
-			      ~30 W/m^2 for trees to ~100 W/m^2 for crops) */
+  float  RGL;              /* Value of solar radiation below which there will be no transpiration (ranges from ~30 W/m^2 for trees to ~100 W/m^2 for crops) */
   int    veg_class;        /* vegetation class reference number */
 } veg_lib_struct;
 

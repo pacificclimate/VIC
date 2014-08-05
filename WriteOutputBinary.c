@@ -17,10 +17,10 @@ void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* 
   double             *tmp_dptr = (double *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(double));
 
   // Time
-  tmp_iptr[0] = dmy->year;
-  tmp_iptr[1] = dmy->month;
-  tmp_iptr[2] = dmy->day;
-  tmp_iptr[3] = dmy->hour;
+//  tmp_iptr[0] = dmy->year;  //new
+//  tmp_iptr[1] = dmy->month; //new
+//  tmp_iptr[2] = dmy->day;  //new
+//  tmp_iptr[3] = dmy->hour; //new
 
   // Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {

@@ -37,9 +37,9 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, const Progr
   int varnum;
 
 #if OUTPUT_FORCE
-#error // OUTPUT_FORCE is an untested code path. Continue at your own risk!
+//#error // OUTPUT_FORCE is an untested code path. Continue at your own risk!
   // Output files
-  state->options.Noutfiles = 1;
+//  state->options.Noutfiles = 1;
   out_data_files = new out_data_file_struct[state->options.Noutfiles];
   strcpy(out_data_files[0].prefix,"full_data");
   out_data_files[0].nvars = 8;

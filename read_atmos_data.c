@@ -210,8 +210,7 @@ void read_atmos_data(FILE                 *infile,
       assert(nc_inq_varndims(ncid, varids[varidx], &ndims) == NC_NOERR);
       assert(ndims == 3);
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
-      assert(
-          (vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
+      assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
 
       /* Get and convert data -- fixme; need to sort out field_index or related (borrow from their enum?) and adapt it to ncdf so indices are not hardcoded here... */
       switch (vartype) {

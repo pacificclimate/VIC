@@ -252,6 +252,14 @@ int StateIONetCDF::write(const double* data, int numValues, const StateVariables
   return generalWrite(data, numValues, id);
 }
 
+int StateIONetCDF::write(const float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  return generalWrite(data, numValues, id);
+}
+
+int StateIONetCDF::write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  return generalWrite(data, numValues, id);
+}
+
 int StateIONetCDF::write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   return generalWrite(data, numValues, id);
 }
@@ -261,6 +269,14 @@ int StateIONetCDF::read(int* data, int numValues, const StateVariables::StateMet
 }
 
 int StateIONetCDF::read(double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
+  return generalRead(data, numValues, id);
+}
+
+int StateIONetCDF::read(float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+  return generalRead(data, numValues, id);
+}
+
+int StateIONetCDF::read(bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
   return generalRead(data, numValues, id);
 }
 
