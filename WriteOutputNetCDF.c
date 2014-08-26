@@ -20,7 +20,7 @@ WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFor
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
   mapping = getMapping(state->global_param.out_dt < 24);
   // The divisor will convert the difference to either hours or days respectively.
-  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60) : (60 * 60 * 24);
+  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.dt) : (60 * 60 * 24); //new (*state->global_param.dt)
 }
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
@@ -141,6 +141,12 @@ std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHou
   mapping["OUT_DENSITY"] =    VariableMetaData("mm", "OUT_DENSITY", "", "glacier DENSITY", ""); //new
   mapping["OUT_VP"] =    VariableMetaData("mm", "OUT_VP", "", "glacier VP", ""); //new
   mapping["OUT_PRESSURE"] =    VariableMetaData("mm", "OUT_PRESSURE", "", "glacier PRESSURE", ""); //new
+  mapping["OUT_RAINF"] =       VariableMetaData("kg m-2 s-1", "OUT_RAINF", "rainfall_flux", "Rainfall", "time: mean"); //new
+  mapping["OUT_SNOWF"] =       VariableMetaData("kg m-2 s-1", "OUT_SNOWF", "snowfall_flux", "Snowfall", "time: mean"); //new
+  mapping["OUT_INFLOW"] =    VariableMetaData("mm", "OUT_INFLOW", "", "moisture that reaches top of soil column", ""); //new
+  mapping["OUT_WATER_ERROR"] =    VariableMetaData("mm", "OUT_WATER_ERROR", "", "water budget error", ""); //new
+  mapping["OUT_AERO_RESIST1"] =    VariableMetaData("s/m", "OUT_AERO_RESIST1", "", "surface aerodynamic resistance", ""); //new
+  mapping["OUT_AERO_RESIST2"] =    VariableMetaData("s/m", "OUT_AERO_RESIST2", "", "overstory aerodynamic resistance", ""); //new
 
   return mapping;
 }
@@ -254,7 +260,8 @@ int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
   endTime.year = state->global_param.endyear;
   endTime.month = state->global_param.endmonth;
   endTime.day = state->global_param.endday;
-  endTime.hour = 0;
+//  endTime.hour = 0;
+  endTime.hour = 23; //new
   endTime.day_in_year = 0;
   return getTimeIndex(&endTime, timeIndexDivisor, state) + 1;
 }
@@ -273,6 +280,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
 
   // Set up the dimensions and variables.
   int timeSize = getLengthOfTimeDimension(state);
+  //int timeSize = state->global_param.nrecs; //new
   int valuesSize = MAX_BANDS;
   fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld, time: %d\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions, timeSize);
 
