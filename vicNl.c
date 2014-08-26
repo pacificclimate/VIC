@@ -302,7 +302,6 @@ int initializeCell(cell_info_struct& cell,
   #endif /* VERBOSE */
 
   /** allocate memory for the atmos_data_struct **/
-//      filep.forcing_ncid[0]=65536; //delete
   cell.atmos = alloc_atmos(state->global_param.nrecs, state->NR);
   initialize_atmos(cell.atmos, dmy, filep.forcing, filep.forcing_ncid, &cell.soil_con, state);
 
@@ -416,7 +415,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if OUTPUT_FORCE
     // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
     // forcing data array is dumped into a new set of files.
-    write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state);
+    write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
     continue;
 #endif
 
@@ -443,20 +442,12 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
           outputFormat, current_output_data, rec, NEWCELL, state);
 
-      int counter = 0; //delete
-      for (std::vector<HRU>::iterator it = cell_data_structs[cellidx].prcp.hruList.begin(); it != cell_data_structs[cellidx].prcp.hruList.end(); ++it) //delete
-      {
-      	counter++; //delete
-      	int tempppp = 0; //delete
-      }
-
       accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date
        (after the final time step of the assigned date)
        ************************************/
-      int Eclipse1 = 1000;
       if (state->options.SAVE_STATE == TRUE
           && (dmy[rec].year == state->global_param.stateyear
           && dmy[rec].month == state->global_param.statemonth
