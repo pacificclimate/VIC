@@ -8,7 +8,7 @@ void write_forcing_file(cell_info_struct *cell,
 			int                nrecs,
 			WriteOutputFormat *outputFormat,
 			out_data_struct   *out_data,
-			const ProgramState* state)
+			const ProgramState* state, dmy_struct* dmy)
 /**********************************************************************
   write_forcing_file          Keith Cherkauer           July 19, 2000
 
@@ -33,7 +33,7 @@ void write_forcing_file(cell_info_struct *cell,
   int                 rec = 0, i = 0, j = 0, v = 0;
   short int          *tmp_siptr = NULL;
   unsigned short int *tmp_usiptr = NULL;
-  dmy_struct         *dummy_dmy = NULL;
+//  dmy_struct         *dummy_dmy = NULL;
   int                 dummy_dt = 0;
   int                 dt_sec = 0;
 
@@ -83,7 +83,7 @@ void write_forcing_file(cell_info_struct *cell,
         out_data[OUT_VPD].aggdata[0] *= 1000;
       }
 
-      outputFormat->write_data(out_data, dummy_dmy, dummy_dt, state);
+      outputFormat->write_data(out_data, &dmy[rec], dummy_dt, state);
     }
   }
 
