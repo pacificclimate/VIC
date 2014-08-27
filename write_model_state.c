@@ -265,14 +265,10 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
     /* Write soil thermal node temperatures */
     stream->process(it->energy.T, state->options.Nnode, ENERGY_T);
-//    stream->process(it->energy.T_fbflag, state->options.Nnode, ENERGY_T_FBFLAG); //new //not necessary
     stream->process(it->energy.T_fbcount, state->options.Nnode, ENERGY_T_FBCOUNT); //new
-//    stream->process(&it->energy.Tcanopy_fbflag, 1, ENERGY_TCANOPY_FBFLAG); //new //not necessary
     stream->process(&it->energy.Tcanopy_fbcount, 1, ENERGY_TCANOPY_FBCOUNT); //new
     stream->process(&it->energy.Tfoliage, 1, ENERGY_TFOLIAGE); //new
-//    stream->process(&it->energy.Tfoliage_fbflag, 1, ENERGY_TFOLIAGE_FBFLAG); //new //not necessary
     stream->process(&it->energy.Tfoliage_fbcount, 1, ENERGY_TFOLIAGE_FBCOUNT); //new
-//    stream->process(&it->energy.Tsurf_fbflag, 1, ENERGY_TSURF_FBFLAG); //new //not necessary
     stream->process(&it->energy.Tsurf_fbcount, 1, ENERGY_TSURF_FBCOUNT); //new
 
 
