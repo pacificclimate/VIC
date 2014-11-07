@@ -2,8 +2,8 @@ This is a guide for setting up the VIC project in the Eclipse Integrated Develop
 
 1. Download and Install Eclipse:
 
-	Choose either the C++ Development Tools option or install the CDT later on top of a general Eclipse installation (using Help -> Install New Software).
-	http://www.eclipse.org/downloads/
+	Choose either the C++ Development Tools option or install the CDT later on top of a general Eclipse installation (using Help -> Install New Software). Use the eclipse software repository which corresponds to your release of eclipse. For example, for the Juno release, use:
+        http://download.eclipse.org/releases/juno/
 
 2. Install the necessary NetCDF libraries.
 	-The NetCDF C library is used to read input forcing files (ie this is <netcdf.h>)
@@ -19,7 +19,7 @@ This is a guide for setting up the VIC project in the Eclipse Integrated Develop
 
 3. Set up the VIC project in Eclipse.
 
-	-In Eclipse go to File -> New -> C++ Project
+	-In Eclipse go to File -> New -> Project -> C++ Project
 	-Type a project name (such as VIC)
 	-For project type, choose Makefile project -> Empty Project
 	-Deselect the "Use default location" checkbox and choose the folder location on disk where the VIC source code is located.
@@ -29,7 +29,11 @@ This is a guide for setting up the VIC project in the Eclipse Integrated Develop
 	-There are probably errors (it will actually build correctly because it uses the makefile, but the Eclipse indexer can't find the included files)
 	-Go to Project -> Properties -> C/C++ Build -> Tool Chain Editor
 		-Change the Current Toolchain option from none, to an existing tool chain (Linux GCC)
+		-You may need to uncheck the "Display compatible toolchains only" checkbox to get the option above
 		-Click Apply, Click OK
+	-Go to Project -> Properties -> C/C++ General -> File Types
+	       - Change to "Use project settings"
+	       - Add *.h as a C++ header file and *.c as a C++ source file
 	-Right click the project folder name (VIC) in the Project Explorer
 		-Click Index -> Rebuild
 	-The errors should disappear and intellisense and auto complete should work properly.
