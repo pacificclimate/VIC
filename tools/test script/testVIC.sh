@@ -9,48 +9,86 @@ stateInputASCII=false
 stateInputBinary=false
 stateInputNetCDF=false
 
-for var in "$@"
+correctResultsDir="/home/james/code/hg/VIC/correctResults"
+globalOptionsFile="glb_prb_base_BASIN_SCENARIO_19502006_VIC4.1.2_netcdf_auto.txt"
+outputDir="out"
+
+usage()
+{
+    echo "Unknown option $key"
+    echo "Usage: testVIC.sh [--netCDF] [--state_output ASCII|binary] [--state_input ASCII|binary|NetCDF] [--global <global_options_file> [--output-dir <path>] [--output-comparison-dir <path>]";
+    exit 1
+}
+
+echo $# $@
+
+while [[ $# > 0 ]]
 do
-    if [ "$var" == "-netCDF" ]; then
-        echo "netCDF option enabled";
-        netCDF=true;
-    fi
-    if [ "$var" == "-stateOutputASCII" ]; then
-        echo "state output ASCII enabled";
-        stateOutputASCII=true;
-    fi
-    if [ "$var" == "-stateOutputBinary" ]; then
-        echo "state output Binary enabled";
-        stateOutputBinary=true;
-    fi
-    if [ "$var" == "-stateOutputNetCDF" ]; then
-        echo "state output NetCDF enabled";
-        stateOutputNetCDF=true;
-    fi
-    if [ "$var" == "-stateInputBinary" ]; then
-        echo "state input Binary enabled";
-        stateInputBinary=true;
-    fi
-    if [ "$var" == "-stateInputASCII" ]; then
-        echo "state input ASCII enabled";
-        stateInputASCII=true;
-    fi
-    if [ "$var" == "-stateInputNetCDF" ]; then
-        echo "state input NetCDF eneabled";
-        stateInputNetCDF=true;
-    fi
+key="$1"
+shift
+
+echo $key $1
+
+case $key in
+    --netCDF)
+        echo "netCDF option enabled"
+        netCDF=true
+    ;;
+    --state_output)
+        if [ "$1" == "ASCII"]; then
+            echo "state output ASCII enabled"
+            stateOutputASCII=true
+        elif [ "$1" == "binary"]; then
+            echo "state output Binary enabled"
+            stateOutputBinary=true
+        else
+            echo "Incorrect --state_output value\nUsage: --state_output [ASCII|binary]"
+            exit 1
+        fi
+        shift
+    ;;
+    --state_input)
+        if [ "$1" == "ASCII"]; then
+            echo "state input ASCII enabled"
+            stateInputASCII=true
+        elif [ "$1" == "binary"]; then
+            echo "state input Binary enabled"
+            stateInputBinary=true
+        elif [ "$1" == "NetCDF"]; then
+            echo "state input NetCDF enabled"
+            stateInputNetCDF=true
+        else
+            echo "Incorrect --state_input value\nUsage: [--state_input ASCII|binary|NetCDF]"
+            exit 1
+        fi
+        shift
+    ;;
+    --global)
+        globalOptionsFile="$1"
+        shift
+    ;;
+    --output-dir)
+        outputDir="$1"
+        shift
+    ;;
+    --output-comparison-dir)
+        correctResultsDir="$1"
+        shift
+    ;;
+    *)
+        usage
+    ;;
+esac
 done
 
 echo starting test
 
 codeDir="VIC_4.1.2_cpp_trunk"
-correctResultsDir="correctResults"
 programName="vicNl"
-globalOptionsFile="glb_prb_base_BASIN_SCENARIO_19502006_VIC4.1.2_netcdf_auto.txt"
 export curDir=$(pwd)
 TIMESTAMP=$(date +"%Y_%m_%d__%H_%M_%S")
 export outputName="automated_4.1.2_netcdf_$TIMESTAMP"
-echo "Output for this test will be in out/$outputName"
+echo "Output for this test will be in $outputDir/$outputName"
 echo ""
 
 fail()
@@ -111,7 +149,7 @@ fi
 popd > /dev/null
 
 #Create directory for output
-mkdir out/$outputName
+mkdir $outputDir/$outputName
 
 #Run the code
 echo "running the program"
@@ -119,12 +157,13 @@ $codeDir/$programName -g $globalOptionsFile
 
 #Compare output files with pristine version hashes
 echo ""
-echo "validating output results"
 if $netCDF ; then
-    Rscript vic_output_netcdf_compare.r out/$outputName/results.nc $correctResultsDir/vicNetCDFCorrectOutputs.nc
+    echo "validating NetCDF output results"
+    Rscript vic_output_netcdf_compare.r $outputDir/$outputName/results.nc $correctResultsDir/vicNetCDFCorrectOutputs.nc
 else
-    pushd out/$outputName > /dev/null
-    echo $(md5sum -c ../../$correctResultsDir/timeSeriesChecksums.md5 2>/dev/null | grep -cE 'OK$') out of $(cat ../../$correctResultsDir/timeSeriesChecksums.md5 | wc -l) files compare OK
+    echo "validating plain ASCII output results"
+    pushd $outputDir/$outputName > /dev/null
+    echo $(md5sum -c $correctResultsDir/timeSeriesChecksums.md5 2>/dev/null | grep -cE 'OK$') out of $(cat $correctResultsDir/timeSeriesChecksums.md5 | wc -l) files compare OK
     popd > /dev/null
 fi
 
@@ -135,16 +174,16 @@ elif $stateOutputBinary ; then
 fi
 
 if $stateInputASCII ; then
-    pushd out/$outputName > /dev/null
-    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputASCII/checksum
+    pushd $outputDir/$outputName > /dev/null
+    md5sum -c $correctResultsDir/stateInputFluxesOutputASCII/checksum
     popd > /dev/null
 elif $stateInputBinary ; then
-    pushd out/$outputName > /dev/null
-    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputBinary/checksum
+    pushd $outputDir/$outputName > /dev/null
+    md5sum -c $correctResultsDir/stateInputFluxesOutputBinary/checksum
     popd > /dev/null
 elif $stateInputNetCDF ; then
-    pushd out/$outputName > /dev/null
-    md5sum -c ../../$correctResultsDir/stateInputFluxesOutputBinary/checksum
+    pushd $outputDir/$outputName > /dev/null
+    md5sum -c $correctResultsDir/stateInputFluxesOutputBinary/checksum
     popd > /dev/null
 fi
 
