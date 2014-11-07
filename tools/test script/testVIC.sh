@@ -151,6 +151,9 @@ popd > /dev/null
 #Create directory for output
 mkdir $outputDir/$outputName
 
+#Save the runtime config with the output
+cp $globalOptionsFile $outputDir/$outputName
+
 #Run the code
 echo "running the program"
 $codeDir/$programName -g $globalOptionsFile
