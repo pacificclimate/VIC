@@ -49,16 +49,14 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
 **********************************************************************/
 {
 
-  extern const char *version;
-
   int file_num;
 
   if (mode == DISP_VERSION) {
-    fprintf(stderr,"***** VIC Version %s *****\n",version);
+    fprintf(stderr,"***** VIC Version %s *****\n",SOURCE_VERSION);
     return;
   }
   else {
-    fprintf(stderr,"\n***** VIC Version %s - Current Model Settings *****\n",version);
+    fprintf(stderr,"\n***** VIC Version %s - Current Model Settings *****\n",SOURCE_VERSION);
   }
 
   fprintf(stderr,"\n");

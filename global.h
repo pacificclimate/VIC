@@ -23,8 +23,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-const char *version = "4.1.2 beta 1";
-
 #if QUICK_FS
 const double temps[] = { -1.e-5, -0.075, -0.20, -0.50, -1.00, -2.50, -5, -10 };
 #endif

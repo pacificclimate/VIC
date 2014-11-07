@@ -13,7 +13,6 @@
 #include <map>
 #include <sstream>
 
-extern const char* version; // Defined in global.h
 using namespace netCDF;
 
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
@@ -151,7 +150,7 @@ std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHou
   return mapping;
 }
 
-// The source version is set by the makefile dynamically based on the hg version control values.
+// The source version is set by the makefile at compile time based on the hg version control values.
 std::string getSourceVersion() {
 #ifdef SOURCE_VERSION
   return std::string(SOURCE_VERSION);
@@ -223,7 +222,7 @@ void verifyGlobalAttributes(const NcFile& file) {
 void addGlobalAttributes(NcFile* netCDF, const ProgramState* state) {
   // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
   netCDF->putAtt("title", "VIC output.");
-  std::string source = std::string("VIC ") + version + ". ";
+  std::string source = std::string("VIC ");
   source += "(Built from source: " + getSourceVersion() + ").";
   std::string history = "Created by " + source + ".\n";
   history += " Compiled on: " + getDateOfCompilation() + ".\n";
