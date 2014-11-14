@@ -50,38 +50,38 @@ void close_files(const filep_struct   *filep,
     if(compress) compress_files(fnames->forcing[1]);
   }
 
-#if !OUTPUT_FORCE
+  if (!state->options.OUTPUT_FORCE) {
 
-  /*******************************
+    /*******************************
     Close All Used Debugging Files
     *******************************/ 
 
 #if LINK_DEBUG
-  if(state->debug.DEBUG || state->debug.PRT_TEMP) {
-    fclose(state->debug.fg_temp);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_MOIST) {
-    fclose(state->debug.fg_moist);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_KAPPA) {
-    fclose(state->debug.fg_kappa);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_LAKE) {
-    fclose(state->debug.fg_lake);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_BALANCE) {
-    fclose(state->debug.fg_balance);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_FLUX) {
-    fclose(state->debug.fg_energy);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_SNOW) {
-    fclose(state->debug.fg_snow);
-  }
-  if(state->debug.DEBUG || state->debug.PRT_GRID) {
-    fclose(state->debug.fg_grid);
-  }
+    if(state->debug.DEBUG || state->debug.PRT_TEMP) {
+      fclose(state->debug.fg_temp);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_MOIST) {
+      fclose(state->debug.fg_moist);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_KAPPA) {
+      fclose(state->debug.fg_kappa);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_LAKE) {
+      fclose(state->debug.fg_lake);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_BALANCE) {
+      fclose(state->debug.fg_balance);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_FLUX) {
+      fclose(state->debug.fg_energy);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_SNOW) {
+      fclose(state->debug.fg_snow);
+    }
+    if(state->debug.DEBUG || state->debug.PRT_GRID) {
+      fclose(state->debug.fg_grid);
+    }
 #endif /* LINK_DEBUG */
-#endif /* !OUTPUT_FORCE */
+  }
 
 }

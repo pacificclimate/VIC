@@ -25,17 +25,17 @@ void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* 
   // Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
-#if !OUTPUT_FORCE
-    // Write the date
-    if (dt < 24) {
-      // Write year, month, day, and hour
-      fwrite(tmp_iptr, sizeof(int), 4, dataFiles[file_idx]->fh);
+    if (!state->options.OUTPUT_FORCE) {
+      // Write the date
+      if (dt < 24) {
+        // Write year, month, day, and hour
+        fwrite(tmp_iptr, sizeof(int), 4, dataFiles[file_idx]->fh);
+      }
+      else {
+        // Only write year, month, and day
+        fwrite(tmp_iptr, sizeof(int), 3, dataFiles[file_idx]->fh);
+      }
     }
-    else {
-      // Only write year, month, and day
-      fwrite(tmp_iptr, sizeof(int), 3, dataFiles[file_idx]->fh);
-    }
-#endif
 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
@@ -167,14 +167,14 @@ void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct
     // 1 instance of Nbytes2
     Nbytes2 = sizeof(unsigned short);
 
-#if !OUTPUT_FORCE
-    // Date fields
-    Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // year
-    Nbytes2 += sizeof(char) + 5*sizeof(char) + sizeof(char) + sizeof(float); // month
-    Nbytes2 += sizeof(char) + 3*sizeof(char) + sizeof(char) + sizeof(float); // day
-    if (state->global_param.out_dt < 24)
-      Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // hour
-#endif
+    if (!state->options.OUTPUT_FORCE) {
+      // Date fields
+      Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // year
+      Nbytes2 += sizeof(char) + 5*sizeof(char) + sizeof(char) + sizeof(float); // month
+      Nbytes2 += sizeof(char) + 3*sizeof(char) + sizeof(char) + sizeof(float); // day
+      if (state->global_param.out_dt < 24)
+        Nbytes2 += sizeof(char) + 4*sizeof(char) + sizeof(char) + sizeof(float); // hour
+    }
 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
@@ -222,57 +222,57 @@ void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct
 
     // Nvars
     Nvars = dataFiles[file_idx]->nvars;
-#if !OUTPUT_FORCE
-    if (state->global_param.out_dt < 24)
-      Nvars += 4;
-    else
-      Nvars += 3;
-#endif
+    if (!state->options.OUTPUT_FORCE) {
+      if (state->global_param.out_dt < 24)
+        Nvars += 4;
+      else
+        Nvars += 3;
+    }
     fwrite(&Nvars, sizeof(char), 1, dataFiles[file_idx]->fh);
 
     // Nbytes2
     fwrite(&Nbytes2, sizeof(unsigned short), 1, dataFiles[file_idx]->fh);
 
-#if !OUTPUT_FORCE
-    // Date fields
-    tmp_type = OUT_TYPE_INT;
-    tmp_mult = 1.;
+    if (!state->options.OUTPUT_FORCE) {
+      // Date fields
+      tmp_type = OUT_TYPE_INT;
+      tmp_mult = 1.;
 
-    // year
-    strcpy(tmp_str,"YEAR");
-    tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
-    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
-
-    // month
-    strcpy(tmp_str,"MONTH");
-    tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
-    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
-
-    // day
-    strcpy(tmp_str,"DAY");
-    tmp_len = strlen(tmp_str);
-    fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
-    fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
-    fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
-
-    if (state->global_param.out_dt < 24) {
-      // hour
-      strcpy(tmp_str,"HOUR");
+      // year
+      strcpy(tmp_str,"YEAR");
       tmp_len = strlen(tmp_str);
       fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
       fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
       fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
       fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
-    }
 
-#endif
+      // month
+      strcpy(tmp_str,"MONTH");
+      tmp_len = strlen(tmp_str);
+      fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+      fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
+
+      // day
+      strcpy(tmp_str,"DAY");
+      tmp_len = strlen(tmp_str);
+      fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+      fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+      fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
+
+      if (state->global_param.out_dt < 24) {
+        // hour
+        strcpy(tmp_str,"HOUR");
+        tmp_len = strlen(tmp_str);
+        fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
+        fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
+        fwrite(&tmp_type, sizeof(char), 1, dataFiles[file_idx]->fh);
+        fwrite(&tmp_mult, sizeof(float), 1, dataFiles[file_idx]->fh);
+      }
+
+    }
 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {

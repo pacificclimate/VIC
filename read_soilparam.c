@@ -276,12 +276,14 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.expt[layer]);
-#if !OUTPUT_FORCE
-        if(temp.expt[layer] < 3.0) {
-          fprintf(stderr,"ERROR: Exponent in layer %d is %f < 3.0; This must be > 3.0\n", layer, temp.expt[layer]);
-          exit(0);
+
+        if (!state->options.OUTPUT_FORCE) {
+
+          if(temp.expt[layer] < 3.0) {
+            fprintf(stderr,"ERROR: Exponent in layer %d is %f < 3.0; This must be > 3.0\n", layer, temp.expt[layer]);
+            exit(0);
+          }
         }
-#endif /* !OUTPUT_FORCE */
       }
 
       /* read layer saturated hydraulic conductivity */
@@ -315,12 +317,13 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.init_moist[layer]);
-#if !OUTPUT_FORCE
-        if(temp.init_moist[layer] < 0.) {
-          sprintf(ErrStr,"ERROR: Initial moisture for layer %d cannot be negative (%f)",layer,temp.init_moist[layer]);
-          nrerror(ErrStr);
+
+        if (!state->options.OUTPUT_FORCE) {
+          if(temp.init_moist[layer] < 0.) {
+            sprintf(ErrStr,"ERROR: Initial moisture for layer %d cannot be negative (%f)",layer,temp.init_moist[layer]);
+            nrerror(ErrStr);
+          }
         }
-#endif /* !OUTPUT_FORCE */
       }
 
       /* read cell mean elevation */
@@ -345,10 +348,11 @@ soil_con_struct read_soilparam(FILE *soilparam,
 
       /* final soil layer thicknesses for !EXCESS_ICE option */
 #if !EXCESS_ICE
-#if !OUTPUT_FORCE
-      for(layer = 0; layer < state->options.Nlayer; layer++)
-        temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
-#endif
+      if (!state->options.OUTPUT_FORCE) {
+
+        for(layer = 0; layer < state->options.Nlayer; layer++)
+          temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
+      }
 #endif /* !EXCESS_ICE */
 
       /* read average soil temperature */
@@ -359,14 +363,16 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.avg_temp);
-#if !OUTPUT_FORCE
-      if(state->options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
-        fprintf(stderr,"Need valid average soil temperature in degrees C to run");
-        fprintf(stderr," Full Energy model, %f is not acceptable.\n",
-          temp.avg_temp);
-        exit(0);
+
+      if (!state->options.OUTPUT_FORCE) {
+
+        if(state->options.FULL_ENERGY && (temp.avg_temp>100. || temp.avg_temp<-50)) {
+          fprintf(stderr,"Need valid average soil temperature in degrees C to run");
+          fprintf(stderr," Full Energy model, %f is not acceptable.\n",
+                  temp.avg_temp);
+          exit(0);
+        }
       }
-#endif /* !OUTPUT_FORCE */
 
       /* read soil damping depth */
       token = strtok (NULL, delimiters);
@@ -386,12 +392,14 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.bubble[layer]);
-#if !OUTPUT_FORCE
-        if((state->options.FULL_ENERGY || state->options.FROZEN_SOIL) && temp.bubble[layer] < 0) {
-          fprintf(stderr,"ERROR: Bubbling pressure in layer %d is %f < 0; This must be positive for FULL_ENERGY = TRUE or FROZEN_SOIL = TRUE\n", layer, temp.bubble[layer]);
-          exit(0);
+
+        if (!state->options.OUTPUT_FORCE) {
+
+          if((state->options.FULL_ENERGY || state->options.FROZEN_SOIL) && temp.bubble[layer] < 0) {
+            fprintf(stderr,"ERROR: Bubbling pressure in layer %d is %f < 0; This must be positive for FULL_ENERGY = TRUE or FROZEN_SOIL = TRUE\n", layer, temp.bubble[layer]);
+            exit(0);
+          }
         }
-#endif /* !OUTPUT_FORCE */
       }
 
       /* read layer quartz content */
@@ -403,13 +411,14 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.quartz[layer]);
-#if !OUTPUT_FORCE
-        if(state->options.FULL_ENERGY && (temp.quartz[layer] > 1. || temp.quartz[layer] < 0)) {
-          fprintf(stderr,"Need valid quartz content as a fraction to run");
-          fprintf(stderr," Full Energy model, %f is not acceptable.\n", temp.quartz[layer]);
-          exit(0);
+
+        if (!state->options.OUTPUT_FORCE) {
+          if(state->options.FULL_ENERGY && (temp.quartz[layer] > 1. || temp.quartz[layer] < 0)) {
+            fprintf(stderr,"Need valid quartz content as a fraction to run");
+            fprintf(stderr," Full Energy model, %f is not acceptable.\n", temp.quartz[layer]);
+            exit(0);
+          }
         }
-#endif /* !OUTPUT_FORCE */
       }
 
       /* read layer bulk density */
@@ -421,12 +430,13 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.bulk_dens_min[layer]);
-#if !OUTPUT_FORCE
-        if(temp.bulk_dens_min[layer] <= 0) {
-          sprintf(ErrStr,"ERROR: layer %d mineral bulk density (%f) must be > 0", layer, temp.bulk_dens_min[layer] );
-          nrerror(ErrStr);
+
+        if (!state->options.OUTPUT_FORCE) {
+          if(temp.bulk_dens_min[layer] <= 0) {
+            sprintf(ErrStr,"ERROR: layer %d mineral bulk density (%f) must be > 0", layer, temp.bulk_dens_min[layer] );
+            nrerror(ErrStr);
+          }
         }
-#endif /* !OUTPUT_FORCE */
       }
 
       /* read layer soil density */
@@ -438,16 +448,17 @@ soil_con_struct read_soilparam(FILE *soilparam,
           nrerror(ErrStr);
         }
         sscanf(token, "%lf", &temp.soil_dens_min[layer]);
-#if !OUTPUT_FORCE
-        if(temp.soil_dens_min[layer] <= 0) {
-          sprintf(ErrStr,"ERROR: layer %d mineral soil density (%f) must be > 0", layer, temp.soil_dens_min[layer] );
+
+        if (!state->options.OUTPUT_FORCE) {
+          if(temp.soil_dens_min[layer] <= 0) {
+            sprintf(ErrStr,"ERROR: layer %d mineral soil density (%f) must be > 0", layer, temp.soil_dens_min[layer] );
+            nrerror(ErrStr);
+          }
+          if(temp.bulk_dens_min[layer]>=temp.soil_dens_min[layer]) {
+            sprintf(ErrStr,"ERROR: layer %d mineral bulk density (%f) must be less than mineral soil density (%f)", layer, temp.bulk_dens_min[layer], temp.soil_dens_min[layer] );
           nrerror(ErrStr);
+          }
         }
-        if(temp.bulk_dens_min[layer]>=temp.soil_dens_min[layer]) {
-          sprintf(ErrStr,"ERROR: layer %d mineral bulk density (%f) must be less than mineral soil density (%f)", layer, temp.bulk_dens_min[layer], temp.soil_dens_min[layer] );
-          nrerror(ErrStr);
-        }
-#endif /* !OUTPUT_FORCE */
       }
 
       if (state->options.ORGANIC_FRACT) {
@@ -460,12 +471,13 @@ soil_con_struct read_soilparam(FILE *soilparam,
             nrerror(ErrStr);
           }
           sscanf(token, "%lf", &temp.organic[layer]);
-#if !OUTPUT_FORCE
-          if(temp.organic[layer] > 1. || temp.organic[layer] < 0) {
-            sprintf(ErrStr,"ERROR: Need valid volumetric organic soil fraction when options.ORGANIC_FRACT is set to TRUE.\n  %f is not acceptable.\n", temp.organic[layer]);
-            nrerror(ErrStr);
+
+          if (!state->options.OUTPUT_FORCE) {
+            if(temp.organic[layer] > 1. || temp.organic[layer] < 0) {
+              sprintf(ErrStr,"ERROR: Need valid volumetric organic soil fraction when options.ORGANIC_FRACT is set to TRUE.\n  %f is not acceptable.\n", temp.organic[layer]);
+              nrerror(ErrStr);
+            }
           }
-#endif /* !OUTPUT_FORCE */
         }
 
         /* read layer bulk density */
@@ -477,12 +489,13 @@ soil_con_struct read_soilparam(FILE *soilparam,
             nrerror(ErrStr);
           }
           sscanf(token, "%lf", &temp.bulk_dens_org[layer]);
-#if !OUTPUT_FORCE
-          if(temp.bulk_dens_org[layer] <= 0 && temp.organic[layer] > 0) {
-            fprintf(stderr,"WARNING: layer %d organic bulk density (%f) must be > 0; setting to mineral bulk density (%f)\n", layer, temp.bulk_dens_org[layer], temp.bulk_dens_min[layer] );
-            temp.bulk_dens_org[layer] = temp.bulk_dens_min[layer];
+
+          if (!state->options.OUTPUT_FORCE) {
+            if(temp.bulk_dens_org[layer] <= 0 && temp.organic[layer] > 0) {
+              fprintf(stderr,"WARNING: layer %d organic bulk density (%f) must be > 0; setting to mineral bulk density (%f)\n", layer, temp.bulk_dens_org[layer], temp.bulk_dens_min[layer] );
+              temp.bulk_dens_org[layer] = temp.bulk_dens_min[layer];
+            }
           }
-#endif /* !OUTPUT_FORCE */
         }
 
         /* read layer soil density */
@@ -494,16 +507,17 @@ soil_con_struct read_soilparam(FILE *soilparam,
             nrerror(ErrStr);
           }
           sscanf(token, "%lf", &temp.soil_dens_org[layer]);
-#if !OUTPUT_FORCE
-          if(temp.soil_dens_org[layer] <= 0 && temp.organic[layer] > 0) {
-            fprintf(stderr,"WARNING: layer %d organic soil density (%f) must be > 0; setting to mineral soil density (%f)\n", layer, temp.soil_dens_org[layer], temp.soil_dens_min[layer] );
+
+          if (!state->options.OUTPUT_FORCE) {
+            if(temp.soil_dens_org[layer] <= 0 && temp.organic[layer] > 0) {
+              fprintf(stderr,"WARNING: layer %d organic soil density (%f) must be > 0; setting to mineral soil density (%f)\n", layer, temp.soil_dens_org[layer], temp.soil_dens_min[layer] );
             temp.soil_dens_org[layer] = temp.soil_dens_min[layer];
+            }
+            if(temp.organic[layer] > 0 && temp.bulk_dens_org[layer]>=temp.soil_dens_org[layer]) {
+              sprintf(ErrStr,"ERROR: layer %d organic bulk density (%f) must be less than organic soil density (%f)", layer, temp.bulk_dens_org[layer], temp.soil_dens_org[layer] );
+              nrerror(ErrStr);
+            }
           }
-          if(temp.organic[layer] > 0 && temp.bulk_dens_org[layer]>=temp.soil_dens_org[layer]) {
-            sprintf(ErrStr,"ERROR: layer %d organic bulk density (%f) must be less than organic soil density (%f)", layer, temp.bulk_dens_org[layer], temp.soil_dens_org[layer] );
-            nrerror(ErrStr);
-          }
-#endif /* !OUTPUT_FORCE */
         }
 
       }
@@ -554,14 +568,15 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.rough);
-#if !OUTPUT_FORCE
-      /* Overwrite default bare soil aerodynamic resistance parameters
-         with the values taken from the soil parameter file */
-      for (j=0; j<12; j++) {
-        state->veg_lib[state->veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
-        state->veg_lib[state->veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
+
+      if (!state->options.OUTPUT_FORCE) {
+        /* Overwrite default bare soil aerodynamic resistance parameters
+           with the values taken from the soil parameter file */
+        for (j=0; j<12; j++) {
+          state->veg_lib[state->veg_lib[0].NVegLibTypes].roughness[j] = temp.rough;
+          state->veg_lib[state->veg_lib[0].NVegLibTypes].displacement[j] = temp.rough*0.667/0.123;
+        }
       }
-#endif // !OUTPUT_FORCE
 
       /* read snow roughness */
       token = strtok (NULL, delimiters);
@@ -835,233 +850,231 @@ soil_con_struct read_soilparam(FILE *soilparam,
         End of soil parameters for this grid cell
       *******************************************/
 
-#if !OUTPUT_FORCE
-      /*******************************************
+      if (!state->options.OUTPUT_FORCE) {
+        /*******************************************
         Compute Soil Layer Properties
-      *******************************************/
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        temp.bulk_density[layer] = (1-temp.organic[layer])*temp.bulk_dens_min[layer] + temp.organic[layer]*temp.bulk_dens_org[layer];
-        temp.soil_density[layer] = (1-temp.organic[layer])*temp.soil_dens_min[layer] + temp.organic[layer]*temp.soil_dens_org[layer];
-        if (IS_INVALID(temp.resid_moist[layer]))
+        *******************************************/
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          temp.bulk_density[layer] = (1-temp.organic[layer])*temp.bulk_dens_min[layer] + temp.organic[layer]*temp.bulk_dens_org[layer];
+          temp.soil_density[layer] = (1-temp.organic[layer])*temp.soil_dens_min[layer] + temp.organic[layer]*temp.soil_dens_org[layer];
+          if (IS_INVALID(temp.resid_moist[layer]))
             temp.resid_moist[layer] = RESID_MOIST;
-        temp.porosity[layer] = 1.0 - temp.bulk_density[layer] / temp.soil_density[layer];
+          temp.porosity[layer] = 1.0 - temp.bulk_density[layer] / temp.soil_density[layer];
 #if !EXCESS_ICE
-        temp.max_moist[layer] = temp.depth[layer] * temp.porosity[layer] * 1000.;
+          temp.max_moist[layer] = temp.depth[layer] * temp.porosity[layer] * 1000.;
 #endif
-      }
+        }
 
 #if !EXCESS_ICE
-      /*******************************************
+        /*******************************************
         Validate Initial Soil Layer Moisture Content for !EXCESS_ICE option.
-      *******************************************/
-      if (!state->options.INIT_STATE) { // only do this if we're not getting initial moisture from model state file
-        for(layer = 0; layer < state->options.Nlayer; layer++) {
+        *******************************************/
+        if (!state->options.INIT_STATE) { // only do this if we're not getting initial moisture from model state file
+          for(layer = 0; layer < state->options.Nlayer; layer++) {
             if(temp.init_moist[layer] > temp.max_moist[layer]) {
-            fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
-            temp.init_moist[layer], temp.max_moist[layer], layer);
-            temp.init_moist[layer] = temp.max_moist[layer];
+              fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
+                      temp.init_moist[layer], temp.max_moist[layer], layer);
+              temp.init_moist[layer] = temp.max_moist[layer];
             }
             if(temp.init_moist[layer] < temp.resid_moist[layer] * temp.depth[layer] * 1000.) {
+              fprintf(stderr,"Initial soil moisture (%f mm) is less than calculated residual moisture (%f mm) for layer %d.\n\tResetting soil moisture to residual moisture.\n",
+                      temp.init_moist[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
+              temp.init_moist[layer] = temp.resid_moist[layer] * temp.depth[layer] * 1000.;
+            }
+          }
+        }
+#endif
+
+#if EXCESS_ICE
+        /*******************************************
+        Compute Soil Layer Properties for EXCESS_ICE option
+        *******************************************/
+        extra_depth=0;
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          temp.min_depth[layer]=temp.depth[layer];
+          if(init_ice_fract[layer]>MAX_ICE_INIT){ // validate amount based on physical constraints
+            fprintf(stderr,"Initial ice fraction (%f) is greater than maximum ice content for layer %d.\n\tResetting to maximum of %f\n",init_ice_fract[layer],layer,MAX_ICE_INIT);
+            init_ice_fract[layer]=MAX_ICE_INIT;
+          }
+          if(init_ice_fract[layer]>=temp.porosity[layer]){//excess ground ice present
+            fprintf(stderr,"Excess ground ice present in layer %d:\n",layer+1);
+            fprintf(stderr,"\t\tSubsidence will occur when the average soil layer\n\t\t  temperature exceeds %.2f degrees Celsius.\n",powf((1.-ICE_AT_SUBSIDENCE),(3.-temp.expt[layer])/2.)*273.16*9.81*temp.bubble[layer]/(-Lf*100.));
+            temp.effective_porosity[layer]=init_ice_fract[layer];
+            fprintf(stderr,"\t\tEffective porosity increased from %.2f to %.2f.\n",temp.porosity[layer],temp.effective_porosity[layer]);
+            temp.depth[layer] = temp.min_depth[layer]*(1.0 - temp.porosity[layer])/(1.0 - temp.effective_porosity[layer]); //adjust soil layer depth
+            extra_depth += temp.depth[layer]-temp.min_depth[layer]; //net increase in depth due to excess ice
+            fprintf(stderr,"\t\tDepth of soil layer adjusted for excess ground ice: from %.2f m to %.2f m.\n",temp.min_depth[layer],temp.depth[layer]);
+            fprintf(stderr,"\t\tBulk density adjusted for excess ground ice: from %.2f kg/m^3 to %.2f kg/m^3.\n",temp.bulk_density[layer],(1.0-temp.effective_porosity[layer])*temp.soil_density[layer]);
+            temp.bulk_dens_min[layer] *= (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]/temp.bulk_density[layer];
+            if (temp.organic[layer] > 0)
+              temp.bulk_dens_org[layer] *= (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]/temp.bulk_density[layer];
+            temp.bulk_density[layer] = (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]; //adjust bulk density
+          }
+          else //excess ground ice not present
+            temp.effective_porosity[layer]=temp.porosity[layer];
+        }
+        if(extra_depth>0) {
+          fprintf(stderr,"Damping depth adjusted for excess ground ice: from %.2f m to %.2f m.\n",temp.dp,temp.dp+extra_depth);
+          temp.dp += extra_depth;  //adjust damping depth
+        }
+
+        /* final soil layer thicknesses for EXCESS_ICE option */
+        for(layer = 0; layer < state->options.Nlayer; layer++)
+          temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
+
+        /* Calculate and Validate Maximum Initial Soil Layer Moisture Content for EXCESS_ICE option */
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          temp.max_moist[layer] = temp.depth[layer] * temp.effective_porosity[layer] * 1000.;
+          if(temp.effective_porosity[layer]>temp.porosity[layer])//excess ground ice present
+            temp.init_moist[layer] = temp.max_moist[layer];
+          else {//excess ground ice not present
+            if(temp.depth[layer] * init_ice_fract[layer] * 1000. > temp.init_moist[layer])
+              temp.init_moist[layer] = temp.depth[layer] * init_ice_fract[layer] * 1000.;
+          }
+        }
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          if(temp.init_moist[layer] > temp.max_moist[layer]) {
+            fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
+                    temp.init_moist[layer], temp.max_moist[layer], layer);
+            temp.init_moist[layer] = temp.max_moist[layer];
+          }
+          if(temp.init_moist[layer] < temp.resid_moist[layer] * temp.depth[layer] * 1000.) {
             fprintf(stderr,"Initial soil moisture (%f mm) is less than calculated residual moisture (%f mm) for layer %d.\n\tResetting soil moisture to residual moisture.\n",
-            temp.init_moist[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
+                    temp.init_moist[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
             temp.init_moist[layer] = temp.resid_moist[layer] * temp.depth[layer] * 1000.;
           }
         }
-      }
-#endif
-
-#if EXCESS_ICE
-      /*******************************************
-        Compute Soil Layer Properties for EXCESS_ICE option
-      *******************************************/
-      extra_depth=0;
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        temp.min_depth[layer]=temp.depth[layer];
-        if(init_ice_fract[layer]>MAX_ICE_INIT){ // validate amount based on physical constraints
-            fprintf(stderr,"Initial ice fraction (%f) is greater than maximum ice content for layer %d.\n\tResetting to maximum of %f\n",init_ice_fract[layer],layer,MAX_ICE_INIT);
-            init_ice_fract[layer]=MAX_ICE_INIT;
-        }
-        if(init_ice_fract[layer]>=temp.porosity[layer]){//excess ground ice present
-            fprintf(stderr,"Excess ground ice present in layer %d:\n",layer+1);
-            fprintf(stderr,"\t\tSubsidence will occur when the average soil layer\n\t\t  temperature exceeds %.2f degrees Celsius.\n",powf((1.-ICE_AT_SUBSIDENCE),(3.-temp.expt[layer])/2.)*273.16*9.81*temp.bubble[layer]/(-Lf*100.));
-          temp.effective_porosity[layer]=init_ice_fract[layer];
-          fprintf(stderr,"\t\tEffective porosity increased from %.2f to %.2f.\n",temp.porosity[layer],temp.effective_porosity[layer]);
-          temp.depth[layer] = temp.min_depth[layer]*(1.0 - temp.porosity[layer])/(1.0 - temp.effective_porosity[layer]); //adjust soil layer depth
-          extra_depth += temp.depth[layer]-temp.min_depth[layer]; //net increase in depth due to excess ice
-          fprintf(stderr,"\t\tDepth of soil layer adjusted for excess ground ice: from %.2f m to %.2f m.\n",temp.min_depth[layer],temp.depth[layer]);
-          fprintf(stderr,"\t\tBulk density adjusted for excess ground ice: from %.2f kg/m^3 to %.2f kg/m^3.\n",temp.bulk_density[layer],(1.0-temp.effective_porosity[layer])*temp.soil_density[layer]);
-          temp.bulk_dens_min[layer] *= (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]/temp.bulk_density[layer];
-          if (temp.organic[layer] > 0)
-            temp.bulk_dens_org[layer] *= (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]/temp.bulk_density[layer];
-          temp.bulk_density[layer] = (1.0-temp.effective_porosity[layer])*temp.soil_density[layer]; //adjust bulk density
-        }
-        else //excess ground ice not present
-          temp.effective_porosity[layer]=temp.porosity[layer];
-      }
-      if(extra_depth>0) {
-        fprintf(stderr,"Damping depth adjusted for excess ground ice: from %.2f m to %.2f m.\n",temp.dp,temp.dp+extra_depth);
-        temp.dp += extra_depth;  //adjust damping depth
-      }
-
-      /* final soil layer thicknesses for EXCESS_ICE option */
-      for(layer = 0; layer < state->options.Nlayer; layer++)
-        temp.depth[layer] = (float)(int)(temp.depth[layer] * 1000 + 0.5) / 1000;
-
-      /* Calculate and Validate Maximum Initial Soil Layer Moisture Content for EXCESS_ICE option */
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        temp.max_moist[layer] = temp.depth[layer] * temp.effective_porosity[layer] * 1000.;
-        if(temp.effective_porosity[layer]>temp.porosity[layer])//excess ground ice present
-          temp.init_moist[layer] = temp.max_moist[layer];
-        else {//excess ground ice not present
-          if(temp.depth[layer] * init_ice_fract[layer] * 1000. > temp.init_moist[layer])
-          temp.init_moist[layer] = temp.depth[layer] * init_ice_fract[layer] * 1000.;
-        }
-      }
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        if(temp.init_moist[layer] > temp.max_moist[layer]) {
-          fprintf(stderr,"Initial soil moisture (%f mm) is greater than the maximum moisture (%f mm) for layer %d.\n\tResetting soil moisture to maximum.\n",
-          temp.init_moist[layer], temp.max_moist[layer], layer);
-          temp.init_moist[layer] = temp.max_moist[layer];
-        }
-        if(temp.init_moist[layer] < temp.resid_moist[layer] * temp.depth[layer] * 1000.) {
-          fprintf(stderr,"Initial soil moisture (%f mm) is less than calculated residual moisture (%f mm) for layer %d.\n\tResetting soil moisture to residual moisture.\n",
-          temp.init_moist[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
-          temp.init_moist[layer] = temp.resid_moist[layer] * temp.depth[layer] * 1000.;
-        }
-      }
 #endif // EXCESS_ICE
 
-      /**********************************************
+        /**********************************************
         Validate Soil Layer Thicknesses
-      **********************************************/
-#if !OUTPUT_FORCE
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        if(temp.depth[layer] < MINSOILDEPTH) {
-          sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
-          layer,temp.depth[layer],MINSOILDEPTH);
+        **********************************************/
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          if(temp.depth[layer] < MINSOILDEPTH) {
+            sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
+                    layer,temp.depth[layer],MINSOILDEPTH);
+            nrerror(ErrStr);
+          }
+        }
+        if(temp.depth[0] > temp.depth[1]) {
+          sprintf(ErrStr,"ERROR: Model will not function with layer %d depth (%f m) > layer %d depth (%f m).\n",
+                  0,temp.depth[0],1,temp.depth[1]);
           nrerror(ErrStr);
         }
-      }
-      if(temp.depth[0] > temp.depth[1]) {
-        sprintf(ErrStr,"ERROR: Model will not function with layer %d depth (%f m) > layer %d depth (%f m).\n",
-          0,temp.depth[0],1,temp.depth[1]);
-        nrerror(ErrStr);
-      }
 #if EXCESS_ICE
-      for(layer = 0; layer < state->options.Nlayer; layer++) {
-        if(temp.min_depth[layer] < MINSOILDEPTH) {
-          sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
-          layer,temp.min_depth[layer],MINSOILDEPTH);
+        for(layer = 0; layer < state->options.Nlayer; layer++) {
+          if(temp.min_depth[layer] < MINSOILDEPTH) {
+            sprintf(ErrStr,"ERROR: Model will not function with layer %d depth %f < %f m.\n",
+                    layer,temp.min_depth[layer],MINSOILDEPTH);
+            nrerror(ErrStr);
+          }
+        }
+        if(temp.min_depth[0] > temp.min_depth[1]) {
+          sprintf(ErrStr,"ERROR: Model will not function with layer %d depth (%f m) > layer %d depth (%f m).\n",
+                  0,temp.min_depth[0],1,temp.min_depth[1]);
           nrerror(ErrStr);
         }
-      }
-      if(temp.min_depth[0] > temp.min_depth[1]) {
-        sprintf(ErrStr,"ERROR: Model will not function with layer %d depth (%f m) > layer %d depth (%f m).\n",
-          0,temp.min_depth[0],1,temp.min_depth[1]);
-        nrerror(ErrStr);
-      }
 #endif /* EXCESS_ICE */
-#endif /* !OUTPUT_FORCE */
 
-      /**********************************************
+        /**********************************************
         Compute Maximum Infiltration for Upper Layers
-      **********************************************/
-      if(state->options.Nlayer==2)
-        temp.max_infil = (1.0+temp.b_infilt)*temp.max_moist[0];
-      else
-        temp.max_infil = (1.0+temp.b_infilt)*(temp.max_moist[0]+temp.max_moist[1]);
+        **********************************************/
+        if(state->options.Nlayer==2)
+          temp.max_infil = (1.0+temp.b_infilt)*temp.max_moist[0];
+        else
+          temp.max_infil = (1.0+temp.b_infilt)*(temp.max_moist[0]+temp.max_moist[1]);
 
-      /****************************************************************
+        /****************************************************************
         Compute Soil Layer Critical and Wilting Point Moisture Contents
-      ****************************************************************/
-      for(layer=0;layer<state->options.Nlayer;layer++) {
-        temp.Wcr[layer]  = Wcr_FRACT[layer] * temp.max_moist[layer];
-        temp.Wpwp[layer] = Wpwp_FRACT[layer] * temp.max_moist[layer];
+        ****************************************************************/
+        for(layer=0;layer<state->options.Nlayer;layer++) {
+          temp.Wcr[layer]  = Wcr_FRACT[layer] * temp.max_moist[layer];
+          temp.Wpwp[layer] = Wpwp_FRACT[layer] * temp.max_moist[layer];
 #if EXCESS_ICE
-        temp.Wcr_FRACT[layer]  = Wcr_FRACT[layer];
-        temp.Wpwp_FRACT[layer] = Wpwp_FRACT[layer];
+          temp.Wcr_FRACT[layer]  = Wcr_FRACT[layer];
+          temp.Wpwp_FRACT[layer] = Wpwp_FRACT[layer];
 #endif
-        if(temp.Wpwp[layer] > temp.Wcr[layer]) {
-          sprintf(ErrStr,"Calculated wilting point moisture (%f mm) is greater than calculated critical point moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be <= Wcr_FRACT.\n",
-          temp.Wpwp[layer], temp.Wcr[layer], layer);
-          nrerror(ErrStr);
+          if(temp.Wpwp[layer] > temp.Wcr[layer]) {
+            sprintf(ErrStr,"Calculated wilting point moisture (%f mm) is greater than calculated critical point moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be <= Wcr_FRACT.\n",
+                    temp.Wpwp[layer], temp.Wcr[layer], layer);
+            nrerror(ErrStr);
+          }
+          if(temp.Wpwp[layer] < temp.resid_moist[layer] * temp.depth[layer] * 1000.) {
+            sprintf(ErrStr,"Calculated wilting point moisture (%f mm) is less than calculated residual moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be >= resid_moist / (1.0 - bulk_density/soil_density).\n",
+                    temp.Wpwp[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
+            nrerror(ErrStr);
+          }
         }
-        if(temp.Wpwp[layer] < temp.resid_moist[layer] * temp.depth[layer] * 1000.) {
-          sprintf(ErrStr,"Calculated wilting point moisture (%f mm) is less than calculated residual moisture (%f mm) for layer %d.\n\tIn the soil parameter file, Wpwp_FRACT MUST be >= resid_moist / (1.0 - bulk_density/soil_density).\n",
-          temp.Wpwp[layer], temp.resid_moist[layer] * temp.depth[layer] * 1000., layer);
-          nrerror(ErrStr);
-        }
-      }
 
-      /**********************************************
+        /**********************************************
         Validate Spatial Snow/Frost Params
-      **********************************************/
+        **********************************************/
 #if SPATIAL_SNOW
-      if (temp.depth_full_snow_cover < 0.0) {
-        sprintf(ErrStr,"depth_full_snow_cover (%f) must be positive.\n", temp.depth_full_snow_cover);
-        nrerror(ErrStr);
-      }
+        if (temp.depth_full_snow_cover < 0.0) {
+          sprintf(ErrStr,"depth_full_snow_cover (%f) must be positive.\n", temp.depth_full_snow_cover);
+          nrerror(ErrStr);
+        }
 #endif // SPATIAL_SNOW
 
 #if SPATIAL_FROST
-      if (temp.frost_slope < 0.0) {
-        sprintf(ErrStr,"frost_slope (%f) must be positive.\n", temp.frost_slope);
-        nrerror(ErrStr);
-      }
+        if (temp.frost_slope < 0.0) {
+          sprintf(ErrStr,"frost_slope (%f) must be positive.\n", temp.frost_slope);
+          nrerror(ErrStr);
+        }
 #endif // SPATIAL_FROST
 
 
-      /*************************************************
+        /*************************************************
         If BASEFLOW = NIJSSEN2001 then convert NIJSSEN2001
         parameters d1, d2, d3, and d4 to ARNO baseflow
         parameters Ds, Dsmax, Ws, and c
-      *************************************************/
+        *************************************************/
 #if EXCESS_ICE
-      temp.Dsmax_orig = temp.Dsmax;
-      temp.Ds_orig = temp.Ds;
-      temp.Ws_orig = temp.Ws;
+        temp.Dsmax_orig = temp.Dsmax;
+        temp.Ds_orig = temp.Ds;
+        temp.Ws_orig = temp.Ws;
 #endif
-      if(state->options.BASEFLOW == NIJSSEN2001) {
-        layer = state->options.Nlayer-1;
-        temp.Dsmax = temp.Dsmax *
-          pow((double)(1./(temp.max_moist[layer]-temp.Ws)), -temp.c) +
-          temp.Ds * temp.max_moist[layer];
-        temp.Ds = temp.Ds * temp.Ws / temp.Dsmax;
-        temp.Ws = temp.Ws/temp.max_moist[layer];
-      }
-
-      /*******************************************************************
-        Calculate grid cell area.
-      ******************************************************************/
-
-      if (state->options.EQUAL_AREA) {
-
-        temp.cell_area = state->global_param.resolution * 1000. * 1000.; /* Grid cell area in m^2. */
-
-      }
-      else {
-
-        lat = fabs(temp.lat);
-        lng = fabs(temp.lng);
-
-        start_lat = lat - state->global_param.resolution / 2;
-        right_lng = lng + state->global_param.resolution / 2;
-        left_lng  = lng - state->global_param.resolution / 2;
-
-        delta = get_dist(lat,lng,lat+state->global_param.resolution/10.,lng);
-
-        dist = 0.;
-
-        for ( i = 0; i < 10; i++ ) {
-          dist += get_dist(start_lat,left_lng,start_lat,right_lng) * delta;
-          start_lat += state->global_param.resolution/10;
+        if(state->options.BASEFLOW == NIJSSEN2001) {
+          layer = state->options.Nlayer-1;
+          temp.Dsmax = temp.Dsmax *
+            pow((double)(1./(temp.max_moist[layer]-temp.Ws)), -temp.c) +
+            temp.Ds * temp.max_moist[layer];
+          temp.Ds = temp.Ds * temp.Ws / temp.Dsmax;
+          temp.Ws = temp.Ws/temp.max_moist[layer];
         }
 
-        temp.cell_area = dist * 1000. * 1000.; /* Grid cell area in m^2. */
+        /*******************************************************************
+        Calculate grid cell area.
+        ******************************************************************/
+
+        if (state->options.EQUAL_AREA) {
+
+          temp.cell_area = state->global_param.resolution * 1000. * 1000.; /* Grid cell area in m^2. */
+
+        }
+        else {
+
+          lat = fabs(temp.lat);
+          lng = fabs(temp.lng);
+
+          start_lat = lat - state->global_param.resolution / 2;
+          right_lng = lng + state->global_param.resolution / 2;
+          left_lng  = lng - state->global_param.resolution / 2;
+
+          delta = get_dist(lat,lng,lat+state->global_param.resolution/10.,lng);
+
+          dist = 0.;
+
+          for ( i = 0; i < 10; i++ ) {
+            dist += get_dist(start_lat,left_lng,start_lat,right_lng) * delta;
+            start_lat += state->global_param.resolution/10;
+          }
+
+          temp.cell_area = dist * 1000. * 1000.; /* Grid cell area in m^2. */
+
+        }
 
       }
-
-#endif /* !OUTPUT_FORCE */
 
 
       /*************************************************

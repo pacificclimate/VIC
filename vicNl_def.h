@@ -753,6 +753,12 @@ typedef struct {
 
   // output options
   char   ALMA_OUTPUT;    /* TRUE = output variables are in ALMA-compliant units; FALSE = standard VIC units */
+  int    OUTPUT_FORCE;   /*If TRUE VIC reads the model forcing files, and creates the full
+                           internal forcing dataset (longwave, shortwave, humidity, etc.)
+                           which is then written to a series of gridded output files for
+                           later use.  Gridded forcing files are written to the RESULTS
+                           directory defined in the global control file, and are binary
+                           or ASCII based on the BINARY_OUTPUT flag. */
   OutputFormat::Type OUTPUT_FORMAT;  /* Format of output files, see OutputFormat enum for values */
   char   COMPRESS;       /* TRUE = Compress all output files */
   char   MOISTFRACT;     /* TRUE = output soil moisture as fractional moisture content */

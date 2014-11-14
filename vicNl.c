@@ -131,13 +131,13 @@ int main(int argc, char *argv[])
   /** Check and Open Files **/
   filep_struct filep = get_files(&filenames, &state);
 
-#if !OUTPUT_FORCE
+  if (!state.options.OUTPUT_FORCE) {
 #if LINK_DEBUG
   state.open_debug();
 #endif
   /** Read Vegetation Library File **/
   state.veg_lib = read_veglib(filep.veglib, &state.num_veg_types, state.options.LAI_SRC);
-#endif // !OUTPUT_FORCE
+  }
 
   /** Make Date Data Structure **/
   dmy_struct* dmy = make_dmy(&state.global_param, &state);
@@ -149,35 +149,34 @@ int main(int argc, char *argv[])
   initializeNetCDFOutput(&filenames, out_data_files, &state);
 
   // Initialize state input/output if necessary.
-#if !OUTPUT_FORCE
-  if (state.options.INIT_STATE)
-    check_state_file(filenames.init_state, &state);
-  /** open state file if model state is to be saved **/
-  if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0) {
-    StateIOContext context(filenames.statefile, StateIO::Writer, &state);
-    context.stream->initializeOutput();
+  if (!state.options.OUTPUT_FORCE) {
+    if (state.options.INIT_STATE)
+      check_state_file(filenames.init_state, &state);
+    /** open state file if model state is to be saved **/
+    if (state.options.SAVE_STATE && strcmp(filenames.statefile, "NONE") != 0) {
+      StateIOContext context(filenames.statefile, StateIO::Writer, &state);
+      context.stream->initializeOutput();
+    }
   }
-#endif // !OUTPUT_FORCE
-
   runModel(cell_data_structs, filep, filenames, out_data_files, out_data, dmy, &state);
 
   /** cleanup **/
   free_dmy(&dmy);
   delete [] out_data_files;
   free_out_data(&out_data);
-#if !OUTPUT_FORCE
-  free_veglib(&state.veg_lib);
-#endif /* !OUTPUT_FORCE */
+  if (!state.options.OUTPUT_FORCE) {
+    free_veglib(&state.veg_lib);
+  }
   fclose(filep.soilparam);
-#if !OUTPUT_FORCE
-  fclose(filep.vegparam);
-  fclose(filep.veglib);
-  if (state.options.SNOW_BAND > 1)
-    fclose(filep.snowband);
-  if (state.options.LAKES)
-    fclose(filep.lakeparam);
+  if (!state.options.OUTPUT_FORCE) {
+    fclose(filep.vegparam);
+    fclose(filep.veglib);
+    if (state.options.SNOW_BAND > 1)
+      fclose(filep.snowband);
+    if (state.options.LAKES)
+      fclose(filep.lakeparam);
 
-#endif /* !OUTPUT_FORCE */
+  }
 
   return EXIT_SUCCESS;
 } /* End Main Program */
@@ -271,29 +270,27 @@ int initializeCell(cell_info_struct& cell,
   #endif /* QUICK_FS */
 
 
-#if !OUTPUT_FORCE
-  make_in_files(&filep, &filenames, &cell.soil_con, state);
-  /** Read Grid Cell Vegetation Parameters **/
-  read_vegparam(filep.vegparam, cell, state);
-  calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
+  if (!state->options.OUTPUT_FORCE) {
+    make_in_files(&filep, &filenames, &cell.soil_con, state);
+    /** Read Grid Cell Vegetation Parameters **/
+    read_vegparam(filep.vegparam, cell, state);
+    calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
 #if LINK_DEBUG
-  if (state->debug.PRT_VEGE)
-    write_vegparam(cell, state);
+    if (state->debug.PRT_VEGE) {
+      write_vegparam(cell, state);
+    }
 #endif /* LINK_DEBUG*/
-
-  if (state->options.LAKES)
-    cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.prcp.hruList, state);
-
-#else //new
-  make_in_files(&filep, &filenames, &cell.soil_con, state);  //new
-#endif // !OUTPUT_FORCE
-
-  #if !OUTPUT_FORCE
-
+    if (state->options.LAKES) {
+      cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.prcp.hruList, state);
+    }
+  else // FIXME: is this else ambiguous? Should match !state->options.OUTPUT_FORCE
+    make_in_files(&filep, &filenames, &cell.soil_con, state);  //new
+  }
+  if (!state->options.OUTPUT_FORCE) {
       /** Read Elevation Band Data if Used **/
       read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
 
-  #endif // !OUTPUT_FORCE
+  }
       /**************************************************
        Initialize Meteological Forcing Values That
        Have not Been Specifically Set
@@ -413,12 +410,12 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     //state->Error.filep = filep;
     //state->Error.out_data_files = out_data_files;
 
-#if OUTPUT_FORCE
-    // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
-    // forcing data array is dumped into a new set of files.
-    write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
-    continue;
-#endif
+    if (state->options.OUTPUT_FORCE) {
+      // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
+      // forcing data array is dumped into a new set of files.
+      write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
+      continue;
+    }
 
     /** Initialize the storage terms in the water and energy balances **/
     int putDataError = put_data(&cell_data_structs[cellidx], outputFormat, current_output_data, &dmy[0],

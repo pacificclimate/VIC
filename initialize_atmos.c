@@ -1277,25 +1277,25 @@ void initialize_atmos(atmos_data_struct        *atmos,
     Determine if Snow will Fall During Each Time Step
   ****************************************************/
 
-#if !OUTPUT_FORCE
-  double min_Tfactor = soil_con->Tfactor[0];
-  for (int band = 1; band < state->options.SNOW_BAND; band++) {
-    if (soil_con->Tfactor[band] < min_Tfactor)
-      min_Tfactor = soil_con->Tfactor[band];
-  }
-  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
-    atmos[rec].snowflag[state->NR] = FALSE;
-    for (int i = 0; i < state->NF; i++) {
-      if ((atmos[rec].air_temp[i] + min_Tfactor) < soil_con->MAX_SNOW_TEMP
-	  &&  atmos[rec].prec[i] > 0) {
-	atmos[rec].snowflag[i] = TRUE;
-	atmos[rec].snowflag[state->NR] = TRUE;
+  if (!state->options.OUTPUT_FORCE) {
+    double min_Tfactor = soil_con->Tfactor[0];
+    for (int band = 1; band < state->options.SNOW_BAND; band++) {
+      if (soil_con->Tfactor[band] < min_Tfactor)
+        min_Tfactor = soil_con->Tfactor[band];
+    }
+    for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+      atmos[rec].snowflag[state->NR] = FALSE;
+      for (int i = 0; i < state->NF; i++) {
+        if ((atmos[rec].air_temp[i] + min_Tfactor) < soil_con->MAX_SNOW_TEMP
+            &&  atmos[rec].prec[i] > 0) {
+          atmos[rec].snowflag[i] = TRUE;
+          atmos[rec].snowflag[state->NR] = TRUE;
+        }
+        else
+          atmos[rec].snowflag[i] = FALSE;
       }
-      else
-	atmos[rec].snowflag[i] = FALSE;
     }
   }
-#endif // OUTPUT_FORCE
  
   // Free temporary parameters
   free(hourlyrad);
@@ -1328,17 +1328,17 @@ void initialize_atmos(atmos_data_struct        *atmos,
   calc_forcing_stats(state->global_param.nrecs, atmos, state->NR);
 #endif // OUTPUT_FORCE_STATS
 
-#if !OUTPUT_FORCE
+  if (!state->options.OUTPUT_FORCE) {
 
-  // If COMPUTE_TREELINE is TRUE and the treeline computation hasn't
-  // specifically been turned off for this cell (by supplying avgJulyAirTemp
-  // and setting it to -999), calculate which snowbands are above the
-  // treeline, based on average July air temperature.
-  if (state->options.COMPUTE_TREELINE) {
-    if ( !(state->options.JULY_TAVG_SUPPLIED && soil_con->avgJulyAirTemp == -999) ) {
-      compute_treeline( atmos, dmy, soil_con->avgJulyAirTemp, soil_con->Tfactor, soil_con->AboveTreeLine, state);
+    // If COMPUTE_TREELINE is TRUE and the treeline computation hasn't
+    // specifically been turned off for this cell (by supplying avgJulyAirTemp
+    // and setting it to -999), calculate which snowbands are above the
+    // treeline, based on average July air temperature.
+    if (state->options.COMPUTE_TREELINE) {
+      if ( !(state->options.JULY_TAVG_SUPPLIED && soil_con->avgJulyAirTemp == -999) ) {
+        compute_treeline( atmos, dmy, soil_con->avgJulyAirTemp, soil_con->Tfactor, soil_con->AboveTreeLine, state);
+      }
     }
   }
-#endif // OUTPUT_FORCE 
 
 }

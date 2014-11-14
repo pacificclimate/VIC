@@ -515,13 +515,13 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 
         if (outputStateTypeSet) {
           throw VICException(
-              "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
+                             "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
         }
         outputStateTypeSet = true;
       } else if (strcasecmp("STATE_FORMAT", optstr) == 0) {
         if (outputStateTypeSet) {
           throw VICException(
-              "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
+                             "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
         }
         outputStateTypeSet = true;
         sscanf(cmdstr, "%*s %s", flgstr);
@@ -536,8 +536,8 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 #endif
         } else {
           fprintf(stderr,
-              "Warning, input for option STATE_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
-              optstr);
+                  "Warning, input for option STATE_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
+                  optstr);
           fprintf(stderr, "STATE_FORMAT will default to ASCII\n");
           options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
         }
@@ -550,11 +550,11 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 
       /*************************************
        Define forcing files
-       *************************************/
+      *************************************/
       else if (strcasecmp("FORCING1", optstr) == 0) {
         if (strcmp(names->f_path_pfx[0], "MISSING") != 0)
           nrerror(
-              "Tried to define FORCING1 twice, if you want to use two forcing files, the second must be defined as FORCING2");
+                  "Tried to define FORCING1 twice, if you want to use two forcing files, the second must be defined as FORCING2");
         sscanf(cmdstr, "%*s %s", names->f_path_pfx[0]);
         file_num = 0;
         field = 0;
@@ -616,6 +616,11 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) options.ALMA_INPUT=TRUE;
         else options.ALMA_INPUT = FALSE;
+      }
+      else if(strcasecmp("OUTPUT_FORCE",optstr)==0) {
+        sscanf(cmdstr,"%*s %s",flgstr);
+        if(strcasecmp("TRUE",flgstr)==0) options.OUTPUT_FORCE=TRUE;
+        else options.OUTPUT_FORCE = FALSE;
       }
 
       /*************************************
@@ -1032,220 +1037,219 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     Validate parameters required for normal simulations but NOT for OUTPUT_FORCE
   *******************************************************************************/
 
-#if !OUTPUT_FORCE
+  if (!options.OUTPUT_FORCE) {
 
-  // Validate veg parameter information
-  if ( strcmp ( names->veg, "MISSING" ) == 0 )
-    nrerror("No vegetation parameter file has been defined.  Make sure that the global file defines the vegetation parameter file on the line that begins with \"VEGPARAM\".");
-  if ( strcmp ( names->veglib, "MISSING" ) == 0 )
-    nrerror("No vegetation library file has been defined.  Make sure that the global file defines the vegetation library file on the line that begins with \"VEGLIB\".");
-  if(IS_INVALID(options.ROOT_ZONES) || options.ROOT_ZONES<0)
-    nrerror("ROOT_ZONES must be defined to a positive integer greater than 0, in the global control file.");
-  if (options.LAI_SRC == LAI_FROM_VEGPARAM && !options.VEGPARAM_LAI) {
+    // Validate veg parameter information
+    if ( strcmp ( names->veg, "MISSING" ) == 0 )
+      nrerror("No vegetation parameter file has been defined.  Make sure that the global file defines the vegetation parameter file on the line that begins with \"VEGPARAM\".");
+    if ( strcmp ( names->veglib, "MISSING" ) == 0 )
+      nrerror("No vegetation library file has been defined.  Make sure that the global file defines the vegetation library file on the line that begins with \"VEGLIB\".");
+    if(IS_INVALID(options.ROOT_ZONES) || options.ROOT_ZONES<0)
+      nrerror("ROOT_ZONES must be defined to a positive integer greater than 0, in the global control file.");
+    if (options.LAI_SRC == LAI_FROM_VEGPARAM && !options.VEGPARAM_LAI) {
       sprintf(ErrStr, "\"LAI_SRC\" was specified as \"LAI_FROM_VEGPARAM\", but \"VEGPARAM_LAI\" was set to \"FALSE\" in the global parameter file.  If you want VIC to read LAI values from the vegparam file, you MUST make sure the veg param file contains 1 line of 12 monthly LAI values for EACH veg tile in EACH grid cell, and you MUST specify \"VEGPARAM_LAI\" as \"TRUE\" in the global parameter file.  Alternatively, if you want VIC to read LAI values from the veg library file, set \"LAI_SRC\" ro \"LAI_FROM_VEGLIB\" in the global parameter file.  In either case, the setting of \"VEGPARAM_LAI\" must be consistent with the contents of the veg param file (i.e. whether or not it contains LAI values).");
       nrerror(ErrStr);
-  }
-
-  // Validate the elevation band file information
-  if(options.SNOW_BAND > 1) {
-    if ( strcmp ( names->snowband, "MISSING" ) == 0 ) {
-      sprintf(ErrStr, "\"SNOW_BAND\" was specified with %d elevation bands, but no elevation band file has been defined.  Make sure that the global file defines the elevation band file on the line that begins with \"SNOW_BAND\" (after the number of bands).", options.SNOW_BAND);
-      nrerror(ErrStr);
     }
-    if(options.SNOW_BAND > MAX_BANDS) {
-      sprintf(ErrStr,"Global file wants more snow bands (%d) than are defined by MAX_BANDS (%d).  Edit user_def.h and recompile.",options.SNOW_BAND,MAX_BANDS);
-      nrerror(ErrStr);
-    }
-  }
-  else if (options.SNOW_BAND <= 0) {
-    sprintf(ErrStr,"Invalid number of elevation bands specified in global file (%d).  Number of bands must be >= 1.",options.SNOW_BAND);
-    nrerror(ErrStr);
-  }
 
-  // Validate the input state file information
-  if( options.INIT_STATE ) {
-    if ( strcmp ( names->init_state, "MISSING" ) == 0 )
-      nrerror("\"INIT_STATE\" was specified, but no input state file has been defined.  Make sure that the global file defines the inputstate file on the line that begins with \"INIT_STATE\".");
-  }
-
-  // Validate the output state file information
-  if( options.SAVE_STATE ) {
-    if ( strcmp ( names->statefile, "MISSING" ) == 0)
-      nrerror("\"SAVE_STATE\" was specified, but no output state file has been defined.  Make sure that the global file defines the output state file on the line that begins with \"SAVE_STATE\".");
-    if ( IS_INVALID(global_param.stateyear) || IS_INVALID(global_param.statemonth) || IS_INVALID(global_param.stateday) )  {
-      sprintf(ErrStr,"Incomplete specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
-      nrerror(ErrStr);
-    }
-    // Check for month, day in range
-    lastvalidday = lastday[global_param.statemonth - 1];
-    if ( global_param.statemonth == 2 ) {
-      if ( (global_param.stateyear % 4) == 0 && ( (global_param.stateyear % 100) != 0 || (global_param.stateyear % 400) == 0 ) ){
-        lastvalidday = 29;
+    // Validate the elevation band file information
+    if(options.SNOW_BAND > 1) {
+      if ( strcmp ( names->snowband, "MISSING" ) == 0 ) {
+        sprintf(ErrStr, "\"SNOW_BAND\" was specified with %d elevation bands, but no elevation band file has been defined.  Make sure that the global file defines the elevation band file on the line that begins with \"SNOW_BAND\" (after the number of bands).", options.SNOW_BAND);
+        nrerror(ErrStr);
+      }
+      if(options.SNOW_BAND > MAX_BANDS) {
+        sprintf(ErrStr,"Global file wants more snow bands (%d) than are defined by MAX_BANDS (%d).  Edit user_def.h and recompile.",options.SNOW_BAND,MAX_BANDS);
+        nrerror(ErrStr);
       }
     }
-    if ( global_param.stateday > lastvalidday || global_param.statemonth > 12 || global_param.statemonth < 1 || global_param.stateday > 31 || global_param.stateday < 1 ){
-      sprintf(ErrStr,"Unusual specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
+    else if (options.SNOW_BAND <= 0) {
+      sprintf(ErrStr,"Invalid number of elevation bands specified in global file (%d).  Number of bands must be >= 1.",options.SNOW_BAND);
       nrerror(ErrStr);
     }
-  }
-  // Set the statename here to be able to compare with INIT_STATE name
-  if( options.SAVE_STATE ) {
-    sprintf(names->statefile,"%s_%04i%02i%02i", names->statefile,
-          global_param.stateyear, global_param.statemonth, global_param.stateday);
-  }
-  if( options.INIT_STATE && options.SAVE_STATE && (strcmp( names->init_state, names->statefile ) == 0))  {
+
+    // Validate the input state file information
+    if( options.INIT_STATE ) {
+      if ( strcmp ( names->init_state, "MISSING" ) == 0 )
+        nrerror("\"INIT_STATE\" was specified, but no input state file has been defined.  Make sure that the global file defines the inputstate file on the line that begins with \"INIT_STATE\".");
+    }
+
+    // Validate the output state file information
+    if( options.SAVE_STATE ) {
+      if ( strcmp ( names->statefile, "MISSING" ) == 0)
+        nrerror("\"SAVE_STATE\" was specified, but no output state file has been defined.  Make sure that the global file defines the output state file on the line that begins with \"SAVE_STATE\".");
+      if ( IS_INVALID(global_param.stateyear) || IS_INVALID(global_param.statemonth) || IS_INVALID(global_param.stateday) )  {
+        sprintf(ErrStr,"Incomplete specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
+        nrerror(ErrStr);
+      }
+      // Check for month, day in range
+      lastvalidday = lastday[global_param.statemonth - 1];
+      if ( global_param.statemonth == 2 ) {
+        if ( (global_param.stateyear % 4) == 0 && ( (global_param.stateyear % 100) != 0 || (global_param.stateyear % 400) == 0 ) ){
+          lastvalidday = 29;
+        }
+      }
+      if ( global_param.stateday > lastvalidday || global_param.statemonth > 12 || global_param.statemonth < 1 || global_param.stateday > 31 || global_param.stateday < 1 ){
+        sprintf(ErrStr,"Unusual specification of the date to save state for state file (%s).\nSpecified date (yyyy-mm-dd): %04d-%02d-%02d\nMake sure STATEYEAR, STATEMONTH, and STATEDAY are set correctly in your global parameter file.\n", names->statefile, global_param.stateyear, global_param.statemonth, global_param.stateday);
+        nrerror(ErrStr);
+      }
+    }
+    // Set the statename here to be able to compare with INIT_STATE name
+    if( options.SAVE_STATE ) {
+      sprintf(names->statefile,"%s_%04i%02i%02i", names->statefile,
+              global_param.stateyear, global_param.statemonth, global_param.stateday);
+    }
+    if( options.INIT_STATE && options.SAVE_STATE && (strcmp( names->init_state, names->statefile ) == 0))  {
       sprintf(ErrStr,"The save state file (%s) has the same name as the initialize state file (%s).  The initialize state file will be destroyed when the save state file is opened.", names->statefile, names->init_state);
       nrerror(ErrStr);
-  }
+    }
 
-  // Validate soil parameter/simulation mode combinations
-  if(options.QUICK_FLUX) {
-    if(options.Nnode != 3) {
-      fprintf(stderr,"WARNING: To run the model QUICK_FLUX=TRUE, you must define exactly 3 soil thermal nodes.  Currently Nnodes is set to %d.  Setting Nnodes to 3.\n",options.Nnode);
-      options.Nnode = 3;
+    // Validate soil parameter/simulation mode combinations
+    if(options.QUICK_FLUX) {
+      if(options.Nnode != 3) {
+        fprintf(stderr,"WARNING: To run the model QUICK_FLUX=TRUE, you must define exactly 3 soil thermal nodes.  Currently Nnodes is set to %d.  Setting Nnodes to 3.\n",options.Nnode);
+        options.Nnode = 3;
+      }
+      if(options.IMPLICIT || options.EXP_TRANS) {
+        sprintf(ErrStr,"To run the model with QUICK_FLUX=TRUE, you cannot have IMPLICIT=TRUE or EXP_TRANS=TRUE.");
+        nrerror(ErrStr);
+      }
     }
-    if(options.IMPLICIT || options.EXP_TRANS) {
-      sprintf(ErrStr,"To run the model with QUICK_FLUX=TRUE, you cannot have IMPLICIT=TRUE or EXP_TRANS=TRUE.");
+    if(!options.QUICK_FLUX && !(options.FULL_ENERGY || options.FROZEN_SOIL)) {
+      sprintf(ErrStr,"To run the model in water balance mode (both FULL_ENERGY and FROZEN_SOIL are FALSE) you MUST set QUICK_FLUX to TRUE (or leave QUICK_FLUX out of your global parameter file).");
       nrerror(ErrStr);
     }
-  }
-  if(!options.QUICK_FLUX && !(options.FULL_ENERGY || options.FROZEN_SOIL)) {
-    sprintf(ErrStr,"To run the model in water balance mode (both FULL_ENERGY and FROZEN_SOIL are FALSE) you MUST set QUICK_FLUX to TRUE (or leave QUICK_FLUX out of your global parameter file).");
-    nrerror(ErrStr);
-  }
-  if((options.FULL_ENERGY || options.FROZEN_SOIL) && options.Nlayer<3) {
-    sprintf(ErrStr,"You must define at least 3 soil moisture layers to run the model in FULL_ENERGY or FROZEN_SOIL modes.  Currently Nlayers is set to  %d.",options.Nlayer);
-    nrerror(ErrStr);
-  }
-  if((!options.FULL_ENERGY && !options.FROZEN_SOIL) && options.Nlayer<1) {
-    sprintf(ErrStr,"You must define at least 1 soil moisture layer to run the model.  Currently Nlayers is set to  %d.",options.Nlayer);
-    nrerror(ErrStr);
-  }
-  if(options.IMPLICIT)  {
-    if ( QUICK_FS ) 
-      fprintf(stderr,"WARNING: IMPLICIT and QUICK_FS are both TRUE.\n\tThe QUICK_FS option is ignored when IMPLICIT=TRUE\n");
-  }
-  if( EXCESS_ICE ) {
-    if ( !options.FULL_ENERGY )
-      nrerror("set FULL_ENERGY = TRUE to run EXCESS_ICE option.");
-    if ( !options.FROZEN_SOIL )
-      nrerror("set FROZEN_SOIL = TRUE to run EXCESS_ICE option.");
-    if ( options.QUICK_SOLVE ) {
-      fprintf(stderr,"WARNING: QUICK_SOLVE and EXCESS_ICE are both TRUE.\n\tThis is an incompatible combination.  Setting QUICK_SOLVE to FALSE.\n");
-      options.QUICK_SOLVE=FALSE;  
-    }    
-    if ( QUICK_FS ) 
-      nrerror("QUICK_FS = TRUE and EXCESS_ICE = TRUE are incompatible options.");
-  }
-  if(options.Nlayer > MAX_LAYERS) {
-    sprintf(ErrStr,"Global file wants more soil moisture layers (%d) than are defined by MAX_LAYERS (%d).  Edit user_def.h and recompile.",options.Nlayer,MAX_LAYERS);
-    nrerror(ErrStr);
-  }
-  if(options.Nnode > MAX_NODES) {
-    sprintf(ErrStr,"Global file wants more soil thermal nodes (%d) than are defined by MAX_NODES (%d).  Edit user_def.h and recompile.",options.Nnode,MAX_NODES);
-    nrerror(ErrStr);
-  }
+    if((options.FULL_ENERGY || options.FROZEN_SOIL) && options.Nlayer<3) {
+      sprintf(ErrStr,"You must define at least 3 soil moisture layers to run the model in FULL_ENERGY or FROZEN_SOIL modes.  Currently Nlayers is set to  %d.",options.Nlayer);
+      nrerror(ErrStr);
+    }
+    if((!options.FULL_ENERGY && !options.FROZEN_SOIL) && options.Nlayer<1) {
+      sprintf(ErrStr,"You must define at least 1 soil moisture layer to run the model.  Currently Nlayers is set to  %d.",options.Nlayer);
+      nrerror(ErrStr);
+    }
+    if(options.IMPLICIT)  {
+      if ( QUICK_FS ) 
+        fprintf(stderr,"WARNING: IMPLICIT and QUICK_FS are both TRUE.\n\tThe QUICK_FS option is ignored when IMPLICIT=TRUE\n");
+    }
+    if( EXCESS_ICE ) {
+      if ( !options.FULL_ENERGY )
+        nrerror("set FULL_ENERGY = TRUE to run EXCESS_ICE option.");
+      if ( !options.FROZEN_SOIL )
+        nrerror("set FROZEN_SOIL = TRUE to run EXCESS_ICE option.");
+      if ( options.QUICK_SOLVE ) {
+        fprintf(stderr,"WARNING: QUICK_SOLVE and EXCESS_ICE are both TRUE.\n\tThis is an incompatible combination.  Setting QUICK_SOLVE to FALSE.\n");
+        options.QUICK_SOLVE=FALSE;  
+      }    
+      if ( QUICK_FS ) 
+        nrerror("QUICK_FS = TRUE and EXCESS_ICE = TRUE are incompatible options.");
+    }
+    if(options.Nlayer > MAX_LAYERS) {
+      sprintf(ErrStr,"Global file wants more soil moisture layers (%d) than are defined by MAX_LAYERS (%d).  Edit user_def.h and recompile.",options.Nlayer,MAX_LAYERS);
+      nrerror(ErrStr);
+    }
+    if(options.Nnode > MAX_NODES) {
+      sprintf(ErrStr,"Global file wants more soil thermal nodes (%d) than are defined by MAX_NODES (%d).  Edit user_def.h and recompile.",options.Nnode,MAX_NODES);
+      nrerror(ErrStr);
+    }
 
-  // Validate lake parameter information
-  if (options.LAKES) {
-    if (!options.FULL_ENERGY) {
-      sprintf(ErrStr, "FULL_ENERGY must be TRUE if the lake model is to be run.");
-      nrerror(ErrStr);
+    // Validate lake parameter information
+    if (options.LAKES) {
+      if (!options.FULL_ENERGY) {
+        sprintf(ErrStr, "FULL_ENERGY must be TRUE if the lake model is to be run.");
+        nrerror(ErrStr);
+      }
+      if ( strcmp ( names->lakeparam, "MISSING" ) == 0 )
+        nrerror("\"LAKES\" was specified, but no lake parameter file has been defined.  Make sure that the global file defines the lake parameter file on the line that begins with \"LAKES\".");
+      if (IS_INVALID(global_param.resolution) || global_param.resolution == 0) {
+        sprintf(ErrStr, "The model grid cell resolution (RESOLUTION) must be defined in the global control file when the lake model is active.");
+        nrerror(ErrStr);
+      }
+      if (global_param.resolution > 360 && !options.EQUAL_AREA) {
+        sprintf(ErrStr, "For EQUAL_AREA=FALSE, the model grid cell resolution (RESOLUTION) must be set to the number of lat or lon degrees per grid cell.  This cannot exceed 360.");
+        nrerror(ErrStr);
+      }
+      if (options.COMPUTE_TREELINE) {
+        sprintf(ErrStr, "LAKES = TRUE and COMPUTE_TREELINE = TRUE are incompatible options.");
+        nrerror(ErrStr);
+      }
     }
-    if ( strcmp ( names->lakeparam, "MISSING" ) == 0 )
-      nrerror("\"LAKES\" was specified, but no lake parameter file has been defined.  Make sure that the global file defines the lake parameter file on the line that begins with \"LAKES\".");
-    if (IS_INVALID(global_param.resolution) || global_param.resolution == 0) {
-      sprintf(ErrStr, "The model grid cell resolution (RESOLUTION) must be defined in the global control file when the lake model is active.");
-      nrerror(ErrStr);
-    }
-    if (global_param.resolution > 360 && !options.EQUAL_AREA) {
-      sprintf(ErrStr, "For EQUAL_AREA=FALSE, the model grid cell resolution (RESOLUTION) must be set to the number of lat or lon degrees per grid cell.  This cannot exceed 360.");
-      nrerror(ErrStr);
-    }
-    if (options.COMPUTE_TREELINE) {
-      sprintf(ErrStr, "LAKES = TRUE and COMPUTE_TREELINE = TRUE are incompatible options.");
-      nrerror(ErrStr);
-    }
-  }
 
-  //validate and set Noutfiles based on set options
-  options.Noutfiles = 2;
-  if (options.FROZEN_SOIL) {
-    options.Noutfiles++;
-  }
-  if (options.PRT_SNOW_BAND) {
-    options.Noutfiles++;
-  }
-  if (options.LAKES) {
-    options.Noutfiles++;
-  }
+    //validate and set Noutfiles based on set options
+    options.Noutfiles = 2;
+    if (options.FROZEN_SOIL) {
+      options.Noutfiles++;
+    }
+    if (options.PRT_SNOW_BAND) {
+      options.Noutfiles++;
+    }
+    if (options.LAKES) {
+      options.Noutfiles++;
+    }
 
-  /*********************************
+    /*********************************
     Output major options to stderr
-  *********************************/
+    *********************************/
 #if VERBOSE
-  this->display_current_settings(DISP_ALL,names);
+    this->display_current_settings(DISP_ALL,names);
 #else
-  this->display_current_settings(DISP_VERSION,names);
+    this->display_current_settings(DISP_VERSION,names);
 #endif
 
 #if VERBOSE
-  fprintf(stderr,"Time Step = %d hour(s)\n",global_param.dt);
-  fprintf(stderr,"Simulation start date = %02i/%02i/%04i\n",
-	  global_param.startday, global_param.startmonth, global_param.startyear);
-  if (IS_VALID(global_param.nrecs) && global_param.nrecs > 0 )
-    fprintf(stderr,"Number of Records = %d\n\n",global_param.nrecs);
-  else 
-    fprintf(stderr,"Simulation end date = %02i/%02i/%04i\n\n",
-	    global_param.endday, global_param.endmonth, global_param.endyear);
-  fprintf(stderr,"Full Energy...................(%d)\n",options.FULL_ENERGY);
-  fprintf(stderr,"Use Distributed Precipitation.(%d)\n",options.DIST_PRCP);
-  if(options.DIST_PRCP)
-    fprintf(stderr,"..Using Precipitation Exponent of %f\n",options.PREC_EXPT);
-  fprintf(stderr,"Ground heat flux will be estimated ");
-  if ( options.QUICK_FLUX ) 
-    fprintf(stderr,"using Liang, Wood and Lettenmaier (1999).\n");
-  else 
-    fprintf(stderr,"using Cherkauer and Lettenmaier (1999).\n");
-  fprintf(stderr,"Use Frozen Soil Model.........(%d)\n",options.FROZEN_SOIL);
-  if( options.IMPLICIT ) 
-    fprintf(stderr,".... Using the implicit solution for the soil heat equation.\n");
-  else
-    fprintf(stderr,".... Using the explicit solution for the soil heat equation.\n");
-  if( options.EXP_TRANS )
-    fprintf(stderr,".... Thermal nodes are exponentially distributed with depth.\n");
-  else
-    fprintf(stderr,".... Thermal nodes are linearly distributed with depth (except top two nodes).\n");
-  if( EXCESS_ICE )
-    fprintf(stderr,".... Excess ground ice is being considered.\n\t\tTherefore, ground ice (as a volumetric fraction) must be initialized for each\n\t\t   soil layer in the soil file.\n\t\tCAUTION: When excess ice melts, subsidence occurs.\n\t\t  Therefore, soil layer depths, damping depth, thermal node depths,\n\t\t     bulk densities, porosities, and other properties are now dynamic!\n\t\t  EXERCISE EXTREME CAUTION IN INTERPRETING MODEL OUTPUT.\n\t\t  It is recommended to add OUT_SOIL_DEPTH to your list of output variables.\n");
-  if ( QUICK_FS ){
-    fprintf(stderr,".... Using linearized UFWC curve with %d temperatures.\n", QUICK_FS_TEMPS);
-  }
-  fprintf(stderr,"Run Snow Model Using a Time Step of %d hours\n", 
-	  options.SNOW_STEP);
-  fprintf(stderr,"Compress Output Files.........(%d)\n",options.COMPRESS);
-  fprintf(stderr,"Correct Precipitation.........(%d)\n",options.CORRPREC);
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Using %d Snow Bands\n",options.SNOW_BAND);
-  fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
-  if ( options.SAVE_STATE )
-    fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
-	    global_param.stateday, global_param.statemonth, global_param.stateyear);
-  if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
-    fprintf(stderr,"Model output is in standard BINARY format.\n");
-  } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
-    fprintf(stderr,"Model output is in standard ASCII format.\n");
-  } else if (options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-    fprintf(stderr, "Model output is in NETCDF format.\n");
-  } else {
-    fprintf(stderr, "Warning: model output is undefined (should be either BINARY, ASCII, or NETCDF).\n");
-  }
-  if ( LINK_DEBUG ) 
-    fprintf(stderr,"Debugging code has been included in the executable.\n");
-  else 
-    fprintf(stderr,"Debugging code has not been compiled.\n");
+    fprintf(stderr,"Time Step = %d hour(s)\n",global_param.dt);
+    fprintf(stderr,"Simulation start date = %02i/%02i/%04i\n",
+            global_param.startday, global_param.startmonth, global_param.startyear);
+    if (IS_VALID(global_param.nrecs) && global_param.nrecs > 0 )
+      fprintf(stderr,"Number of Records = %d\n\n",global_param.nrecs);
+    else 
+      fprintf(stderr,"Simulation end date = %02i/%02i/%04i\n\n",
+              global_param.endday, global_param.endmonth, global_param.endyear);
+    fprintf(stderr,"Full Energy...................(%d)\n",options.FULL_ENERGY);
+    fprintf(stderr,"Use Distributed Precipitation.(%d)\n",options.DIST_PRCP);
+    if(options.DIST_PRCP)
+      fprintf(stderr,"..Using Precipitation Exponent of %f\n",options.PREC_EXPT);
+    fprintf(stderr,"Ground heat flux will be estimated ");
+    if ( options.QUICK_FLUX ) 
+      fprintf(stderr,"using Liang, Wood and Lettenmaier (1999).\n");
+    else 
+      fprintf(stderr,"using Cherkauer and Lettenmaier (1999).\n");
+    fprintf(stderr,"Use Frozen Soil Model.........(%d)\n",options.FROZEN_SOIL);
+    if( options.IMPLICIT ) 
+      fprintf(stderr,".... Using the implicit solution for the soil heat equation.\n");
+    else
+      fprintf(stderr,".... Using the explicit solution for the soil heat equation.\n");
+    if( options.EXP_TRANS )
+      fprintf(stderr,".... Thermal nodes are exponentially distributed with depth.\n");
+    else
+      fprintf(stderr,".... Thermal nodes are linearly distributed with depth (except top two nodes).\n");
+    if( EXCESS_ICE )
+      fprintf(stderr,".... Excess ground ice is being considered.\n\t\tTherefore, ground ice (as a volumetric fraction) must be initialized for each\n\t\t   soil layer in the soil file.\n\t\tCAUTION: When excess ice melts, subsidence occurs.\n\t\t  Therefore, soil layer depths, damping depth, thermal node depths,\n\t\t     bulk densities, porosities, and other properties are now dynamic!\n\t\t  EXERCISE EXTREME CAUTION IN INTERPRETING MODEL OUTPUT.\n\t\t  It is recommended to add OUT_SOIL_DEPTH to your list of output variables.\n");
+    if ( QUICK_FS ){
+      fprintf(stderr,".... Using linearized UFWC curve with %d temperatures.\n", QUICK_FS_TEMPS);
+    }
+    fprintf(stderr,"Run Snow Model Using a Time Step of %d hours\n", 
+            options.SNOW_STEP);
+    fprintf(stderr,"Compress Output Files.........(%d)\n",options.COMPRESS);
+    fprintf(stderr,"Correct Precipitation.........(%d)\n",options.CORRPREC);
+    fprintf(stderr,"\n");
+    fprintf(stderr,"Using %d Snow Bands\n",options.SNOW_BAND);
+    fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
+    if ( options.SAVE_STATE )
+      fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
+              global_param.stateday, global_param.statemonth, global_param.stateyear);
+    if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
+      fprintf(stderr,"Model output is in standard BINARY format.\n");
+    } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
+      fprintf(stderr,"Model output is in standard ASCII format.\n");
+    } else if (options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+      fprintf(stderr, "Model output is in NETCDF format.\n");
+    } else {
+      fprintf(stderr, "Warning: model output is undefined (should be either BINARY, ASCII, or NETCDF).\n");
+    }
+    if ( LINK_DEBUG ) 
+      fprintf(stderr,"Debugging code has been included in the executable.\n");
+    else 
+      fprintf(stderr,"Debugging code has not been compiled.\n");
 #endif
-
-#endif // !OUTPUT_FORCE
+  }
 
 }

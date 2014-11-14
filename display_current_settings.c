@@ -91,11 +91,11 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
 #else
   fprintf(stderr,"LINK_DEBUG\t\tFALSE\n");
 #endif
-#if OUTPUT_FORCE
-  fprintf(stderr,"OUTPUT_FORCE\t\tTRUE\n");
-#else
-  fprintf(stderr,"OUTPUT_FORCE\t\tFALSE\n");
-#endif
+  if (options.OUTPUT_FORCE) {
+    fprintf(stderr,"OUTPUT_FORCE\t\tTRUE\n");
+  } else {
+    fprintf(stderr,"OUTPUT_FORCE\t\tFALSE\n");
+  }
 
   fprintf(stderr,"\n");
   fprintf(stderr,"Simulation Parameters:\n");

@@ -12,7 +12,7 @@ void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* d
   // Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
-#if !OUTPUT_FORCE
+  if (!state->options.OUTPUT_FORCE) {
     // Write the date
     if (dt < 24) {
       // Write year, month, day, and hour
@@ -24,7 +24,7 @@ void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* d
       fprintf(dataFiles[file_idx]->fh, "%04i\t%02i\t%02i\t",
               dmy->year, dmy->month, dmy->day);
     }
-#endif
+  }
 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
@@ -79,12 +79,12 @@ void WriteOutputAscii::write_header(out_data_struct* out_data, const dmy_struct*
 
     // Header part 1: Global attributes
     Nvars = dataFiles[file_idx]->nvars;
-#if !OUTPUT_FORCE
-    if (state->global_param.out_dt < 24)
-      Nvars += 4;
-    else
-      Nvars += 3;
-#endif
+    if (!state->options.OUTPUT_FORCE) {
+    	if (state->global_param.out_dt < 24)
+    		Nvars += 4;
+    	else
+    		Nvars += 3;
+    }
     fprintf(dataFiles[file_idx]->fh, "# NRECS: %d\n", state->global_param.nrecs);
     fprintf(dataFiles[file_idx]->fh, "# DT: %d\n", state->global_param.out_dt);
     fprintf(dataFiles[file_idx]->fh, "# STARTDATE: %04d-%02d-%02d %02d:00:00\n",
@@ -95,17 +95,17 @@ void WriteOutputAscii::write_header(out_data_struct* out_data, const dmy_struct*
     // Header part 2: Variables
     fprintf(dataFiles[file_idx]->fh, "# ");
 
-#if !OUTPUT_FORCE
-    // Write the date
-    if (state->global_param.out_dt < 24) {
-      // Write year, month, day, and hour
-      fprintf(dataFiles[file_idx]->fh, "YEAR\tMONTH\tDAY\tHOUR\t");
+    if (!state->options.OUTPUT_FORCE) {
+    	// Write the date
+    	if (state->global_param.out_dt < 24) {
+    		// Write year, month, day, and hour
+    		fprintf(dataFiles[file_idx]->fh, "YEAR\tMONTH\tDAY\tHOUR\t");
+    	}
+    	else {
+    		// Only write year, month, and day
+    		fprintf(dataFiles[file_idx]->fh, "YEAR\tMONTH\tDAY\t");
+    	}
     }
-    else {
-      // Only write year, month, and day
-      fprintf(dataFiles[file_idx]->fh, "YEAR\tMONTH\tDAY\t");
-    }
-#endif
 
     // Loop over this output file's data variables
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
