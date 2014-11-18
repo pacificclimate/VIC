@@ -16,7 +16,7 @@ outputDir="out"
 usage()
 {
     echo "Unknown option $key"
-    echo "Usage: testVIC.sh [--netCDF] [--state_output ASCII|binary] [--state_input ASCII|binary|NetCDF] [--global <global_options_file> [--output-dir <path>] [--output-comparison-dir <path>]";
+    echo "Usage: testVIC.sh [--netCDF] [--state_output ASCII|binary] [--state_input ASCII|binary|NetCDF] [--global <global_options_file> [--output-dir <path>] [--output-comparison-dir <path>] [--code-dir <path>]";
     exit 1
 }
 
@@ -75,6 +75,10 @@ case $key in
         correctResultsDir="$1"
         shift
     ;;
+    --code-dir)
+        codeDir="$1"
+        shift
+    ;;
     *)
         usage
     ;;
@@ -83,7 +87,7 @@ done
 
 echo starting test
 
-codeDir="VIC_4.1.2_cpp_trunk"
+codeDir=$(pwd)
 programName="vicNl"
 export curDir=$(pwd)
 TIMESTAMP=$(date +"%Y_%m_%d__%H_%M_%S")
@@ -162,7 +166,7 @@ $codeDir/$programName -g $globalOptionsFile
 echo ""
 if $netCDF ; then
     echo "validating NetCDF output results"
-    Rscript vic_output_netcdf_compare.r $outputDir/$outputName/results.nc $correctResultsDir/vicNetCDFCorrectOutputs.nc
+    Rscript $codeDir/tools/test\ script/vic_output_netcdf_compare.r $outputDir/$outputName/results.nc $correctResultsDir/results.nc
 else
     echo "validating plain ASCII output results"
     pushd $outputDir/$outputName > /dev/null
