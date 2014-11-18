@@ -8,7 +8,6 @@ SUCCESS <- 0
 assert <- function(expression, description) {
     if ( identical(expression, FALSE) ) {
         message(description)
-        quit(status=ERROR)
     }
 }
 
@@ -23,6 +22,7 @@ checkValues <- function(value1, value2) {
 }
 
 compare.variable <- function(nc1, nc2, var, var2, start=NA, count=NA) {
+          tolerance <- 0.001
           data1 <- ncvar_get(nc1, var$name, start, count)
           data2 <- ncvar_get(nc2, var2$name, start, count)
           data1[is.na(data1)] <- 0
@@ -38,14 +38,29 @@ compare.variable <- function(nc1, nc2, var, var2, start=NA, count=NA) {
           diffs <- abs(data1 - data2)
           #diffs[is.na(diffs)] <- 0
           s <- sum(diffs)
-          differentEntries <- diffs[diffs > 0.001]
+          diffIndices <- which(diffs > tolerance)
+          differentEntries <- diffs[diffIndices]
 #          message("dimensions: ", str(dim(diffs)))
 #          message("maximum difference: ", str(max(diffs)))
 #          message("accumulated differences: ", s)
 #          message("number of strictly different entries: ", length(diffs[diffs!=0]))
 #          message("number of unacceptable entries (diff > 0.001) : ", length(differentEntries))
 
-          assert(length(differentEntries) == 0, paste("Difference indices ", str(differentEntries), "diffs: ", str(diffs[differentEntries]),"data1:",str(data1[differentEntries]), "data2:",str(data2[differentEntries]) ))
+          foo <- function() {
+              s <- paste("Number of differences:", length(differentEntries), "\n")
+              if (length(differentEntries) > 5) {
+                  s <- paste(s, "diffs: (", paste(collapse=", ", differentEntries[1:5]), "... )\n")
+                  s <- paste(s, "data1: (", paste(collapse=", ", data1[diffIndices[1:5]]), "... )\n")
+                  s <- paste(s, "data2: (", paste(collapse=", ", data2[diffIndices[1:5]]), "... )\n")
+              } else {
+                  s <- paste(s, "diffs: (", paste(collapse=", ", differentEntries), ")\n")
+                  s <- paste(s, "data1: (", paste(collapse=", ", data1[diffIndices]), ")\n")
+                  s <- paste(s, "data2: (", paste(collapse=", ", data2[diffIndices]), ")\n")
+              }
+              s
+          }
+          
+          assert(length(differentEntries) == 0, foo())
 }
 
 compare.netCDF <- function(file1Name = NA, file2Name = NA) {
