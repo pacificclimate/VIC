@@ -620,14 +620,14 @@ typedef struct {
   char  result_dir[MAXSTRING];  /* directory where results will be written */
   char  snowband[MAXSTRING];    /* snow band parameter file name */
   char  soil[MAXSTRING];        /* soil parameter file name, or name of 
-				   file that has a list of all aoil 
+				   file that has a list of all soil
 				   ARC/INFO files */
   char  soil_dir[MAXSTRING];    /* directory from which to read ARC/INFO 
 				   soil files */
   char  statefile[MAXSTRING];   /* name of file in which to store model state */
   char  veg[MAXSTRING];         /* vegetation grid coverage file */
   char  veglib[MAXSTRING];      /* vegetation parameter library file */
-  char netCDFOutputFileName[MAXSTRING]; /* name of the single output file if options.OUPUT_TYPE==NETCDF */
+  char netCDFOutputFileName[MAXSTRING]; /* name of the single output file if options.OUTPUT_TYPE==NETCDF */
 } filenames_struct;
 
 namespace OutputFormat {
@@ -818,7 +818,7 @@ typedef struct {
 
 /******************************************************************
   This structure records the parameters set by the forcing file
-  input routines.  Those filled, are used to estimate the paramters
+  input routines.  Those filled, are used to estimate the parameters
   needed for the model run in initialize_atmos.c.
   ******************************************************************/
 typedef struct {
@@ -1382,7 +1382,7 @@ struct HRU {
 
 /*****************************************************************
   This structure stores all variables needed to solve, or save 
-  solututions for all versions of this model.  Vegetation and soil
+  solutions for all versions of this model.  Vegetation and soil
   variables are created for both wet and dry fractions of the grid
   cell (for use with the distributed precipitation model).
 *****************************************************************/
@@ -1481,7 +1481,7 @@ struct CellBalanceErrors {
 
 /***********************************************************
   This struct stores the per-cell information about fall backs
-  which occured, and is only really used for printing/debugging.
+  which occurred, and is only really used for printing/debugging.
   See put_data.c for its use.
   ***********************************************************/
 struct FallBackStats {
@@ -1568,7 +1568,7 @@ public:
   Error_struct Error;
   param_set_struct param_set;
   int num_veg_types;
-  int NR;  /* array index for atmos struct that indicates the model step avarage or sum */
+  int NR;  /* array index for atmos struct that indicates the model step average or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);

@@ -283,8 +283,9 @@ int initializeCell(cell_info_struct& cell,
     if (state->options.LAKES) {
       cell.lake_con = read_lakeparam(filep.lakeparam, cell.soil_con, cell.prcp.hruList, state);
     }
-  else // FIXME: is this else ambiguous? Should match !state->options.OUTPUT_FORCE
-    make_in_files(&filep, &filenames, &cell.soil_con, state);  //new
+  }
+  else if (state->options.OUTPUT_FORCE) {
+    make_in_files(&filep, &filenames, &cell.soil_con, state);
   }
   if (!state->options.OUTPUT_FORCE) {
       /** Read Elevation Band Data if Used **/
@@ -292,7 +293,7 @@ int initializeCell(cell_info_struct& cell,
 
   }
       /**************************************************
-       Initialize Meteological Forcing Values That
+       Initialize Meteorological Forcing Values That
        Have not Been Specifically Set
        **************************************************/
   #if VERBOSE
