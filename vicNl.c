@@ -407,8 +407,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     //state->Error.out_data_files = out_data_files;
 
     if (state->options.OUTPUT_FORCE) {
-      // If OUTPUT_FORCE is set to TRUE in user_def.h then the full
-      // forcing data array is dumped into a new set of files.
+      // If OUTPUT_FORCE is set to TRUE in the global parameters file then the full
+      // forcing data array is dumped into (a new set of?) files. TODO: find out if it is right that the same output files are used as when running the model
       write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
       continue;
     }
