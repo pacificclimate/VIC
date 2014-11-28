@@ -332,11 +332,6 @@ int initializeCell(cell_info_struct& cell,
       vicerror(cell.ErrStr);
     }
   }
-
-  #if VERBOSE
-      fprintf(stderr, "Running Model\n");
-  #endif /* VERBOSE */
-
       return 0;
 }
 
@@ -435,6 +430,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     /******************************************
      Run Model in Grid Cell for all Time Steps
      ******************************************/
+#if VERBOSE
+    fprintf(stderr, "Running Model\n");
+#endif /* VERBOSE */
+
     char NEWCELL = TRUE;
     for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
