@@ -221,7 +221,12 @@ void verifyGlobalAttributes(const NcFile& file) {
 
 void addGlobalAttributes(NcFile* netCDF, const ProgramState* state) {
   // Add global attributes here. (These could potentially be overwritten by inputs from the global file)
-  netCDF->putAtt("title", "VIC output.");
+  if(state->options.OUTPUT_FORCE){
+	  netCDF->putAtt("title", "VIC meteorological forcing disaggregator mode output.");
+  }
+  else {
+	  netCDF->putAtt("title", "VIC model run output.");
+  }
   std::string source = std::string("VIC ");
   source += "(Built from source: " + getSourceVersion() + ").";
   std::string history = "Created by " + source + ".\n";
