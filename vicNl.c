@@ -287,7 +287,7 @@ int initializeCell(cell_info_struct& cell,
   else if (state->options.OUTPUT_FORCE) {
     make_in_files(&filep, &filenames, &cell.soil_con, state);
   }
-  if (!state->options.OUTPUT_FORCE) {
+  if (!state->options.OUTPUT_FORCE) { //MDF: should this be moved inside of if (!state->options.OUTPUT_FORCE) above?
       /** Read Elevation Band Data if Used **/
       read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
 
@@ -393,7 +393,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
     copy_data_file_format(out_data_files_template, outputFormat->dataFiles, state);
     out_data_struct* current_output_data = copy_output_data(out_data, state);
-    /** Build Gridded Filenames, and Open **/
+    /** Build Gridded Filenames, and Open **/ // MDF: I think single NetCDF output file is overloaded here, so not a set of gridded cells necessarily
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
 
     if (state->options.PRT_HEADER) {
@@ -407,8 +407,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     //state->Error.out_data_files = out_data_files;
 
     if (state->options.OUTPUT_FORCE) {
-      // If OUTPUT_FORCE is set to TRUE in the global parameters file then the full
-      // forcing data array is written to file(s).
+      // If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+      // forcing data array is written to file(s), and the model run is skipped.
       write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
       continue;
     }
