@@ -287,7 +287,7 @@ int initializeCell(cell_info_struct& cell,
   else if (state->options.OUTPUT_FORCE) {
     make_in_files(&filep, &filenames, &cell.soil_con, state);
   }
-  if (!state->options.OUTPUT_FORCE) { //MDF: should this be moved inside of if (!state->options.OUTPUT_FORCE) above?
+  if (!state->options.OUTPUT_FORCE) {
       /** Read Elevation Band Data if Used **/
       read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
 
@@ -366,79 +366,77 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, const ProgramState* state) {
 
-  //#pragma omp parallel for
-  for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
-    //printThreadInformation();
+  /********************************************************
+     Run Model for all Grid Cells, one Time Step at a time
+  ********************************************************/
+  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+    for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
-    int initError = 0;
-    //#pragma omp critical(initCells)
-    {
-      initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
-    }
-    // Skip to the next cell if unable to initialize the current cell.
-    if (initError == ERROR) {
-      if (state->options.CONTINUEONERROR == TRUE) {
-        fprintf(stderr, "An error occurred when initializing this cell (gridcell: %d), skipping it...\n", cell_data_structs[cellidx].soil_con.gridcel);
-        continue;
-      } else {
-        sprintf(cell_data_structs[cellidx].ErrStr, "Error initializing cell (method initializeCell) for gridcell: %d\n", cell_data_structs[cellidx].soil_con.gridcel);
-        vicerror(cell_data_structs[cellidx].ErrStr);
+      // initialize cells on first time step
+      if (rec == 0) {
+        int initError = 0;
+
+        initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
+
+        // Skip to the next cell if unable to initialize the current cell.
+        if (initError == ERROR) {
+          if (state->options.CONTINUEONERROR == TRUE) {
+            fprintf(stderr, "An error occurred when initializing this cell (gridcell: %d), skipping it...\n", cell_data_structs[cellidx].soil_con.gridcel);
+            continue;
+          } else {
+              sprintf(cell_data_structs[cellidx].ErrStr, "Error initializing cell (method initializeCell) for gridcell: %d\n", cell_data_structs[cellidx].soil_con.gridcel);
+              vicerror(cell_data_structs[cellidx].ErrStr);
+          }
+        }
       }
-    }
-    //This object takes care of setting up the right output format, and deleting the object when it goes out of scope
-    WriteOutputContext writeOutContext(state);
-    WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
 
-    //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
-    copy_data_file_format(out_data_files_template, outputFormat->dataFiles, state);
-    out_data_struct* current_output_data = copy_output_data(out_data, state);
-    /** Build Gridded Filenames, and Open **/ // MDF: I think single NetCDF output file is overloaded here, so not a set of gridded cells necessarily
-    make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
+      //This object takes care of setting up the right output format, and deleting the object when it goes out of scope
+      WriteOutputContext writeOutContext(state);
+      WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
 
-    if (state->options.PRT_HEADER) {
-      /** Write output file headers **/
+      //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
+      copy_data_file_format(out_data_files_template, outputFormat->dataFiles, state);
+      out_data_struct* current_output_data = copy_output_data(out_data, state);
+      // Build output filenames, and open
+      make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
+
+      if (state->options.PRT_HEADER) {
+      /** Write output file headers. **/
       outputFormat->write_header(current_output_data, dmy, state);
-    }
+      }
 
     //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
     //state->Error.filep = filep;
     //state->Error.out_data_files = out_data_files;
 
-    if (state->options.OUTPUT_FORCE) {
-      // If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
-      // forcing data array is written to file(s), and the model run is skipped.
-      write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy); //new (state & dmy)
-      continue;
-    }
-
-    /** Initialize the storage terms in the water and energy balances **/
-    int putDataError = put_data(&cell_data_structs[cellidx], outputFormat, current_output_data, &dmy[0],
-        -state->global_param.nrecs, state);
-    // Skip the rest of this cell if there is an error here.
-    if (putDataError == ERROR) {
-      if (state->options.CONTINUEONERROR == TRUE) {
-        fprintf(stderr, "An error occurred when initializing this cell (gridcell = %d), skipping...\n", cell_data_structs[cellidx].soil_con.gridcel);
-        continue;
-      } else {
-        sprintf(cell_data_structs[cellidx].ErrStr, "Error initialising storage terms (in method put_data) for grid cell %d\n", cell_data_structs[cellidx].soil_con.gridcel);
-        vicerror(cell_data_structs[cellidx].ErrStr);
+      // initialize cells on first time step
+      if (rec == 0) {
+//#if VERBOSE
+//    fprintf(stderr, "Running Model\n");
+//#endif /* VERBOSE */
+        /** Initialize the storage terms in the water and energy balances **/
+        int putDataError = put_data(&cell_data_structs[cellidx], outputFormat, current_output_data, &dmy[0],
+        		-state->global_param.nrecs, state);
+        // Skip the rest of this cell if there is an error here.
+        if (putDataError == ERROR) {
+          if (state->options.CONTINUEONERROR == TRUE) {
+            fprintf(stderr, "An error occurred when initializing this cell (gridcell = %d), skipping...\n", cell_data_structs[cellidx].soil_con.gridcel);
+            continue;
+          }
+          else {
+            sprintf(cell_data_structs[cellidx].ErrStr, "Error initialising storage terms (in method put_data) for grid cell %d\n", cell_data_structs[cellidx].soil_con.gridcel);
+            vicerror(cell_data_structs[cellidx].ErrStr);
+          }
+        }
       }
-    }
 
-    /******************************************
-     Run Model in Grid Cell for all Time Steps
-     ******************************************/
-#if VERBOSE
-    fprintf(stderr, "Running Model\n");
-#endif /* VERBOSE */
-
-    char NEWCELL = TRUE;
-    for (int rec = 0; rec < state->global_param.nrecs; rec++) {
-
+      // dist_prec calls put_data calls write_data to write to output file (ASCII or NetCDF)
+      //int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep, outputFormat, current_output_data, rec, NEWCELL, state);
+      // dist_prec also calls full_energy, which accepts NEWCELL as a parm but doesn't use it.  Thus, we are hard-coding NEWCELL=0 for now
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
-          outputFormat, current_output_data, rec, NEWCELL, state);
+          outputFormat, current_output_data, rec, 0, state);
 
       accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
@@ -460,44 +458,47 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         if (state->options.CONTINUEONERROR == TRUE) {
           // Handle grid cell solution error
           fprintf(stderr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before rerunning the simulation.\n",
+              "ERROR: Grid cell %i failed in record (time step) %i so the simulation has not finished.  An incomplete output file has been generated, check your inputs before re-running the simulation.\n",
               cell_data_structs[cellidx].soil_con.gridcel, rec);
           break;
         } else {
           // Else exit program on cell solution error as in previous versions
           sprintf(cell_data_structs[cellidx].ErrStr,
-              "ERROR: Grid cell %i failed in record %i so the simulation has ended. Check your inputs before rerunning the simulation.\n",
+              "ERROR: Grid cell %i failed in record (time step) %i so the simulation has ended. Check your inputs before re-running the simulation.\n",
               cell_data_structs[cellidx].soil_con.gridcel, rec);
           vicerror(cell_data_structs[cellidx].ErrStr);
         }
       }
 
-      NEWCELL = FALSE;
-
-    } /* End Rec Loop */
-
-
 #if QUICK_FS
-    if(options.FROZEN_SOIL) {
-      for(int i=0;i<MAX_LAYERS;i++) {
-        for(int j=0;j<6;j++)
-        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j]);
-        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i]);
+      if(options.FROZEN_SOIL) {
+        for(int i=0;i<MAX_LAYERS;i++) {
+          for(int j=0;j<6;j++)
+          free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i][j]);
+          free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_layer[i]);
+        }
+        for(int i=0;i<MAX_NODES;i++) {
+          for(int j=0;j<6;j++)
+          free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j]);
+          free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i]);
+        }
       }
-      for(int i=0;i<MAX_NODES;i++) {
-        for(int j=0;j<6;j++)
-        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i][j]);
-        free((char *)cell_data_structs[cellidx].soil_con.ufwc_table_node[i]);
-      }
-    }
 #endif /* QUICK_FS */
+      outputFormat->cleanup();
+      free_out_data(&current_output_data);
+    } // for - grid cell loop
+    //if(rec >= state->global_param.nrecs) free_out_data(&current_output_data);
 
-    outputFormat->cleanup();
-    if(state->param_set.FORCE_FORMAT[0] == NETCDF) //new
-    	close_files(&filep, &filenames, state->options.COMPRESS, state);
+  } // for - time loop
 
-    free_out_data(&current_output_data);
+  // after end of time loop, close all input/output files
+  //outputFormat->cleanup();
+  if(state->param_set.FORCE_FORMAT[0] == NETCDF) //new
+    close_files(&filep, &filenames, state->options.COMPRESS, state);
 
+  //free_out_data(&current_output_data);
+
+  for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);
     free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
     free_vegcon(cell_data_structs[cellidx]);
@@ -506,9 +507,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     free(cell_data_structs[cellidx].soil_con.Tfactor);
     free(cell_data_structs[cellidx].soil_con.Pfactor);
     free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
-  } /* End Grid Loop */
+  } // for - free up cell_data_structs
 
-}
-
-
-
+}  // runModel
