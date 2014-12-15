@@ -373,7 +373,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
-      // initialize cells on first time step
+      // Initialize all cells on first time step
       if (rec == 0) {
         int initError = 0;
 
@@ -388,21 +388,23 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
               sprintf(cell_data_structs[cellidx].ErrStr, "Error initializing cell (method initializeCell) for gridcell: %d\n", cell_data_structs[cellidx].soil_con.gridcel);
               vicerror(cell_data_structs[cellidx].ErrStr);
           }
-        }
+        } //FIXME: with new loop nesting order we will need to prevent running the model for uninitialized (invalid) cells when rec > 0
       }
 
-      //This object takes care of setting up the right output format, and deleting the object when it goes out of scope
+      // This object takes care of setting up the right output format, and deleting the object when it goes out of scope
       WriteOutputContext writeOutContext(state);
       WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
 
-      //make local copies of output data which is unique to each cell, this is required if the outer for loop is run in parallel.
+      // Make local copies of output data which is unique to each cell
       copy_data_file_format(out_data_files_template, outputFormat->dataFiles, state);
       out_data_struct* current_output_data = copy_output_data(out_data, state);
-      // Build output filenames, and open
+
+      /* Build output filename(s), and open
+        (ASCII/binary output format will make one file per grid; NetCDF will make one file to rule them all) */
       make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
 
-      if (state->options.PRT_HEADER) {
-      /** Write output file headers. **/
+      // Write output file headers at initialization (does nothing in the NetCDF output format case)
+      if (rec == 0 && state->options.PRT_HEADER) {
       outputFormat->write_header(current_output_data, dmy, state);
       }
 
@@ -411,19 +413,26 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     //state->Error.filep = filep;
     //state->Error.out_data_files = out_data_files;
 
-      // initialize cells on first time step
+      /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+      forcing data array is written to file(s), and the full model run is skipped. */
+      if (state->options.OUTPUT_FORCE) {
+        write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy);
+        continue; //FIXME: this should only run once per cell, not for all time steps
+      }
+
+      // Initialize storage terms on first time step
       if (rec == 0) {
-//#if VERBOSE
-//    fprintf(stderr, "Running Model\n");
-//#endif /* VERBOSE */
-        /** Initialize the storage terms in the water and energy balances **/
+#if VERBOSE
+    fprintf(stderr, "Running Model\n");
+#endif /* VERBOSE */
+        // Initialize the storage terms in the water and energy balances
         int putDataError = put_data(&cell_data_structs[cellidx], outputFormat, current_output_data, &dmy[0],
         		-state->global_param.nrecs, state);
         // Skip the rest of this cell if there is an error here.
         if (putDataError == ERROR) {
           if (state->options.CONTINUEONERROR == TRUE) {
             fprintf(stderr, "An error occurred when initializing this cell (gridcell = %d), skipping...\n", cell_data_structs[cellidx].soil_con.gridcel);
-            continue;
+            continue; //FIXME: with new loop nesting order we will need to prevent running the model for uninitialized (invalid) cells when rec > 0
           }
           else {
             sprintf(cell_data_structs[cellidx].ErrStr, "Error initialising storage terms (in method put_data) for grid cell %d\n", cell_data_structs[cellidx].soil_con.gridcel);
@@ -432,7 +441,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         }
       }
 
-      // dist_prec calls put_data calls write_data to write to output file (ASCII or NetCDF)
+      // dist_prec calls put_data calls write_data to write to output file
       //int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep, outputFormat, current_output_data, rec, NEWCELL, state);
       // dist_prec also calls full_energy, which accepts NEWCELL as a parm but doesn't use it.  Thus, we are hard-coding NEWCELL=0 for now
       int ErrorFlag = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
