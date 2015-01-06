@@ -9,10 +9,10 @@ stateInputASCII=false
 stateInputBinary=false
 stateInputNetCDF=false
 
-correctResultsDir="/provide/path/to/default/correctResultsDir/for/study/location/and/output/file/type/"
-#globalOptionsFile="glb_prb_base_BASIN_SCENARIO_19502006_VIC4.1.2_netcdf_auto.txt"
-globalOptionsFile="/provide/path/to/default/globalOptionsFile/for/study/location/and/output/file/type/"
-outputDir="/provide/path/to/default/base/output/directory/"
+correctResultsDir="/home/james/code/hg/VIC/correctResults"
+globalOptionsFile="glb_prb_base_BASIN_SCENARIO_19502006_VIC4.1.2_netcdf_auto.txt"
+outputDir="out"
+codeDir=$(pwd)
 
 usage()
 {
@@ -89,9 +89,8 @@ done
 echo starting test
 
 programName="vicNl"
-#export curDir=$(pwd)
+export curDir=$(pwd)
 TIMESTAMP=$(date +"%Y_%m_%d__%H_%M_%S")
-# should the following differ, depending on output format? ie. netcdf/ascii/binary?
 export outputName="automated_4.1.2_netcdf_$TIMESTAMP"
 export outputDir
 echo "Output for this test will be in $outputDir/$outputName"
@@ -104,7 +103,6 @@ fail()
 }
 
 #Replace output line in global options file
-#perl -pi.bak -e 's/RESULT_DIR.*$/RESULT_DIR\t$ENV{curDir}\/out\/$ENV{outputName}/g' $globalOptionsFile
 perl -pi.bak -e 's/RESULT_DIR.*$/RESULT_DIR\t$ENV{outputDir}\/$ENV{outputName}/g' $globalOptionsFile
 
 if $netCDF ; then
@@ -143,7 +141,7 @@ fi
 pushd $codeDir > /dev/null
 echo "building the program"
 #make clean
-#rm $programName
+rm $programName
 make
 #check that it built correctly
 if [ -f "$programName" ]
@@ -164,6 +162,12 @@ cp $globalOptionsFile $outputDir/$outputName
 #Run the code
 echo "running the program"
 $codeDir/$programName -g $globalOptionsFile
+
+if [ $? != 0 ]
+then
+    echo "VIC FAILED!"
+    exit 1
+fi
 
 #Compare output files with pristine version hashes
 echo ""
