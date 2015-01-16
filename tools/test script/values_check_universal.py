@@ -243,14 +243,23 @@ for cell in cell_labels:
     print ''
     for variable in cell_data_keys:
 #	print 'checking agreement on cell: {} variable: {}'.format(cell, variable)
+	diffs = []
 	if len(inputH5[variable].shape) == 3: # 3D variable
             if tolerance > 0:
                 agreement = np.allclose(all_test_data[cell][variable], all_base_data[cell][variable], 0, tolerance)
 	    else:
                 agreement = np.array_equal(all_test_data[cell][variable], all_base_data[cell][variable])
+            if csv_out == True:
+	        column_header = str(inputH5[variable].attrs['internal_vic_name'])
+                general_headers.append(column_header)
+                test_table = np.column_stack([test_table, all_test_data[cell][variable]])
+                base_table = np.column_stack([base_table, all_base_data[cell][variable]])
             if agreement == False:
 		diffs_exist = True
                 diffs = abs(all_test_data[cell][variable] - all_base_data[cell][variable])
+                if csv_out == True:
+                    diffs_table = np.column_stack([diffs_table, diffs])        
+                    diffs_headers.append(column_header) 
 		num_diffs = len(diffs)
 		max_diff = np.max(diffs)
                 print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement),
@@ -268,12 +277,21 @@ for cell in cell_labels:
                     agreement = np.allclose(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
 	        else:
                     agreement = np.array_equal(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
+                if csv_out == True:
+                    test_band_table = np.column_stack([test_band_table, all_test_data[cell][variable][depth]])
+	            base_band_table = np.column_stack([base_band_table, all_base_data[cell][variable][depth]])
+		    column_header = str(inputH5[variable].attrs['internal_vic_name']) + '_' + str(depth)
+		    band_headers.append(column_header)
                 if agreement == False:
 	            diffs_exist = True
-	            diffs_depths.append(depth)
                     diffs_band = abs(all_test_data[cell][variable][depth] - all_base_data[cell][variable][depth])
-		    diff = np.max(diffs_band) 
-                    max_diff = diff if diff > max_diff else max_diff # running max of differences across all bands
+                    if csv_out == True:
+        	        #diffs_band_table = np.column_stack([diffs_band_table, diffs_band[depth]])        
+        	        diffs_band_table = np.column_stack([diffs_band_table, diffs_band])        
+	                diffs_band_headers.append(column_header)
+	            diffs_depths.append(depth)
+		    max_temp = np.max(diffs_band) 
+                    max_diff = max_temp if max_temp > max_diff else max_diff # running max of differences across all bands
 		    num_diffs += len(diffs_band) # running number of differences across all bands
 	    if not diffs_depths: # no differences were found at any depth
                 print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement)
@@ -282,25 +300,6 @@ for cell in cell_labels:
 	        print 'Number of different entries across all bands: {} '.format(num_diffs), 
 	        print 'Maximum absolute difference across all bands: {})'.format(max_diff) 
 
-        if csv_out == True:
-            if len(baseH5[variable].shape) == 4: # write out all layers to another CSV file
-		# Note: this assumes that 4D variables in the test and base files have the same depths
-		for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
-               	    test_band_table = np.column_stack([test_band_table, all_test_data[cell][variable][depth]])
-	            base_band_table = np.column_stack([base_band_table, all_base_data[cell][variable][depth]])
-		    column_header = str(inputH5[variable].attrs['internal_vic_name']) + '_' + str(depth)
-		    band_headers.append(column_header)
-		    if agreement == False:	
-        	        diffs_band_table = np.column_stack([diffs_band_table, diffs_band[depth]])        
-	                diffs_band_headers.append(column_header)
-            elif len(baseH5[variable].shape) == 3:
-		column_header = str(inputH5[variable].attrs['internal_vic_name'])
-                general_headers.append(column_header)
-                test_table = np.column_stack([test_table, all_test_data[cell][variable]])
-                base_table = np.column_stack([base_table, all_base_data[cell][variable]])
-                if agreement == False:
-                    diffs_table = np.column_stack([diffs_table, diffs])        
-                    diffs_headers.append(column_header) 
                 
     if csv_out == True:
 	if csv_diffs_only == False:
