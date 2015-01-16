@@ -133,15 +133,11 @@ for lat in lats:
                 if len(inputH5[variable].shape) == 4: # 4D variable
 		    if pos_depth_dim_test == 1: # <time, depth, lat, lon>
 			for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
-                            #all_test_data[cell_label][variable][:,depth] = inputH5[variable][:,depth,lat_to_idx[lat],lon_to_idx[lon]]
                             all_test_data[cell_label][variable][depth] = inputH5[variable][:,depth,lat_to_idx[lat],lon_to_idx[lon]]
 		    elif pos_depth_dim_test == 3: # <time, lat, lon, depth>
 			for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
 			    #print 'cell_label: {} variable: {} depth: {}'.format(cell_label, variable, depth)
-                            #print 'shape: {}'.format(all_test_data[cell_label][variable].shape)
-                            #all_test_data[cell_label][variable][:,depth] = inputH5[variable][:,lat_to_idx[lat],lon_to_idx[lon],depth]
                             all_test_data[cell_label][variable][depth] = inputH5[variable][:,lat_to_idx[lat],lon_to_idx[lon],depth]
-                            #all_test_data[cell_label][variable] = inputH5[variable][:,lat_to_idx[lat],lon_to_idx[lon],depth]
 		    else:
 			print 'The declared depth dimension position {} for a time-major NetCDF test file is not supported.'.format(pos_depth_dim_test)
 			sys.exit(0)
@@ -152,7 +148,6 @@ for lat in lats:
                 if len(inputH5[variable].shape) == 4: # 4D variable
 		    if pos_depth_dim_test == 0: # <depth, lat, lon, time>
 			for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
-  	               # depth = inputH5[variable].shape[pos_depth_dim_test] # gets actual depth of this variable in the NetCDF
 	                    all_test_data[cell_label][variable][depth] = inputH5[variable][depth,lat_to_idx[lat],lon_to_idx[lon],:]
 		    else:
 			print 'The declared depth dimension position {} for a cell-major NetCDF test file is not supported.'.format(pos_depth_dim_test)
@@ -161,8 +156,6 @@ for lat in lats:
                     all_test_data[cell_label][variable] = inputH5[variable][lat_to_idx[lat],lon_to_idx[lon],:]
             if verbose:
 		if len(inputH5[variable].shape) == 4: # 4D variable
-		    #print 'TEST cell: {} variable: {} data: {}'.format(cell_label, variable, all_test_data[cell_label][variable][start_range:end_range, depth_check])
-                    #print 'TEST cell: {} variable: {} data: {}'.format(cell_label, variable, all_test_data[cell_label][variable][depth_check, start_range:end_range])
                     print 'TEST cell: {} variable: {} data: {}'.format(cell_label, variable, all_test_data[cell_label][variable][depth_check][start_range:end_range])
 		    pass
                 elif len(inputH5[variable].shape) == 3: # 3D variable
@@ -229,8 +222,8 @@ for lat_label in lats:
 
 ## compare test data against base data
 print'Checking agreement between test output data with base values:'
-diffs_exist = False
 for cell in cell_labels:
+    diffs_exist = False
     # if we want to output the test dataset to CSV format for inspection
     if csv_out == True:
         # time will form the first column of the output tables
@@ -257,9 +250,19 @@ for cell in cell_labels:
                 agreement = np.array_equal(all_test_data[cell][variable], all_base_data[cell][variable])
             if agreement == False:
 		diffs_exist = True
-            print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement)
+                diffs = abs(all_test_data[cell][variable] - all_base_data[cell][variable])
+		num_diffs = len(diffs)
+		max_diff = np.max(diffs)
+                print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement),
+	        print '(Number of different entries: {} '.format(num_diffs), 
+	        print 'Maximum absolute difference: {})'.format(max_diff) 
+	    else:
+                print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement)
+
 	elif len(inputH5[variable].shape) == 4: # 4D variable
 	    diffs_depths = []
+ 	    max_diff = 0
+            num_diffs = 0
 	    for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
                 if tolerance > 0:
                     agreement = np.allclose(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
@@ -267,28 +270,17 @@ for cell in cell_labels:
                     agreement = np.array_equal(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
                 if agreement == False:
 	            diffs_exist = True
-	            diffs_depths.append(depth) 
-	    if not diffs_depths:
+	            diffs_depths.append(depth)
+                    diffs_band = abs(all_test_data[cell][variable][depth] - all_base_data[cell][variable][depth])
+		    diff = np.max(diffs_band) 
+                    max_diff = diff if diff > max_diff else max_diff # running max of differences across all bands
+		    num_diffs += len(diffs_band) # running number of differences across all bands
+	    if not diffs_depths: # no differences were found at any depth
                 print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement)
 	    else:
-                print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': ' + str(agreement) + ' (at depths ' + str(diffs_depths) + ')'
-
-	if agreement == False: # if we have disagreement on this variable
-            if len(baseH5[variable].shape) == 3: # 3D variable
-                diffs = abs(all_test_data[cell][variable] - all_base_data[cell][variable])
-		num_diffs = len(diffs)
-		max_diff = np.max(diffs)
-	        print 'Number of different entries: {}'.format(num_diffs) 
-	        print 'Maximum absolute difference: {}'.format(max_diff) 
-            elif len(baseH5[variable].shape) == 4: # 4D variable
-		# Note: this assumes that 4D variables in the test and base files have the same depths
-	        for depth in range(0, inputH5[variable].shape[pos_depth_dim_test]):
-                    diffs_band = abs(all_test_data[cell][variable][depth] - all_base_data[cell][variable][depth])
-		    num_diffs = len(diffs_band)
-    		    max_diff = np.max(diffs_band)
-		    if num_diffs > 0:
- 	                print 'Number of different entries at depth {}: {}'.format(depth, num_diffs) 
-	                print 'Maximum absolute difference: {}'.format(max_diff) 
+                print '    ' + str(inputH5[variable].attrs['internal_vic_name']) + ': False ' + '(Differences at depths ' + str(diffs_depths) + ' ',
+	        print 'Number of different entries across all bands: {} '.format(num_diffs), 
+	        print 'Maximum absolute difference across all bands: {})'.format(max_diff) 
 
         if csv_out == True:
             if len(baseH5[variable].shape) == 4: # write out all layers to another CSV file
@@ -300,15 +292,15 @@ for cell in cell_labels:
 		    band_headers.append(column_header)
 		    if agreement == False:	
         	        diffs_band_table = np.column_stack([diffs_band_table, diffs_band[depth]])        
-			column_header = str(inputH5[variable].attrs['internal_vic_name']) + '_' + str(depth)
 	                diffs_band_headers.append(column_header)
             elif len(baseH5[variable].shape) == 3:
-                general_headers.append(inputH5[variable].attrs['internal_vic_name'])
+		column_header = str(inputH5[variable].attrs['internal_vic_name'])
+                general_headers.append(column_header)
                 test_table = np.column_stack([test_table, all_test_data[cell][variable]])
                 base_table = np.column_stack([base_table, all_base_data[cell][variable]])
                 if agreement == False:
                     diffs_table = np.column_stack([diffs_table, diffs])        
-                    diffs_headers.append(inputH5[variable].attrs['internal_vic_name']) 
+                    diffs_headers.append(column_header) 
                 
     if csv_out == True:
 	if csv_diffs_only == False:
