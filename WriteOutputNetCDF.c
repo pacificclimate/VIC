@@ -367,7 +367,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   // Define dimension orders.
   // If you change the ordering, make sure you also change the order that variables are written in the WriteOutputNetCDF::write_data() method.
   const NcDim dim3Vals [] = { timeDim, latDim, lonDim };
-  const NcDim dim4Vals [] = { timeDim, latDim, lonDim, valuesDim };
+  const NcDim dim4Vals [] = { timeDim, valuesDim, latDim, lonDim };
   std::vector<NcDim> dimensions3(dim3Vals, dim3Vals + 3);
   std::vector<NcDim> dimensions4(dim4Vals, dim4Vals + 4);
 
@@ -450,7 +450,7 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
   // If the z dimension position changes also change the count4 vector update inside the nested loop below.
   const size_t start3Vals [] = { timeIndex, latIndex, lonIndex };     // (t, y, x)
   const size_t count3Vals [] = { 1,1,1 };
-  const size_t start4Vals [] = { timeIndex, latIndex, lonIndex, 0 };  // (t, y, x, z)
+  const size_t start4Vals [] = { timeIndex, 0, latIndex, lonIndex };  // (t, z, y, x)
   const size_t count4Vals [] = { 1,1,1,1 };
   std::vector<size_t> start3(start3Vals, start3Vals + 3), count3(count3Vals, count3Vals + 3);
   std::vector<size_t> start4(start4Vals, start4Vals + 4), count4(count4Vals, count4Vals + 4);
@@ -463,7 +463,7 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
       bool use4Dimensions = out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
-      count4.at(3) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
+      count4.at(1) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
 
       try {
         NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;
