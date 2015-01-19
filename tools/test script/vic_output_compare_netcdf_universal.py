@@ -95,7 +95,7 @@ time_len = len(inputH5['time'])
 # grab the depth of 4-dimension variables
 #depth = len(inputH5['depth'])
 
-# grab NaN fill value of non-initialized NetCDF records from one standard attribute
+# grab NaN fill value of non-initialized NetCDF records from one common attribute (precipitation)
 fill_value = baseH5['pr'].attrs['_FillValue']
 
 # grab lat and lon dimensions of grid cells
@@ -116,7 +116,7 @@ del cell_data_keys['depth']
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)
 
-# create one big nested dictionary with all data for all cells
+# create a big nested dictionary with all data for all cells, one for test data and one for out_base data
 all_test_data = tree()
 all_base_data = tree()
 
@@ -154,10 +154,10 @@ for lat in lats:
                     all_test_data[cell_label][variable] = inputH5[variable][lat_to_idx[lat],lon_to_idx[lon],:]
             if verbose:
 		if len(inputH5[variable].shape) == 4: # 4D variable
-                    print 'TEST cell: {} variable: {} data: {}'.format(cell_label, variable, all_test_data[cell_label][variable][depth_check][start_range:end_range])
+                    print 'TEST cell: {} variable: {} data: {}'.format(cell_label, inputH5[variable].attrs['internal_vic_name'], all_test_data[cell_label][variable][depth_check][start_range:end_range])
 		    pass
                 elif len(inputH5[variable].shape) == 3: # 3D variable
-		    print 'TEST cell: {} variable: {} data: {}'.format(cell_label, variable, all_test_data[cell_label][variable][start_range:end_range])
+		    print 'TEST cell: {} variable: {} data: {}'.format(cell_label, inputH5[variable].attrs['internal_vic_name'], all_test_data[cell_label][variable][start_range:end_range])
 	    # overwrite all NaNs (fill values) with 0	    	
             if len(inputH5[variable].shape) == 3: # 3D variable
                 all_test_data[cell_label][variable][all_test_data[cell_label][variable] == fill_value] = 0
@@ -183,7 +183,6 @@ for lat in lats:
                 if len(baseH5[variable].shape) == 4: # 4D variable
 		    if pos_depth_dim_base == 0: # <depth, lat, lon, time>
 			for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-       	                #depth = baseH5[variable].shape[pos_depth_dim_base] # gets actual depth of this variable in the NetCDF
                             all_base_data[cell_label][variable][depth] = baseH5[variable][depth,lat_to_idx[lat],lon_to_idx[lon],:]
 		    else:
 			print 'The declared depth dimension position {} for a cell-major NetCDF base file is not supported.'.format(pos_depth_dim_base)
@@ -192,9 +191,9 @@ for lat in lats:
                     all_base_data[cell_label][variable] = baseH5[variable][lat_to_idx[lat],lon_to_idx[lon],:]
             if verbose:
 		if len(baseH5[variable].shape) == 4:
-                    print 'BASE cell: {} variable: {} data: {}'.format(cell_label, variable, all_base_data[cell_label][variable][depth_check][start_range:end_range])
+                    print 'BASE cell: {} variable: {} data: {}'.format(cell_label, baseH5[variable].attrs['internal_vic_name'], all_base_data[cell_label][variable][depth_check][start_range:end_range])
 		elif len(baseH5[variable].shape) == 3:
-		    print 'BASE cell: {} variable: {} data: {}'.format(cell_label, variable, all_base_data[cell_label][variable][start_range:end_range])
+		    print 'BASE cell: {} variable: {} data: {}'.format(cell_label, baseH5[variable].attrs['internal_vic_name'], all_base_data[cell_label][variable][start_range:end_range])
 #                    raw_input("Press enter to continue.")
 #                    continue
                   

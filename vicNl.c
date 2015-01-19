@@ -371,6 +371,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
      Run Model for all Grid Cells, one Time Step at a time
   ********************************************************/
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+
+  	// Meteorological forcings for entire time range is written in one shot for each grid cell
+  	if (rec > 0 && state->options.OUTPUT_FORCE) break;
+
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
       // Initialize all cells on first time step
