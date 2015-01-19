@@ -56,27 +56,18 @@ end_range = options.end_range
 tolerance = options.tolerance
 depth_check = options.depth_check
 
-
-### Get data from test output
-#h5 = h5py.File('/home/mfischer/vic_dev/out/testing/results.nc', 'r')
-inputH5 = h5py.File(testfile, 'r')
-
 # print interpretation of input
 print 'Checking test file {} against base file {}'.format(testfile, basefile)
 
 if test_is_time_major:
-  print 'Test file declared as time-major'
+  print 'Test file declared as time-major with depth dimension in position {}'.format(pos_depth_dim_test)
 else:
-  print 'Test file declared as cell-major'
-
-# out_base file
-#out_base_file = h5py.File('/home/mfischer/vic_dev/out_base/place/netcdf/false/results.nc')
-baseH5 = h5py.File(basefile, 'r')
+  print 'Test file declared as cell-major with depth dimension in position {}'.format(pos_depth_dim_test)
 
 if base_is_time_major:
-  print 'Base file declared as time-major'
+  print 'Base file declared as time-major with depth dimension in position {}'.format(pos_depth_dim_base)
 else:
-  print 'Base file declared as cell-major'
+  print 'Base file declared as cell-major with depth dimension in position {}'.format(pos_depth_dim_base)
 
 print 'Verbose output (--v): {}'.format(verbose)
 if verbose == True:
@@ -89,6 +80,14 @@ if csv_out == True:
   print 'CSV output selected (--csv).'
   if csv_diffs_only == True:
     print 'Only differences between input files will be saved (-csv_diffs_only).'
+
+# Open test output NetCDF file
+#inputh5 = h5py.File('/home/mfischer/vic_dev/out/testing/results.nc', 'r')
+inputH5 = h5py.File(testfile, 'r')
+
+# Open out_base NetCDF file
+#baseH5 = h5py.File('/home/mfischer/vic_dev/out_base/place/netcdf/false/results.nc')
+baseH5 = h5py.File(basefile, 'r')
 
 # grab the number of time records
 time_len = len(inputH5['time'])
@@ -123,7 +122,6 @@ all_base_data = tree()
 
 # load up all_test_data
 for lat in lats:
-    print 'depth_check: {}'.format(depth_check)
     for lon in lons:
         cell_label = '{}_{}'.format(lat, lon)
         if verbose:
@@ -276,7 +274,7 @@ for cell in cell_labels:
                 if tolerance > 0:
                     agreement = np.allclose(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
 	        else:
-                    agreement = np.array_equal(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth], 0, tolerance)
+                    agreement = np.array_equal(all_test_data[cell][variable][depth], all_base_data[cell][variable][depth])
                 if csv_out == True:
                     test_band_table = np.column_stack([test_band_table, all_test_data[cell][variable][depth]])
 	            base_band_table = np.column_stack([base_band_table, all_base_data[cell][variable][depth]])
