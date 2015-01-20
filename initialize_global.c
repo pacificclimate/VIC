@@ -178,7 +178,7 @@ void ProgramState::initialize_global() {
   options.OUTPUT_FORMAT         = OutputFormat::ASCII_FORMAT;
   options.COMPRESS              = FALSE;
   options.MOISTFRACT            = FALSE;
-  options.Noutfiles             = 2;
+  options.Noutfiles             = 1; // Minimum case - there's only one output file per grid cell in ASCII mode when OUTPUT_FORCE=TRUE
   options.PRT_HEADER            = FALSE;
   options.PRT_SNOW_BAND         = FALSE;
 

@@ -178,6 +178,10 @@ int main(int argc, char *argv[])
 
   }
 
+#if VERBOSE
+  fprintf(stderr, "VIC exiting.\n");
+#endif /* VERBOSE */
+
   return EXIT_SUCCESS;
 } /* End Main Program */
 
@@ -385,6 +389,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
         // Skip to the next cell if unable to initialize the current cell.
         if (initError == ERROR) {
+        	// cell_data_structs[cellidx].validCell = FALSE
           if (state->options.CONTINUEONERROR == TRUE) {
             fprintf(stderr, "An error occurred when initializing this cell (gridcell: %d), skipping it...\n", cell_data_structs[cellidx].soil_con.gridcel);
             continue;
@@ -394,6 +399,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
           }
         } //FIXME: with new loop nesting order we will need to prevent running the model for uninitialized (invalid) cells when rec > 0
       }
+      //else {
+      	//if (!cell_data_structs[cellidx].validCell)
+      	//  continue;
+      //}
 
       // This object takes care of setting up the right output format, and deleting the object when it goes out of scope
       WriteOutputContext writeOutContext(state);
@@ -405,11 +414,13 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
       /* Build output filename(s), and open
         (ASCII/binary output format will make one file per grid; NetCDF will make one file to rule them all) */
-      make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
+      if (rec == 0) {
+        make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, outputFormat, state);
+      }
 
       // Write output file headers at initialization (does nothing in the NetCDF output format case)
       if (rec == 0 && state->options.PRT_HEADER) {
-      outputFormat->write_header(current_output_data, dmy, state);
+        outputFormat->write_header(current_output_data, dmy, state);
       }
 
     //TODO: These error files should not be global like this
@@ -421,7 +432,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       forcing data array is written to file(s), and the full model run is skipped. */
       if (state->options.OUTPUT_FORCE) {
         write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, outputFormat, out_data, state, dmy);
-        continue; //FIXME: this should only run once per cell, not for all time steps
+        continue;
       }
 
       // Initialize storage terms on first time step

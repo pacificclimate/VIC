@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 """ This script checks any two VIC NetCDF output files against each other, even if one is
- time-major and the other is cell-major (just set the input parameters accordingly).
+ time-major and the other is cell-major (just set the command line parameters accordingly).
   
- Usage: ./values_check_universal.py <path to test file> <test time-major?> <path to base file> <base time-major?>
- where time-majorness is indicated by a 't' after each input file"""
+ For usage information: ./values_check_universal.py --help """
  
 import sys
 import argparse
