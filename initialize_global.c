@@ -128,7 +128,7 @@ void ProgramState::initialize_global() {
   options.AERO_RESIST_CANSNOW   = AR_406_FULL;
   options.BLOWING               = FALSE;
   options.COMPUTE_TREELINE      = FALSE;
-  options.CONTINUEONERROR       = TRUE;
+  options.CONTINUEONERROR       = FALSE;
   options.CORRPREC              = FALSE;
   options.DIST_PRCP             = FALSE;
   options.EQUAL_AREA            = FALSE;
