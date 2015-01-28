@@ -1532,6 +1532,8 @@ private:
   double     *DELTA_H;
 };
 
+class ProgramState;
+
 /***********************************************************
   This structure stores the per-cell data that must exist
   before or after running the model for that cell; also
@@ -1540,10 +1542,12 @@ private:
   ***********************************************************/
 struct cell_info_struct {
   cell_info_struct() : isValid(TRUE), Cv_sum(0), atmos(NULL) {}
+//  	cell_info_struct(ProgramState state) : isValid(TRUE), Cv_sum(0), atmos(NULL), outputContext(new WriteOutputContext(state)), outputFormat(outputContext.outputFormat) {}
   soil_con_struct  soil_con;
   char             ErrStr[MAXSTRING];
   bool						isValid;	// to indicate if a cell was properly initialized for the model run
   double           Cv_sum;           /* total fraction of vegetation coverage */
+  WriteOutputFormat *outputFormat; // to keep track of the output dataFiles associated with this cell (ASCII mode mainly)
   WriteDebug      writeDebug;
   dist_prcp_struct prcp;
   lake_con_struct  lake_con;
@@ -1552,6 +1556,15 @@ struct cell_info_struct {
   CellBalanceErrors cellErrors;
   FallBackStats fallBackStats;
 };
+/*
+cell_info_struct::cell_info_struct(ProgramState state){
+	isValid = TRUE;
+	Cv_sum = 0;
+	atmos = NULL;
+	outputContext = new WriteOutputContext(state);
+	outputFormat= outputContext->outputFormat;
+}
+*/
 
 /********************************************************
   This structure holds all the meta state of the program.

@@ -355,6 +355,8 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state);
+//void copy_output_format(WriteOutputContext* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
+void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
 
