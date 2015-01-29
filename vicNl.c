@@ -10,6 +10,9 @@
 #include <sstream>
 #include <vector>
 
+#include "WriteOutputAscii.h"
+#include "WriteOutputBinary.h"
+#include "WriteOutputNetCDF.h"
 
 static char vcid[] = "$Id: vicNl.c,v 5.14.2.19 2011/01/05 22:35:53 vicadmin Exp $";
 
@@ -237,12 +240,19 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     }
     if (is_valid_soil_cell) {
       cell_info_struct currentCell;
-
-//      WriteOutputContext writeOutContext(state);
-//      WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
-//      memcpy(currentCell.outputFormat, outputFormat, sizeof(WriteOutputFormat));
-
       currentCell.soil_con = temp_soil_con;
+
+      if (state.options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT) {
+      	currentCell.outputFormat = new WriteOutputBinary(&state);
+  #if NETCDF_OUTPUT_AVAILABLE
+      }
+      else if (state.options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+      	currentCell.outputFormat = new WriteOutputNetCDF(&state);
+  #endif
+      } else {
+      	currentCell.outputFormat = new WriteOutputAscii(&state);
+      }
+
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
@@ -375,21 +385,14 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data,
     dmy_struct* dmy, const ProgramState* state) {
 
-  WriteOutputContext writeOutContext(state);
-  WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
-
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
-  	int initError = 0;
+	  int initError = 0;
     initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     if (initError == ERROR) {
-    	cell_data_structs[cellidx].isValid = FALSE;
+  	  cell_data_structs[cellidx].isValid = FALSE;
     }
-
-    //cell_data_structs[cellidx].outputFormat = writeOutContext.outputFormat; // probably need a copy_output_format function here
-
-    memcpy(cell_data_structs[cellidx].outputFormat, writeOutContext.outputFormat, sizeof(WriteOutputFormat));
 
     // Copy the format of the out_data_files_struct template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
@@ -422,10 +425,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     	// If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
     	if (cell_data_structs[cellidx].isValid == FALSE) continue;
-
-      // This object takes care of setting up the right output format, and deleting the object when it goes out of scope
-//      WriteOutputContext writeOutContext(state);
-//      WriteOutputFormat* outputFormat = writeOutContext.outputFormat;
 
       // Use out_data as a template for the current_output_data, the output data for this cell on this time iteration
       out_data_struct* current_output_data = copy_output_data(out_data, state);
@@ -514,7 +513,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       }
 #endif /* QUICK_FS */
       // Close output files and free up current_output_data for this cell
-//      outputFormat->cleanup();  NOTE: uncomment this if the nesting of outputFormat in cell_data_structs doesn't work out!
       free_out_data(&current_output_data);
     } // for - grid cell loop
   } // for - time loop
@@ -533,7 +531,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     free(cell_data_structs[cellidx].soil_con.Tfactor);
     free(cell_data_structs[cellidx].soil_con.Pfactor);
     free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
-//    free(cell_data_structs[cellidx].outputFormat);  // NOTE: remove this if  the nesting of outputFormat in cell_data_structs doesn't work out!
   }
 
 }  // runModel
