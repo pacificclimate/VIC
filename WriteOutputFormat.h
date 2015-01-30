@@ -24,6 +24,7 @@ public:
 
   virtual const char* getDescriptionOfOutputType() = 0;
   virtual void openFile() = 0;
+//  virtual void openFile(filep_struct*, filenames_struct*, soil_con_struct*, WriteOutputFormat*&, const ProgramState*&) = 0;
   virtual void cleanup() {
     // Close Output Files and free memory (if any).
     for (unsigned int filenum=0; filenum<dataFiles.size(); filenum++) {
@@ -46,6 +47,7 @@ public:
   virtual void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state) = 0;
 
   std::vector<out_data_file_struct*> dataFiles;
+  std::string netCDFOutputFileName;
   float lat;
   float lon;
 private:

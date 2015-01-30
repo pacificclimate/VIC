@@ -31,13 +31,13 @@ public:
   // This should only be called once per invocation of VIC. It creates a fresh netCDF output file.
   void initializeFile(const ProgramState*);
   void openFile();
+//  void openFile(filep_struct *filep, filenames_struct *filenames, soil_con_struct *soil, WriteOutputFormat *output, const ProgramState *state);
   void compressFiles();
   void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state);
   void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state);
 private:
   std::map<std::string, VariableMetaData> getMapping(bool isHourly = false);
   std::map<std::string, VariableMetaData> mapping;
-  std::string netCDFOutputFileName;
   netCDF::NcFile* netCDF;
   int timeIndexDivisor;
 };

@@ -101,14 +101,19 @@ void make_out_files(filep_struct         *filep,
   output->lat = soil->lat;
   output->lon = soil->lng;
 
-  for (unsigned int filenum=0; filenum < output->dataFiles.size(); filenum++) {
-    strcpy(output->dataFiles[filenum]->filename, filenames->result_dir);
-    strcat(output->dataFiles[filenum]->filename, "/");
-    strcat(output->dataFiles[filenum]->filename, output->dataFiles[filenum]->prefix);
-    strcat(output->dataFiles[filenum]->filename, "_");
-    strcat(output->dataFiles[filenum]->filename, latchar);
-    strcat(output->dataFiles[filenum]->filename, "_");
-    strcat(output->dataFiles[filenum]->filename, lngchar);
+  if (state->options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT) {
+		for (unsigned int filenum=0; filenum < output->dataFiles.size(); filenum++) {
+			strcpy(output->dataFiles[filenum]->filename, filenames->result_dir);
+			strcat(output->dataFiles[filenum]->filename, "/");
+			strcat(output->dataFiles[filenum]->filename, output->dataFiles[filenum]->prefix);
+			strcat(output->dataFiles[filenum]->filename, "_");
+			strcat(output->dataFiles[filenum]->filename, latchar);
+			strcat(output->dataFiles[filenum]->filename, "_");
+			strcat(output->dataFiles[filenum]->filename, lngchar);
+		}
   }
+	else if (state->options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+		output->netCDFOutputFileName.assign(state->options.NETCDF_FULL_FILE_PATH);
+	}
   output->openFile();
 }

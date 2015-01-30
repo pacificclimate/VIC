@@ -401,6 +401,13 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].outputFormat, state);
 
+    // Write output file headers at initialization (does nothing in the NetCDF output format case)
+    if (state->options.PRT_HEADER) {
+      // Use out_data as a template for the current_output_data, used for constructing the header of the output file (in ASCII mode)
+      out_data_struct* current_output_data = copy_output_data(out_data, state);
+      cell_data_structs[cellidx].outputFormat->write_header(current_output_data, dmy, state);
+    }
+
     /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
     forcing data array is written to file(s), and the full model run is skipped. */
     if (state->options.OUTPUT_FORCE) {
@@ -428,13 +435,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
       // Use out_data as a template for the current_output_data, the output data for this cell on this time iteration
       out_data_struct* current_output_data = copy_output_data(out_data, state);
-
-      if (rec == 0) {
-        // Write output file headers at initialization (does nothing in the NetCDF output format case)
-        if (state->options.PRT_HEADER) {
-       	  cell_data_structs[cellidx].outputFormat->write_header(current_output_data, dmy, state);
-        }
-      }
 
     //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
@@ -531,6 +531,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     free(cell_data_structs[cellidx].soil_con.Tfactor);
     free(cell_data_structs[cellidx].soil_con.Pfactor);
     free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
+    delete cell_data_structs[cellidx].outputFormat;
   }
 
 }  // runModel
