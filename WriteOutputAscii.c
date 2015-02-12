@@ -6,37 +6,6 @@ void WriteOutputAscii::openFile(){
 	}
 }
 
-/*void WriteOutputAscii::openFile(filep_struct *filep,
-    filenames_struct     *filenames,
-    soil_con_struct      *soil,
-    WriteOutputFormat    *output,
-    const ProgramState   *state) {
-
-  char   latchar[20], lngchar[20], junk[6];
-
-  sprintf(junk, "%%.%if", state->options.GRID_DECIMAL);
-  sprintf(latchar, junk, soil->lat);
-  sprintf(lngchar, junk, soil->lng);
-
-  output->lat = soil->lat;
-  output->lon = soil->lng;
-
-  for (unsigned int filenum=0; filenum < output->dataFiles.size(); filenum++) {
-    strcpy(output->dataFiles[filenum]->filename, filenames->result_dir);
-    strcat(output->dataFiles[filenum]->filename, "/");
-    strcat(output->dataFiles[filenum]->filename, output->dataFiles[filenum]->prefix);
-    strcat(output->dataFiles[filenum]->filename, "_");
-    strcat(output->dataFiles[filenum]->filename, latchar);
-    strcat(output->dataFiles[filenum]->filename, "_");
-    strcat(output->dataFiles[filenum]->filename, lngchar);
-  }
-
-  for (unsigned int i = 0; i < output->dataFiles.size(); i++) {
-    output->dataFiles[i]->fh = open_file(output->dataFiles[i]->filename, "w");
-  }
-}*/
-
-
 void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt,
     const ProgramState* state) {
   // Loop over output files

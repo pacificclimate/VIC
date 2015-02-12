@@ -452,6 +452,28 @@ void StateIONetCDF::populateMetaData() {
   metaData[LAKE_SALBEDO] =            StateVariableMetaData("LAKE_SALBEDO");
   metaData[LAKE_SDEPTH] =             StateVariableMetaData("LAKE_SDEPTH");
 
+  // newly added by MDF
+  metaData[SNOW_ALBEDO] = StateVariableMetaData("SNOW_ALBEDO");
+  metaData[SNOW_CANOPY_ALBEDO] = StateVariableMetaData("SNOW_CANOPY_ALBEDO");
+  metaData[SNOW_DEPTH] = StateVariableMetaData("SNOW_DEPTH");
+  metaData[SNOW_SURF_TEMP_FBCOUNT] = StateVariableMetaData("SNOW_SURF_TEMP_FBCOUNT");
+  metaData[SNOW_SURF_TEMP_FBFLAG] = StateVariableMetaData("SNOW_SURF_TEMP_FBFLAG");
+  metaData[SNOW_TMP_INT_STORAGE] = StateVariableMetaData("SNOW_TMP_INT_STORAGE");
+  metaData[SNOW_SURFACE_FLUX] = StateVariableMetaData("SNOW_SURFACE_FLUX");
+  metaData[SNOW_VAPOR_FLUX] = StateVariableMetaData("SNOW_VAPOR_FLUX");
+  metaData[GLAC_SURF_TEMP] = StateVariableMetaData("GLAC_SURF_TEMP");
+  metaData[GLAC_SURF_TEMP_FBCOUNT] = StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT");
+  metaData[GLAC_SURF_TEMP_FBFLAG] = StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG");
+  metaData[GLAC_QNET] = StateVariableMetaData("GLAC_QNET");
+  metaData[GLAC_CUM_MASS_BALANCE] = StateVariableMetaData("GLAC_CUM_MASS_BALANCE");
+  metaData[GLAC_VAPOR_FLUX] = StateVariableMetaData("GLAC_VAPOR_FLUX");
+  metaData[GLAC_WATER_STORAGE] = StateVariableMetaData("GLAC_WATER_STORAGE");
+  metaData[ENERGY_T_FBCOUNT] = StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
+  metaData[ENERGY_TCANOPY_FBCOUNT] = StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT");
+  metaData[ENERGY_TFOLIAGE] = StateVariableMetaData("ENERGY_TFOLIAGE");
+  metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT");
+  metaData[ENERGY_TSURF_FBCOUNT] = StateVariableMetaData("ENERGY_TSURF_FBCOUNT");
+
   // Make type adjustments if required (default type is double).
   metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
   metaData[INIT_DRY_TIME].type = netCDF::NcType::nc_INT;
@@ -459,6 +481,7 @@ void StateIONetCDF::populateMetaData() {
   metaData[HRU_BAND_INDEX].type = netCDF::NcType::nc_INT;
   metaData[SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
   metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
+
 }
 
 #endif // NETCDF_OUTPUT_AVAILABLE

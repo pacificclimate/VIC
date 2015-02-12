@@ -265,7 +265,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 
     /* Write soil thermal node temperatures */
     stream->process(it->energy.T, state->options.Nnode, ENERGY_T);
-    stream->process(it->energy.T_fbcount, state->options.Nnode, ENERGY_T_FBCOUNT); //new
+    stream->process(it->energy.T_fbcount, state->options.Nnode, ENERGY_T_FBCOUNT); //new  -- is the error here?
     stream->process(&it->energy.Tcanopy_fbcount, 1, ENERGY_TCANOPY_FBCOUNT); //new
     stream->process(&it->energy.Tfoliage, 1, ENERGY_TFOLIAGE); //new
     stream->process(&it->energy.Tfoliage_fbcount, 1, ENERGY_TFOLIAGE_FBCOUNT); //new

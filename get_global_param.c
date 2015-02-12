@@ -1174,7 +1174,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     }
 
     //validate and set Noutfiles based on set options
-    options.Noutfiles = 2;
+    options.Noutfiles = 2;  // This is the default for the OUTPUT_FORCE=FALSE case
     if (options.FROZEN_SOIL) {
       options.Noutfiles++;
     }

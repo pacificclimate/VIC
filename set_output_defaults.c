@@ -37,9 +37,8 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, const Progr
   int varnum;
 
   if (state->options.OUTPUT_FORCE) {
-    //#error // OUTPUT_FORCE is an untested code path. Continue at your own risk!
-    // Output files
-    //  state->options.Noutfiles = 1;
+    // The number of output files is just one per grid cell in meteorological disaggregator mode (OUTPUT_FORCE=TRUE)
+    // state->options.Noutfiles is equal to 1 by default
     out_data_files = new out_data_file_struct[state->options.Noutfiles];
     strcpy(out_data_files[0].prefix,"full_data");
     out_data_files[0].nvars = 8;
