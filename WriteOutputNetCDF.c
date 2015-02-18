@@ -42,7 +42,7 @@ void WriteOutputNetCDF::openFile() {
 //TODO: fill in all variables
 std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHourly) {
   std::map<std::string, VariableMetaData> mapping;
-  mapping["OUT_PREC"] =       VariableMetaData("kg m-2 s-1", "pr", "precipitation_flux", "Precipitation", "time: mean");
+  mapping["OUT_PREC"] =       VariableMetaData("kg m-2 s-1", "OUT_PREC", "precipitation_flux", "Precipitation", "time: mean");
   mapping["OUT_EVAP"] =       VariableMetaData("kg m-2 s-1", "evspsbl", "water_evaporation_flux", "Evaporation", "time: mean");
   mapping["OUT_RUNOFF"] =     VariableMetaData("kg m-2 s-1", "mrro", "runoff_flux", "Total Runoff", "time: mean area: mean where land ");
   mapping["OUT_BASEFLOW"] =     VariableMetaData("mm", "OUT_BASEFLOW", "", "baseflow out of the bottom layer", "");
@@ -66,8 +66,9 @@ std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHou
   mapping["OUT_ALBEDO"] =     VariableMetaData("%", "OUT_ALBEDO", "", "average surface albedo", "");
   mapping["OUT_REL_HUMID"] =  VariableMetaData("%", "hur", "relative_humidity", "Relative Humidity", "time: mean");
   mapping["OUT_IN_LONG"] =    VariableMetaData("W m-2", "rlds", "surface_downwelling_longwave_flux_in_air", "Surface Downwelling Longwave Radiation", "time: mean");
-  mapping["OUT_AIR_TEMP"] =   VariableMetaData("K", "ta", "air_temperature", "Air Temperature", "time: mean");
-  mapping["OUT_WIND"] =       VariableMetaData("m s-1", "sfcWind", "wind_speed", "Daily-Mean Near-Surface Wind Speed", "time: mean");
+  mapping["OUT_AIR_TEMP"] =   VariableMetaData("K", "OUT_AIR_TEMP", "air_temperature", "Air Temperature", "time: mean");
+  //mapping["OUT_WIND"] =       VariableMetaData("m s-1", "sfcWind", "wind_speed", "Daily-Mean Near-Surface Wind Speed", "time: mean");
+  mapping["OUT_WIND"] =       VariableMetaData("m s-1", "OUT_WIND", "wind_speed", "Daily-Mean Near-Surface Wind Speed", "time: mean");
   mapping["OUT_SWE"] =        VariableMetaData("kg m-2 s-1", "prsn", "snowfall_flux", "Snowfall Flux", "time: mean");
   mapping["OUT_SNOW_DEPTH"] = VariableMetaData("m", "snd", "surface_snow_thickness", "Snow Depth", "time: mean area: mean where land");
   mapping["OUT_SNOW_CANOPY"] = VariableMetaData("kg m-2", "snveg", "veg_snow_amount", "Canopy Snow Amount", "time: mean area: mean where land"); // NOTE: PCIC made this up.
@@ -301,7 +302,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
   NcVar timeVar = ncFile.addVar("time", ncFloat, timeDim);
   NcVar valuesVar = ncFile.addVar("depth", ncFloat, valuesDim);
 
-  //FIXME: add the bounds variables for each of time, lat, lon
   latVar.putAtt("axis", "Y");
   latVar.putAtt("units", "degrees_north");
   latVar.putAtt("standard name", "latitude");

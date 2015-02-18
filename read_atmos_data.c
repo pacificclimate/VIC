@@ -111,7 +111,6 @@ void read_atmos_data(FILE                 *infile,
     /* Assumptions, for now:
      * -dims are all (time, lat, lon)
      * -time, lat, lon are named accordingly
-     * -pr, tasmax, tasmin, wind are named accordingly, and are specified in order of PREC, TMAX, TMIN, WIND
      * -vartype is double for dimvars, ... (?)
      * -need to implement proper FP comparison of dims
      */
@@ -130,10 +129,9 @@ void read_atmos_data(FILE                 *infile,
         latdimid, londimid;
     double *time, *lats, *lons; /* actual dimvar data *//* not using time, yet; just assuming... */
     size_t dimvarstart = 0, dimvarcount;
+
     /* vars */
-    const char *varnames[] = { "pr", "tasmax", "tasmin", "wind" }; /* TODO un-hardcode order and fix field_index array; also FIXME this ASSUMES that global file is not charged to some other order */
-    const int nvars = sizeof(varnames) / sizeof(*varnames);
-    int varids[nvars];
+    int varids[Nfields];
     int vardimids[3];
 
     /* hyperslab bounds and permutation */
@@ -146,7 +144,7 @@ void read_atmos_data(FILE                 *infile,
     /* handle dimvars */
     assert(nc_inq_varid(ncid, "time", &timevarid) == NC_NOERR);
     assert(nc_inq_vartype(ncid, timevarid, &vartype) == NC_NOERR);
-    assert(vartype == NC_DOUBLE);
+    assert(vartype == NC_DOUBLE || vartype == NC_FLOAT); // supports legacy double and new disaggregated float types
     assert(nc_inq_varndims(ncid, timevarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, timevarid, &timedimid) == NC_NOERR);
@@ -155,7 +153,7 @@ void read_atmos_data(FILE                 *infile,
 
     assert(nc_inq_varid(ncid, "lat", &latvarid) == NC_NOERR);
     assert(nc_inq_vartype(ncid, latvarid, &vartype) == NC_NOERR);
-    assert(vartype == NC_DOUBLE);
+    assert(vartype == NC_DOUBLE || vartype == NC_FLOAT); // supports legacy double and new disaggregated float types
     assert(nc_inq_varndims(ncid, latvarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, latvarid, &latdimid) == NC_NOERR);
@@ -163,7 +161,7 @@ void read_atmos_data(FILE                 *infile,
 
     assert(nc_inq_varid(ncid, "lon", &lonvarid) == NC_NOERR);
     assert(nc_inq_vartype(ncid, lonvarid, &vartype) == NC_NOERR);
-    assert(vartype == NC_DOUBLE);
+    assert(vartype == NC_DOUBLE || vartype == NC_FLOAT); // supports legacy double and new disaggregated float types
     assert(nc_inq_varndims(ncid, lonvarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, lonvarid, &londimid) == NC_NOERR);
@@ -197,40 +195,42 @@ void read_atmos_data(FILE                 *infile,
     }
 
     /* handle vars */
-    for (int varidx = 0; varidx < nvars; ++varidx) {
+    for (int varidx = 0; varidx < Nfields; ++varidx) {
       int attlen;
       float scale_factor = NAN, inverse_scale_factor = NAN; /* leave uninitialized in case of has_inverse_scale_factor */
       int has_inverse_scale_factor = 0;
 
       /* Get varid + check type */
-      assert(nc_inq_varid(ncid, varnames[varidx], &varids[varidx]) == NC_NOERR);
+      // Get variable id
+      assert(nc_inq_varid(ncid, state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname, &varids[varidx]) == NC_NOERR);
+      // Get variable type
       assert(nc_inq_vartype(ncid, varids[varidx], &vartype) == NC_NOERR);
-      assert(vartype == NC_SHORT || vartype == NC_USHORT);
+
       /* Check ndims + dim order */
       assert(nc_inq_varndims(ncid, varids[varidx], &ndims) == NC_NOERR);
       assert(ndims == 3);
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
       assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
 
-      /* Get and convert data -- fixme; need to sort out field_index or related (borrow from their enum?) and adapt it to ncdf so indices are not hardcoded here... */
+      fprintf(stderr,
+          "Reading NetCDF forcing variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ",
+          varids[varidx], state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname, (int) starts[0],
+					(int) (starts[0] + counts[0] - 1), (int) starts[1],
+          (int) (starts[1] + counts[1] - 1), (int) starts[2],
+          (int) (starts[2] + counts[2] - 1));
+
+      /* Get and convert data */
       switch (vartype) {
-        case NC_SHORT: {
+        case NC_SHORT: { // Legacy VIC short integer type input with scaling factors, for backward compatibility
           /* TODO check for relevant return code values instead of just NC_NOERR for cases where value might just not be present, although require at least one of scale_factor and inverse_scale_factor for integer-packed data */
           if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor",
               &inverse_scale_factor) == NC_NOERR)	//TODO: move outside of switch
             has_inverse_scale_factor = 1;
           else
-            assert(
-                nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
+            assert(nc_get_att_float(ncid, varids[varidx], "scale_factor", &scale_factor) == NC_NOERR);
           short int *data = (short int *) malloc(
               (state->global_param.nrecs * state->global_param.dt) * sizeof(short));
-          /* MPN FIXME DEBUG - probably duplicate this or move this up... */
-          fprintf(stderr,
-              "Reading NetCDF variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ",
-              varids[varidx], varnames[varidx], (int) starts[0],
-              (int) (starts[0] + counts[0] - 1), (int) starts[1],
-              (int) (starts[1] + counts[1] - 1), (int) starts[2],
-              (int) (starts[2] + counts[2] - 1));
+
           if ((ncerr = nc_get_varm_short(ncid, varids[varidx], starts, counts,
               NULL, perm, data)) != NC_NOERR) {
             fprintf(stderr, "Error reading NetCDF variable data: %s\n",
@@ -251,7 +251,7 @@ void read_atmos_data(FILE                 *infile,
           free(data);
           break;
         }
-        case NC_USHORT: {
+        case NC_USHORT: {  // Legacy VIC unsigned integer type input with scaling factors, for backward compatibility
           if (nc_get_att_float(ncid, varids[varidx], "inverse_scale_factor",
               &inverse_scale_factor) == NC_NOERR)
             has_inverse_scale_factor = 1;
@@ -262,7 +262,7 @@ void read_atmos_data(FILE                 *infile,
               (state->global_param.nrecs * state->global_param.dt) * sizeof(short));
           if ((ncerr = nc_get_varm_ushort(ncid, varids[varidx], starts, counts,
               NULL, perm, data)) != NC_NOERR) {
-            fprintf(stderr, "Error reading NetCDF variable data: %s\n",
+            fprintf(stderr, "Error reading NetCDF forcing variable data: %s\n",
                 nc_strerror(ncerr));
             exit(1);
           }
@@ -276,9 +276,40 @@ void read_atmos_data(FILE                 *infile,
           free(data);
           break;
         }
-        case NC_FLOAT:
-        case NC_DOUBLE:
+        case NC_FLOAT: { // Supports new disaggregated forcing input types
+        	float *data = (float *) malloc(
+        	              (state->global_param.nrecs * state->global_param.dt) * sizeof(double));
+
+					if ((ncerr = nc_get_varm_float(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
+						fprintf(stderr, "Error reading NetCDF forcing variable data: %s\n",
+								nc_strerror(ncerr));
+						exit(1);
+					}
+          fprintf(stderr, "done\n");
+        	for (int rec = 0; rec < nforcesteps; rec++)
+        	  forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec];
+					free(data);
+					break;
+        }
+        case NC_DOUBLE: { // Why not handle doubles too?
+        	double *data = (double *) malloc(
+        	              (state->global_param.nrecs * state->global_param.dt) * sizeof(double));
+
+					if ((ncerr = nc_get_varm_double(ncid, varids[varidx], starts, counts, NULL, perm, data)) != NC_NOERR) {
+						fprintf(stderr, "Error reading NetCDF forcing variable data: %s\n",
+								nc_strerror(ncerr));
+						exit(1);
+					}
+          fprintf(stderr, "done\n");
+        	for (int rec = 0; rec < nforcesteps; rec++)
+        	  forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = data[rec];
+					free(data);
+					break;
+        }
         default:
+        	fprintf(stderr,
+        	          "Error reading NetCDF forcing variable %s. Type not supported.",
+        	          varids[varidx], state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname);
           assert(0);
           break;
       }

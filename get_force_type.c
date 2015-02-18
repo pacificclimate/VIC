@@ -62,6 +62,7 @@ void get_force_type(char   *cmdstr,
   /* type 0: air temperature [C] (ALMA_INPUT: [K]) */
   if(strcasecmp("AIR_TEMP",optstr)==0){
     type = AIR_TEMP;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_AIR_TEMP");
   }
 
   /* type 1: albedo [fraction] */
@@ -87,11 +88,13 @@ void get_force_type(char   *cmdstr,
   /* type 5: air density [kg/m3] */
   else if(strcasecmp("DENSITY",optstr)==0){
     type = DENSITY;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_DENSITY");
   }
 
   /* type 6: incoming longwave radiation [W/m2] */
   else if(strcasecmp("LONGWAVE",optstr)==0 || strcasecmp("LWDOWN",optstr)==0){
     type = LONGWAVE;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_LONGWAVE");
   }
 
   /* type 7: large-scale rainfall [mm] (ALMA_INPUT: [mm/s]) */
@@ -107,11 +110,18 @@ void get_force_type(char   *cmdstr,
   /* type 9: precipitation [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("PREC",optstr)==0){
     type = PREC;
+    if (state->options.OUTPUT_FORCE) {
+      strcpy(state->param_set.TYPE[type].varname, "pr"); // to read in from legacy VIC forcings file
+    }
+    else {
+    strcpy(state->param_set.TYPE[type].varname, "OUT_PREC"); // to read in from VIC-generated disaggregated forcing file
+    }
   }
 
   /* type 10: air pressure [kPa] (ALMA_INPUT: [Pa]) */
   else if(strcasecmp("PRESSURE",optstr)==0){
     type = PRESSURE;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_PRESSURE");
   }
 
   /* type 11: specific humidity [kg/kg] */
@@ -132,6 +142,7 @@ void get_force_type(char   *cmdstr,
   /* type 14: shortwave radiation [W/m2] */
   else if(strcasecmp("SHORTWAVE",optstr)==0 || strcasecmp("SWDOWN",optstr)==0){
     type = SHORTWAVE;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_SHORTWAVE");
   }
 
   /* type 15: snowfall [mm] (ALMA_INPUT: [mm/s]) */
@@ -142,11 +153,13 @@ void get_force_type(char   *cmdstr,
   /* type 16: maximum daily temperature [C] (ALMA_INPUT: [K]) */
   else if(strcasecmp("TMAX",optstr)==0){
     type = TMAX;
+    strcpy(state->param_set.TYPE[type].varname, "tasmax");
   }
 
   /* type 17: minimum daily temperature [C] (ALMA_INPUT: [K]) */
   else if(strcasecmp("TMIN",optstr)==0){
     type = TMIN;
+    strcpy(state->param_set.TYPE[type].varname, "tasmin");
   }
 
   /* type 18: cloud cover fraction */
@@ -157,11 +170,18 @@ void get_force_type(char   *cmdstr,
   /* type 19: vapor pressure [kPa] (ALMA_INPUT: [Pa]) */
   else if(strcasecmp("VP",optstr)==0){
     type = VP;
+    strcpy(state->param_set.TYPE[type].varname, "OUT_VP");
   }
 
   /* type 20: wind speed [m/s] */
   else if(strcasecmp("WIND",optstr)==0){
     type = WIND;
+    if (state->options.OUTPUT_FORCE) {
+      strcpy(state->param_set.TYPE[type].varname, "wind"); // to read in from legacy VIC forcings file
+    }
+    else {
+    strcpy(state->param_set.TYPE[type].varname, "OUT_WIND"); // to read in from VIC-generated disaggregated forcing file
+    }
   }
 
   /* type 21: zonal component of wind speed [m/s] */

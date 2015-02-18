@@ -93,11 +93,11 @@ if csv_out:
     print 'Only differences between input files will be saved (-csv_diffs_only).'
 
 # Open test output NetCDF file
-#testH5 = h5py.File('/home/mfischer/vic_dev/out/testing/results.nc', 'r')
+#testH5 = h5py.File('../out/results.nc', 'r')
 testH5 = h5py.File(testfile, 'r')
 
 # Open out_base NetCDF file
-#baseH5 = h5py.File('/home/mfischer/vic_dev/out_base/place/netcdf/false/results.nc')
+#baseH5 = h5py.File('../out_base/results.nc')
 baseH5 = h5py.File(basefile, 'r')
 
 # grab the number of time records
@@ -123,7 +123,10 @@ if num_test_recs != num_base_recs:
 #depth = len(testH5['depth'])
 
 # grab NaN fill value of non-initialized NetCDF records from one common attribute (precipitation)
-fill_value = baseH5['pr'].attrs['_FillValue']
+try: # the original forcing file precip variable
+    fill_value = baseH5['pr'].attrs['_FillValue']
+except: # the new disaggregated forcing / model run output precip variable
+    fill_value = baseH5['OUT_PREC'].attrs['_FillValue']
 
 # grab lat and lon dimensions of grid cells
 lats = testH5['lat'][:]
@@ -139,6 +142,7 @@ del cell_data_keys['lon']
 del cell_data_keys['time']
 del cell_data_keys['bnds']
 del cell_data_keys['depth']
+#del cell_data_keys['OUT_WIND'] # uncomment this to test new vs. old disaggregated forcing files
 
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)

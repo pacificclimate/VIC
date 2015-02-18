@@ -814,6 +814,7 @@ typedef struct {
   char    SIGNED;
   int     SUPPLIED;
   double  multiplier;
+  char 		varname[30];
 } force_type_struct;
 
 /******************************************************************

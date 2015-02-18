@@ -919,7 +919,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 
   // Validate SNOW_STEP and set NR and NF
   if (global_param.dt < 24 && global_param.dt != options.SNOW_STEP)
-    nrerror("If the model step is smaller than daily, the snow model should run\nat the same time step as the rest of the model.");
+    nrerror("If the model step is smaller than daily, the snow model should run at the same time step as the rest of the model.");
   if (global_param.dt % options.SNOW_STEP != 0 || options.SNOW_STEP > global_param.dt)
     nrerror("SNOW_STEP should be <= TIME_STEP and divide TIME_STEP evenly ");
   NF = global_param.dt/options.SNOW_STEP;

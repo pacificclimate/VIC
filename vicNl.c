@@ -332,7 +332,7 @@ int initializeCell(cell_info_struct& cell,
    Initialize Energy Balance and Snow Variables
    **************************************************/
   #if VERBOSE
-      fprintf(stderr, "Model State Initialization\n");
+      fprintf(stderr, "Model State Initialization\n"); //TODO: add information about which cell
   #endif /* VERBOSE */
   int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
 

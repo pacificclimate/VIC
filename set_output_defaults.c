@@ -47,14 +47,14 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, const Progr
     // Variables in first file
     filenum = 0;
     varnum = 0;
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PREC", varnum++, "%.4f", OUT_TYPE_USINT, 40);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_AIR_TEMP", varnum++, "%.4f", OUT_TYPE_SINT, 100);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_SHORTWAVE", varnum++, "%.4f", OUT_TYPE_USINT, 50);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_LONGWAVE", varnum++, "%.4f", OUT_TYPE_USINT, 80);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_DENSITY", varnum++, "%.4f", OUT_TYPE_USINT, 100);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PRESSURE", varnum++, "%.4f", OUT_TYPE_USINT, 100);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_VP", varnum++, "%.4f", OUT_TYPE_SINT, 100);
-    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_WIND", varnum++, "%.4f", OUT_TYPE_USINT, 100);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PREC", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_AIR_TEMP", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_SHORTWAVE", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_LONGWAVE", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_DENSITY", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PRESSURE", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_VP", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
+    set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_WIND", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
 
   } else {
     
