@@ -56,7 +56,7 @@ base_start_rec = options.base_start_rec
 base_end_rec = options.base_end_rec
 verbose = options.verbose
 
-print '------- vic_output_compare_netcdf_universal -------'
+print '\n------- vic_output_compare_netcdf_universal -------'
 # print interpretation of input
 print 'Checking testfile {} against basefile {}'.format(testfile, basefile)
 
@@ -103,9 +103,6 @@ print 'Checking basefile time record range {}:{} ({} records total)'.format(base
 if num_test_recs != num_base_recs:
     print 'Number of time records selected for comparison between testfile and basefile must be equal.  Exiting.\n'
     sys.exit(0)
-
-# grab the depth of 4-dimension variables
-#depth = len(testH5['depth'])
 
 # grab NaN fill value of non-initialized NetCDF records from one common attribute (precipitation)
 try: # the original forcing file precip variable
@@ -208,14 +205,13 @@ for lat in lats:
 
 
 ## compare test data against base data
-
+if verbose:
+    print'Checking agreement between test output data with base values:'
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
 for lat_label in lats:
     for lon_label in lons:
         cell_labels.append(repr(lat_label) + '_' + repr(lon_label))
-        if verbose:
-            print'Checking agreement between test output data with base values:'
 for cell in cell_labels:
     diffs_exist = False
     # if we want to output the test dataset to CSV format for inspection
@@ -320,10 +316,15 @@ for cell in cell_labels:
             base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
             np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
 
-        if diffs_exist == True:
+        if diffs_exist:
             diffs_3D_csv_filename = 'tabular_cell_{}_{}_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
             np.savetxt(diffs_3D_csv_filename, diffs_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_headers))	    
             diffs_4D_csv_filename = 'tabular_cell_{}_{}_band_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
             np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers))
 
-print 'vic_output_compare_netcdf_universal finished.'
+if diffs_exist:
+    print '\nDifferences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
+else:
+    print '\ntestfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
+
+print '\nvic_output_compare_netcdf_universal finished.'
