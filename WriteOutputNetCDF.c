@@ -349,7 +349,6 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
       count4.at(1) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
 
       try {
-//      	std::string varName = state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name;
       	NcVar variable = allVars.find(state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name)->second;
 
         if (use4Dimensions) {

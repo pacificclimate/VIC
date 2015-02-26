@@ -7,8 +7,6 @@ void WriteOutputAscii::openFile(){
 }
 
 void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
-//void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, ProgramState* state) {
-
 	// Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
@@ -114,16 +112,14 @@ void WriteOutputAscii::write_header(out_data_struct* out_data, const dmy_struct*
         if (!(var_idx == 0 && elem_idx == 0)) {
           fprintf(dataFiles[file_idx]->fh, "\t ");
         }
-        fprintf(dataFiles[file_idx]->fh, "%s", out_data[dataFiles[file_idx]->varid[var_idx]].varname);
+        fprintf(dataFiles[file_idx]->fh, "%s", state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name.c_str());
         if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1) {
           fprintf(dataFiles[file_idx]->fh, "_%d", elem_idx);
         }
       }
     }
     fprintf(dataFiles[file_idx]->fh, "\n");
-
   }
-
 }
 
 

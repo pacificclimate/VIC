@@ -7,8 +7,6 @@ void WriteOutputBinary::openFile() {
 }
 
 void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
-//void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, ProgramState* state) {
-
   // Initialize pointers
   char               *tmp_cptr = (char *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(char));
   short int          *tmp_siptr = (short int *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(short int));
