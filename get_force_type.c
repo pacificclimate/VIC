@@ -44,6 +44,9 @@ void get_force_type(char   *cmdstr,
   char flgstr[10];
   char ErrStr[MAXSTRING];
   int  type;
+  int numvars;
+  char tempstr1[30], tempstr2[30], tempstr3[30];
+  char input_varname[30];
 
   /** Initialize flgstr **/
   strcpy(flgstr,"NULL");
@@ -53,7 +56,7 @@ void get_force_type(char   *cmdstr,
     nrerror(ErrStr);
   }
 
-  sscanf(cmdstr,"%*s %s",optstr);
+  sscanf(cmdstr,"%*s %s", optstr);
 
   /***************************************
     Get meteorological data forcing info
@@ -62,136 +65,139 @@ void get_force_type(char   *cmdstr,
   /* type 0: air temperature [C] (ALMA_INPUT: [K]) */
   if(strcasecmp("AIR_TEMP",optstr)==0){
     type = AIR_TEMP;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_AIR_TEMP");
+    strcpy(state->param_set.TYPE[type].varname, "AIR_TEMP");
   }
 
   /* type 1: albedo [fraction] */
   else if(strcasecmp("ALBEDO",optstr)==0){
     type = ALBEDO;
+    strcpy(state->param_set.TYPE[type].varname, "ALBEDO");
   }
 
   /* type 2: incoming channel flow [m3] (ALMA_INPUT: [m3/s]) */
   else if(strcasecmp("CHANNEL_IN",optstr)==0){
     type = CHANNEL_IN;
+    strcpy(state->param_set.TYPE[type].varname, "CHANNEL_IN");
   }
 
   /* type 3: convective rainfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("CRAINF",optstr)==0){
     type = CRAINF;
+    strcpy(state->param_set.TYPE[type].varname, "CRAINF");
   }
 
   /* type 4: convective snowfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("CSNOWF",optstr)==0){
     type = CSNOWF;
+    strcpy(state->param_set.TYPE[type].varname, "CSNOWF");
   }
 
   /* type 5: air density [kg/m3] */
   else if(strcasecmp("DENSITY",optstr)==0){
     type = DENSITY;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_DENSITY");
+    strcpy(state->param_set.TYPE[type].varname, "DENSITY");
   }
 
   /* type 6: incoming longwave radiation [W/m2] */
   else if(strcasecmp("LONGWAVE",optstr)==0 || strcasecmp("LWDOWN",optstr)==0){
     type = LONGWAVE;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_LONGWAVE");
+    strcpy(state->param_set.TYPE[type].varname, "LONGWAVE");
   }
 
   /* type 7: large-scale rainfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("LSRAINF",optstr)==0){
     type = LSRAINF;
+    strcpy(state->param_set.TYPE[type].varname, "LSRAINF");
   }
 
   /* type 8: large-scale snowfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("LSSNOWF",optstr)==0){
     type = LSSNOWF;
+    strcpy(state->param_set.TYPE[type].varname, "LSSNOWF");
   }
 
   /* type 9: precipitation [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("PREC",optstr)==0){
     type = PREC;
-    if (state->options.OUTPUT_FORCE) {
-      strcpy(state->param_set.TYPE[type].varname, "pr"); // to read in from legacy VIC forcings file
-    }
-    else {
-    strcpy(state->param_set.TYPE[type].varname, "OUT_PREC"); // to read in from VIC-generated disaggregated forcing file
-    }
+    strcpy(state->param_set.TYPE[type].varname, "PREC");
   }
 
   /* type 10: air pressure [kPa] (ALMA_INPUT: [Pa]) */
   else if(strcasecmp("PRESSURE",optstr)==0){
     type = PRESSURE;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_PRESSURE");
+    strcpy(state->param_set.TYPE[type].varname, "PRESSURE");
   }
 
   /* type 11: specific humidity [kg/kg] */
   else if(strcasecmp("QAIR",optstr)==0){
     type = QAIR;
+    strcpy(state->param_set.TYPE[type].varname, "QAIR");
   }
 
   /* type 12: rainfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("RAINF",optstr)==0){
     type = RAINF;
+    strcpy(state->param_set.TYPE[type].varname, "RAINF");
   }
 
   /* type 13: relative humidity [fraction] */
   else if(strcasecmp("REL_HUMID",optstr)==0){
     type = REL_HUMID;
+    strcpy(state->param_set.TYPE[type].varname, "REL_HUMID");
   }
 
   /* type 14: shortwave radiation [W/m2] */
   else if(strcasecmp("SHORTWAVE",optstr)==0 || strcasecmp("SWDOWN",optstr)==0){
     type = SHORTWAVE;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_SHORTWAVE");
+    strcpy(state->param_set.TYPE[type].varname, "SHORTWAVE");
   }
 
   /* type 15: snowfall [mm] (ALMA_INPUT: [mm/s]) */
   else if(strcasecmp("SNOWF",optstr)==0){
     type = SNOWF;
+    strcpy(state->param_set.TYPE[type].varname, "SNOWF");
   }
 
   /* type 16: maximum daily temperature [C] (ALMA_INPUT: [K]) */
   else if(strcasecmp("TMAX",optstr)==0){
     type = TMAX;
-    strcpy(state->param_set.TYPE[type].varname, "tasmax");
+    strcpy(state->param_set.TYPE[type].varname, "TMAX");
   }
 
   /* type 17: minimum daily temperature [C] (ALMA_INPUT: [K]) */
   else if(strcasecmp("TMIN",optstr)==0){
     type = TMIN;
-    strcpy(state->param_set.TYPE[type].varname, "tasmin");
+    strcpy(state->param_set.TYPE[type].varname, "TMIN");
   }
 
   /* type 18: cloud cover fraction */
   else if(strcasecmp("TSKC",optstr)==0){
     type = TSKC;
+    strcpy(state->param_set.TYPE[type].varname, "TSKC");
   }
 
   /* type 19: vapor pressure [kPa] (ALMA_INPUT: [Pa]) */
   else if(strcasecmp("VP",optstr)==0){
     type = VP;
-    strcpy(state->param_set.TYPE[type].varname, "OUT_VP");
+    strcpy(state->param_set.TYPE[type].varname, "VP");
   }
 
   /* type 20: wind speed [m/s] */
   else if(strcasecmp("WIND",optstr)==0){
     type = WIND;
-    if (state->options.OUTPUT_FORCE) {
-      strcpy(state->param_set.TYPE[type].varname, "wind"); // to read in from legacy VIC forcings file
-    }
-    else {
-    strcpy(state->param_set.TYPE[type].varname, "OUT_WIND"); // to read in from VIC-generated disaggregated forcing file
-    }
+    strcpy(state->param_set.TYPE[type].varname, "WIND");
   }
 
   /* type 21: zonal component of wind speed [m/s] */
   else if(strcasecmp("WIND_E",optstr)==0){
     type = WIND_E;
+    strcpy(state->param_set.TYPE[type].varname, "WIND_E");
   }
 
   /* type 22: meridional component of wind speed [m/s] */
   else if(strcasecmp("WIND_N",optstr)==0){
     type = WIND_N;
+    strcpy(state->param_set.TYPE[type].varname, "WIND_N");
   }
 
   /* type 23: unused (blank) data */
@@ -213,9 +219,22 @@ void get_force_type(char   *cmdstr,
     state->param_set.TYPE[type].SIGNED=FALSE;
   }
   else {
-    sscanf(cmdstr,"%*s %*s %s %lf",flgstr, &state->param_set.TYPE[type].multiplier);
-    if(strcasecmp("SIGNED",flgstr)==0) state->param_set.TYPE[type].SIGNED=TRUE;
-    else state->param_set.TYPE[type].SIGNED=FALSE;
+
+  	numvars = sscanf(cmdstr,"%*s %*s %s %s %s", tempstr1, tempstr2, tempstr3);
+  	  if (numvars == 1) { // only a forcing var and input_varname is provided
+  	  	strcpy(input_varname, tempstr1);
+  	  	state->set_forcing_variable_name(std::string(state->param_set.TYPE[type].varname), std::string(input_varname));
+  	  }
+  	  else if (numvars > 1){
+  	  	if (numvars == 3) { // a forcing var, flgstr, multiplier, and input_varname provided
+  	  	strcpy(input_varname, tempstr3);
+  	  	state->set_forcing_variable_name(std::string(state->param_set.TYPE[type].varname), std::string(input_varname));
+  	  	}
+  	  	// grab flgstr and multiplier values
+  	  	sscanf(cmdstr,"%*s %*s %s %lf",flgstr, &state->param_set.TYPE[type].multiplier);
+  	  	if(strcasecmp("SIGNED",flgstr)==0) state->param_set.TYPE[type].SIGNED=TRUE;
+  	  	else state->param_set.TYPE[type].SIGNED=FALSE;
+  	  }
   }
 
   (*field)++;

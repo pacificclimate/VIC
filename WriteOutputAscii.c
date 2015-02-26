@@ -6,9 +6,10 @@ void WriteOutputAscii::openFile(){
 	}
 }
 
-void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt,
-    const ProgramState* state) {
-  // Loop over output files
+void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
+//void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, ProgramState* state) {
+
+	// Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
   if (!state->options.OUTPUT_FORCE) {

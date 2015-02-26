@@ -2,7 +2,7 @@
 #define WRITEOUTPUTNETCDF_H_
 
 #include <string>
-#include <map>
+//#include <map>
 #include "user_def.h"
 #include "WriteOutputFormat.h"
 
@@ -12,32 +12,21 @@ namespace netCDF {
   class NcFile;
 }
 
-using std::string;
-class VariableMetaData {
-public:
-  VariableMetaData() {}
-  VariableMetaData(string units, string name, string standardName, string longName, string cellMethods, double scalingFactor = 1.0, double addFactor = 0.0, bool isBands = false): units(units), name(name), standardName(standardName), longName(longName), cellMethods(cellMethods), scalingFactor(scalingFactor), addFactor(addFactor), isBands(isBands) {}
-  string units, name, standardName, longName, cellMethods;
-  double scalingFactor;
-  double addFactor;
-  bool isBands;
-};
-
 class WriteOutputNetCDF: public WriteOutputFormat {
 public:
   WriteOutputNetCDF(const ProgramState* state);
   ~WriteOutputNetCDF();
   const char* getDescriptionOfOutputType();
   // This should only be called once per invocation of VIC. It creates a fresh netCDF output file.
-  void initializeFile(const ProgramState*);
+  void initializeFile(const ProgramState*, const out_data_struct*);
+
   void openFile();
-//  void openFile(filep_struct *filep, filenames_struct *filenames, soil_con_struct *soil, WriteOutputFormat *output, const ProgramState *state);
   void compressFiles();
   void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state);
   void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state);
 private:
-  std::map<std::string, VariableMetaData> getMapping(bool isHourly = false);
-  std::map<std::string, VariableMetaData> mapping;
+  int getLengthOfTimeDimension(const ProgramState* state);
+  int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state);
   netCDF::NcFile* netCDF;
   int timeIndexDivisor;
 };

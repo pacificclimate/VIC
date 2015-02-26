@@ -130,6 +130,7 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <map>
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -560,6 +561,18 @@ OUT_GLAC_OUTFLOW_BAND   ,   /* glacier water outflow [mm] */
 
 
 N_OUTVAR_TYPES          /* This term is always at the end of the enum so that it automatically counts the number of variables */
+};
+
+/* Metadata for mapping variable names appearing in output files (and filling in additional variable metadata in output NetCDF file) */
+using std::string;
+class VariableMetaData {
+public:
+  VariableMetaData() {}
+  VariableMetaData(string units, string name, string standardName, string longName, string cellMethods, double scalingFactor = 1.0, double addFactor = 0.0, bool isBands = false): units(units), name(name), standardName(standardName), longName(longName), cellMethods(cellMethods), scalingFactor(scalingFactor), addFactor(addFactor), isBands(isBands) {}
+  string units, name, standardName, longName, cellMethods;
+  double scalingFactor;
+  double addFactor;
+  bool isBands;
 };
 
 /***** Output BINARY format types *****/
@@ -1544,7 +1557,6 @@ class WriteOutputContext; //added
   ***********************************************************/
 struct cell_info_struct {
   cell_info_struct() : isValid(TRUE), Cv_sum(0), atmos(NULL) {}
-// 	cell_info_struct(const ProgramState state) : isValid(TRUE), Cv_sum(0), atmos(NULL), outputFormat(new outputFormat(state)) {}
   soil_con_struct  soil_con;
   char             ErrStr[MAXSTRING];
   bool						isValid;	// to indicate if a cell was properly initialized for the model run
@@ -1558,15 +1570,6 @@ struct cell_info_struct {
   CellBalanceErrors cellErrors;
   FallBackStats fallBackStats;
 };
-/*
-cell_info_struct::cell_info_struct(ProgramState state){
-	isValid = TRUE;
-	Cv_sum = 0;
-	atmos = NULL;
-	outputContext = new WriteOutputContext(state);
-	outputFormat= outputContext->outputFormat;
-}
-*/
 
 /********************************************************
   This structure holds all the meta state of the program.
@@ -1578,6 +1581,8 @@ public:
   global_param_struct global_param;
   veg_lib_struct *veg_lib;
   option_struct options;
+  std::map<std::string, std::string> forcing_mapping;
+  std::map<std::string, VariableMetaData> output_mapping;
 #if LINK_DEBUG
   debug_struct debug;
 #endif
@@ -1589,6 +1594,10 @@ public:
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
   void init_global_param(filenames_struct *, const char* global_file_name);
+  void build_forcing_variable_mapping();
+  void set_forcing_variable_name(std::string, std::string);
+  void build_output_variable_mapping();
+  void set_output_variable_name(std::string, std::string);
   void display_current_settings(int, filenames_struct *);
   void open_debug();
 };

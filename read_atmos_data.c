@@ -79,6 +79,7 @@ void read_atmos_data(FILE                 *infile,
   unsigned short Identifier[4];
   int Nbytes;
 
+  // get number of forcing variable types
   Nfields = state->param_set.N_TYPES[file_num];
 
   /** locate starting record **/
@@ -202,7 +203,22 @@ void read_atmos_data(FILE                 *infile,
 
       /* Get varid + check type */
       // Get variable id
-      assert(nc_inq_varid(ncid, state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname, &varids[varidx]) == NC_NOERR);
+      std::string variableKey = std::string(state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname);
+    	if (state->forcing_mapping.find(variableKey) == state->forcing_mapping.end()) {
+    	        throw VICException("Error: could not find forcing variable in forcing_mapping: " + variableKey);
+    	}
+    	std::string varName = state->forcing_mapping.at(variableKey);
+      fprintf(stderr,
+          "Reading NetCDF forcing variable %s (NetCDF input variable name %s), slice [%d..%d,%d..%d,%d..%d] ... ",
+          state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname,
+					varName.c_str(),
+					(int) starts[0],
+					(int) (starts[0] + counts[0] - 1), (int) starts[1],
+          (int) (starts[1] + counts[1] - 1), (int) starts[2],
+          (int) (starts[2] + counts[2] - 1));
+
+      assert(nc_inq_varid(ncid, varName.c_str(), &varids[varidx]) == NC_NOERR);
+
       // Get variable type
       assert(nc_inq_vartype(ncid, varids[varidx], &vartype) == NC_NOERR);
 
@@ -211,13 +227,6 @@ void read_atmos_data(FILE                 *infile,
       assert(ndims == 3);
       assert(nc_inq_vardimid(ncid, varids[varidx], vardimids) == NC_NOERR);
       assert((vardimids[0] == timedimid) && (vardimids[1] == latdimid) && (vardimids[2] == londimid));
-
-      fprintf(stderr,
-          "Reading NetCDF forcing variable #%d (%s) slice [%d..%d,%d..%d,%d..%d] ... ",
-          varids[varidx], state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname, (int) starts[0],
-					(int) (starts[0] + counts[0] - 1), (int) starts[1],
-          (int) (starts[1] + counts[1] - 1), (int) starts[2],
-          (int) (starts[2] + counts[2] - 1));
 
       /* Get and convert data */
       switch (vartype) {

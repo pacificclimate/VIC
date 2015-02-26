@@ -745,6 +745,7 @@ int  put_data(cell_info_struct  *cell,
     *************/
     if(rec >= skipyear) {
       output->write_data(out_data, dmy, state->global_param.out_dt, state);
+
     }
 
     // Reset the step count

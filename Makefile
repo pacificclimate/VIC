@@ -57,7 +57,9 @@ DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_T
 NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
 LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused -Wno-error $(DEFINES)
+#CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused -Wno-error $(DEFINES)
+CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-error $(DEFINES)
+
 #LIBRARY = -lm
 
 # Uncomment to include execution profiling information
@@ -114,7 +116,8 @@ OBJS =  accumulateGlacierMassBalance.o \
 	write_model_state.o write_snow_data.o write_soilparam.o \
 	write_vegparam.o write_vegvar.o lakes.eb.o initialize_lake.o \
 	read_lakeparam.o ice_melt.o IceEnergyBalance.o water_energy_balance.o \
-	water_under_ice.o
+	water_under_ice.o variable_mapping.o
+	#variable_mapping.o
 
 SRCS = $(OBJS:%.o=%.c) 
 

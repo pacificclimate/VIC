@@ -6,6 +6,7 @@
 static char vcid[] = "$Id$";
 
 out_data_file_struct *set_output_defaults(out_data_struct *out_data, const ProgramState* state) {
+
 /*************************************************************
   set_output_defaults.c      Ted Bohn     September 08, 2006
 
@@ -47,6 +48,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, const Progr
     // Variables in first file
     filenum = 0;
     varnum = 0;
+
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PREC", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_AIR_TEMP", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_SHORTWAVE", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
@@ -107,6 +109,7 @@ out_data_file_struct *set_output_defaults(out_data_struct *out_data, const Progr
     // Variables in first file
     filenum = 0;
     varnum = 0;
+
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_PREC", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_EVAP", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);
     set_output_var(out_data_files, TRUE, filenum, out_data, "OUT_RUNOFF", varnum++, "%.4f", OUT_TYPE_FLOAT, 1);

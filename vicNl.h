@@ -195,7 +195,8 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, const double *,
     const double *, const double *, const double *, const float *, const ProgramState*);
 
-void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, ProgramState *state);
+void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const out_data_struct* outData, ProgramState *state);
+
 filep_struct   get_files(const filenames_struct *, ProgramState*);
 void check_state_file(char *, ProgramState*);
 void   close_files(const filep_struct *, filenames_struct *, bool, const ProgramState*);
@@ -400,6 +401,7 @@ double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
 int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
+//int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, ProgramState*);
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
@@ -429,6 +431,7 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
+//int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, const char *, int, const char *, int, float);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);

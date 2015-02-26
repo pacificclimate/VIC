@@ -44,6 +44,8 @@ public:
    www.hydro.washington.edu/Lettenmaier/Models/VIC/VIChome.html
    ***************************************************************/
   virtual void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state) = 0;
+//  virtual void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, ProgramState* state) = 0;
+
   virtual void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state) = 0;
 
   std::vector<out_data_file_struct*> dataFiles;

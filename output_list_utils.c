@@ -217,6 +217,8 @@ out_data_struct *create_output_list(const ProgramState* state) {
   strcpy(out_data[OUT_AERO_RESIST1].varname,"OUT_AERO_RESIST1");       /* surface aerodynamic resistance [m/s] */
   strcpy(out_data[OUT_AERO_RESIST2].varname,"OUT_AERO_RESIST2");       /* overstory aerodynamic resistance [m/s] */
   strcpy(out_data[OUT_AIR_TEMP].varname,"OUT_AIR_TEMP");               /* air temperature [C] */
+  // MDF: could put output_varname in at this point, as so:
+//  strcpy(out_data[OUT_AIR_TEMP].output_varname,state->);               /* air temperature [C] */
   strcpy(out_data[OUT_DENSITY].varname,"OUT_DENSITY");                 /* near-surface atmospheric density [kg/m3] */
   strcpy(out_data[OUT_LONGWAVE].varname,"OUT_LONGWAVE");               /* incoming longwave [W/m2] */
   strcpy(out_data[OUT_PRESSURE].varname,"OUT_PRESSURE");               /* near surface atmospheric pressure [kPa] */
@@ -523,16 +525,27 @@ void init_output_list(out_data_struct *out_data, int write, const char *format, 
 
 }
 
-
+/*
 int set_output_var(out_data_file_struct *out_data_files,
                     int write,
                     int filenum,
                     out_data_struct *out_data,
                     const char *varname,
+										const char *output_varname,
                     int varnum,
                     const char *format,
                     int type,
                     float mult) {
+                    */
+int set_output_var(out_data_file_struct *out_data_files,
+	                    int write,
+	                    int filenum,
+	                    out_data_struct *out_data,
+	                    const char *varname,
+	                    int varnum,
+	                    const char *format,
+	                    int type,
+	                    float mult) {
 /*************************************************************
   set_output_var()      Ted Bohn     September 08, 2006
 

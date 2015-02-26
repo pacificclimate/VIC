@@ -5,8 +5,9 @@
 
 static char vcid[] = "$Id$";
 
-void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, ProgramState *state) {
-  // Initialise the netcdf full path name.
+void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const out_data_struct* outData, ProgramState *state) {
+
+	// Initialise the netcdf full path name.
   strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);
   strcat(state->options.NETCDF_FULL_FILE_PATH, "/");
   strcat(state->options.NETCDF_FULL_FILE_PATH, fnames->netCDFOutputFileName);
@@ -15,7 +16,8 @@ void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_
 #if NETCDF_OUTPUT_AVAILABLE
     WriteOutputNetCDF output(state);
     copy_data_file_format(outFiles, output.dataFiles, state);
-    output.initializeFile(state);  // This is only done once per invocation of VIC. It creates a fresh netcdf output file.
+    output.initializeFile(state, outData);  // This is only done once per invocation of VIC. It creates a fresh netcdf output file.
+
 #endif /* NETCDF_OUTPUT_AVAILABLE */
   }
 }

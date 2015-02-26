@@ -124,6 +124,10 @@ int main(int argc, char *argv[])
 #if VERBOSE
   state.display_current_settings(DISP_VERSION, (filenames_struct*) NULL);
 #endif
+  /* Build input forcing variable name mappings */
+  state.build_forcing_variable_mapping();
+  /* Build default output variable name mappings */
+  state.build_output_variable_mapping();
   /** Read Global Control File **/
   state.init_global_param(&filenames, filenames.global);
   /** Set up output data structures **/
@@ -149,7 +153,8 @@ int main(int argc, char *argv[])
   std::vector<cell_info_struct> cell_data_structs; // Stores physical parameters for each grid cell
   readSoilData(cell_data_structs, filep, filenames, dmy, state);
   state.initGrid(cell_data_structs); // Calculate the grid cell parameters. This is used for NetCDF outputs.
-  initializeNetCDFOutput(&filenames, out_data_files, &state);
+//  initializeNetCDFOutput(&filenames, out_data_files, &state);
+  initializeNetCDFOutput(&filenames, out_data_files, out_data, &state);
 
   // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
@@ -161,6 +166,7 @@ int main(int argc, char *argv[])
       context.stream->initializeOutput();
     }
   }
+
   runModel(cell_data_structs, filep, filenames, out_data_files, out_data, dmy, &state);
 
   /** cleanup **/
@@ -316,7 +322,7 @@ int initializeCell(cell_info_struct& cell,
        Have not Been Specifically Set
        **************************************************/
   #if VERBOSE
-      fprintf(stderr, "Initializing Forcing Data\n");
+      fprintf(stderr, "Initializing Forcing Data for cell at %f %f\n", cell.soil_con.lat, cell.soil_con.lng);
   #endif /* VERBOSE */
 
   /** allocate memory for the atmos_data_struct **/

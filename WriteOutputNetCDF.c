@@ -10,14 +10,13 @@
 
 #include <netcdf>
 #include <ctime>
-#include <map>
+//#include <map>
 #include <sstream>
 
 using namespace netCDF;
 
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
-  mapping = getMapping(state->global_param.out_dt < 24);
   // The divisor will convert the difference to either hours or days respectively.
   timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.dt) : (60 * 60 * 24); //new (*state->global_param.dt)
 }
@@ -37,118 +36,6 @@ void WriteOutputNetCDF::openFile() {
   // Do not specify the type of file that will be read here (NcFile::nc4). The library will throw an exception
   // if it is provided for open types read or write (since the file was already created with a certain format).
   netCDF = new NcFile(netCDFOutputFileName.c_str(), NcFile::write);
-}
-
-//TODO: fill in all variables
-std::map<std::string, VariableMetaData> WriteOutputNetCDF::getMapping(bool isHourly) {
-  std::map<std::string, VariableMetaData> mapping;
-  mapping["OUT_PREC"] =       VariableMetaData("kg m-2 s-1", "OUT_PREC", "precipitation_flux", "Precipitation", "time: mean");
-  mapping["OUT_EVAP"] =       VariableMetaData("kg m-2 s-1", "evspsbl", "water_evaporation_flux", "Evaporation", "time: mean");
-  mapping["OUT_RUNOFF"] =     VariableMetaData("kg m-2 s-1", "mrro", "runoff_flux", "Total Runoff", "time: mean area: mean where land ");
-  mapping["OUT_BASEFLOW"] =     VariableMetaData("mm", "OUT_BASEFLOW", "", "baseflow out of the bottom layer", "");
-  mapping["OUT_WDEW"] =     VariableMetaData("mm", "OUT_WDEW", "", "total moisture interception storage in canopy", "");
-  mapping["OUT_SOIL_LIQ"] =   VariableMetaData("kg m-2", "mrlsl", "moisture_content_of_soil_layer", "Water Content of Soil Layer", "time: mean area: mean where land");
-  mapping["OUT_RAD_TEMP"] =   VariableMetaData("K s-1", "tntr", "tendency_of_air_temperature_due_to_radiative_heating", "Tendency of Air Temperature due to Radiative Heating", "time: point");
-  mapping["OUT_NET_SHORT"] =  VariableMetaData("W m-2", "rsntds", "net_downward_shortwave_flux_at_sea_water_surface", "Net Downward Shortwave Radiation at Sea Water Surface", "time: mean area: mean where sea");
-  mapping["OUT_R_NET"] =      VariableMetaData("W m-2", "rtmt", "net_downward_radiative_flux_at_top_of_atmosphere_model", "Net Downward Flux at Top of Model", "time: mean");
-  mapping["OUT_LATENT"] =     VariableMetaData("W m-2", "hfls", "surface_upward_latent_heat_flux", "Surface Upward Latent Heat Flux", "time: mean");
-  mapping["OUT_EVAP_CANOP"] = VariableMetaData("kg m-2 s-1", "evspsblveg", "water_evaporation_flux_from_canopy", "Evaporation from Canopy", "time: mean area: mean where land");
-  mapping["OUT_TRANSP_VEG"] = VariableMetaData("kg m-2 s-1", "tran", "transpiration_flux", "Transpiration", "time: mean area: mean where land");
-  mapping["OUT_EVAP_BARE"] =  VariableMetaData("kg m-2 s-1", "evspsblsoi", "water_evaporation_flux_from_soil", "Water Evaporation from Soil", "time: mean area: mean where land");
-  mapping["OUT_SUB_CANOP"] =    VariableMetaData("mm", "OUT_SUB_CANOP", "", "net sublimation from snow stored in canopy", "");
-  mapping["OUT_SUB_SNOW"] =   VariableMetaData("kg m-2 s-1", "sbl", "surface_snow_and_ice_sublimation_flux", "Surface Snow and Ice Sublimation Flux", "time: mean");
-  mapping["OUT_SENSIBLE"] =   VariableMetaData("W m-2", "hfss", "surface_upward_sensible_heat_flux", "Surface Upward Sensible Heat Flux", "time: mean");
-  mapping["OUT_GRND_FLUX"] =  VariableMetaData("W m-2", "hfls", "surface_downward_latent_heat_flux", "Surface Downward Latent Heat Flux", "time: mean area: mean where ice_free_sea over sea");
-  mapping["OUT_DELTAH"] =     VariableMetaData("W/m2", "OUT_DELTAH", "", "rate of change in heat storage", "");
-  mapping["OUT_FUSION"] =     VariableMetaData("W/m2", "OUT_FUSION", "", "net energy used to melt/freeze soil moisture", "");
-  mapping["OUT_AERO_RESIST"] =    VariableMetaData("s/m", "OUT_AERO_RESIST", "", "\"scene\"canopy aerodynamic resistance", "");
-  mapping["OUT_SURF_TEMP"] =  VariableMetaData("K", "ts", "surface_temperature", "Surface Temperature", "time: mean");
-  mapping["OUT_ALBEDO"] =     VariableMetaData("%", "OUT_ALBEDO", "", "average surface albedo", "");
-  mapping["OUT_REL_HUMID"] =  VariableMetaData("%", "hur", "relative_humidity", "Relative Humidity", "time: mean");
-  mapping["OUT_IN_LONG"] =    VariableMetaData("W m-2", "rlds", "surface_downwelling_longwave_flux_in_air", "Surface Downwelling Longwave Radiation", "time: mean");
-  mapping["OUT_AIR_TEMP"] =   VariableMetaData("K", "OUT_AIR_TEMP", "air_temperature", "Air Temperature", "time: mean");
-  //mapping["OUT_WIND"] =       VariableMetaData("m s-1", "sfcWind", "wind_speed", "Daily-Mean Near-Surface Wind Speed", "time: mean");
-  mapping["OUT_WIND"] =       VariableMetaData("m s-1", "OUT_WIND", "wind_speed", "Daily-Mean Near-Surface Wind Speed", "time: mean");
-  mapping["OUT_SWE"] =        VariableMetaData("kg m-2 s-1", "prsn", "snowfall_flux", "Snowfall Flux", "time: mean");
-  mapping["OUT_SNOW_DEPTH"] = VariableMetaData("m", "snd", "surface_snow_thickness", "Snow Depth", "time: mean area: mean where land");
-  mapping["OUT_SNOW_CANOPY"] = VariableMetaData("kg m-2", "snveg", "veg_snow_amount", "Canopy Snow Amount", "time: mean area: mean where land"); // NOTE: PCIC made this up.
-  mapping["OUT_SNOW_COVER"] = VariableMetaData("%", "snc", "surface_snow_area_fraction", "Snow Area Fraction", "time: mean");
-  mapping["OUT_ADVECTION"] =    VariableMetaData("W/m2", "OUT_ADVECTION", "", "advected energy", "");
-  mapping["OUT_DELTACC"] =    VariableMetaData("W/m2", "OUT_DELTACC", "", "rate of change in cold content in snow pack", "");
-  mapping["OUT_SNOW_FLUX"] =  VariableMetaData("W m-2", "hfdsn", "surface_downward_heat_flux_in_snow", "Downward Heat Flux into Snow Where Land over Land", "time: mean area: mean where land");
-  mapping["OUT_RFRZ_ENERGY"] =    VariableMetaData("W/m2", "OUT_RFRZ_ENERGY", "", "net energy used to refreeze liquid water in snowpack", "");
-  mapping["OUT_MELT_ENERGY"] =    VariableMetaData("W/m2", "OUT_MELT_ENERGY", "", "energy of fusion (melting) in snowpack", "");
-  mapping["OUT_ADV_SENS"] =     VariableMetaData("W/m2", "OUT_ADV_SENS", "", "net sensible flux advected to snow pack", "");
-  mapping["OUT_LATENT_SUB"] = VariableMetaData("W m-2", "hfls", "surface_upward_latent_heat_flux", "Surface Upward Latent Heat Flux", "time: mean");
-  mapping["OUT_SNOW_SURF_TEMP"] = VariableMetaData("K", "tsn", "temperature_in_surface_snow", "Snow Internal Temperature", "time: mean (with samples weighted by snow mass) area: mean where land");
-  mapping["OUT_SNOW_PACK_TEMP"] =     VariableMetaData("C", "OUT_SNOW_PACK_TEMP", "", "snow pack temperature", "");
-  mapping["OUT_SNOW_MELT"] =  VariableMetaData("kg m-2 s-1", "snm", "surface_snow_melt_flux", "Surface Snow Melt", "time: mean area: mean where land");
-  mapping["OUT_SUB_BLOWING"] = VariableMetaData("kg m-2 s-1", "sblow", "surface_snow_and_ice_sublimation_flux", "Blowing Snow Sublimation Flux", "time: mean area: mean where land"); // NOTE: PCIC made this up
-  mapping["OUT_SUB_SURFACE"] = VariableMetaData("kg m-2 s-1", "sbl", "surface_snow_and_ice_sublimation_flux", "Surface Snow and Ice Sublimation Flux", "time: mean area: mean where land");
-  mapping["OUT_SUB_SNOW"] =     VariableMetaData("mm", "OUT_SUB_SNOW", "", "total net sublimation from snow pack (surface and blowing)", "");
-  mapping["OUT_FDEPTH"] =     VariableMetaData("cm", "OUT_FDEPTH", "", "depth of freezing fronts", "");
-  mapping["OUT_TDEPTH"] =     VariableMetaData("cm", "OUT_TDEPTH", "", "depth of thawing fronts", "");
-  mapping["OUT_SOIL_MOIST"] = VariableMetaData("kg m-2", "mrso", "soil_moisture_content", "Total Soil Moisture Content", "time: mean area: mean where land");
-  mapping["OUT_SURF_FROST_FRAC"] =  VariableMetaData("%", "snc", "surface_snow_area_fraction", "Snow Area Fraction", "time: mean");
-  mapping["OUT_SWE_BAND"] =         VariableMetaData("kg m-2", "lwsnl", "liquid_water_content_of_snow_layer", "Liquid Water Content of Snow Layer", "time: mean area: mean where land");
-  mapping["OUT_SNOW_DEPTH_BAND"] =  VariableMetaData("m", "snd", "surface_snow_thickness", "Snow Depth", "time: mean area: mean where land", 0.01, 0, true);
-  mapping["OUT_SNOW_CANOPY_BAND"] =     VariableMetaData("mm", "OUT_SNOW_CANOPY_BAND", "", "snow interception storage in canopy", "");
-  mapping["OUT_ADVECTION_BAND"] =     VariableMetaData("W/m2", "OUT_ADVECTION_BAND", "", "advected energy", "");
-  mapping["OUT_DELTACC_BAND"] =     VariableMetaData("W/m2", "OUT_DELTACC_BAND", "", "change in cold content in snow pack", "");
-  mapping["OUT_SNOW_FLUX_BAND"] =     VariableMetaData("W/m2", "OUT_SNOW_FLUX_BAND", "", "energy flux through snow pack", "");
-  mapping["OUT_RFRZ_ENERGY_BAND"] =     VariableMetaData("W/m2", "OUT_RFRZ_ENERGY_BAND", "", "net energy used to refreeze liquid water in snowpack", "");
-  mapping["OUT_NET_SHORT_BAND"] =     VariableMetaData("W/m2", "OUT_NET_SHORT_BAND", "", "net downward shortwave flux", "");
-  mapping["OUT_NET_LONG_BAND"] =    VariableMetaData("W/m2", "OUT_NET_LONG_BAND", "", "net downward longwave flux", "");
-  mapping["OUT_ALBEDO_BAND"] =    VariableMetaData("%", "OUT_ALBEDO_BAND", "", "average surface albedo", "");
-  mapping["OUT_LATENT_BAND"] =    VariableMetaData("W/m2", "OUT_LATENT_BAND", "", "net upward latent heat flux", "");
-  mapping["OUT_SENSIBLE_BAND"] =    VariableMetaData("W/m2", "OUT_SENSIBLE_BAND", "", "net upward sensible heat flux", "");
-  mapping["OUT_GRND_FLUX_BAND"] =     VariableMetaData("W/m2", "OUT_GRND_FLUX_BAND", "", "net heat flux into ground", "");
-  mapping["OUT_LAKE_ICE_TEMP"] =    VariableMetaData("C", "OUT_LAKE_ICE_TEMP", "", "temperature of lake ice", "");
-  mapping["OUT_LAKE_ICE_HEIGHT"] =    VariableMetaData("cm", "OUT_LAKE_ICE_HEIGHT", "", "thickness of lake ice", "");
-  mapping["OUT_LAKE_ICE_FRACT"] =     VariableMetaData("%", "OUT_LAKE_ICE_FRACT", "", "fractional coverage of lake ice", "");
-  mapping["OUT_LAKE_DEPTH"] =     VariableMetaData("m", "OUT_LAKE_DEPTH", "", "lake depth (distance between surface and deepest point)", "");
-  mapping["OUT_LAKE_SURF_AREA"] =     VariableMetaData("m2", "OUT_LAKE_SURF_AREA", "", "lake surface area", "");
-  mapping["OUT_LAKE_VOLUME"] =    VariableMetaData("m3", "OUT_LAKE_VOLUME", "", "lake volume", "");
-  mapping["OUT_LAKE_SURF_TEMP"] =     VariableMetaData("C", "OUT_LAKE_SURF_TEMP", "", "lake surface temperature", "");
-  mapping["OUT_LAKE_EVAP"] =    VariableMetaData("mm", "OUT_LAKE_EVAP", "", "net evaporation from lake surface", "");
-  mapping["OUT_GLAC_WAT_STOR"] =    VariableMetaData("mm", "OUT_GLAC_WAT_STOR", "", "glacier water storage", "");
-  mapping["OUT_GLAC_AREA"] =    VariableMetaData("%", "OUT_GLAC_AREA", "", "glacier surface area fraction", "");
-  mapping["OUT_GLAC_MBAL"] =    VariableMetaData("mm", "OUT_GLAC_MBAL", "", "glacier mass balance", "");
-  mapping["OUT_GLAC_IMBAL"] =     VariableMetaData("mm", "OUT_GLAC_IMBAL", "", "glacier ice mass balance", "");
-  mapping["OUT_GLAC_ACCUM"] =     VariableMetaData("mm", "OUT_GLAC_ACCUM", "", "glacier ice accumulation from conversion of firn to ice", "");
-  mapping["OUT_GLAC_MELT"] =    VariableMetaData("mm", "OUT_GLAC_MELT", "", "glacier ice melt", "");
-  mapping["OUT_GLAC_SUB"] =     VariableMetaData("mm", "OUT_GLAC_SUB", "", "Net sublimation of glacier ice", "");
-  mapping["OUT_GLAC_INFLOW"] =    VariableMetaData("mm", "OUT_GLAC_INFLOW", "", "glacier water inflow from snow melt, ice melt and rainfall", "");
-  mapping["OUT_GLAC_OUTFLOW"] =     VariableMetaData("mm", "OUT_GLAC_OUTFLOW", "", "glacier water outflow", "");
-  mapping["OUT_GLAC_SURF_TEMP"] =     VariableMetaData("C", "OUT_GLAC_SURF_TEMP", "", "glacier surface temperature", "");
-  mapping["OUT_GLAC_TSURF_FBFLAG"] =    VariableMetaData("%", "OUT_GLAC_TSURF_FBFLAG", "", "glacier surface temperature flag", "");
-  mapping["OUT_GLAC_DELTACC"] =     VariableMetaData("W/m2", "OUT_GLAC_DELTACC", "", "rate of change of cold content in glacier surface layer", "");
-  mapping["OUT_GLAC_FLUX"] =    VariableMetaData("W/m2", "OUT_GLAC_FLUX", "", "energy flux through glacier surface layer", "");
-  mapping["OUT_GLAC_OUTFLOW_COEF"] =    VariableMetaData("%", "OUT_GLAC_OUTFLOW_COEF", "", "glacier outflow coefficient", "");
-  mapping["OUT_GLAC_DELTACC_BAND"] =    VariableMetaData("W/m2", "OUT_GLAC_DELTACC_BAND", "", "rate of change of cold content in glacier surface layer", "");
-  mapping["OUT_GLAC_FLUX_BAND"] =     VariableMetaData("W/m2", "OUT_GLAC_FLUX_BAND", "", "energy flux through glacier surface layer", "");
-  mapping["OUT_GLAC_WAT_STOR_BAND"] =     VariableMetaData("mm", "OUT_GLAC_WAT_STOR_BAND", "", "glacier water storage", "");
-  mapping["OUT_GLAC_AREA_BAND"] =     VariableMetaData("%", "OUT_GLAC_AREA_BAND", "", "glacier surface area fraction", "");
-  mapping["OUT_GLAC_MBAL_BAND"] =     VariableMetaData("mm", "OUT_GLAC_MBAL_BAND", "", "glacier mass balance", "");
-  mapping["OUT_GLAC_IMBAL_BAND"] =    VariableMetaData("mm", "OUT_GLAC_IMBAL_BAND", "", "glacier ice mass balance", "");
-  mapping["OUT_GLAC_ACCUM_BAND"] =    VariableMetaData("mm", "OUT_GLAC_ACCUM_BAND", "", "glacier ice accumulation from conversion of firn to ice", "");
-  mapping["OUT_GLAC_MELT_BAND"] =     VariableMetaData("mm", "OUT_GLAC_MELT_BAND", "", "glacier ice melt", "");
-  mapping["OUT_GLAC_SUB_BAND"] =    VariableMetaData("mm", "OUT_GLAC_SUB_BAND", "", "Net sublimation of glacier ice", "");
-  mapping["OUT_GLAC_INFLOW_BAND"] =     VariableMetaData("mm", "OUT_GLAC_INFLOW_BAND", "", "glacier water inflow from snow melt, ice melt and rainfall", "");
-  mapping["OUT_GLAC_OUTFLOW_BAND"] =    VariableMetaData("mm", "OUT_GLAC_OUTFLOW_BAND", "", "glacier water outflow", "");
-  mapping["OUT_SHORTWAVE"] =    VariableMetaData("mm", "OUT_SHORTWAVE", "", "glacier SHORTWAVE", ""); //new
-  mapping["OUT_LONGWAVE"] =    VariableMetaData("mm", "OUT_LONGWAVE", "", "glacier LONGWAVE", ""); //new
-  mapping["OUT_DENSITY"] =    VariableMetaData("mm", "OUT_DENSITY", "", "glacier DENSITY", ""); //new
-  mapping["OUT_VP"] =    VariableMetaData("mm", "OUT_VP", "", "glacier VP", ""); //new
-  mapping["OUT_PRESSURE"] =    VariableMetaData("mm", "OUT_PRESSURE", "", "glacier PRESSURE", ""); //new
-  mapping["OUT_RAINF"] =       VariableMetaData("kg m-2 s-1", "OUT_RAINF", "rainfall_flux", "Rainfall", "time: mean"); //new
-  mapping["OUT_SNOWF"] =       VariableMetaData("kg m-2 s-1", "OUT_SNOWF", "snowfall_flux", "Snowfall", "time: mean"); //new
-  mapping["OUT_INFLOW"] =    VariableMetaData("mm", "OUT_INFLOW", "", "moisture that reaches top of soil column", ""); //new
-  mapping["OUT_WATER_ERROR"] =    VariableMetaData("mm", "OUT_WATER_ERROR", "", "water budget error", ""); //new
-  mapping["OUT_AERO_RESIST1"] =    VariableMetaData("s/m", "OUT_AERO_RESIST1", "", "surface aerodynamic resistance", ""); //new
-  mapping["OUT_AERO_RESIST2"] =    VariableMetaData("s/m", "OUT_AERO_RESIST2", "", "overstory aerodynamic resistance", ""); //new
-
-  return mapping;
 }
 
 // The source version is set by the makefile at compile time based on the hg version control values.
@@ -272,8 +159,9 @@ int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
 }
 
 // Called automatically only once at the beginning of the program.
-void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
-  NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
+void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data_struct* out_data_defaults) {
+
+	NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
 
   addGlobalAttributes(&ncFile, state);
 
@@ -360,10 +248,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
     valuesVar.putVar(start, count, &index);
   }
 
-
-  out_data_struct* out_data_defaults = create_output_list(state);
-  out_data_file_struct* out_file = set_output_defaults(out_data_defaults, state);
-
   // Define dimension orders.
   // If you change the ordering, make sure you also change the order that variables are written in the WriteOutputNetCDF::write_data() method.
   const NcDim dim3Vals [] = { timeDim, latDim, lonDim };
@@ -377,22 +261,26 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
       bool use4Dimensions = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
-      fprintf(stderr, "WriteOutputNetCDF initialize: adding variable: %s\n", varName.c_str());
-      if (mapping.find(varName) == mapping.end()) {
-        throw VICException("Error: could not find variable in mapping: " + varName);
+
+      if (state->output_mapping.find(varName) == state->output_mapping.end()) {
+        throw VICException("Error: could not find variable in output_mapping: " + varName);
       }
-      VariableMetaData metaData = mapping[varName];
+      VariableMetaData metaData = state->output_mapping.at(varName);
+      fprintf(stderr, "WriteOutputNetCDF initializeFile: adding variable: %s (NetCDF output variable name: %s)\n", varName.c_str(), metaData.name.c_str());
+
       if (metaData.isBands) {
-        throw VICException("Error: bands not supported yet on variable mapping " + varName);
+        throw VICException("Error: bands not supported yet on variable output mapping " + varName);
       } else {
         try {
           NcVar data = ncFile.addVar(metaData.name.c_str(), ncFloat, (use4Dimensions ? dimensions4 : dimensions3) );
+// TODO: (remember to do mapping of output variable names for ASCII case too)
+
           data.putAtt("long_name", metaData.longName.c_str());
           data.putAtt("units", metaData.units.c_str());
           data.putAtt("standard_name", metaData.standardName.c_str());
           data.putAtt("cell_methods", metaData.cellMethods.c_str());
           data.putAtt("_FillValue", ncFloat, 1e20f);
-          data.putAtt("internal_vic_name", varName); // This is basically just for reference.
+          data.putAtt("internal_vic_name", varName); // This should be the same as that given next to OUTVAR in the global file (and the key used to find variable metadata in state->mapping)
           data.putAtt("category", dataFiles[file_idx]->prefix);
           if (state->options.COMPRESS) {
             data.setCompression(false, true, 1); // Some reasonable compression level - not too intensive.
@@ -404,11 +292,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state) {
       }
     }
   }
-  free_out_data(&out_data_defaults);
-
-  // The file will be automatically close when the NcFile object goes
-  // out of scope. This frees up any internal netCDF resources
-  // associated with the file, and flushes any buffers.
 }
 
 // Returns either the number of hours since the start time (if dt < 24)
@@ -466,14 +349,16 @@ void WriteOutputNetCDF::write_data(out_data_struct* out_data, const dmy_struct* 
       count4.at(1) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
 
       try {
-        NcVar variable = allVars.find(mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name)->second;
+//      	std::string varName = state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name;
+      	NcVar variable = allVars.find(state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name)->second;
+
         if (use4Dimensions) {
           variable.putVar(start4, count4, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
         } else {
           variable.putVar(start3, count3, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
         }
       } catch (std::exception& e) {
-        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", mapping[out_data[dataFiles[file_idx]->varid[var_idx]].varname].name.c_str(), (int)latIndex, (int)lonIndex, (int)timeIndex);
+        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name.c_str(), (int)latIndex, (int)lonIndex, (int)timeIndex);
         throw;
       }
     }

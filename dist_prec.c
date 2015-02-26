@@ -166,6 +166,7 @@ int  dist_prec(cell_info_struct* cell,
 
   ErrorFlag2 = put_data(cell, outputFormat, out_data, &dmy[time_step_record],
       time_step_record, state);
+
   if (ErrorFlag2 == ERROR)
     ErrorFlag = ERROR;
 

@@ -36,10 +36,10 @@ void parse_output_info(const char*           input_file_name,
   int  i;
   int  outfilenum;
   int  fn;
-  char varname[20];
+  char varname[30];
   int  outvarnum;
   char format[10];
-  char typestr[20];
+  char output_varname[30];
   int  type;
   char multstr[20];
   float mult;
@@ -87,33 +87,24 @@ void parse_output_info(const char*           input_file_name,
         if (outfilenum < 0) {
           nrerror("Error in global param file: \"OUTFILE\" must be specified before you can specify \"OUTVAR\".");
         }
-        strcpy(format,"");
-        strcpy(typestr,"");
-        strcpy(multstr,"");
-        sscanf(cmdstr,"%*s %s %s %s %s",varname, format, typestr, multstr);
-        if (strcasecmp("",format) == 0) {
-          strcpy(format,"*");
-          type = OUT_TYPE_DEFAULT;
-          mult = 0; // 0 means default multiplier
+        /* The next 3 lines are just to avoid breaking stuff from legacy VIC output formatting, but in actuality only float data is written now */
+        strcpy(format,"*");
+        type = OUT_TYPE_FLOAT;
+        mult = 0; // 0 means default multiplier
+
+        /* Now using additional parameters to the right of OUTVAR to designate the variable name to appear in the NetCDF/ASCII file:
+         * 			OUTVAR	<vic varname>		<output_varname>
+         * e.g. OUTVAR 	OUT_SNOW_DEPTH	snd									<--mapping OUT_SNOW_DEPTH to snd
+         * If no 2nd parameter is provided, the vic varname will be used in the output file */
+
+        int numvars = sscanf(cmdstr,"%*s %s %s", varname, output_varname);
+
+        if (numvars == 2) { // an output_varname was provided, so change the mapping of this variable in state->output_mapping to the new output_varname
+        	state->set_output_variable_name(std::string(varname), std::string(output_varname));
         }
-        else {
-          if (strcasecmp("OUT_TYPE_USINT", typestr)==0)
-            type = OUT_TYPE_USINT;
-          else if (strcasecmp("OUT_TYPE_SINT", typestr)==0)
-            type = OUT_TYPE_SINT;
-          else if (strcasecmp("OUT_TYPE_FLOAT", typestr)==0)
-            type = OUT_TYPE_FLOAT;
-          else if (strcasecmp("OUT_TYPE_DOUBLE", typestr)==0)
-            type = OUT_TYPE_DOUBLE;
-          else
-            type = OUT_TYPE_DEFAULT;
-          if (strcmp("*", multstr)==0)
-            mult = 0; // 0 means use default multiplier
-          else
-            mult = (float)atof(multstr);
-        }
+
         if (set_output_var(out_data_files, TRUE, outfilenum, out_data, varname, outvarnum, format, type, mult) != 0) {
-          nrerror("Error in global param file: Invalid output variable specification.");
+        	nrerror("Error in global param file: Invalid output variable specification.");
         }
         strcpy(format,"");
         outvarnum++;
