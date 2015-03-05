@@ -322,7 +322,7 @@ int initializeCell(cell_info_struct& cell,
        Have not Been Specifically Set
        **************************************************/
   #if VERBOSE
-      fprintf(stderr, "Initializing Forcing Data for cell at %f %f\n", cell.soil_con.lat, cell.soil_con.lng);
+      fprintf(stderr, "Initializing Forcing Data for cell at %4.5f %4.5f\n", cell.soil_con.lat, cell.soil_con.lng);
   #endif /* VERBOSE */
 
   /** allocate memory for the atmos_data_struct **/

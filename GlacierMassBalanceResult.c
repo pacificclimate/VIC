@@ -92,3 +92,9 @@ void GlacierMassBalanceResult::printForDebug() {
   }
 }
 
+// Write the mass balance polynomial to file
+/*
+void GlacierMassBalanceResult::writeToFile() {
+
+}
+*/

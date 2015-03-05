@@ -11,7 +11,7 @@ void GraphingEquation::calculateFitError(const std::vector<GraphPoint>& points) 
     double curveValue = b0 + b1*(point->elevationX) + b2*(point->elevationX * point->elevationX);
     fitError += std::abs(curveValue - point->massBalanceY);
   }
-  fprintf(stderr, "Cumulative fit error: %lf\n", fitError);
+//  fprintf(stderr, "Cumulative fit error: %lf\n", fitError);
 }
 
 void GraphingEquation::calculateEquationFrom2Points(GraphPoint p1, GraphPoint p2) {

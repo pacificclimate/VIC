@@ -273,8 +273,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
       } else {
         try {
           NcVar data = ncFile.addVar(metaData.name.c_str(), ncFloat, (use4Dimensions ? dimensions4 : dimensions3) );
-// TODO: (remember to do mapping of output variable names for ASCII case too)
-
           data.putAtt("long_name", metaData.longName.c_str());
           data.putAtt("units", metaData.units.c_str());
           data.putAtt("standard_name", metaData.standardName.c_str());
