@@ -8,7 +8,6 @@
 struct GlacierMassBalanceResult {
   GlacierMassBalanceResult(const std::vector<HRU>& hruList, const soil_con_struct* soil, const dmy_struct& dmy);
   void printForDebug();
-private:
   void calculateEquationFromPoints();
   void calculateFitError();
   GraphingEquation equation;

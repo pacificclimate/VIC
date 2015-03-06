@@ -218,4 +218,6 @@ void ProgramState::initialize_global() {
     for(int j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = INVALID_INT;
   }
 
+  /* Set number of terms used in Glacier Mass Balance Equation polynomial */
+  num_gmb_terms = 4; // should match definition for GraphingEquation type.  Currently has 4 terms: b0, b1, b2, fitError
 }

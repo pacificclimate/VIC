@@ -73,6 +73,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
 {
   int Nbands = state->options.SNOW_BAND;
   int numHRUs = cell->prcp.hruList.size();
+  int numGMBterms = state->num_gmb_terms; // number of terms for Glacier Mass Balance Equation type, currently 4 (b0, b1, b2, fitError)
 
   StateIOContext context(filename, StateIO::Writer, state);
   StateIO* writer = context.stream;
@@ -85,6 +86,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
   writer->write(&numHRUs, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
+  writer->write(&numGMBterms, 1, StateVariables::NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS);
 
   processCellForStateFile(cell, writer, state);
   
@@ -147,6 +149,13 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   stream->process(&cell->soil_con.depth_full_snow_cover, 1, SOIL_DEPTH_FULL_SNOW_COVER); //new
 #endif
 
+  /* Write Glacier Mass Balance equation for the grid cell */
+  float gmbTerms[state->num_gmb_terms];
+  gmbTerms[0] = cell->gmbEquation.b0;
+  gmbTerms[1] = cell->gmbEquation.b1;
+  gmbTerms[2] = cell->gmbEquation.b2;
+  gmbTerms[3] = cell->gmbEquation.fitError;
+  stream->process(gmbTerms, state->num_gmb_terms, GLAC_MASS_BALANCE_EQUATION);
 
   /* Output for all vegetation types */
   for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, stream->notifyDimensionUpdate(HRU_DIM)) {
@@ -270,9 +279,6 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     stream->process(&it->energy.Tfoliage, 1, ENERGY_TFOLIAGE); //new
     stream->process(&it->energy.Tfoliage_fbcount, 1, ENERGY_TFOLIAGE_FBCOUNT); //new
     stream->process(&it->energy.Tsurf_fbcount, 1, ENERGY_TSURF_FBCOUNT); //new
-
-
-
 
     stream->processNewline();
   }

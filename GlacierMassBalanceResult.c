@@ -91,10 +91,3 @@ void GlacierMassBalanceResult::printForDebug() {
     fprintf(stderr, "Output from GlacierMassBalanceResult: %s\n", output.str().c_str());
   }
 }
-
-// Write the mass balance polynomial to file
-/*
-void GlacierMassBalanceResult::writeToFile() {
-
-}
-*/

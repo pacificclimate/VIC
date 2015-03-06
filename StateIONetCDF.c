@@ -29,6 +29,7 @@ const std::string LON_DIM_STR = "lon";
 const std::string GRID_CELL_STR = "GRID_CELL";
 const std::string VEG_TYPE_NUM_STR = "VEG_TYPE_NUM";
 const std::string NUM_BANDS_STR = "NUM_BANDS";
+const std::string NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS_STR = "NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS";
 
 StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL) {
   populateMetaData();
@@ -132,6 +133,8 @@ void StateIONetCDF::initializeOutput() {
   netCDF->putAtt(stateDay, netCDF::ncInt, state->global_param.stateday);
   netCDF->putAtt(stateNLayer, netCDF::ncInt, state->options.Nlayer);
   netCDF->putAtt(stateNNode, netCDF::ncInt, state->options.Nnode);
+  netCDF->putAtt(NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS_STR, netCDF::ncInt, state->num_gmb_terms);
+
 
   verifyGlobalAttributes(*netCDF);
 
@@ -383,6 +386,7 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[FROST_AREAS_DIM] = StateVariableDimension("frost_subareas", FROST_SUBAREAS);
   metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->veg_lib->NVegLibTypes * MAX_BANDS);
   metaDimensions[DIST_DIM] = StateVariableDimension("dist", 2); // Wet and dry.
+  metaDimensions[GLACIER_MASS_BALANCE_EQUATION_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);
 }
 
 void StateIONetCDF::populateMetaData() {
@@ -391,6 +395,7 @@ void StateIONetCDF::populateMetaData() {
   metaData[GRID_CELL] =               StateVariableMetaData(GRID_CELL_STR);
   metaData[VEG_TYPE_NUM] =            StateVariableMetaData(VEG_TYPE_NUM_STR);
   metaData[NUM_BANDS] =               StateVariableMetaData(NUM_BANDS_STR);
+  metaData[NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS] = StateVariableMetaData(NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS_STR);
   metaData[SOIL_DZ_NODE] =            StateVariableMetaData("SOIL_DZ_NODE", NODES_DIM);
   metaData[SOIL_ZSUM_NODE] =          StateVariableMetaData("SOIL_ZSUM_NODE", NODES_DIM);
   metaData[SOIL_DEPTH] =              StateVariableMetaData("SOIL_DEPTH", LAYERS_DIM);
@@ -468,6 +473,7 @@ void StateIONetCDF::populateMetaData() {
   metaData[GLAC_CUM_MASS_BALANCE] = StateVariableMetaData("GLAC_CUM_MASS_BALANCE");
   metaData[GLAC_VAPOR_FLUX] = StateVariableMetaData("GLAC_VAPOR_FLUX");
   metaData[GLAC_WATER_STORAGE] = StateVariableMetaData("GLAC_WATER_STORAGE");
+  metaData[GLAC_MASS_BALANCE_EQUATION] = StateVariableMetaData("GLAC_MASS_BALANCE_EQUATION", GLACIER_MASS_BALANCE_EQUATION_DIM);
   metaData[ENERGY_T_FBCOUNT] = StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
   metaData[ENERGY_TCANOPY_FBCOUNT] = StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT");
   metaData[ENERGY_TFOLIAGE] = StateVariableMetaData("ENERGY_TFOLIAGE");

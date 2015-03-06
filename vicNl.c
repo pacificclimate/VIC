@@ -488,7 +488,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       }
 
       // FIXME: should accumulateGlacierMassBalance have error checking?
-      accumulateGlacierMassBalance(dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
+      accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date

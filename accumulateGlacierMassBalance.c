@@ -10,7 +10,7 @@ void resetAccumulationValues(std::vector<HRU>* hruList) {
   }
 }
 
-void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state) {
+void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state) {
 
   if (IS_INVALID(state->global_param.glacierAccumStartYear) || IS_INVALID(state->global_param.glacierAccumStartMonth)
       || IS_INVALID(state->global_param.glacierAccumStartDay) || IS_INVALID(state->global_param.glacierAccumInterval)) {
@@ -26,17 +26,15 @@ void accumulateGlacierMassBalance(const dmy_struct* dmy, int rec, dist_prcp_stru
   // and reinitialize all the accumulation values.
   if ((abs(nextDate.year - state->global_param.glacierAccumStartYear) % state->global_param.glacierAccumInterval == 0)
       && nextDate.month == state->global_param.glacierAccumStartMonth && nextDate.day == state->global_param.glacierAccumStartDay
-			&& (((state->global_param.dt <= 12) && (dmy[rec].hour + 1 == 24)) || (state->global_param.dt == 24 )) ) {
+			&& (((state->global_param.dt <= 12) && (dmy[rec].hour == 23)) || (state->global_param.dt == 24 )) ) {
 
 #if VERBOSE
         fprintf(stderr, "accumulateGlacierMassBalance for cell at %4.5f %4.5f:\n", soil->lat, soil->lng );
 #endif /* VERBOSE */
     GlacierMassBalanceResult result(prcp->hruList, soil, dmy[rec]);
     result.printForDebug();
-//    result.writeToFile(soil.gridcel, equation); // MDF: write the polynomial coefficients to an ASCII file, indexed by the grid cell ID soil.gridcel
-    //TODO: pass the result object to the glacier dynamics module somehow.
-
     resetAccumulationValues(&(prcp->hruList));
+    *gmbEquation = result.equation; // update GMB polynomial for this cell
 
   } else {  // Not the final time step in the specified interval, accumulate mass balance.
     // Initialize on the first time step.

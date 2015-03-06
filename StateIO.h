@@ -201,9 +201,6 @@ enum StateMetaDataVariableIndices {
   FORCE_TYPE_SUPPLIED, //new
   FORCE_TYPE_multiplier, //new
 
-
-
-
   CELL_ERRSTR, //new
   CELL_CV_SUM, //new
 
@@ -241,8 +238,6 @@ enum StateMetaDataVariableIndices {
   ATMOS_VP, //new
   ATMOS_VPD, //new
   ATMOS_WIND, //new
-
-
 
   SOIL_FS_ACTIVE, //new
   SOIL_DS, //new
@@ -330,8 +325,6 @@ enum StateMetaDataVariableIndices {
   SOIL_GLAC_ALBEDO, //new
   SOIL_GLAC_ROUGH, //new
 
-
-
   HRU_VEG_CON_CV, //new
   HRU_VEG_CON_ROOT, //new
   HRU_VEG_CON_ZONE_DEPTH, //new
@@ -343,10 +336,8 @@ enum StateMetaDataVariableIndices {
   HRU_VEG_CON_FETCH, //new
   HRU_VEG_CON_LAKE, //new
 
-
   HRU_ISGLACIER, //new
   HRU_ISBARESOIL, //new
-
 
   HRUCELL_ASAT, //new
   HRUCELL_BASEFLOW, //new
@@ -359,11 +350,8 @@ enum StateMetaDataVariableIndices {
   HRUCELL_ZWT2, //new
   HRUCELL_ZWT3, //new
 
-
-
   AERO_SURFACE, //new
   AERO_OVERSTORY, //new
-
 
   LAYER_CS, //new
   LAYER_T, //new
@@ -372,10 +360,8 @@ enum StateMetaDataVariableIndices {
   LAYER_PHI, //new
   LAYER_ZWT, //new
 
-
   HRU_VEG_VAR_CANOPYEVAP, //new
   HRU_VEG_VAR_THROUGHFALL, //new
-
 
   SNOW_ALBEDO, //new
   SNOW_CANOPY_ALBEDO, //new
@@ -482,6 +468,8 @@ enum StateMetaDataVariableIndices {
   ENERGY_GLACIER_FLUX, //new
   ENERGY_DELTACC_GLAC, //new
 
+	GLAC_MASS_BALANCE_EQUATION, // to store the Glacier Mass Balance equation for use in VIC-RGM integration
+	NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS,
 };
 
 enum StateVariableDimensionId {
@@ -496,6 +484,7 @@ enum StateVariableDimensionId {
   FROST_AREAS_DIM,
   HRU_DIM,
   DIST_DIM,
+	GLACIER_MASS_BALANCE_EQUATION_DIM,
 };
 }
 
