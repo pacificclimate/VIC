@@ -468,8 +468,8 @@ enum StateMetaDataVariableIndices {
   ENERGY_GLACIER_FLUX, //new
   ENERGY_DELTACC_GLAC, //new
 
-	GLAC_MASS_BALANCE_EQUATION, // to store the Glacier Mass Balance equation for use in VIC-RGM integration
-	NUM_GLACIER_MASS_BALANCE_EQUATION_TERMS,
+	GLAC_MASS_BALANCE_INFO, // to store the Glacier Mass Balance information (grid cell num and equation) for use in VIC-RGM integration
+	NUM_GLAC_MASS_BALANCE_INFO_TERMS,
 };
 
 enum StateVariableDimensionId {
@@ -484,7 +484,7 @@ enum StateVariableDimensionId {
   FROST_AREAS_DIM,
   HRU_DIM,
   DIST_DIM,
-	GLACIER_MASS_BALANCE_EQUATION_DIM,
+	GLAC_MASS_BALANCE_INFO_DIM,
 };
 }
 
