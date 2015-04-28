@@ -426,6 +426,11 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   WriteOutputContext context(this);
   fprintf(stderr, "OUTPUT_FORMAT\t\t%s\n", context.outputFormat->getDescriptionOfOutputType());
 
+  if (options.OUTPUT_FORCE)
+  	fprintf(stderr, "OUTPUT_FORCE\t\tTRUE\n");
+  else
+  	fprintf(stderr, "OUTPUT_FORCE\t\tFALSE\n");
+
   if (options.COMPRESS)
     fprintf(stderr,"COMPRESS\t\tTRUE\n");
   else
