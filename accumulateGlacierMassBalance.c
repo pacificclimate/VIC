@@ -24,8 +24,10 @@ void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struc
   const dmy_struct nextDate = dmy[rec + 1];
   // If the next time step is the start of the new accumulation interval then output results (pass to glacier model)
   // and reinitialize all the accumulation values.
-  if ((abs(nextDate.year - state->global_param.glacierAccumStartYear) % state->global_param.glacierAccumInterval == 0)
-      && nextDate.month == state->global_param.glacierAccumStartMonth && nextDate.day == state->global_param.glacierAccumStartDay
+  if ( (nextDate.year >= state->global_param.glacierAccumStartYear)
+  		&& (abs(nextDate.year - state->global_param.glacierAccumStartYear) % state->global_param.glacierAccumInterval == 0)
+      && nextDate.month == state->global_param.glacierAccumStartMonth
+			&& nextDate.day == state->global_param.glacierAccumStartDay
 			&& (((state->global_param.dt <= 12) && (dmy[rec].hour == 23)) || (state->global_param.dt == 24 )) ) {
 
 #if VERBOSE
