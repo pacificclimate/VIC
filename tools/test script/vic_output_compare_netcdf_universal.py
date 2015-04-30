@@ -35,7 +35,7 @@ parser.add_argument('-tolerance', action="store", dest="tolerance", type=float, 
 parser.add_argument('--csv', action="store_true", dest="csv_out", default=False, help = 'set if you want output of data read from NetCDF to CSV')
 parser.add_argument('-csv-diffs-only', action="store_true", dest="csv_diffs_only", default=False, help = 'set if you want to output only the differences to CSV and not the original data')
 parser.add_argument('--v', action="store_true", dest="verbose", default=False, help = 'for verbose output')
-parser.add_argument('--var_map_file', action="store", dest="var_map_file", type=str, help = 'file name and path of a file providing NetCDF output variable name mapping (e.g. Snow Melt could be named snm / SNOW_MELT / OUT_SNOW_MELT, depending on the version of VIC or user-defined mappings).  Each line of the file should start with the general OUT_ variable name, followed by all possible alternate names, tab-separated, e.g. OUT_SNOW_MELT   SNOW_MELT   snm')
+parser.add_argument('--var-map-file', action="store", dest="var_map_file", type=str, help = 'file name and path of a file providing NetCDF output variable name mapping (e.g. Snow Melt could be named snm / SNOW_MELT / OUT_SNOW_MELT, depending on the version of VIC or user-defined mappings).  Each line of the file should start with the general OUT_ variable name, followed by all possible alternate names, tab-separated, e.g. OUT_SNOW_MELT   SNOW_MELT   snm')
 
 if len(sys.argv) == 1:
     parser.print_help()
