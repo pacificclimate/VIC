@@ -101,12 +101,13 @@ OBJS =  accumulateGlacierMassBalance.o \
 	make_dmy.o \
 	make_in_and_outfiles.o massrelease.o \
 	modify_Ksat.o mtclim_vic.o mtclim_wrapper.o newt_raph_func_fast.o nrerror.o \
-	open_debug.o open_file.o open_state_file.o \
+	open_debug.o open_file.o \
 	output_list_utils.o parse_output_info.o penman.o \
 	prepare_full_energy.o put_data.o read_arcinfo_ascii.o \
 	read_atmos_data.o read_forcing_data.o read_initial_model_state.o \
 	read_snowband.o read_soilparam.o read_soilparam_arc.o read_veglib.o \
 	read_vegparam.o redistribute_during_storm.o root_brent.o runoff.o \
+	StateIO.o StateIOContext.o StateIOASCII.o StateIOBinary.o StateIONetCDF.o \
 	set_output_defaults.o snow_intercept.o snow_melt.o snow_melt_glac.o \
 	snow_utility.o soil_conduction.o \
 	soil_thermal_eqn.o solve_snow.o solve_snow_glac.o solve_glacier.o store_moisture_for_debug.o \
