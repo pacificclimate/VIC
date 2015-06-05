@@ -167,10 +167,11 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     int originalVeg = it->veg_con.vegClass;
     int originalBand = it->bandIndex;
 
-//    stream->process(&(it->veg_con.vegClass), 1, HRU_VEG_INDEX); //not necessary
+// FIXME: ADD THESE TWO BACK TO THE STATE OUTPUT
+    stream->process(&(it->veg_con.vegClass), 1, HRU_VEG_INDEX); //not necessary
 
 
-//    stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX); //not necessary
+    stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX); //not necessary
 
     // The following is read specific and there is nothing we can do about it.
     if (stream->getType() == StateIO::Reader) {
@@ -250,7 +251,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     stream->process(&it->snow.density, 1, SNOW_DENSITY);
     stream->process(&it->snow.depth, 1, SNOW_DEPTH); //new
     stream->process(&it->snow.last_snow, 1, SNOW_LAST_SNOW);
-//    stream->process(&it->snow.MELTING, 1, SNOW_MELTING); //not necessary
+    stream->process(&it->snow.MELTING, 1, SNOW_MELTING); //not necessary
     stream->process(&it->snow.pack_temp, 1, SNOW_PACK_TEMP);
     stream->process(&it->snow.pack_water, 1, SNOW_PACK_WATER);
     stream->process(&it->snow.snow_canopy, 1, SNOW_CANOPY);
