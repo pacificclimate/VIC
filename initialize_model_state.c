@@ -29,7 +29,7 @@ int initialize_model_state(cell_info_struct* cell,
           to provide a single controlling routine for initializing the
           model state.
   9-00    Fixed bug where initialization of soil node temperatures 
-          and moitures was within two vegetation loops, thus only
+          and moistures was within two vegetation loops, thus only
           the first vegetation type was properly initialized.     KAC
   2-19-03 Modified to initialize soil and vegetation parameters for
           the dry grid cell fraction, if distributed precipitation
@@ -411,7 +411,7 @@ int initialize_model_state(cell_info_struct* cell,
 
           if (cellRef.layer[lidx].moist > cell->soil_con.max_moist[lidx]) {
             fprintf(stderr,
-                "WARNING: Initial soil moisture (%f mm) exceeds maximum (%f mm) in layer %d for veg tile %d and snow band%d.  Resetting to maximum.\n",
+                "WARNING: Initial soil moisture (%f mm) exceeds maximum (%f mm) in layer %d for veg tile %d and snow band %d.  Resetting to maximum.\n",
                 cellRef.layer[lidx].moist, cell->soil_con.max_moist[lidx], lidx,
                 it->veg_con.vegIndex, it->bandIndex);
 #if SPATIAL_FROST

@@ -666,7 +666,13 @@ int  put_data(cell_info_struct  *cell,
   }
   out_data[OUT_AERO_RESIST].aggdata[0] = 1/out_data[OUT_AERO_COND].aggdata[0];
   out_data[OUT_AERO_RESIST1].aggdata[0] = 1/out_data[OUT_AERO_COND1].aggdata[0];
-  out_data[OUT_AERO_RESIST2].aggdata[0] = 1/out_data[OUT_AERO_COND2].aggdata[0];
+  if (out_data[OUT_AERO_COND2].aggdata[0] > SMALL) {
+     out_data[OUT_AERO_RESIST2].aggdata[0] = 1 / out_data[OUT_AERO_COND2].aggdata[0];
+  }
+  else {
+     out_data[OUT_AERO_RESIST2].aggdata[0] = HUGE_RESIST;
+  }
+  /* out_data[OUT_AERO_RESIST2].aggdata[0] = 1/out_data[OUT_AERO_COND2].aggdata[0];
 
   /********************
     Output procedure
