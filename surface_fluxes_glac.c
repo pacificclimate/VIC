@@ -63,10 +63,9 @@ int surface_fluxes_glac(
   double                 Tcanopy; // canopy air temperature
   double                 Tgrnd; // soil surface temperature
   double                 Tsurf; // ground surface temperature
-  double                 VPDcanopy; // vapor pressure deficit in canopy/atmos
+  double                 VPDcanopy; // vapor pressure deficit in canopy/atmosphere
   double                 coverage; // mid-step snow cover fraction
   double                 delta_coverage; // change in snow cover fraction
-  double                 delta_snow_heat; // change in snowpack heat storage
   double                 ppt[2]; // precipitation/melt reaching soil surface or glacier surface
   double                 rainfall[2]; // rainfall
   double                 snowfall[2]; // snowfall
@@ -287,18 +286,14 @@ int surface_fluxes_glac(
     if (step_snow.swq > 0. || snowfall[WET] > 0.) {
       /** Solve snow accumulation and ablation on the glacier surface **/
 
-      step_melt = solve_snow_glac(BareAlbedo, LongUnderOut,
-       Tgrnd, Tair, hru.mu,
-       step_prec[WET], state->global_param.wind_h, &hru.energy.AlbedoUnder,
-       latent_heat_Le, &LongUnderIn, &NetLongSnow,
+      step_melt = solve_snow_glac(BareAlbedo, Tgrnd, Tair, hru.mu,
+       &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn, &NetLongSnow,
        &NetShortSnow, &ShortUnderIn, &OldTSurf, temp_aero_resist,
-       temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
-       displacement, &step_melt_energy, out_prec, out_rain, out_snow,
-       step_ppt, rainfall, ref_height,
-       roughness, snow_inflow, snowfall, wind_speed,
-       step_dt, rec, hidx,
-       UnderStory, dmy, *atmos, &(step_energy),
-       &(step_snow), soil_con, &step_glacier, state);
+       temp_aero_resist_used, &coverage, &delta_coverage,
+       displacement, &step_melt_energy, step_ppt, rainfall, ref_height,
+       roughness, snow_inflow, snowfall, wind_speed, step_dt, rec, hidx,
+       UnderStory, dmy, *atmos, &(step_energy), &(step_snow), soil_con,
+       &step_glacier, state);
 
       if (step_melt == ERROR)
         return (ERROR);
@@ -311,15 +306,13 @@ int surface_fluxes_glac(
 
     } else {
 
-      step_melt_glac = solve_glacier(BareAlbedo, LongUnderOut, Tgrnd, Tair, hru.mu,
-          step_prec[WET], state->global_param.wind_h,
-          &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn,
-          &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
-          temp_aero_resist, temp_aero_resist_used, displacement,
-          &step_melt_energy, out_prec, out_rain, out_snow,
-          step_ppt, rainfall, ref_height, roughness, snowfall, wind_speed,
-          step_dt, rec, hidx, UnderStory, dmy, atmos, &step_energy,
-          &step_glacier, soil_con, state);
+      step_melt_glac = solve_glacier(BareAlbedo, Tgrnd, Tair,
+    	  &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn,
+    	  &NetLongSnow, &NetShortSnow, &ShortUnderIn, &OldTSurf,
+    	  temp_aero_resist, temp_aero_resist_used, displacement,
+    	  &step_melt_energy, step_ppt, rainfall, ref_height, roughness,
+          wind_speed, step_dt, rec, hidx, UnderStory, atmos,
+          &step_energy, &step_glacier, soil_con, state);
 
       if (step_melt_glac == ERROR) {
         return (ERROR);

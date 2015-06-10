@@ -12,25 +12,21 @@ double solve_snow(char     overstory,
 		  double               Tcanopy, // canopy air temperature
 		  double               Tgrnd, // soil surface temperature
 		  double               air_temp, // air temperature
-		  double               dp,
 		  double               precipitation_mu,
 		  double               prec,
 		  double               snow_grnd_flux,
-		  double               wind_h,
 		  double              *AlbedoUnder,
-		  double              *Evap,
 		  double              *latent_heat_Le,
-		  double              *LongUnderIn, // surface incomgin LW
+		  double              *LongUnderIn, // surface incoming LW
 		  double              *NetLongSnow, // net LW at snow surface
 		  double              *NetShortGrnd, // net SW reaching ground
 		  double              *NetShortSnow, // net SW at snow surface
-		  double              *ShortUnderIn, // surfave incoming SW
+		  double              *ShortUnderIn, // surface incoming SW
 		  double              *Torg_snow,
 		  VegConditions       &aero_resist,
 		  AeroResistUsed      &aero_resist_used,
 		  double              *coverage, // best guess snow coverage
-		  double              *delta_coverage, // cover fract change
-		  double              *delta_snow_heat, // change in pack heat
+		  double              *delta_coverage, // snow cover fraction change
 		  VegConditions       &displacement,
 		  double              *gauge_correction,
 		  double              *melt_energy,
@@ -47,7 +43,6 @@ double solve_snow(char     overstory,
 		  VegConditions       &wind_speed,
 		  const float         *root,
 		  int                  INCLUDE_SNOW,
-		  int                  Nnodes,
 		  int                  dt,
 		  int                  rec,
 		  int                  hidx,
@@ -159,9 +154,6 @@ double solve_snow(char     overstory,
   /* initialize storage for energy consumed in changing snowpack
      cover fraction */
   (*melt_energy)     = 0.;
-
-  /* initialize change in snowpack heat storage */
-  (*delta_snow_heat) = 0.;
 
   /** Calculate Fraction of Precipitation that falls as Rain **/
   rainonly      = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, 

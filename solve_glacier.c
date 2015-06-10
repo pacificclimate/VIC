@@ -4,38 +4,28 @@
 
 double solve_glacier(
       double BareAlbedo,
-      double LongUnderOut,                      // LW from understory
       double               Tgrnd,               // glacier slab temperature
       double               air_temp,            // air temperature
-      double               mu,
-      double               prec,
-      double               wind_h,
       double              *AlbedoUnder,
       double              *Le,
       double              *LongUnderIn,         // surface incoming LW
       double              *NetLongGlac,         // net LW at glacier surface
-      double              *NetShortGrnd,        // net SW reaching ground
-      double              *NetShortGlac,        // net SW at glaciersurface
+      double              *NetShortGlac,        // net SW at glacier surface
       double              *ShortUnderIn,        // surface incoming SW
       double              *Torg_snow,
       VegConditions       &aero_resist,
       AeroResistUsed      &aero_resist_used,
       VegConditions       &displacement,
       double              *melt_energy,
-      double              *out_prec,
-      double              *out_rain,
-      double              *out_snow,
       double              *ppt,
       double              *rainfall,
       VegConditions       &ref_height,
       VegConditions       &roughness,
-      double              *snowfall,
       VegConditions       &wind_speed,
       int                  dt,
       int                  rec,
       int                  hidx,
       VegConditions::VegSurfType &UnderStory,
-      const dmy_struct    *dmy,
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,
       glac_data_struct   *glacier,
