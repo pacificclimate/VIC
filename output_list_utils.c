@@ -106,8 +106,11 @@ out_data_struct *create_output_list(const ProgramState* state) {
   strcpy(out_data[OUT_SNOW_COVER].varname,"OUT_SNOW_COVER");           /* fractional area of snow cover [fraction] */
   strcpy(out_data[OUT_SNOW_DEPTH].varname,"OUT_SNOW_DEPTH");           /* depth of snow pack [cm] */
   strcpy(out_data[OUT_SOIL_ICE].varname,"OUT_SOIL_ICE");               /* soil ice content [mm] for each soil layer */
+  strcpy(out_data[OUT_SOIL_ICE_TOT].varname,"OUT_SOIL_ICE_TOT");       /* soil ice content [mm] for all soil layers */
   strcpy(out_data[OUT_SOIL_LIQ].varname,"OUT_SOIL_LIQ");               /* soil liquid moisture content [mm] for each soil layer */
+  strcpy(out_data[OUT_SOIL_LIQ_TOT].varname,"OUT_SOIL_LIQ_TOT");       /* soil liquid moisture content [mm] for all soil layers */
   strcpy(out_data[OUT_SOIL_MOIST].varname,"OUT_SOIL_MOIST");           /* soil total moisture content [mm] for each soil layer */
+  strcpy(out_data[OUT_SOIL_MOIST_TOT].varname,"OUT_SOIL_MOIST_TOT");   /* soil total moisture content [mm] for all soil layers */
   strcpy(out_data[OUT_SOIL_WET].varname,"OUT_SOIL_WET");               /* vertical average of (soil moisture - wilting point)/(maximum soil moisture - wilting point) [mm/mm] */
   strcpy(out_data[OUT_SURFSTOR].varname,"OUT_SURFSTOR");               /* storage of liquid water on surface (ponding) [mm] */
   strcpy(out_data[OUT_SURF_FROST_FRAC].varname,"OUT_SURF_FROST_FRAC"); /* fraction of soil surface that is frozen [fraction] */
@@ -368,8 +371,11 @@ out_data_struct *create_output_list(const ProgramState* state) {
   out_data[OUT_SNOW_COVER].aggtype = AGG_TYPE_END;
   out_data[OUT_SNOW_DEPTH].aggtype = AGG_TYPE_END;
   out_data[OUT_SOIL_ICE].aggtype = AGG_TYPE_END;
+  out_data[OUT_SOIL_ICE_TOT].aggtype = AGG_TYPE_END;
   out_data[OUT_SOIL_LIQ].aggtype = AGG_TYPE_END;
+  out_data[OUT_SOIL_LIQ_TOT].aggtype = AGG_TYPE_END;
   out_data[OUT_SOIL_MOIST].aggtype = AGG_TYPE_END;
+  out_data[OUT_SOIL_MOIST_TOT].aggtype = AGG_TYPE_END;
   out_data[OUT_SOIL_WET].aggtype = AGG_TYPE_END;
   out_data[OUT_SURFSTOR].aggtype = AGG_TYPE_END;
   out_data[OUT_SURF_FROST_FRAC].aggtype = AGG_TYPE_END;

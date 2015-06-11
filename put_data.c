@@ -570,7 +570,9 @@ int  put_data(cell_info_struct  *cell,
   // Water balance terms
   out_data[OUT_DELSOILMOIST].data[0] = 0;
   for (int index=0; index<state->options.Nlayer; index++) {
-    out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
+	out_data[OUT_SOIL_LIQ_TOT].data[0] += out_data[OUT_SOIL_LIQ].data[index];
+	out_data[OUT_SOIL_ICE_TOT].data[0] += out_data[OUT_SOIL_ICE].data[index];
+	out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
     out_data[OUT_DELSOILMOIST].data[0] += out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMLIQFRAC].data[index] = out_data[OUT_SOIL_LIQ].data[index]/out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMFROZFRAC].data[index] = 1 - out_data[OUT_SMLIQFRAC].data[index];
@@ -591,6 +593,7 @@ int  put_data(cell_info_struct  *cell,
   for (int index=0; index<state->options.Nlayer; index++) {
     cell->save_data.total_soil_moist += out_data[OUT_SOIL_MOIST].data[index];
   }
+  out_data[OUT_SOIL_MOIST_TOT].data[0] = cell->save_data.total_soil_moist;
   cell->save_data.surfstor = out_data[OUT_SURFSTOR].data[0];
   cell->save_data.swe = out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0];
   cell->save_data.wdew = out_data[OUT_WDEW].data[0];

@@ -573,13 +573,11 @@ int surface_fluxes_glac(
   hru.cell[DRY].runoff = 0.;
   hru.cell[WET].baseflow = 0.;
   hru.cell[DRY].baseflow = 0.;
-  if (rec == 0) {
-    hru.glacier.water_storage = 0;
-  }
+
   double wt = hru.glacier.water_storage + hru.glacier.inflow;
   double kt = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq * 1000.); /* multiply by 1000 to convert swe to millimetres */
   double qt = kt * wt;
-  wt -= qt;   /* qt always less than wt */
+  wt -= qt;   /* always positive as qt always less than wt */
 
   hru.glacier.water_storage = wt;
   hru.glacier.outflow = qt;

@@ -71,7 +71,7 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_SNOW_COVER", 			VariableMetaData("1", "SNOW_COVER", "surface_snow_area_fraction", "Snow area fraction", "time: point area: sum")},
 		{"OUT_SNOW_DEPTH", 			VariableMetaData("cm", "SNOW_DEPTH", "surface_snow_thickness", "Snow depth", "time: point area: mean")},
 		{"OUT_SOIL_ICE",			VariableMetaData("mm", "SOIL_ICE", "lwe_thickenss_of_frozen_water_content_of_soil_layer", "Soil ice content of soil layer", "time: point area: mean")},
-		{"OUT_SOIL_ICE_TOTAL", 		VariableMetaData("mm", "SOIL_ICE_TOT", "soil_frozen_water_content", "Total soil ice content", "time: point area: mean")},
+		{"OUT_SOIL_ICE_TOT", 		VariableMetaData("mm", "SOIL_ICE_TOT", "soil_frozen_water_content", "Total soil ice content", "time: point area: mean")},
 		{"OUT_SOIL_LIQ",   			VariableMetaData("mm", "SOIL_LIQ", "lwe_thickness_of_liquid_water_content_of_soil_layer", "Water content of soil layer", "time: point area: mean")},
 		{"OUT_SOIL_LIQ_TOT",		VariableMetaData("mm", "SOIL_LIQ_TOT", "", "Total water content of all soil layers", "time: point area: mean")},
 		{"OUT_SOIL_MOIST", 			VariableMetaData("mm", "SOIL_MOIST", "lwe_thickness_of_soil_moisture_content", "Soil total moisture content for soil layer", "time: point area: mean")},

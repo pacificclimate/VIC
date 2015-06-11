@@ -212,7 +212,6 @@ int glacier_melt(double Le,
   /*  printf("%d %d %g\n", y, x, MassBalanceError);*/
 
   /*melt[0] *= 1000.;*/ /* converts back to mm */
-  /* glacier->mass_error         = MassBalanceError; */
   glacier->cold_content = GlacCC;
   glacier->vapor_flux *= -1.;
   *save_advection = advection;
