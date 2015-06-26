@@ -67,8 +67,7 @@ double solve_glacier(
   ppt[WET] = 0.;
   ppt[DRY] = 0.;
 
-  /* initialize storage for energy consumed in changing snowpack
-     cover fraction */
+  /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
 
   /** Compute latent heats **/
@@ -78,14 +77,11 @@ double solve_glacier(
   (*ShortUnderIn) = shortwave;
   (*LongUnderIn)  = longwave;
 
-   energy->NetLongOver = 0;
-   energy->LongOverIn  = 0;
+  /** compute net shortwave radiation **/
+  (*AlbedoUnder) = BareAlbedo;
+  (*NetShortGlac) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    UnderStory = VegConditions::GLACIER_SURFACE_CASE;         /* glacier is present */
-
-   /** compute net shortwave radiation **/
-   (*AlbedoUnder) = BareAlbedo;
-   (*NetShortGlac) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    /** Call glacier ablation algorithm **/
    ErrorFlag = glacier_melt((*Le), (*NetShortGlac), Tgrnd,
@@ -109,8 +105,6 @@ double solve_glacier(
    energy->AlbedoUnder = *AlbedoUnder;
 
    rainfall[WET] = 0; /* all rain has been added to the glacier */
-
-  energy->melt_energy = 0.;
 
   return(melt);
 

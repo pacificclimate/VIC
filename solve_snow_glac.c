@@ -76,8 +76,7 @@ double solve_snow_glac(
   ppt[WET] = 0.;
   ppt[DRY] = 0.;
 
-  /* initialize storage for energy consumed in changing snowpack
-     cover fraction */
+  /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
 
   /** Compute latent heats **/

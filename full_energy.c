@@ -304,12 +304,6 @@ int  full_energy(char                 NEWCELL,
       /* Current veg will be last */
       for (int p = 0; p < N_PET_TYPES + 1; p++) {
 
-        /* Initialize wind speeds */
-        wind_speed.snowFree = atmos->wind[state->NR];
-        wind_speed.canopyIfOverstory = INVALID;
-        wind_speed.snowCovered = INVALID;
-        wind_speed.glacierSurface = INVALID;
-
         /* Set surface descriptive variables */
         if (p < N_PET_TYPES_NON_NAT) {
           pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
@@ -318,8 +312,8 @@ int  full_energy(char                 NEWCELL,
         }
 
         if ((hru->veg_con.vegClass == state->options.GLACIER_ID) && (pet_veg_class == veg_class_index)) {
-          displacement.snowFree = 0;
           roughness.snowFree = soil_con->GLAC_ROUGH;
+          displacement.snowFree = 6.7 * roughness.snowFree;
           overstory = FALSE;
         } else {
           displacement.snowFree = state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
@@ -337,6 +331,19 @@ int  full_energy(char                 NEWCELL,
           ref_height.snowFree = wind_h;
         else
           ref_height.snowFree = displacement.snowFree + wind_h + roughness.snowFree;
+
+        /* Adjust magnitude of 'measured' windspeed from nominal surface height to reference height (based on wind height given in vegetation library) */
+        /* Assume an open-ground logarithmic wind profile */
+        double tmp_z0 = soil_con->rough;
+        double tmp_d = 6.7 * tmp_z0;
+        double tmp_zref = state->global_param.wind_h;
+        double wind_corr = log((ref_height.snowFree - tmp_d)/tmp_z0)/log((tmp_zref - tmp_d)/tmp_z0);
+
+        /* Initialize wind speeds */
+    	wind_speed.snowFree = atmos->wind[state->NR] * wind_corr;
+        wind_speed.canopyIfOverstory = INVALID;
+        wind_speed.snowCovered = INVALID;
+        wind_speed.glacierSurface = INVALID;
 
         /* Compute aerodynamic resistance over various surface types */
         /* Do this not only for current veg but also all types of PET */
