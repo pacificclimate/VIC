@@ -4,51 +4,60 @@
 
 static char vcid[] = "$Id$";
 
-double calc_veg_displacement(double height) {
+double calc_veg_displacement(double height, double L) {
 /**********************************************************************
-  calc_veg_displacement		Keith Cherkauer		January 27, 1997
+  calc_veg_displacement		Markus Schnorbus		August 9, 2015
 
   This subroutine estimates the displacement height of vegetation
-  with a given average height based on equations on page 4.12 of the
-  Handbook of Hydrology.
+  as a function of vegetation height and canopy density (via leaf area
+  index), as suggested by Choudhury and Monteith (1988).
 **********************************************************************/
 
   double value;
+  double X;
 
-  value = 0.67 * height;
+  X = COEF_DRAG*L;
+  value = 1.1 * height * log(1 + pow(X,0.25));
 
   return (value);
 
 }
 
-double calc_veg_height(double displacement) {
+double calc_veg_height(double displacement, double L) {
 /**********************************************************************
-  calc_veg_height		Keith Cherkauer		March 3, 1997
+  calc_veg_height		Markus Schnorbus		August 9, 2015
 
   This subroutine backs the vegetation height out of the given
-  displacement using the reverse procedure from cal_veg_displacement.
+  displacement by simply reversing calc_veg_displacement().
 **********************************************************************/
 
   double value;
+  double X;
 
-  value = displacement / 0.67;
+  X = COEF_DRAG*L;
+  value = displacement / (1.1 * log(1 + pow(X,0.25)));
 
   return (value);
 
 }
 
-double calc_veg_roughness(double height) {
+double calc_veg_roughness(double height, double displacement, double Z0_SOIL, double L) {
 /**********************************************************************
-  calc_veg_roughness		Keith Cherkauer		January 27, 1997
+  calc_veg_roughness		Markus Schnorbus		August 9, 2015
 
   This subroutine estimates the roughness height of vegetation
-  with a given average height based on equations on page 4.12 of the
-  Handbook of Hydrology.
+  as a function of vegetation height and canopy density (via leaf area
+  index), as suggested by Choudhury and Monteith (1988).
 **********************************************************************/
 
   double value;
+  double X;
 
-  value = 0.123 * height;
+  X = COEF_DRAG*L;
+  if (X <= 0.2)
+	  value = Z0_SOIL + 0.3 * height * pow(X,0.5);
+  else
+	  value = 0.3*height*(1-displacement/height);
 
   return (value);
 

@@ -669,18 +669,12 @@ int  put_data(cell_info_struct  *cell,
   }
   out_data[OUT_AERO_RESIST].aggdata[0] = 1/out_data[OUT_AERO_COND].aggdata[0];
   out_data[OUT_AERO_RESIST1].aggdata[0] = 1/out_data[OUT_AERO_COND1].aggdata[0];
-  if (out_data[OUT_AERO_COND2].aggdata[0] > SMALL) {
-     out_data[OUT_AERO_RESIST2].aggdata[0] = 1 / out_data[OUT_AERO_COND2].aggdata[0];
-  }
-  else {
-     out_data[OUT_AERO_RESIST2].aggdata[0] = HUGE_RESIST;
-  }
-  /* out_data[OUT_AERO_RESIST2].aggdata[0] = 1/out_data[OUT_AERO_COND2].aggdata[0];
+  out_data[OUT_AERO_RESIST2].aggdata[0] = 1/out_data[OUT_AERO_COND2].aggdata[0];
 
   /********************
     Output procedure
     (only execute when we've completed an output interval)
-    ********************/
+  ********************/
   if (cell->fallBackStats.step_count == out_step_ratio) {
 
     /***********************************************
@@ -854,24 +848,23 @@ void collect_wb_terms(const hru_data_struct&  cell,
   /** record aerodynamic conductance and resistance **/
   if (cell.aero_resist.surface > SMALL) {
     tmp_cond1 = (1/cell.aero_resist.surface) * AreaFactor;
-  }
-  else {
+  } else {
     tmp_cond1 = HUGE_RESIST;
   }
   out_data[OUT_AERO_COND1].data[0] += tmp_cond1;
   if (overstory) {
     if (cell.aero_resist.overstory > SMALL) {
       tmp_cond2 = (1/cell.aero_resist.overstory) * AreaFactor;
-    }
-    else {
+    } else {
       tmp_cond2 = HUGE_RESIST;
     }
-    out_data[OUT_AERO_COND2].data[0] += tmp_cond2;
+  } else {
+	tmp_cond2 = HUGE_RESIST;
   }
+  out_data[OUT_AERO_COND2].data[0] += tmp_cond2;
   if (overstory) {
     out_data[OUT_AERO_COND].data[0] += tmp_cond2;
-  }
-  else {
+  } else {
     out_data[OUT_AERO_COND].data[0] += tmp_cond1;
   }
 
@@ -931,7 +924,7 @@ void collect_wb_terms(const hru_data_struct&  cell,
     out_data[OUT_SNOW_CANOPY].data[0] += (snow.snow_canopy) * AreaFactor * 1000.;
 
   /** record snowpack melt **/
-  out_data[OUT_SNOW_MELT].data[0] += snow.melt * AreaFactor;
+  out_data[OUT_SNOW_MELT].data[0] += snow.melt * AreaFactor * 1000.;
 
   /** record snow cover fraction **/
   out_data[OUT_SNOW_COVER].data[0] += snow.coverage * AreaFactor;

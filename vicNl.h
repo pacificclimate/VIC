@@ -186,9 +186,9 @@ double calc_surf_energy_bal(double latent_heat_Le, double LongUnderIn,
     const soil_con_struct *soil_con, veg_var_struct *veg_var_dry,
     veg_var_struct *veg_var_wet, int nrecs, const ProgramState* state);
 double calc_trans(double, double);
-double calc_veg_displacement(double);
-double calc_veg_height(double);
-double calc_veg_roughness(double);
+double calc_veg_displacement(double, double);
+double calc_veg_height(double, double);
+double calc_veg_roughness(double, double, double, double);
 double calc_water_balance_error(int, double, double, double, double, int, CellBalanceErrors*);
 double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     veg_var_struct *, char, int, int, double, double *, double, double, double,

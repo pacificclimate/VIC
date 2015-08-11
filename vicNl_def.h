@@ -221,6 +221,7 @@ inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
 /***** Hard-coded veg class parameters (mainly for pot_evap) *****/
 #define BARE_SOIL_ALBEDO 0.2	    /* albedo for bare soil */
 #define H2O_SURF_ALBEDO 0.08	    /* albedo for deep water surface */
+#define COEF_DRAG 0.2				/* Canopy mean drag coefficient */
 extern const char   ref_veg_over[];
 extern const double ref_veg_rarc[];
 extern const double ref_veg_rmin[];
