@@ -149,7 +149,7 @@ void read_atmos_data(FILE                 *infile,
     assert(nc_inq_varndims(ncid, timevarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, timevarid, &timedimid) == NC_NOERR);
-    assert(nc_inq_dimlen(ncid, timevarid, &ndays) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, timedimid, &ndays) == NC_NOERR);
     /* use this later to determine whether we have enough data */
 
     assert(nc_inq_varid(ncid, "lat", &latvarid) == NC_NOERR);
@@ -158,7 +158,7 @@ void read_atmos_data(FILE                 *infile,
     assert(nc_inq_varndims(ncid, latvarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, latvarid, &latdimid) == NC_NOERR);
-    assert(nc_inq_dimlen(ncid, latvarid, &nlats) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, latdimid, &nlats) == NC_NOERR);
 
     assert(nc_inq_varid(ncid, "lon", &lonvarid) == NC_NOERR);
     assert(nc_inq_vartype(ncid, lonvarid, &vartype) == NC_NOERR);
@@ -166,7 +166,8 @@ void read_atmos_data(FILE                 *infile,
     assert(nc_inq_varndims(ncid, lonvarid, &ndims) == NC_NOERR);
     assert(ndims == 1);
     assert(nc_inq_vardimid(ncid, lonvarid, &londimid) == NC_NOERR);
-    assert(nc_inq_dimlen(ncid, lonvarid, &nlons) == NC_NOERR);
+    assert(nc_inq_dimlen(ncid, londimid, &nlons) == NC_NOERR);
+
 
     /* get lat/lon *//* FIXME also get time and scan for it */
     lats = (double *) malloc(nlats * sizeof(*lats));
