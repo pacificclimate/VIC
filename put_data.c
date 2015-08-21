@@ -570,7 +570,9 @@ int  put_data(cell_info_struct  *cell,
   // Water balance terms
   out_data[OUT_DELSOILMOIST].data[0] = 0;
   for (int index=0; index<state->options.Nlayer; index++) {
-    out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
+	out_data[OUT_SOIL_LIQ_TOT].data[0] += out_data[OUT_SOIL_LIQ].data[index];
+	out_data[OUT_SOIL_ICE_TOT].data[0] += out_data[OUT_SOIL_ICE].data[index];
+	out_data[OUT_SOIL_MOIST].data[index] = out_data[OUT_SOIL_LIQ].data[index]+out_data[OUT_SOIL_ICE].data[index];
     out_data[OUT_DELSOILMOIST].data[0] += out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMLIQFRAC].data[index] = out_data[OUT_SOIL_LIQ].data[index]/out_data[OUT_SOIL_MOIST].data[index];
     out_data[OUT_SMFROZFRAC].data[index] = 1 - out_data[OUT_SMLIQFRAC].data[index];
@@ -591,6 +593,7 @@ int  put_data(cell_info_struct  *cell,
   for (int index=0; index<state->options.Nlayer; index++) {
     cell->save_data.total_soil_moist += out_data[OUT_SOIL_MOIST].data[index];
   }
+  out_data[OUT_SOIL_MOIST_TOT].data[0] = cell->save_data.total_soil_moist;
   cell->save_data.surfstor = out_data[OUT_SURFSTOR].data[0];
   cell->save_data.swe = out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0];
   cell->save_data.wdew = out_data[OUT_WDEW].data[0];
@@ -671,7 +674,7 @@ int  put_data(cell_info_struct  *cell,
   /********************
     Output procedure
     (only execute when we've completed an output interval)
-    ********************/
+  ********************/
   if (cell->fallBackStats.step_count == out_step_ratio) {
 
     /***********************************************
@@ -845,24 +848,23 @@ void collect_wb_terms(const hru_data_struct&  cell,
   /** record aerodynamic conductance and resistance **/
   if (cell.aero_resist.surface > SMALL) {
     tmp_cond1 = (1/cell.aero_resist.surface) * AreaFactor;
-  }
-  else {
+  } else {
     tmp_cond1 = HUGE_RESIST;
   }
   out_data[OUT_AERO_COND1].data[0] += tmp_cond1;
   if (overstory) {
     if (cell.aero_resist.overstory > SMALL) {
       tmp_cond2 = (1/cell.aero_resist.overstory) * AreaFactor;
-    }
-    else {
+    } else {
       tmp_cond2 = HUGE_RESIST;
     }
-    out_data[OUT_AERO_COND2].data[0] += tmp_cond2;
+  } else {
+	tmp_cond2 = HUGE_RESIST;
   }
+  out_data[OUT_AERO_COND2].data[0] += tmp_cond2;
   if (overstory) {
     out_data[OUT_AERO_COND].data[0] += tmp_cond2;
-  }
-  else {
+  } else {
     out_data[OUT_AERO_COND].data[0] += tmp_cond1;
   }
 
@@ -922,7 +924,7 @@ void collect_wb_terms(const hru_data_struct&  cell,
     out_data[OUT_SNOW_CANOPY].data[0] += (snow.snow_canopy) * AreaFactor * 1000.;
 
   /** record snowpack melt **/
-  out_data[OUT_SNOW_MELT].data[0] += snow.melt * AreaFactor;
+  out_data[OUT_SNOW_MELT].data[0] += snow.melt * AreaFactor * 1000.;
 
   /** record snow cover fraction **/
   out_data[OUT_SNOW_COVER].data[0] += snow.coverage * AreaFactor;

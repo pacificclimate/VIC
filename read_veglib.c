@@ -90,25 +90,20 @@ veg_lib_struct *read_veglib(FILE *veglib, int *Ntype, char LAI_SRC)
                 temp[i].wind_h,temp[i].veg_class,maxd);
         nrerror(str);
       }
-      fscanf(veglib, "%f",  &temp[i].RGL);         /* minimum value of incoming
-						    solar radiation at which there
-						   will still be transpiration */
+      fscanf(veglib, "%f",  &temp[i].RGL);         /* minimum value of incoming solar radiation at which there will still be transpiration */
       if(temp[i].RGL < 0) {
         sprintf(str,"Minimum value of incoming solar radiation at which there is transpiration (RGL) must be greater than 0 for vegetation class %d.  Check that the vegetation library has the correct number of columns.",
                 temp[i].veg_class);
         nrerror(str);
       }
-      fscanf(veglib, "%lf", &temp[i].rad_atten);   /* vegetation radiation 
-						      attenuation factor */
+      fscanf(veglib, "%lf", &temp[i].rad_atten);   /* vegetation radiation attenuation factor */
       if(temp[i].rad_atten < 0 || temp[i].rad_atten > 1) {
         sprintf(str,"The vegetation radiation attenuation factor must be greater than 0, and less than 1 for vegetation class %d.  Check that the vegetation library has the correct number of columns.",
                 temp[i].veg_class);
         nrerror(str);
       }
-      fscanf(veglib, "%lf", &temp[i].wind_atten);  /* canopy wind speed
-						      attenuation factor */
-      fscanf(veglib, "%lf", &temp[i].trunk_ratio); /* ratio of tree height that
-						      is trunk */
+      fscanf(veglib, "%lf", &temp[i].wind_atten);  /* canopy wind speed attenuation factor */
+      fscanf(veglib, "%lf", &temp[i].trunk_ratio); /* ratio of tree height that is trunk */
       fgets(str, MAXSTRING, veglib);	/* skip over end of line comments */
       i++;
     }

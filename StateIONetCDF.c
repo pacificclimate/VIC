@@ -384,6 +384,7 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[LAKE_NODES_DIM] = StateVariableDimension("lake_active_nodes", MAX_LAKE_NODES+1);
   metaDimensions[FROST_LAYER_AREAS_DIM] = StateVariableDimension("frost_layer_subareas", state->options.Nlayer * FROST_SUBAREAS);
   metaDimensions[FROST_AREAS_DIM] = StateVariableDimension("frost_subareas", FROST_SUBAREAS);
+  // FIXME: HRU_DIM should be of size equal to total num of HRUs in this domain
   metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->veg_lib->NVegLibTypes * MAX_BANDS);
   metaDimensions[DIST_DIM] = StateVariableDimension("dist", 2); // Wet and dry.
   metaDimensions[GLAC_MASS_BALANCE_INFO_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);

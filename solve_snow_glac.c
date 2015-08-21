@@ -4,29 +4,22 @@
 
 double solve_snow_glac(
       double               BareAlbedo,
-      double               LongUnderOut, // LW from understory
       double               Tgrnd, // soil surface temperature
       double               air_temp, // air temperature
       double               precipitation_mu,
-      double               prec,
-      double               wind_h,
       double              *AlbedoUnder,
       double              *latent_heat_Le,
-      double              *LongUnderIn, // surface incomgin LW
+      double              *LongUnderIn, // surface incoming LW
       double              *NetLongSnow, // net LW at snow surface
       double              *NetShortSnow, // net SW at snow surface
-      double              *ShortUnderIn, // surfave incoming SW
+      double              *ShortUnderIn, // surface incoming SW
       double              *Torg_snow,
       VegConditions       &aero_resist,
       AeroResistUsed      &aero_resist_used,
       double              *coverage, // best guess snow coverage
       double              *delta_coverage, // cover fract change
-      double              *delta_snow_heat, // change in pack heat
       VegConditions       &displacement,
       double              *melt_energy,
-      double              *out_prec,
-      double              *out_rain,
-      double              *out_snow,
       double              *ppt,
       double              *rainfall,
       VegConditions       &ref_height,
@@ -71,11 +64,9 @@ double solve_snow_glac(
   double              rainonly;
   double              tmp_Wdew[2];
   double              tmp_grnd_flux;
-  int                 month;
   int                 hour;
   int                 day_in_year;
 
-  month       = dmy[rec].month;
   hour        = dmy[rec].hour;
   day_in_year = dmy[rec].day_in_year;
 
@@ -85,12 +76,8 @@ double solve_snow_glac(
   ppt[WET] = 0.;
   ppt[DRY] = 0.;
 
-  /* initialize storage for energy consumed in changing snowpack
-     cover fraction */
+  /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
-
-  /* initialize change in snowpack heat storage */
-  (*delta_snow_heat) = 0.;
 
   /** Compute latent heats **/
   (*latent_heat_Le) = (2.501e6 - 0.002361e6 * air_temp);

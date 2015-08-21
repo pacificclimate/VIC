@@ -36,7 +36,7 @@ void initialize_snow (std::vector<HRU>& elements)
                                   snow_canopy 
     snow[i][j].Qnet;              Net energy error in snow model 
     snow[i][j].band_elev;         median elevation of the current snow band 
-    snow[i][j].prec_frac;         fracton of precipitation that falls in the 
+    snow[i][j].prec_frac;         fraction of precipitation that falls in the
 	  		          current snow band 
 
   modifications:
@@ -47,7 +47,7 @@ void initialize_snow (std::vector<HRU>& elements)
            file read is now incorporated into a single model state
            file.                                                  KAC
   xx-xx-01 modified to initialize spatially distributed snow variables. KAC
-  11-18-02 modified to initalize blowing_snow variable.			LCB
+  11-18-02 modified to initialize blowing_snow variable.			LCB
   2006-Oct-16 Removed unused init_snow file.				TJB
   2009-Sep-19 Initializing last_snow to MISSING.			TJB
   2009-Sep-28 Added initialization of some terms that previously had
@@ -57,7 +57,7 @@ void initialize_snow (std::vector<HRU>& elements)
 **********************************************************************/
 {
   for (std::vector<HRU>::iterator it = elements.begin(); it != elements.end(); ++it) {
-      // State vars
+      // State variables
       it->snow.albedo            = 0.0;
       it->snow.canopy_albedo     = 0.0;
       it->snow.coldcontent       = 0.0;

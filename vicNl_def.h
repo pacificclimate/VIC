@@ -8,7 +8,7 @@
   included multiple times (all *.c files) via vicNl.h.
 
   Modifications:
-  2005-Mar-24 Added data structures to accomodate ALMA variables.	TJB
+  2005-Mar-24 Added data structures to accommodate ALMA variables.	TJB
   2005-Apr-23 Changed ARNO_PARAMS to NIJSSEN2001_BASEFLOW.		TJB
   2005-Apr-23 Added out_data.aero_cond.					TJB
   2005-May-01 Added the ALMA vars CRainf, CSnowf, LSRainf, and LSSnowf.	TJB
@@ -221,6 +221,7 @@ inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
 /***** Hard-coded veg class parameters (mainly for pot_evap) *****/
 #define BARE_SOIL_ALBEDO 0.2	    /* albedo for bare soil */
 #define H2O_SURF_ALBEDO 0.08	    /* albedo for deep water surface */
+#define COEF_DRAG 0.2				/* Canopy mean drag coefficient */
 extern const char   ref_veg_over[];
 extern const double ref_veg_rarc[];
 extern const double ref_veg_rmin[];
@@ -375,8 +376,11 @@ OUT_SNOW_CANOPY     ,  /* snow interception storage in canopy  [mm] */
 OUT_SNOW_COVER      ,  /* fractional area of snow cover [fraction] */
 OUT_SNOW_DEPTH      ,  /* depth of snow pack [cm] */
 OUT_SOIL_ICE        ,  /* soil ice content  [mm] for each soil layer */
+OUT_SOIL_ICE_TOT	,  /* soil ice content  [mm] for all soil layers */
 OUT_SOIL_LIQ        ,  /* soil liquid content  [mm] for each soil layer */
+OUT_SOIL_LIQ_TOT	,  /* soil liquid content  [mm] for all soil layers */
 OUT_SOIL_MOIST      ,  /* soil total moisture content  [mm] for each soil layer */
+OUT_SOIL_MOIST_TOT  ,  /* soil total moisture content  [mm] for all soil layers */
 OUT_SOIL_WET        ,  /* vertical average of (soil moisture - wilting point)/(maximum soil moisture - wilting point) [mm/mm] */
 OUT_SURFSTOR        ,  /* storage of liquid water and ice (not snow) on surface (ponding) [mm] */
 OUT_SURF_FROST_FRAC ,  /* fraction of soil surface that is frozen [fraction] */
@@ -523,7 +527,7 @@ OUT_POROSITY            ,  /* porosity [mm/mm] */
 OUT_ZSUM_NODE           ,  /* depths of thermal nodes [m] */
 #endif // EXCESS_ICE
 
-//Glacier Water Blance Terms - state variables
+//Glacier Water Balance Terms - state variables
 OUT_GLAC_WAT_STOR       ,   /* glacier water storage [mm] */
 OUT_GLAC_AREA           ,   /* glacier surface area fraction */
 

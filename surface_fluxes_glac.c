@@ -54,8 +54,8 @@ int surface_fluxes_glac(
   int                    step_dt;  // time length of surface fluxes step
   double                 LongUnderIn; // incoming LW to ground surface
   double                 LongUnderOut; // outgoing LW from ground surface
-  double                 NetLongSnow; // net LW over snowpack
-  double                 NetShortSnow; // net SW over understory
+  double                 NetLongSnow; // net LW over snowpack or glacier
+  double                 NetShortSnow; // net SW over snowpqack or glacier
   double                 NetShortGrnd; // net SW over snow-free surface
   double                 OldTSurf; // previous snow surface temperature
   double                 ShortUnderIn; // incoming SW to understory
@@ -63,10 +63,9 @@ int surface_fluxes_glac(
   double                 Tcanopy; // canopy air temperature
   double                 Tgrnd; // soil surface temperature
   double                 Tsurf; // ground surface temperature
-  double                 VPDcanopy; // vapor pressure deficit in canopy/atmos
+  double                 VPDcanopy; // vapor pressure deficit in canopy/atmosphere
   double                 coverage; // mid-step snow cover fraction
   double                 delta_coverage; // change in snow cover fraction
-  double                 delta_snow_heat; // change in snowpack heat storage
   double                 ppt[2]; // precipitation/melt reaching soil surface or glacier surface
   double                 rainfall[2]; // rainfall
   double                 snowfall[2]; // snowfall
@@ -276,29 +275,25 @@ int surface_fluxes_glac(
       step_snow.blowing_flux = 0.0;
 
     temp_aero_resist = aero_resist[N_PET_TYPES];
-
     temp_aero_resist_used.surface = hru.cell[WET].aero_resist.surface;
     temp_aero_resist_used.overstory = hru.cell[WET].aero_resist.overstory;
     step_snow.canopy_vapor_flux = 0;
     step_snow.vapor_flux = 0;
     step_snow.surface_flux = 0;
+
     LongUnderOut = step_energy.LongUnderOut;
 
     if (step_snow.swq > 0. || snowfall[WET] > 0.) {
       /** Solve snow accumulation and ablation on the glacier surface **/
 
-      step_melt = solve_snow_glac(BareAlbedo, LongUnderOut,
-       Tgrnd, Tair, hru.mu,
-       step_prec[WET], state->global_param.wind_h, &hru.energy.AlbedoUnder,
-       latent_heat_Le, &LongUnderIn, &NetLongSnow,
+      step_melt = solve_snow_glac(BareAlbedo, Tgrnd, Tair, hru.mu,
+       &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn, &NetLongSnow,
        &NetShortSnow, &ShortUnderIn, &OldTSurf, temp_aero_resist,
-       temp_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
-       displacement, &step_melt_energy, out_prec, out_rain, out_snow,
-       step_ppt, rainfall, ref_height,
-       roughness, snow_inflow, snowfall, wind_speed,
-       step_dt, rec, hidx,
-       UnderStory, dmy, *atmos, &(step_energy),
-       &(step_snow), soil_con, &step_glacier, state);
+       temp_aero_resist_used, &coverage, &delta_coverage,
+       displacement, &step_melt_energy, step_ppt, rainfall, ref_height,
+       roughness, snow_inflow, snowfall, wind_speed, step_dt, rec, hidx,
+       UnderStory, dmy, *atmos, &(step_energy), &(step_snow), soil_con,
+       &step_glacier, state);
 
       if (step_melt == ERROR)
         return (ERROR);
@@ -308,18 +303,17 @@ int surface_fluxes_glac(
       step_energy.glacier_flux = 0.;
       step_energy.deltaCC_glac = 0.;
       step_energy.snow_flux = -step_energy.grnd_flux;
+      step_energy.LongUnderOut = LongUnderIn - NetLongSnow;
 
     } else {
 
-      step_melt_glac = solve_glacier(BareAlbedo, LongUnderOut, Tgrnd, Tair, hru.mu,
-          step_prec[WET], state->global_param.wind_h,
-          &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn,
-          &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
-          temp_aero_resist, temp_aero_resist_used, displacement,
-          &step_melt_energy, out_prec, out_rain, out_snow,
-          step_ppt, rainfall, ref_height, roughness, snowfall, wind_speed,
-          step_dt, rec, hidx, UnderStory, dmy, atmos, &step_energy,
-          &step_glacier, soil_con, state);
+      step_melt_glac = solve_glacier(BareAlbedo, Tgrnd, Tair,
+    	  &hru.energy.AlbedoUnder, latent_heat_Le, &LongUnderIn,
+    	  &NetLongSnow, &NetShortSnow, &ShortUnderIn, &OldTSurf,
+    	  temp_aero_resist, temp_aero_resist_used, displacement,
+    	  &step_melt_energy, step_ppt, rainfall, ref_height, roughness,
+          wind_speed, step_dt, rec, hidx, UnderStory, atmos,
+          &step_energy, &step_glacier, soil_con, state);
 
       if (step_melt_glac == ERROR) {
         return (ERROR);
@@ -336,6 +330,7 @@ int surface_fluxes_glac(
       step_energy.snow_flux = 0.;
       step_energy.advected_sensible = 0.;
       step_energy.glacier_flux = -step_energy.grnd_flux;
+      step_energy.LongUnderOut = LongUnderIn - NetLongSnow;
       step_glacier.accumulation = 0.;
 
     }
@@ -408,15 +403,18 @@ int surface_fluxes_glac(
     store_AtmosSensible += step_energy.AtmosSensible;
     store_LongUnderIn += LongUnderIn;
     store_LongUnderOut += step_energy.LongUnderOut;
-    store_NetLongAtmos += step_energy.NetLongAtmos;
-    store_NetLongUnder += step_energy.NetLongUnder;
-    store_NetShortAtmos += step_energy.NetShortAtmos;
-    store_NetShortUnder += step_energy.NetShortUnder;
-    store_ShortUnderIn += step_energy.ShortUnderIn;
+    store_NetLongAtmos += NetLongSnow;
+    store_NetLongUnder += NetLongSnow;
+    store_NetShortAtmos += NetShortSnow;
+    store_NetShortUnder += NetShortSnow;
+    store_ShortUnderIn += ShortUnderIn;
     store_latent += step_energy.latent;
     store_latent_sub += step_energy.latent_sub;
     store_melt_energy += step_melt_energy;
     store_sensible += step_energy.sensible;
+    store_grnd_flux += step_energy.grnd_flux;
+    //*****************************************************
+
     // glacier
     store_melt_glac += step_melt_glac;
     store_vapor_flux_glac += step_glacier.vapor_flux;
@@ -568,32 +566,38 @@ int surface_fluxes_glac(
    Compute Runoff, Baseflow, and Soil Moisture Transport
    ********************************************************/
 
+  /* calculate glacier outflow and HRU runoff; all glacier outflow is assumed to be surface runoff */
+  hru.glacier.inflow = ppt[WET] + ppt[DRY];
+  ppt[WET] = 0.;
+  ppt[DRY] = 0.;
+  //  hru.cell[WET].runoff = 0.;
+  //  hru.cell[DRY].runoff = 0.;
+  //  hru.cell[WET].baseflow = 0.;
+  //  hru.cell[DRY].baseflow = 0.;
+
+  double wt = hru.glacier.water_storage + hru.glacier.inflow;
+  double kt = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq * 1000.); /* multiply by 1000 to convert swe to millimetres */
+  double qt = kt * wt;
+  wt -= qt;   /* always positive as qt always less than wt */
+  hru.glacier.water_storage = wt;
+  hru.glacier.outflow = qt;
+  hru.glacier.outflow_coef = kt;
+
 #if EXCESS_ICE
   if(SubsidenceUpdate != 2) {
 #endif
   hru.cell[WET].inflow = 0.;
   hru.cell[DRY].inflow = 0.;
 
-  /* calculate glacier outflow and HRU runoff; all glacier outflow is assumed to be surface runoff */
-  hru.glacier.inflow = ppt[WET] + ppt[DRY];
-  hru.cell[WET].runoff = 0.;
-  hru.cell[DRY].runoff = 0.;
-  hru.cell[WET].baseflow = 0.;
-  hru.cell[DRY].baseflow = 0.;
-  if (rec == 0) {
-    hru.glacier.water_storage = 0;
-  }
-  double wt = hru.glacier.water_storage + hru.glacier.inflow;
-  double kt = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq * 1000.); /* multiply by 1000 to convert swe to millimetres */
-  double qt = kt * wt;
-  wt -= qt;   /* qt always less than wt */
+  ErrorFlag = runoff(&hru.cell[WET], &hru.cell[DRY], &hru.energy, soil_con, ppt,
+      SubsidenceUpdate, hru.mu, hru.bandIndex, rec, state);
 
-  hru.glacier.water_storage = wt;
-  hru.glacier.outflow = qt;
-  hru.cell[WET].runoff = qt * 1000.; /* convert to mm; keeps units consistent with surface_fluxes.c */
-  hru.glacier.outflow_coef = kt;
+  hru.cell[WET].runoff += (qt * 1000.); /* convert to mm; keeps units consistent with surface_fluxes.c */
 
+  return (ErrorFlag);
 #if EXCESS_ICE
+} else {
+	hru.cell[WET].runoff = qt * 1000.;
 }
 #endif
 

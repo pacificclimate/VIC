@@ -21,11 +21,11 @@ int  runoff(hru_data_struct  *cell_wet,
   gravity driven drainage between all soil layers, and generates 
   baseflow from the bottom layer..
   
-  sublayer indecies are always [layer number][sublayer number]
+  sublayer indices are always [layer number][sublayer number]
   [layer number] is the current VIC model moisture layer
   [sublayer number] is the current sublayer number where: 
          0 = thawed sublayer, 1 = frozen sublayer, and 2 = unfrozen sublayer.
-	 when the model is run withoputfrozen soils, the sublayer number
+	 when the model is run without frozen soils, the sublayer number
 	 is always = 2 (unfrozen).
 
   UNITS:	Ksat (mm/day)
@@ -47,7 +47,7 @@ int  runoff(hru_data_struct  *cell_wet,
   1/9/97  Infiltration and other rate parameters modified
 	  for time scales of less than 1 day.		KAC
   4-1-98  Soil moisture transport is now done on an hourly time
-          step, irregardless to the model time step, to prevent
+          step, regardless to the model time step, to prevent
           numerical stabilities in the solution	Dag and KAC
   01-24-00 simplified handling of soil moisture for the
            frozen soil algorithm.  all option selection

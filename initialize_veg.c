@@ -8,7 +8,7 @@ void initialize_veg(std::vector<HRU>& elements, int dist)
 /**********************************************************************
   initialize_veg		Dag Lohmann	 January 1996
 
-  This routine initailizes the vegetation variable array.
+  This routine initializes the vegetation variable array.
 
   Modifications:
   07-13-98 modified to initialize vegetation structure for all 

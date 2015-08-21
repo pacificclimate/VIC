@@ -108,35 +108,31 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     
     /* No snow */
     wind_speed.snowFree  = log((2. + Z0_Lower)/Z0_Lower)/log((ref_height.snowFree - d_Lower)/Z0_Lower);
-    /****** DHSVM ******
+    /****** DHSVM ******/
     aero_resist.snowFree = log((2. + Z0_Lower)/Z0_Lower) * log((ref_height.snowFree - d_Lower)/Z0_Lower)
             /K2;
-    ***** Old VIC *****/
+    /***** Old VIC *****
     aero_resist.snowFree = log((2. + (1.0/0.63 - 1.0) * d_Lower) / Z0_Lower)
           * log((2. + (1.0/0.63 - 1.0) * d_Lower) / (0.1*Z0_Lower)) / K2;
-    /******************/
+    ******************/
 
-    /* Copy bare parameters into canopy top parameters */
-    wind_speed.canopyIfOverstory = wind_speed.snowFree;
-    aero_resist.canopyIfOverstory = aero_resist.snowFree;
-
-    /** Set aerodynamic resistance terms for canopy */
-    /* not currently used */
+    /* Set aerodynamic resistance terms for canopy  - not used */
     ref_height.canopyIfOverstory   = ref_height.snowFree;
     roughness.canopyIfOverstory    = roughness.snowFree;
     displacement.canopyIfOverstory = displacement.snowFree;
+    wind_speed.canopyIfOverstory = wind_speed.snowFree;
+    aero_resist.canopyIfOverstory = aero_resist.snowFree;
 
-    /* Snow */
-    /** Set aerodynamic resistance terms for snow */
-    ref_height.snowCovered = 2. + Z0_SNOW;
+    /* Set aerodynamic resistance terms for snow */
+    ref_height.snowCovered = ref_height.snowFree;
     roughness.snowCovered = Z0_SNOW;
     displacement.snowCovered = 0.;
     wind_speed.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW)/log(ref_height.snowCovered/Z0_SNOW);
     aero_resist.snowCovered = log((2. + Z0_SNOW)/Z0_SNOW) * log(ref_height.snowCovered/Z0_SNOW)/K2;
     ref_height.snowCovered = 2. + Z0_SNOW;
 
-    /* Glacier */
-    ref_height.glacierSurface = 2. + Z0_Lower;
+    /* Set aerodynamic resistance terms for Glacier */
+    ref_height.glacierSurface = ref_height.snowFree;
     roughness.glacierSurface = Z0_Lower;
     displacement.glacierSurface = 0.;
     wind_speed.glacierSurface =  log((2. + Z0_Lower)/Z0_Lower)/log(ref_height.glacierSurface / Z0_Lower);
@@ -151,7 +147,7 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     d_Upper  = displacement.snowFree;
     
     Z0_Lower = Z0_SOIL;
-    d_Lower  = 0; 
+    d_Lower  = 0;
     
     Zw = 1.5 * Height - 0.5 * d_Upper;
     Zt = Trunk * Height;
@@ -176,13 +172,14 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     Ut = Uh * exp(n * (Zt/Height - 1.));
     
     /* resistance at the lower boundary */
+    wind_speed.snowFree  = Ut*log((2. + Z0_Lower)/Z0_Lower)/log(Zt/Z0_Lower);
+    aero_resist.snowFree = log((2. + Z0_Lower)/Z0_Lower) * log(Zt/Z0_Lower) / (K2*Ut);
     
-
-    /***** Old VIC *****/
+    /***** Old VIC *****
     wind_speed.snowFree  = log((2. + Z0_Upper)/Z0_Upper)/log((ref_height.snowFree - d_Upper)/Z0_Upper);
     aero_resist.snowFree = log((2. + (1.0/0.63 - 1.0) * d_Upper) / Z0_Upper)
           * log((2. + (1.0/0.63 - 1.0) * d_Upper) / (0.1*Z0_Upper)) / K2;
-    /******************/
+    ******************/
 
 
 
@@ -223,7 +220,7 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     ref_height.canopyIfOverstory   = ref_height.snowFree;
     roughness.canopyIfOverstory    = roughness.snowFree;
     displacement.canopyIfOverstory = displacement.snowFree;
-    ref_height.snowFree   = 2.;
+    ref_height.snowFree   = 2. + Z0_Lower;
     roughness.snowFree    = Z0_Lower;
     displacement.snowFree = d_Lower;
 
@@ -236,7 +233,7 @@ int  CalcAerodynamic(char    OverStory,     /* overstory flag */
     ref_height.glacierSurface = 2. + Z0_Lower;
     roughness.glacierSurface = Z0_Lower;
     displacement.glacierSurface = 0.;
-    aero_resist.glacierSurface = HUGE_RESIST;
+    //aero_resist.glacierSurface = HUGE_RESIST;
     //wind_speed.glacierSurface remains INVALID
 
   }

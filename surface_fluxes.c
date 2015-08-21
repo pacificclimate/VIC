@@ -179,7 +179,6 @@ int surface_fluxes(char                 overstory,
   double                 VPcanopy; // vapor pressure in canopy/atmos
   double                 coverage; // mid-step snow cover fraction
   double                 delta_coverage; // change in snow cover fraction
-  double                 delta_snow_heat; // change in snowpack heat storage
   double                 last_Tcanopy;
   double                 last_Tgrnd;
   double                 last_Tsurf;
@@ -198,7 +197,6 @@ int surface_fluxes(char                 overstory,
   double                 tol_over;
 
   // Step-specific quantities
-  double                 step_Evap;
   double                 step_Wdew[2];
   double                 step_melt;
   double                 step_melt_energy;  /* energy used to reduce snow coverage */
@@ -534,18 +532,15 @@ int surface_fluxes(char                 overstory,
         LongUnderOut = iter_soil_energy.LongUnderOut;
 
         /** Solve snow accumulation, ablation and interception **/
-        step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut,
-            soil_con->MIN_RAIN_TEMP, soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, dp, hru.mu,
-            step_prec[WET], snow_grnd_flux, state->global_param.wind_h, &energy->AlbedoUnder,
-            &step_Evap, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
-            &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist,
-            iter_aero_resist_used, &coverage, &delta_coverage, &delta_snow_heat,
-            displacement, gauge_correction, &step_melt_energy, &step_out_prec,
-            &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
-            roughness, snow_inflow, snowfall, &surf_atten, wind_speed, root,
-            UNSTABLE_SNOW, state->options.Nnode, step_dt, rec, hidx,
-            veg_class, hru.isArtificialBareSoil, UnderStory, dmy, *atmos, &(iter_snow_energy),
-            iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
+        step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut, soil_con->MIN_RAIN_TEMP,
+        	soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, hru.mu, step_prec[WET], snow_grnd_flux,
+            &energy->AlbedoUnder, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
+            &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist, iter_aero_resist_used,
+            &coverage, &delta_coverage, displacement, gauge_correction, &step_melt_energy,
+            &step_out_prec, &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
+            roughness, snow_inflow, snowfall, &surf_atten, wind_speed, root, UNSTABLE_SNOW,
+            step_dt, rec, hidx, veg_class, hru.isArtificialBareSoil, UnderStory, dmy, *atmos,
+            &(iter_snow_energy), iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
             &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]), state);
 
 // iter_snow_energy.sensible + iter_snow_energy.latent + iter_snow_energy.latent_sub + NetShortSnow + NetLongSnow + ( snow_grnd_flux + iter_snow_energy.advection - iter_snow_energy.deltaCC + iter_snow_energy.refreeze_energy + iter_snow_energy.advected_sensible ) * step_snow.coverage

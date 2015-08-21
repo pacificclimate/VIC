@@ -274,15 +274,10 @@ int  full_energy(char                 NEWCELL,
       veg_class_index = hru->veg_con.vegIndex;
 
       /** Assign wind_h **/
-      /** Note: this is ignored below **/
       wind_h = state->veg_lib[veg_class_index].wind_h;
 
-      /** Compute Surface Attenuation due to Vegetation Coverage **/
-      if (hru->isGlacier) {
-        surf_atten = 1;   /* not used  in the glacier case */
-      } else {
-        surf_atten = exp(-state->veg_lib[veg_class_index].rad_atten * state->veg_lib[veg_class_index].LAI[dmy[time_step_record].month - 1]);
-      }
+      /** Compute Surface Attenuation due to Vegetation Coverage. Note: not used in Glacier case. **/
+      surf_atten = exp(-state->veg_lib[veg_class_index].rad_atten * state->veg_lib[veg_class_index].LAI[dmy[time_step_record].month - 1]);
 
       /* Initialize soil thermal properties for the top two layers */
       prepare_full_energy(*hru, state->options.Nnode, soil_con, moist0, ice0, state);
@@ -304,12 +299,6 @@ int  full_energy(char                 NEWCELL,
       /* Current veg will be last */
       for (int p = 0; p < N_PET_TYPES + 1; p++) {
 
-        /* Initialize wind speeds */
-        wind_speed.snowFree = atmos->wind[state->NR];
-        wind_speed.canopyIfOverstory = INVALID;
-        wind_speed.snowCovered = INVALID;
-        wind_speed.glacierSurface = INVALID;
-
         /* Set surface descriptive variables */
         if (p < N_PET_TYPES_NON_NAT) {
           pet_veg_class = state->veg_lib[0].NVegLibTypes + p;
@@ -317,26 +306,39 @@ int  full_energy(char                 NEWCELL,
           pet_veg_class = veg_class_index;
         }
 
-        if ((hru->veg_con.vegClass == state->options.GLACIER_ID) && (pet_veg_class == veg_class_index)) {
-          displacement.snowFree = 0;
+        //if ((hru->veg_con.vegClass == state->options.GLACIER_ID) && (pet_veg_class == veg_class_index)) {
+        if (pet_veg_class == state->options.GLACIER_ID)
           roughness.snowFree = soil_con->GLAC_ROUGH;
-          overstory = FALSE;
-        } else {
-          displacement.snowFree = state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
+        else
           roughness.snowFree = state->veg_lib[pet_veg_class].roughness[dmy[time_step_record].month - 1];
-          overstory = state->veg_lib[pet_veg_class].overstory;
-          if (p >= N_PET_TYPES_NON_NAT)
-            if (roughness.snowFree == 0)
-              roughness.snowFree = soil_con->rough;
-        }
+
+        displacement.snowFree = state->veg_lib[pet_veg_class].displacement[dmy[time_step_record].month - 1];
+        overstory = state->veg_lib[pet_veg_class].overstory;
+        if (p >= N_PET_TYPES_NON_NAT)
+          if (roughness.snowFree == 0)
+            roughness.snowFree = soil_con->rough;
+
         /* Estimate vegetation height */
-        height = calc_veg_height(displacement.snowFree);
+        height = calc_veg_height(displacement.snowFree, state->veg_lib[veg_class_index].LAI[dmy[time_step_record].month - 1]);
 
         /* Estimate reference height */
         if (displacement.snowFree < wind_h)
           ref_height.snowFree = wind_h;
         else
           ref_height.snowFree = displacement.snowFree + wind_h + roughness.snowFree;
+
+        /* Adjust magnitude of 'measured' windspeed from nominal surface height to reference height (based on wind height given in vegetation library) */
+        /* Assume an open-ground logarithmic wind profile */
+        double tmp_z0 = soil_con->rough;
+        double tmp_d = 0.;
+        double tmp_zref = state->global_param.wind_h;	//nominal surface height
+        double wind_corr = log((ref_height.snowFree - tmp_d)/tmp_z0)/log((tmp_zref - tmp_d)/tmp_z0);
+
+        /* Initialize wind speeds */
+    	wind_speed.snowFree = atmos->wind[state->NR] * wind_corr;
+        wind_speed.canopyIfOverstory = INVALID;
+        wind_speed.snowCovered = INVALID;
+        wind_speed.glacierSurface = INVALID;
 
         /* Compute aerodynamic resistance over various surface types */
         /* Do this not only for current veg but also all types of PET */

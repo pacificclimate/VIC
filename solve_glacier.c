@@ -4,38 +4,28 @@
 
 double solve_glacier(
       double BareAlbedo,
-      double LongUnderOut,                      // LW from understory
       double               Tgrnd,               // glacier slab temperature
       double               air_temp,            // air temperature
-      double               mu,
-      double               prec,
-      double               wind_h,
       double              *AlbedoUnder,
       double              *Le,
       double              *LongUnderIn,         // surface incoming LW
       double              *NetLongGlac,         // net LW at glacier surface
-      double              *NetShortGrnd,        // net SW reaching ground
-      double              *NetShortGlac,        // net SW at glaciersurface
+      double              *NetShortGlac,        // net SW at glacier surface
       double              *ShortUnderIn,        // surface incoming SW
       double              *Torg_snow,
       VegConditions       &aero_resist,
       AeroResistUsed      &aero_resist_used,
       VegConditions       &displacement,
       double              *melt_energy,
-      double              *out_prec,
-      double              *out_rain,
-      double              *out_snow,
       double              *ppt,
       double              *rainfall,
       VegConditions       &ref_height,
       VegConditions       &roughness,
-      double              *snowfall,
       VegConditions       &wind_speed,
       int                  dt,
       int                  rec,
       int                  hidx,
       VegConditions::VegSurfType &UnderStory,
-      const dmy_struct    *dmy,
       atmos_data_struct   *atmos,
       energy_bal_struct   *energy,
       glac_data_struct   *glacier,
@@ -77,8 +67,7 @@ double solve_glacier(
   ppt[WET] = 0.;
   ppt[DRY] = 0.;
 
-  /* initialize storage for energy consumed in changing snowpack
-     cover fraction */
+  /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
 
   /** Compute latent heats **/
@@ -88,14 +77,11 @@ double solve_glacier(
   (*ShortUnderIn) = shortwave;
   (*LongUnderIn)  = longwave;
 
-   energy->NetLongOver = 0;
-   energy->LongOverIn  = 0;
+  /** compute net shortwave radiation **/
+  (*AlbedoUnder) = BareAlbedo;
+  (*NetShortGlac) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    UnderStory = VegConditions::GLACIER_SURFACE_CASE;         /* glacier is present */
-
-   /** compute net shortwave radiation **/
-   (*AlbedoUnder) = BareAlbedo;
-   (*NetShortGlac) = (1.0 - *AlbedoUnder) * (*ShortUnderIn);
 
    /** Call glacier ablation algorithm **/
    ErrorFlag = glacier_melt((*Le), (*NetShortGlac), Tgrnd,
@@ -119,8 +105,6 @@ double solve_glacier(
    energy->AlbedoUnder = *AlbedoUnder;
 
    rainfall[WET] = 0; /* all rain has been added to the glacier */
-
-  energy->melt_energy = 0.;
 
   return(melt);
 
