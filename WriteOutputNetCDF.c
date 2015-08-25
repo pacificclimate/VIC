@@ -222,7 +222,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   } else {
     ss << "days since ";
   }
-  ss << state->global_param.startday << "/" << state->global_param.startmonth << "/" << state->global_param.startyear;
+  ss << state->global_param.startyear << "-" << state->global_param.startmonth << "-" << state->global_param.startday;
 
   timeVar.putAtt("axis", "T");
   timeVar.putAtt("standard name", "time");
