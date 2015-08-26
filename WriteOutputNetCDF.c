@@ -185,8 +185,8 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
 
   // Define the coordinate variables.
-  NcVar latVar = ncFile.addVar("lat", ncFloat, latDim);
-  NcVar lonVar = ncFile.addVar("lon", ncFloat, lonDim);
+  NcVar latVar = ncFile.addVar("lat", ncDouble, latDim);
+  NcVar lonVar = ncFile.addVar("lon", ncDouble, lonDim);
   NcVar timeVar = ncFile.addVar("time", ncFloat, timeDim);
   NcVar valuesVar = ncFile.addVar("depth", ncFloat, valuesDim);
 
@@ -195,11 +195,12 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   latVar.putAtt("standard name", "latitude");
   latVar.putAtt("long name", "latitude");
   latVar.putAtt("bounds", "lat_bnds");
+
   for (int i = 0; i < state->global_param.gridNumLatDivisions; i++) {
     std::vector<size_t> start, count;
     start.push_back(i);
     count.push_back(1);
-    float value = state->global_param.gridStartLat + (i * state->global_param.gridStepLat);
+    double value = state->global_param.gridStartLat + (i * state->global_param.gridStepLat);
     latVar.putVar(start, count, &value);
   }
 
@@ -212,8 +213,9 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
     std::vector<size_t> start, count;
     start.push_back(i);
     count.push_back(1);
-    float value = state->global_param.gridStartLon + (i * state->global_param.gridStepLon);
+    double value = state->global_param.gridStartLon + (i * state->global_param.gridStepLon);
     lonVar.putVar(start, count, &value);
+    fprintf(stderr, "lon value: %f", value);
   }
 
   std::stringstream ss;
