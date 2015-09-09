@@ -12,7 +12,7 @@
 // and never remove values (just stop using them if necessary).
 namespace StateVariables {
 enum StateMetaDataVariableIndices {
-  NONE = 0,
+	NONE = 0,
   GRID_CELL,
   VEG_TYPE_NUM,
   NUM_BANDS,
@@ -77,11 +77,9 @@ enum StateMetaDataVariableIndices {
   LAKE_SALBEDO,
   LAKE_SDEPTH,
 
-
   STATE_num_veg_types,
   STATE_NR,
   STATE_NF,
-
 
   GLOBAL_PARAM_MEASURE_H,
   GLOBAL_PARAM_WIND_H,
@@ -190,7 +188,6 @@ enum StateMetaDataVariableIndices {
   OPTIONS_PRT_SNOW_BAND,
   OPTIONS_NETCDF_FULL_FILE_PATH,
   OPTIONS_GLACIER_ID,
-
 
   PARAM_SET_FORCE_DT,
   PARAM_SET_FORCE_ENDIAN,
@@ -472,7 +469,6 @@ enum StateMetaDataVariableIndices {
 
   SOIL_PADJ_R,
   SOIL_PADJ_S,
-
 };
 
 enum StateVariableDimensionId {

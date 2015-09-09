@@ -73,7 +73,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
 {
   int Nbands = state->options.SNOW_BAND;
   int numHRUs = cell->prcp.hruList.size();
-  int numGMBterms = state->num_gmb_terms;
+  //int numGMBterms = state->num_gmb_terms;
 
   StateIOContext context(filename, StateIO::Writer, state);
   StateIO* writer = context.stream;
@@ -86,7 +86,7 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
   writer->write(&numHRUs, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
-  writer->write(&numGMBterms, 1, StateVariables::NUM_GLAC_MASS_BALANCE_INFO_TERMS);
+ // writer->write(&numGMBterms, 1, StateVariables::NUM_GLAC_MASS_BALANCE_INFO_TERMS);
 
   processCellForStateFile(cell, writer, state);
   
@@ -160,17 +160,17 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   stream->process(gmbInfo, state->num_gmb_terms, GLAC_MASS_BALANCE_INFO);
 
   /* Output for all vegetation types */
-  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it, stream->notifyDimensionUpdate(HRU_DIM)) {
+	int dimcount = 0;
+  for (std::vector<HRU>::iterator it = cell->prcp.hruList.begin(); it != cell->prcp.hruList.end(); ++it) {
+  	stream->notifyDimensionUpdate(HRU_DIM, dimcount);
+  	dimcount++; // for the next iteration
 
     /* Output for all snow bands */
     /* Write cell identification information */
     int originalVeg = it->veg_con.vegClass;
     int originalBand = it->bandIndex;
 
-// FIXME: ADD THESE TWO BACK TO THE STATE OUTPUT
     stream->process(&(it->veg_con.vegClass), 1, HRU_VEG_INDEX); //not necessary
-
-
     stream->process(&(it->bandIndex), 1, HRU_BAND_INDEX); //not necessary
 
     // The following is read specific and there is nothing we can do about it.
@@ -245,8 +245,8 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     /* Write snow data */
 
     stream->process(&it->snow.albedo, 1, SNOW_ALBEDO); //new
-	stream->process(&it->snow.canopy_albedo, 1, SNOW_CANOPY_ALBEDO); //new
-	stream->process(&it->snow.coldcontent, 1, SNOW_COLD_CONTENT);
+	  stream->process(&it->snow.canopy_albedo, 1, SNOW_CANOPY_ALBEDO); //new
+	  stream->process(&it->snow.coldcontent, 1, SNOW_COLD_CONTENT);
     stream->process(&it->snow.coverage, 1, SNOW_COVERAGE);
     stream->process(&it->snow.density, 1, SNOW_DENSITY);
     stream->process(&it->snow.depth, 1, SNOW_DEPTH); //new
@@ -257,12 +257,12 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     stream->process(&it->snow.snow_canopy, 1, SNOW_CANOPY);
     stream->process(&it->snow.surf_temp, 1, SNOW_SURF_TEMP);
     stream->process(&it->snow.surf_temp_fbcount, 1, SNOW_SURF_TEMP_FBCOUNT); //new
-	stream->process(&it->snow.surf_temp_fbflag, 1, SNOW_SURF_TEMP_FBFLAG); //new
+	  stream->process(&it->snow.surf_temp_fbflag, 1, SNOW_SURF_TEMP_FBFLAG); //new
     stream->process(&it->snow.surf_water, 1, SNOW_SURF_WATER);
     stream->process(&it->snow.swq, 1, SNOW_SWQ);
     stream->process(&it->snow.tmp_int_storage, 1, SNOW_TMP_INT_STORAGE); //new
     stream->process(&it->snow.surface_flux, 1, SNOW_SURFACE_FLUX); //new
-	stream->process(&it->snow.vapor_flux, 1, SNOW_VAPOR_FLUX); //new
+	  stream->process(&it->snow.vapor_flux, 1, SNOW_VAPOR_FLUX); //new
 
 
     /* Write glacier data */

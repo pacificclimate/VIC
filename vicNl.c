@@ -165,6 +165,14 @@ int main(int argc, char *argv[])
   initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state); // Create and initialize a NetCDF output file
   state.initCellMask(cell_data_structs); // Create mask to account for invalid cells included in the output NetCDF spatial domain
 
+  /** Read Grid Cell Vegetation Parameters **/
+  for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+    int numHRUs = read_vegparam(filep.vegparam, cell_data_structs[cellidx], &state);
+    if (numHRUs > state.max_num_HRUs) {
+    	state.update_max_num_HRUs(numHRUs);
+    }
+  }
+
   // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
     if (state.options.INIT_STATE)
@@ -317,11 +325,12 @@ int initializeCell(cell_info_struct& cell,
       }
   #endif /* QUICK_FS */
 
-
   if (!state->options.OUTPUT_FORCE) {
     make_in_files(&filep, &filenames, &cell.soil_con, state);
     /** Read Grid Cell Vegetation Parameters **/
-    read_vegparam(filep.vegparam, cell, state);
+// MDF: moved call to read_vegparam() to main() to identify the max # of HRUs across all cells, to size the HRU_DIM dimension of the state file
+//    read_vegparam(filep.vegparam, cell, state);
+
     calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
 #if LINK_DEBUG
     if (state->debug.PRT_VEGE) {

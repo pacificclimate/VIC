@@ -27,9 +27,10 @@ const std::string stateNNode = "state_nnode";
 const std::string LAT_DIM_STR = "lat";
 const std::string LON_DIM_STR = "lon";
 const std::string GRID_CELL_STR = "GRID_CELL";
+// MDF: suggest renaming this to HRU_VEG_TYPE for clarity:
 const std::string VEG_TYPE_NUM_STR = "VEG_TYPE_NUM";
 const std::string NUM_BANDS_STR = "NUM_BANDS";
-const std::string NUM_GLAC_MASS_BALANCE_INFO_TERMS_STR = "NUM_GLAC_MASS_BALANCE_INFO_TERMS";
+const std::string NUM_GLAC_MASS_BALANCE_INFO_TERMS_STR = "state_nglac_mass_balance_terms";
 
 StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL) {
   populateMetaData();
@@ -384,8 +385,7 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[LAKE_NODES_DIM] = StateVariableDimension("lake_active_nodes", MAX_LAKE_NODES+1);
   metaDimensions[FROST_LAYER_AREAS_DIM] = StateVariableDimension("frost_layer_subareas", state->options.Nlayer * FROST_SUBAREAS);
   metaDimensions[FROST_AREAS_DIM] = StateVariableDimension("frost_subareas", FROST_SUBAREAS);
-  // FIXME: HRU_DIM should be of size equal to total num of HRUs in this domain
-  metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->veg_lib->NVegLibTypes * MAX_BANDS);
+  metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->max_num_HRUs);
   metaDimensions[DIST_DIM] = StateVariableDimension("dist", 2); // Wet and dry.
   metaDimensions[GLAC_MASS_BALANCE_INFO_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);
 }
@@ -396,7 +396,6 @@ void StateIONetCDF::populateMetaData() {
   metaData[GRID_CELL] =               StateVariableMetaData(GRID_CELL_STR);
   metaData[VEG_TYPE_NUM] =            StateVariableMetaData(VEG_TYPE_NUM_STR);
   metaData[NUM_BANDS] =               StateVariableMetaData(NUM_BANDS_STR);
-  metaData[NUM_GLAC_MASS_BALANCE_INFO_TERMS] = StateVariableMetaData(NUM_GLAC_MASS_BALANCE_INFO_TERMS_STR);
   metaData[SOIL_DZ_NODE] =            StateVariableMetaData("SOIL_DZ_NODE", NODES_DIM);
   metaData[SOIL_ZSUM_NODE] =          StateVariableMetaData("SOIL_ZSUM_NODE", NODES_DIM);
   metaData[SOIL_DEPTH] =              StateVariableMetaData("SOIL_DEPTH", LAYERS_DIM);
