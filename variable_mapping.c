@@ -19,7 +19,7 @@ void ProgramState:: build_forcing_variable_mapping() {
 		{"AIR_TEMP", "tas"}, //air temperature
 		{"ALBEDO", "ALBEDO"}, //surface albedo
 		{"CHANNEL_IN", "CHANNEL_IN"}, //incoming channel flow
-//		{"CAT_M", "CAT_M"}, //???
+		{"CAT_M", "CAT_M"}, //atmospheric CO2 mixing ratio
 		{"CRAINF", "CRAINF"}, //convective rainfall
 		{"CSNOWF", "CSNOWF"}, //convective snowfall
 		{"DENSITY", "DENSITY"}, //atmospheric density

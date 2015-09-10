@@ -221,12 +221,12 @@ void get_force_type(char   *cmdstr,
   else {
 
   	numvars = sscanf(cmdstr,"%*s %*s %s %s %s", tempstr1, tempstr2, tempstr3);
-  	  if (numvars == 1) { // only a forcing var and input_varname is provided
+  	  if (numvars == 1) { // only a forcing var and input_varname is provided, e.g. AIR_TEMP    ta
   	  	strcpy(input_varname, tempstr1);
   	  	state->set_forcing_variable_name(std::string(state->param_set.TYPE[type].varname), std::string(input_varname));
   	  }
   	  else if (numvars > 1){
-  	  	if (numvars == 3) { // a forcing var, flgstr, multiplier, and input_varname provided
+  	  	if (numvars == 3) { // a forcing var, flgstr, multiplier, and input_varname provided, e.g. TMIN    SIGNED    100    tasmin
   	  	strcpy(input_varname, tempstr3);
   	  	state->set_forcing_variable_name(std::string(state->param_set.TYPE[type].varname), std::string(input_varname));
   	  	}
