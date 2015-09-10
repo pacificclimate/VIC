@@ -73,7 +73,6 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
 {
   int Nbands = state->options.SNOW_BAND;
   int numHRUs = cell->prcp.hruList.size();
-  //int numGMBterms = state->num_gmb_terms;
 
   StateIOContext context(filename, StateIO::Writer, state);
   StateIO* writer = context.stream;
@@ -86,7 +85,6 @@ void write_model_state(cell_info_struct* cell, const char* filename, const Progr
   writer->write(&cell->soil_con.gridcel, 1, StateVariables::GRID_CELL);
   writer->write(&numHRUs, 1, StateVariables::VEG_TYPE_NUM);
   writer->write(&Nbands, 1, StateVariables::NUM_BANDS);
- // writer->write(&numGMBterms, 1, StateVariables::NUM_GLAC_MASS_BALANCE_INFO_TERMS);
 
   processCellForStateFile(cell, writer, state);
   
