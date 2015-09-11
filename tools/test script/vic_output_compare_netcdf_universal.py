@@ -79,19 +79,6 @@ if csv_out:
     if csv_diffs_only:
         print 'Only differences between input files will be saved (-csv_diffs_only).'
 
-if var_map_file:
-    print 'Output variable name mapping defined in file {} will be used.'.format(var_map_file)
-    var_map = {}
-    with open(var_map_file, 'r') as f:
-        for line in f:
-            if (len(line) > 1):
-                split_line = line.split()
-                var = split_line[0]
-                var_map[var] = []
-                for idx, mapped_var_name in enumerate(split_line):
-                    if idx > 0:
-                        var_map[var].append(mapped_var_name)
-
 # Open test output NetCDF file
 #testH5 = h5py.File('../out/results.nc', 'r')
 testH5 = h5py.File(testfile, 'r')
@@ -119,11 +106,11 @@ if num_test_recs != num_base_recs:
     print 'Number of time records selected for comparison between testfile and basefile must be equal.  Exiting.\n'
     sys.exit(0)
 
-# grab NaN fill value of non-initialized NetCDF records from one common attribute (precipitation)
-try: # the original forcing file precip variable
-    fill_value = baseH5['pr'].attrs['_FillValue']
-except: # the new disaggregated forcing / model run output precip variable
-    fill_value = baseH5['OUT_PREC'].attrs['_FillValue']
+# grab NaN fill value of non-initialized NetCDF records
+for var in baseH5:
+    fill_value = baseH5[var].attrs['_FillValue']
+    if fill_value is not None:
+        break
 
 # grab lat and lon dimensions of grid cells
 lats = testH5['lat'][:]
@@ -148,6 +135,23 @@ del base_data_keys['lon']
 del base_data_keys['time']
 del base_data_keys['bnds']
 del base_data_keys['depth']
+
+# define basefile to testfile variable name mapping (e.g. precipitation might be called OUT_PREC in one, and PREC or pr in another)
+var_map = {}
+if var_map_file:
+    print 'Output variable name mapping defined in file {} will be used.'.format(var_map_file)
+    with open(var_map_file, 'r') as f:
+        for line in f:
+            if (len(line) > 1):
+                split_line = line.split()
+                var = split_line[0]
+                var_map[var] = []
+                for idx, mapped_var_name in enumerate(split_line):
+                    if idx > 0:
+                        var_map[var].append(mapped_var_name)
+else: # use the variable names provided in the basefile, assuming the testfile variable naming agrees
+    for var in baseH5:
+        var_map[var] = var
 
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)
@@ -232,7 +236,7 @@ for lat in lats:
 
 ## compare test data against base data
 if verbose:
-    print'Checking agreement between test output data with base values:'
+    print'\nChecking agreement between test output data with base values:'
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
 for lat_label in lats:
@@ -358,12 +362,12 @@ for cell in cell_labels:
     
 if csv_out == True:
     if csv_diffs_only == False:
-        test_csv_filename = 'tabular_cell_{}_{}.csv'.format(cell, os.path.basename(testfile))
+        test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
         np.savetxt(test_csv_filename, test_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
         base_csv_filename = 'tabular_cell_{}_{}_base.csv'.format(cell, os.path.basename(basefile))
         np.savetxt(base_csv_filename, base_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
 
-        test_4D_csv_filename = 'tabular_cell_{}_{}_band.csv'.format(cell, os.path.basename(testfile)) 
+        test_4D_csv_filename = 'tabular_cell_{}_{}_band_test.csv'.format(cell, os.path.basename(testfile)) 
         np.savetxt(test_4D_csv_filename, test_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
         base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
         np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
