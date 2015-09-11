@@ -57,8 +57,7 @@ DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_T
 NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
 LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
 # Uncomment to include debugging information
-#CFLAGS  = -I. -g -Wall -Wextra -Werror -Wno-unused -Wno-error $(DEFINES)
-CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-error $(DEFINES)
+CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
 
 #LIBRARY = -lm
 
