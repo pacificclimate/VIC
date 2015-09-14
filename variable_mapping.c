@@ -64,7 +64,7 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_LAKE_ICE_HEIGHT",    	VariableMetaData("cm", "LAKE_ICE_HEIGHT", "", "Thickness of lake ice", "time: point area: mean")},
 		{"OUT_LAKE_SURF_AREA",    	VariableMetaData("m2", "LAKE_SURF_AREA", "", "Lake surface area", "time: point area: sum")},
 		{"OUT_LAKE_VOLUME",    		VariableMetaData("m3", "LAKE_VOLUME", "", "Lake volume", "time: point area: sum")},
-		{"OUT_ROOTMOIST",			VariableMetaData("mm", "OUT_ROOTMOIST", "", "Root zone soil moisture", "time: point area: mean")},
+		{"OUT_ROOTMOIST",			VariableMetaData("mm", "ROOTMOIST", "", "Root zone soil moisture", "time: point area: mean")},
 		{"OUT_SMFROZFRAC",			VariableMetaData("1", "SMFROZFRAC", "", "Fraction of soil moisture (by mass) that is ice, for each soil layer", "time: point area: mean")},
 		{"OUT_SMLIQFRAC",			VariableMetaData("1", "SMLIQFRAC", "", "Fraction of soil moisture (by mass) that is liquid, for each soil layer", "time: point area: mean")},
 		{"OUT_SNOW_CANOPY", 		VariableMetaData("mm", "SNOW_CANOPY", "", "Snow interception storage in canopy", "time: point area: mean")},
