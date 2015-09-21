@@ -220,11 +220,13 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
   std::stringstream ss;
   if (state->global_param.out_dt < 24) {
-    ss << "hours since " << state->global_param.starthour << ":00 " << "on ";
+    ss << "hours since ";
   } else {
     ss << "days since ";
   }
   ss << state->global_param.startyear << "-" << state->global_param.startmonth << "-" << state->global_param.startday;
+  if (state->global_param.out_dt < 24)
+    ss << " " << state->global_param.starthour << ":00";
 
   timeVar.putAtt("axis", "T");
   timeVar.putAtt("standard name", "time");
