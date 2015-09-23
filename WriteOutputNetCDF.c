@@ -237,9 +237,12 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   std::vector<size_t> start, count;
   start.push_back(0);
   count.push_back(1);
-  for (int i = 0; i < timeSize; i++) {
+  int i;
+//  for (int i = 0; i < timeSize; i++) {
+  for (i = 0; i < timeSize; i++) {
     start[0] = i;
-    float index = i;
+    float index = state->global_param.out_dt < 24 ? (i * state->global_param.out_dt) : i;
+//    float index = i;
     timeVar.putVar(start, count, &index);
   }
 
