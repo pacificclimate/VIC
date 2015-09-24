@@ -143,7 +143,8 @@ void addGlobalAttributes(NcFile* netCDF, const ProgramState* state) {
 
   netCDF->putAtt("source", source.c_str());
   netCDF->putAtt("history", history.c_str());
-  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
+  std::string frequency = std::to_string(state->global_param.out_dt);
+  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? frequency+=" hour" : "day");
   netCDF->putAtt("Conventions", "CF-1.6");
 }
 
