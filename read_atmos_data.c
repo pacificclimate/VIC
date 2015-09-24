@@ -94,12 +94,12 @@ void read_atmos_data(FILE                 *infile,
 
   /** Error checking - Model can be run at any time step using daily forcing
    data, but if sub-daily data is used, the model must be run at the
-   same time step as the data.  That way aggregation and disaggragation
+   same time step as the data.  That way aggregation and disaggregation
    techniques are left to the user. **/
   if (state->param_set.FORCE_DT[file_num] < 24
       && state->global_param.dt != state->param_set.FORCE_DT[file_num]) {
     sprintf(ErrStr,
-        "When forcing the model with sub-daily data, the model must be run at the same time step as the forcing data.  Currently the model time step is %i hours, while forcing file %i has a time step of %i hours.",
+        "When forcing the model with sub-daily data, the model must be run at the same time step (TIME_STEP) as the forcing data (FORCE_DT).  Currently the model time step is %i hours, while forcing file %i has a time step of %i hours.",
         state->global_param.dt, file_num, state->param_set.FORCE_DT[file_num]);
     nrerror(ErrStr);
   }

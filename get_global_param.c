@@ -909,7 +909,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     nrerror(ErrStr);
   }
 
-  // Validate the output step
+  // Validate the output step OUT_STEP
   if (global_param.out_dt == 0 || IS_INVALID(global_param.out_dt)) {
     global_param.out_dt = global_param.dt;
   }

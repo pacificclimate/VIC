@@ -17,8 +17,8 @@ using namespace netCDF;
 
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
-  // The divisor will convert the difference to either hours or days respectively.
-  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.dt) : (60 * 60 * 24); //new (*state->global_param.dt)
+  // The divisor will convert the difference to sub-daily (e.g. hourly, 3/4/6/8/12-hourly) or daily, respectively.
+  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.out_dt) : (60 * 60 * 24); //new (*state->global_param.dt)
 }
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
@@ -237,12 +237,9 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   std::vector<size_t> start, count;
   start.push_back(0);
   count.push_back(1);
-  int i;
-//  for (int i = 0; i < timeSize; i++) {
-  for (i = 0; i < timeSize; i++) {
+  for (int i = 0; i < timeSize; i++) {
     start[0] = i;
     float index = state->global_param.out_dt < 24 ? (i * state->global_param.out_dt) : i;
-//    float index = i;
     timeVar.putVar(start, count, &index);
   }
 
