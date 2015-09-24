@@ -360,6 +360,29 @@ int initializeCell(cell_info_struct& cell,
       return 0;
 }
 
+void printThreadInformation() {
+  // Obtain thread number
+  int tid = omp_get_thread_num();
+  // Only master thread does this
+  if (tid == 0) {
+    printf("Thread %d getting environment info...\n", tid);
+    // Get environment information
+    int procs = omp_get_num_procs();
+    int nthreads = omp_get_num_threads();
+    int maxt = omp_get_max_threads();
+    int inpar = omp_in_parallel();
+    int dynamic = omp_get_dynamic();
+    int nested = omp_get_nested();
+    // Print environment information
+    printf("Number of processors = %d\n", procs);
+    printf("Number of threads = %d\n", nthreads);
+    printf("Max threads = %d\n", maxt);
+    printf("In parallel? = %d\n", inpar);
+    printf("Dynamic threads enabled? = %d\n", dynamic);
+    printf("Nested parallelism supported? = %d\n", nested);
+  }
+}
+
 /************************************
  Run Model for all Active Grid Cells
  ************************************/

@@ -47,7 +47,7 @@
 # Set CC = your compiler here
 CC = g++
 
-SOURCE_VERSION = $(shell git describe --abbrev=10 --dirty --always --tags)
+SOURCE_VERSION = $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
 COMPILE_TIME = $(shell date)
 MACHINE_INFO = $(shell uname -a)
 DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\"" -DMACHINE_INFO="\"${MACHINE_INFO}\""
@@ -55,9 +55,11 @@ DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_T
 # Uncomment for normal optimized code flags (fastest run option)
 #CFLAGS  = -I. -O3 -Wall -Wno-unused
 NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
-LIBRARY = -lm $(NETCDF_LIBS)
+LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
 # Uncomment to include debugging information
 CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
+
+#LIBRARY = -lm
 
 # Uncomment to include execution profiling information
 #CFLAGS  = -I. -O3 -pg -Wall -Wno-unused
