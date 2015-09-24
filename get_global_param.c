@@ -916,6 +916,10 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   else if (global_param.out_dt < global_param.dt || global_param.out_dt > 24 || (float)global_param.out_dt/(float)global_param.dt != (float)(global_param.out_dt/global_param.dt)){
     nrerror("Invalid output step specified.  Output step must be an integer multiple of the model time step; >= model time step and <= 24");
   }
+  if(options.OUTPUT_FORCE) { // catch the case where sub-daily OUT_STEP is incorrectly set different from TIME_STEP when OUTPUT_FORCE=TRUE
+  	if (global_param.out_dt != global_param.dt)
+  		nrerror("Invalid output step specified.  Output step must be equal to the model time step when producing disaggregated forcings.");
+  }
 
   // Validate SNOW_STEP and set NR and NF
   if (global_param.dt < 24 && global_param.dt != options.SNOW_STEP)
