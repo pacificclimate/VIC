@@ -47,7 +47,7 @@
 # Set CC = your compiler here
 CC = g++
 
-SOURCE_VERSION = $(shell hg parents --template 'hgid: {latesttag}+{latesttagdistance}:{node}\n')
+SOURCE_VERSION = $(shell git describe --abbrev=10 --dirty --always --tags)
 COMPILE_TIME = $(shell date)
 MACHINE_INFO = $(shell uname -a)
 DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\"" -DMACHINE_INFO="\"${MACHINE_INFO}\""
