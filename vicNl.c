@@ -10,6 +10,9 @@
 #include <sstream>
 #include <vector>
 
+#include <chrono>
+#include <ctime>
+
 #include "WriteOutputAscii.h"
 #include "WriteOutputBinary.h"
 #include "WriteOutputNetCDF.h"
@@ -417,24 +420,37 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
     forcing data array is written to file(s), and the full model run is skipped. */
     if (state->options.OUTPUT_FORCE) {
+    	fprintf(stderr, "Writing forcing file...\n");
       write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, cell_data_structs[cellidx].outputFormat, out_data, state, dmy);
       continue;
     }
   }
 
 #if VERBOSE
-        fprintf(stderr, "Running Model\n");
+        fprintf(stderr, "Running Model...\n");
+
 #endif /* VERBOSE */
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  start = std::chrono::system_clock::now();
 
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
   ********************************************************/
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-  	  // Meteorological forcings for entire time range is written in one shot for each grid cell
+  	// Meteorological forcings for entire time range is written in one shot for each grid cell
   	if (state->options.OUTPUT_FORCE) break;
 
+//  	fprintf(stderr, "Time rec: %d of %d.  Requesting %d threads.\n", rec, state->global_param.nrecs, cell_data_structs.size());
+  	omp_set_dynamic(0);
+//  	omp_set_num_threads(omp_get_num_procs());
+  	omp_set_num_threads(3);
+
+#pragma omp parallel for
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+
+//    	printThreadInformation();
 
     	// If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
     	if (cell_data_structs[cellidx].isValid == FALSE) continue;
@@ -477,7 +493,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
           fprintf(stderr,
               "Error processing cell %d (method dist_prec) at record (time step) %d.  Cell has been marked as invalid and will be skipped for remainder of model run.  An incomplete output file has been generated, check your inputs before re-running the simulation.\n",
               cell_data_structs[cellidx].soil_con.gridcel, rec);
-          break;
+          //break;  //openMP does not support break statements.  Added a check for isValid around accumulateGlacierMassBalance instead
         } else {
           // Else exit program on cell solution error as in previous versions
           sprintf(cell_data_structs[cellidx].ErrStr,
@@ -486,9 +502,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
           vicerror(cell_data_structs[cellidx].ErrStr);
         }
       }
-
       // FIXME: should accumulateGlacierMassBalance have error checking?
-      accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
+      if (cell_data_structs[cellidx].isValid)
+        accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date
@@ -522,6 +538,12 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       free_out_data(&current_output_data);
     } // for - grid cell loop
   } // for - time loop
+
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+  std::cout << "elapsed time in parallel loop: " << elapsed_seconds.count() << "s\n";
+
 
   // Close NetCDF forcing file
   if(state->param_set.FORCE_FORMAT[0] == NETCDF)

@@ -55,9 +55,9 @@ DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_T
 # Uncomment for normal optimized code flags (fastest run option)
 #CFLAGS  = -I. -O3 -Wall -Wno-unused
 NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
-LIBRARY = -lm -fopenmp $(NETCDF_LIBS)
+LIBRARY = -lm $(NETCDF_LIBS)
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
+CFLAGS  = -I. -g -Wall -std=c++11 -fopenmp -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
 
 #LIBRARY = -lm
 
