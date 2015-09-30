@@ -334,16 +334,16 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       else if(strcasecmp("FULL_ENERGY",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) {
-	  options.FULL_ENERGY=TRUE;
-	}
-	else options.FULL_ENERGY = FALSE;
+        	options.FULL_ENERGY=TRUE;
+        }
+        else options.FULL_ENERGY = FALSE;
       }
       else if(strcasecmp("FROZEN_SOIL",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) {
-	  options.FROZEN_SOIL=TRUE;
+        	options.FROZEN_SOIL=TRUE;
           options.QUICK_FLUX = FALSE;
-	}
+        }
         else options.FROZEN_SOIL = FALSE;
       }
       else if(strcasecmp("QUICK_FLUX",optstr)==0) {
