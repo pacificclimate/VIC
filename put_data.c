@@ -746,10 +746,11 @@ int  put_data(cell_info_struct  *cell,
     /*************
       Write Data
     *************/
-    if(rec >= skipyear) {
-      output->write_data(out_data, dmy, state->global_param.out_dt, state);
-
-    }
+    // FIXME: moved this call into vicNl time-major loop to allow for aggregation of data for all cells for a single write operation
+//    if(rec >= skipyear) {
+//      output->write_data(out_data, dmy, state->global_param.out_dt, state);
+//      fprintf(stderr,".");
+//    }
 
     // Reset the step count
     cell->fallBackStats.step_count = 0;

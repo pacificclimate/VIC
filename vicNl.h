@@ -559,6 +559,7 @@ void   vicerror(const char *);
 double volumetric_heat_capacity(double,double,double,double);
 
 void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
+//void write_all_cells_output(WriteOutputFormat *, out_data_struct *, const dmy_struct*, int, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
 void write_forcing_file(cell_info_struct*, int, WriteOutputFormat *, out_data_struct *, const ProgramState*, dmy_struct*);
