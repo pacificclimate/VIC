@@ -401,8 +401,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   // FIXME: creating a temporary outputwriter variable that is common to all cells
   // (they don't really need to each have an instance of cell_data_structs[cellidx].outputFormat if they're the same
   // and we are doing the write operation after each time iteration, not from the write member function of each instance)
-	WriteOutputAllCells outputwriter = new WriteOutputAllCells(&state);
-
+	WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
+	outputwriter->openFile();
 
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
@@ -556,11 +556,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Write output data for all cells on this time iteration to file
     if(rec >= state->global_param.skipyear) {
     	fprintf(stderr,"writing all cells data to file...");
-      //outputFormat->write_all_cells_data(current_output_data, dmy, state->global_param.out_dt, state);
-      //write_all_cells_data2(outputFormat, current_output_data, dmy, state->global_param.out_dt, state);
-    //	outputwriter->write_all_cells_output(current_output_data, dmy, state->global_param.out_dt, state);
-    	outputwriter->write_all_cells_output(current_output_data, out_data_files_template, dmy, state->global_param.out_dt, state);
-
+    	outputwriter->write_all_cells_output(*current_output_data, out_data_files_template, dmy, state->global_param.out_dt, state);
     	fprintf(stderr,".");
     }
   } // for - time loop

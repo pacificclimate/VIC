@@ -18,7 +18,7 @@ using namespace netCDF;
 //WriteOutputAllCells::WriteOutputAllCells(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
 WriteOutputAllCells::WriteOutputAllCells(const ProgramState* state) : netCDF(NULL) {
 
-	// netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
+	netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
   // The divisor will convert the difference to sub-daily (e.g. hourly, 3/4/6/8/12-hourly) or daily, respectively.
   timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.out_dt) : (60 * 60 * 24); //new (*state->global_param.dt)
 }
@@ -39,6 +39,11 @@ int WriteOutputAllCells::getTimeIndex(const dmy_struct* curTime, const int timeI
   return INVALID_INT;
 }
 
+void WriteOutputAllCells::openFile() {
+  // Do not specify the type of file that will be read here (NcFile::nc4). The library will throw an exception
+  // if it is provided for open types read or write (since the file was already created with a certain format).
+  netCDF = new NcFile(netCDFOutputFileName.c_str(), NcFile::write);
+}
 
 //void WriteOutputAllCells::write_all_cells_output(out_data_struct *all_out_data, , const dmy_struct* dmy, int dt, const ProgramState* state) {
 void WriteOutputAllCells::write_all_cells_output(out_data_struct *all_out_data, out_data_file_struct* out_data_file, const dmy_struct* dmy, int dt, const ProgramState* state) {
@@ -87,7 +92,9 @@ void WriteOutputAllCells::write_all_cells_output(out_data_struct *all_out_data, 
     	int varnumelem = all_out_data[out_data_file->varid[var_idx]].nelem;
       bool use4Dimensions = varnumelem > 1;
     	// Assign the length of the data to be written for this variable
-      unsigned int num_cells = sizeof(all_out_data) / sizeof(*all_out_data);
+//      unsigned int num_cells = sizeof(all_out_data) / sizeof(*all_out_data);
+      unsigned int num_cells = 2;
+
     	size_t vardatasize = varnumelem * num_cells;
     	count4.at(1) = vardatasize;
       // Create temporary array of data for this variable across all cells
