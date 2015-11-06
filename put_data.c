@@ -746,11 +746,11 @@ int  put_data(cell_info_struct  *cell,
     /*************
       Write Data
     *************/
-    // FIXME: moved this call into vicNl time-major loop to allow for aggregation of data for all cells for a single write operation
-//    if(rec >= skipyear) {
-//      output->write_data(out_data, dmy, state->global_param.out_dt, state);
-//      fprintf(stderr,".");
-//    }
+// This per-cell write is only done if we are not using OpenMP parallelization across cells at every time step (otherwise the WriteOutputAllCells object is used in vicNl.c).
+#if !(PARALLEL)
+    if(rec >= skipyear) {
+      output->write_data(out_data, dmy, state->global_param.out_dt, state);
+    }
 
     // Reset the step count
     cell->fallBackStats.step_count = 0;
@@ -761,7 +761,7 @@ int  put_data(cell_info_struct  *cell,
         out_data[v].aggdata[i] = 0;
       }
     }
-
+#endif
   } // End of output procedure
 
   return (0);

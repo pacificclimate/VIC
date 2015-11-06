@@ -5,25 +5,27 @@
 
 static char vcid[] = "$Id$";
 
-out_data_struct* copy_output_data(out_data_struct* out_data, const ProgramState* state) {
-  out_data_struct* cur_data = (out_data_struct*) calloc(N_OUTVAR_TYPES, sizeof(out_data_struct));
+// NOTE: does it make sense to calloc and loop for N_OUTVAR_TYPES?
+// Hasn't this already been cut down to only the variables selected in the global file at the set_output_defaults() stage?
+void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_data_struct *out_data_list, const ProgramState *state) {
+	out_data_struct *cur_data = (out_data_struct*) calloc(N_OUTVAR_TYPES, sizeof(out_data_struct));
   for (int i = 0; i < N_OUTVAR_TYPES; i++) {
-    strcpy(cur_data[i].varname, out_data[i].varname);
-    strcpy(cur_data[i].format, out_data[i].format);
-    cur_data[i].nelem = out_data[i].nelem;
-    cur_data[i].aggtype = out_data[i].aggtype;
-    cur_data[i].mult = out_data[i].mult;
-    cur_data[i].type = out_data[i].type;
-    cur_data[i].write = out_data[i].write;
+    strcpy(cur_data[i].varname, out_data_list[i].varname);
+    strcpy(cur_data[i].format, out_data_list[i].format);
+    cur_data[i].nelem = out_data_list[i].nelem;
+    cur_data[i].aggtype = out_data_list[i].aggtype;
+    cur_data[i].mult = out_data_list[i].mult;
+    cur_data[i].type = out_data_list[i].type;
+    cur_data[i].write = out_data_list[i].write;
     // Allocate space for data
     cur_data[i].data = (double *)calloc(cur_data[i].nelem, sizeof(double));
     cur_data[i].aggdata = (double *)calloc(cur_data[i].nelem, sizeof(double));
     for (int element = 0; element < cur_data[i].nelem; element++) {
-      cur_data[i].data[element] = out_data[i].data[element];
-      cur_data[i].aggdata[element] = out_data[i].aggdata[element];
+      cur_data[i].data[element] = out_data_list[i].data[element];
+      cur_data[i].aggdata[element] = out_data_list[i].aggdata[element];
     }
   }
-  return cur_data;
+  current_output_data.push_back(cur_data);
 }
 
 out_data_struct *create_output_list(const ProgramState* state) {

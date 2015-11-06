@@ -19,14 +19,10 @@ public:
   const char* getDescriptionOfOutputType();
   // This should only be called once per invocation of VIC. It creates a fresh netCDF output file.
   void initializeFile(const ProgramState*, const out_data_struct*);
-
   void openFile();
   void compressFiles();
   void write_data(out_data_struct *out_data, const dmy_struct *dmy, int dt, const ProgramState* state);
-//  void write_all_cells_output(WriteOutputFormat *outputFormat, out_data_struct *all_out_data, const dmy_struct* dmy, int dt, const ProgramState* state);
-//  void write_all_cells_output(out_data_struct *all_out_data, const dmy_struct* dmy, int dt, const ProgramState* state);
   void write_header(out_data_struct *out_data, const dmy_struct *dmy, const ProgramState* state);
-private:
   int getLengthOfTimeDimension(const ProgramState* state);
   int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state);
   netCDF::NcFile* netCDF;
