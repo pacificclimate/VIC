@@ -117,7 +117,7 @@
  * If this option is turned off then output will not be available in netCDF format.
  */
 #define NETCDF_OUTPUT_AVAILABLE TRUE
-#define PARALLEL FALSE
+#define PARALLEL TRUE
 /* The glacier code expects 18 more parameters per cell in the soil file by default.
  If this is explicitly set to FALSE, then the old format is used for backwards
  compatibility and reasonable defaults are assigned to the glacier parameters. */
