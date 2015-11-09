@@ -559,7 +559,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     	WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
     	outputwriter->openFile();
-    	outputwriter->write_data(current_output_data, out_data_files_template, dmy, state->global_param.out_dt, state);
+    	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+//    	outputwriter->closeFile();
     }
 #endif
   	fprintf(stderr,".");

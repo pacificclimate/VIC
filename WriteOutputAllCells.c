@@ -18,7 +18,7 @@ WriteOutputAllCells::~WriteOutputAllCells() {
 
 }
 
-void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct* dmy, int dt, const ProgramState* state) {
+void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct *dmy, int dt, const ProgramState* state) {
 
   if (netCDF == NULL) {
     fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t%02i\t%02i\t%02i\t. File: \"%s\".\n",
@@ -90,27 +90,38 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
 						vardata_ptr);
 
 				vardata_ptr += varnumelem;
-			}
 
+	      // Reset the step count
+	      //cell->fallBackStats.step_count = 0;
+
+	      // Reset the agg data
+	      for (int i=0; i<varnumelem; i++) {
+	      	all_out_data[cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[i] = 0;
+	      }
+	    }
     	// Write data to file for this variable
       try {
     		NcVar variable = allVars.find(state->output_mapping.at(all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname).name)->second;
-    		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname);
+    		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
         if (use4Dimensions) {
         	count4.at(1) = vardatasize;  // Set the number of values to write to the z dimension
-//        	variable.putVar(start4, count4, vardata);
+        	variable.putVar(start4, count4, vardata);
         } else {
         	variable.putVar(start3, count3, vardata);
         }
       } catch (std::exception& e) {
-      	//      		fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", state->output_mapping.at(all_out_data[out_data_files_template[file_idx].varid[var_idx]].varname).name.c_str(), (int)timeIndex);
-//        fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", state->output_mapping.at(all_out_data[out_data_files_template[file_idx]->varid[var_idx]]->varname).name.c_str(), (int)timeIndex);
+   //        fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", state->output_mapping.at(all_out_data[out_data_files_template[file_idx].varid[var_idx]]->varname).name.c_str(), (int)timeIndex);
+        fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, (int)timeIndex);
 
-        fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", state->output_mapping.at(all_out_data[out_data_files_template[file_idx].varid[var_idx]]->varname).name.c_str(), (int)timeIndex);
         throw;
       }
       delete [] vardata;
     }
   }
 }
+
+//void WriteOutputAllCells::closeFile(){
+//
+//
+//}

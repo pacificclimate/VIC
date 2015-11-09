@@ -12,6 +12,7 @@ public:
 
   void write_data(std::vector<out_data_struct*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct *dmy, int dt, const ProgramState *state);
 
+  void closeFile();
 };
 
 #endif /* WRITEOUTPUTALLCELLS_H_ */
