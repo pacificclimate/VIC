@@ -360,27 +360,27 @@ for cell in cell_labels:
                     print 'Number of different entries across all bands: {} '.format(num_diffs), 
                     print 'Maximum absolute difference across all bands: {}'.format(max_diff) 
     
-if csv_out == True:
-    if csv_diffs_only == False:
-        test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
-        np.savetxt(test_csv_filename, test_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
-        base_csv_filename = 'tabular_cell_{}_{}_base.csv'.format(cell, os.path.basename(basefile))
-        np.savetxt(base_csv_filename, base_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
+    if csv_out == True:
+        if csv_diffs_only == False:
+            test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
+            np.savetxt(test_csv_filename, test_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers), comments='')
+            base_csv_filename = 'tabular_cell_{}_{}_base.csv'.format(cell, os.path.basename(basefile))
+            np.savetxt(base_csv_filename, base_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers), comments='')
 
-        test_4D_csv_filename = 'tabular_cell_{}_{}_band_test.csv'.format(cell, os.path.basename(testfile)) 
-        np.savetxt(test_4D_csv_filename, test_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
-        base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
-        np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
+            test_4D_csv_filename = 'tabular_cell_{}_{}_band_test.csv'.format(cell, os.path.basename(testfile)) 
+            np.savetxt(test_4D_csv_filename, test_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers), comments='')
+            base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
+            np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers), comments='')
 
-    if diffs_exist:
-        diffs_3D_csv_filename = 'tabular_cell_{}_{}_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
-        np.savetxt(diffs_3D_csv_filename, diffs_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_headers))     
-        diffs_4D_csv_filename = 'tabular_cell_{}_{}_band_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
-        np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers))
+        if diffs_exist:
+            diffs_3D_csv_filename = 'tabular_cell_{}_{}_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
+            np.savetxt(diffs_3D_csv_filename, diffs_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_headers), comments='')     
+            diffs_4D_csv_filename = 'tabular_cell_{}_{}_band_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
+            np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers), comments='')
 
 if diffs_exist:
-    print '\nDifferences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
+    print '\nEquivalence test FAILED. Differences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
 else:
-    print '\ntestfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
+    print '\nEquivalence test PASSED. The testfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
 
 print '\nvic_output_compare_netcdf_universal finished.'
