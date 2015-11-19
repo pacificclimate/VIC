@@ -40,11 +40,10 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
 
 	// Loop through (legacy) out_data_files_template for listing of output variables
 	for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
-
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
 
-  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
+//  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
       // Create temporary array of data for this variable across all cells
     	double *vardata, *vardata_ptr;
@@ -54,18 +53,11 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
       vardata = new double [vardatasize];
       vardata_ptr = vardata;
 
-      for (int i=0; i<varnumelem; i++) {
+      for (int elem=0; elem<varnumelem; elem++) {
       	for (int cell_idx = 0; cell_idx < num_cells; cell_idx++) {
       		// Interleave data from each cell for this variable in temporary array vardata
-      		*vardata_ptr = all_out_data[cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[i];
+      		*vardata_ptr = all_out_data[cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[elem];
 				  vardata_ptr++;
-
-				  // Reset the agg data
-				  all_out_data[cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[i] = 0;
-
-				  // Reset the step count
-				  //cell->fallBackStats.step_count = 0;
-
       	}
       }
     	// Write data to file for this variable

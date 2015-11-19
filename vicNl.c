@@ -413,7 +413,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Copy the format of the out_data_files_template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
 
-    // Copy the format of the out_data_list (which is specific to this model run) and allocate space for all elements of current_output_data
+    // Copy the format of the out_data_list (which is specific to this model run) and allocate space for this cell's element of current_output_data
     copy_output_data(current_output_data, out_data_list, state);
 
     /* Create output filename(s), and open (if already created, just open for appending).
@@ -467,7 +467,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   	omp_set_dynamic(0);
 //  	omp_set_num_threads(omp_get_num_procs());
   	omp_set_num_threads(2);
-//#pragma omp parallel for
+#pragma omp parallel for
 #endif
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
@@ -555,15 +555,26 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if PARALLEL
     // Write output data for all cells on this time iteration to file
     if(rec >= state->global_param.skipyear) {
-    	fprintf(stderr,"writing data to file...");
+//    	fprintf(stderr,"writing data to file...");
 
     	WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
     	outputwriter->openFile();
     	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
 //    	outputwriter->closeFile();
+
+      // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
+    	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+    		for (int cell_idx = 0; cell_idx < current_output_data.size(); cell_idx++) {
+    			for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+    				current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
+    			}
+    		  // Reset the step count
+    			cell_data_structs[cell_idx].fallBackStats.step_count = 0;
+    		}
+    	}
     }
 #endif
-  	fprintf(stderr,".");
+//  	fprintf(stderr,".");
   } // for - time loop
 
 #if PARALLEL
