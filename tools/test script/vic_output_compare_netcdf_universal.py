@@ -70,14 +70,15 @@ else:
 if base_is_time_major:
     print 'basefile declared as time-major with depth dimension in position {}'.format(pos_depth_dim_base)
 else:
-    print 'basefile declared as cell-major with depth dimension in position {}'.format(pos_depth_dim_base)
+    print 'basefile declared as cell-major with depth dimension in position {}\n'.format(pos_depth_dim_base)
 
-print 'Absolute tolerance (-tolerance) for agreement between elements: {}'.format(tolerance)
+print 'Absolute tolerance (-tolerance) for agreement between elements: {}\n'.format(tolerance)
 
 if csv_out:
     print 'CSV output selected (--csv).'
     if csv_diffs_only:
         print 'Only differences between input files will be saved (-csv_diffs_only).'
+    # print '\n'
 
 # Open test output NetCDF file
 #testH5 = h5py.File('../out/results.nc', 'r')
@@ -86,6 +87,20 @@ testH5 = h5py.File(testfile, 'r')
 # Open out_base NetCDF file
 #baseH5 = h5py.File('../out_base/results.nc')
 baseH5 = h5py.File(basefile, 'r')
+
+# grab NaN fill value of non-initialized NetCDF records
+for var in baseH5:
+    fill_value_base = baseH5[var].attrs['_FillValue']
+    if fill_value_base is not None:
+        break
+print 'basefile NetCDF _FillValue: {}'.format(fill_value_base)
+for var in testH5:
+    fill_value_test = testH5[var].attrs['_FillValue']
+    if fill_value_test is not None:
+        break
+print 'testfile NetCDF _FillValue: {}'.format(fill_value_test)
+if csv_out:
+    print 'Empty records in output CSV files will be assigned the basefile NetCDF _FillValue.'
 
 # grab the number of time records
 test_time_len = len(testH5['time'])
@@ -100,17 +115,11 @@ if not base_end_rec:
 num_test_recs = test_end_rec - test_start_rec
 num_base_recs = base_end_rec - base_start_rec 
 
-print 'Checking testfile time record range {}:{} ({} records total)'.format(test_start_rec, test_end_rec, num_test_recs)
-print 'Checking basefile time record range {}:{} ({} records total)'.format(base_start_rec, base_end_rec, num_base_recs)
+print '\ntestfile data time record range to be read: {}:{} ({} records total)'.format(test_start_rec, test_end_rec, num_test_recs)
+print 'basefile data time record range to be read: {}:{} ({} records total)'.format(base_start_rec, base_end_rec, num_base_recs)
 if num_test_recs != num_base_recs:
     print 'Number of time records selected for comparison between testfile and basefile must be equal.  Exiting.\n'
     sys.exit(0)
-
-# grab NaN fill value of non-initialized NetCDF records
-for var in baseH5:
-    fill_value = baseH5[var].attrs['_FillValue']
-    if fill_value is not None:
-        break
 
 # grab lat and lon dimensions of grid cells
 lats = testH5['lat'][:]
@@ -139,7 +148,7 @@ del base_data_keys['depth']
 # define basefile to testfile variable name mapping (e.g. precipitation might be called OUT_PREC in one, and PREC or pr in another)
 var_map = {}
 if var_map_file:
-    print 'Output variable name mapping defined in file {} will be used.'.format(var_map_file)
+    print '\nOutput variable name mapping defined in file {} will be used.'.format(var_map_file)
     with open(var_map_file, 'r') as f:
         for line in f:
             if (len(line) > 1):
@@ -193,12 +202,13 @@ for lat in lats:
                         sys.exit(0)
                 elif len(testH5[variable].shape) == 3: # 3D variable
                     all_test_data[cell_label][variable] = testH5[variable][lat_to_idx[lat],lon_to_idx[lon],test_start_rec:test_end_rec]
-            # overwrite all testfile NaNs (fill values) with 0          
-            if len(testH5[variable].shape) == 3: # 3D variable
-                all_test_data[cell_label][variable][all_test_data[cell_label][variable] == fill_value] = 0
-            elif len(testH5[variable].shape) == 4: # 4D variable
-                for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
-                    all_test_data[cell_label][variable][depth][all_test_data[cell_label][variable][depth] == fill_value] = 0
+            if fill_value_test != fill_value_base:
+                # overwrite all testfile NetCDF _FillValue (NaNs) entries read in to all_test_data with the basefile _FillValue          
+                if len(testH5[variable].shape) == 3: # 3D variable
+                    all_test_data[cell_label][variable][all_test_data[cell_label][variable] == fill_value_test] = fill_value_base
+                elif len(testH5[variable].shape) == 4: # 4D variable
+                    for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
+                        all_test_data[cell_label][variable][depth][all_test_data[cell_label][variable][depth] == fill_value_test] = fill_value_base
         for variable in base_data_keys:
             if verbose:
                 print 'loading variable from base file: {}'.format(variable)
@@ -227,16 +237,11 @@ for lat in lats:
                 elif len(baseH5[variable].shape) == 3: # 3D variable
                     all_base_data[cell_label][variable] = baseH5[variable][lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
                               
-            # overwrite all basefile NaNs (fill values) with 0          
-            if len(baseH5[variable].shape) == 3: # 3D variable
-                all_base_data[cell_label][variable][all_base_data[cell_label][variable] == fill_value] = 0
-            elif len(baseH5[variable].shape) == 4: # 4D variable
-                for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-                    all_base_data[cell_label][variable][depth][all_base_data[cell_label][variable][depth] == fill_value] = 0
 
 ## compare test data against base data
-if verbose:
-    print'\nChecking agreement between test output data with base values:'
+print'\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
+of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)'
+
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
 for lat_label in lats:
@@ -360,27 +365,27 @@ for cell in cell_labels:
                     print 'Number of different entries across all bands: {} '.format(num_diffs), 
                     print 'Maximum absolute difference across all bands: {}'.format(max_diff) 
     
-if csv_out == True:
-    if csv_diffs_only == False:
-        test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
-        np.savetxt(test_csv_filename, test_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
-        base_csv_filename = 'tabular_cell_{}_{}_base.csv'.format(cell, os.path.basename(basefile))
-        np.savetxt(base_csv_filename, base_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers))
+    if csv_out == True:
+        if csv_diffs_only == False:
+            test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
+            np.savetxt(test_csv_filename, test_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers), comments='')
+            base_csv_filename = 'tabular_cell_{}_{}_base.csv'.format(cell, os.path.basename(basefile))
+            np.savetxt(base_csv_filename, base_table, delimiter=',', fmt='%3.22f', header=",".join(general_headers), comments='')
 
-        test_4D_csv_filename = 'tabular_cell_{}_{}_band_test.csv'.format(cell, os.path.basename(testfile)) 
-        np.savetxt(test_4D_csv_filename, test_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
-        base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
-        np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers))
+            test_4D_csv_filename = 'tabular_cell_{}_{}_band_test.csv'.format(cell, os.path.basename(testfile)) 
+            np.savetxt(test_4D_csv_filename, test_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers), comments='')
+            base_4D_csv_filename = 'tabular_cell_{}_{}_band_base.csv'.format(cell, os.path.basename(basefile))
+            np.savetxt(base_4D_csv_filename, base_band_table, delimiter=',', fmt='%3.22f', header=",".join(band_headers), comments='')
 
-    if diffs_exist:
-        diffs_3D_csv_filename = 'tabular_cell_{}_{}_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
-        np.savetxt(diffs_3D_csv_filename, diffs_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_headers))     
-        diffs_4D_csv_filename = 'tabular_cell_{}_{}_band_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
-        np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers))
+        if diffs_exist:
+            diffs_3D_csv_filename = 'tabular_cell_{}_{}_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
+            np.savetxt(diffs_3D_csv_filename, diffs_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_headers), comments='')     
+            diffs_4D_csv_filename = 'tabular_cell_{}_{}_band_differences_tol={}.csv'.format(cell, os.path.basename(testfile), tolerance)
+            np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers), comments='')
 
 if diffs_exist:
-    print '\nDifferences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
+    print '\nEquivalence test FAILED. Differences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
 else:
-    print '\ntestfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
+    print '\nEquivalence test PASSED. The testfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
 
 print '\nvic_output_compare_netcdf_universal finished.'
