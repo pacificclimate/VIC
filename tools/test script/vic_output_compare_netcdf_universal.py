@@ -237,15 +237,10 @@ for lat in lats:
                 elif len(baseH5[variable].shape) == 3: # 3D variable
                     all_base_data[cell_label][variable] = baseH5[variable][lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
                               
-            # # overwrite all basefile NaNs (fill values) with 0          
-            # if len(baseH5[variable].shape) == 3: # 3D variable
-            #     all_base_data[cell_label][variable][all_base_data[cell_label][variable] == fill_value] = 0
-            # elif len(baseH5[variable].shape) == 4: # 4D variable
-            #     for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-            #         all_base_data[cell_label][variable][depth][all_base_data[cell_label][variable][depth] == fill_value] = 0
 
 ## compare test data against base data
-print'\nChecking agreement between testfile variables data and those in the basefile...'
+print'\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
+of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)'
 
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
