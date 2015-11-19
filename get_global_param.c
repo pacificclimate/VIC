@@ -334,16 +334,16 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       else if(strcasecmp("FULL_ENERGY",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) {
-	  options.FULL_ENERGY=TRUE;
-	}
-	else options.FULL_ENERGY = FALSE;
+        	options.FULL_ENERGY=TRUE;
+        }
+        else options.FULL_ENERGY = FALSE;
       }
       else if(strcasecmp("FROZEN_SOIL",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) {
-	  options.FROZEN_SOIL=TRUE;
+        	options.FROZEN_SOIL=TRUE;
           options.QUICK_FLUX = FALSE;
-	}
+        }
         else options.FROZEN_SOIL = FALSE;
       }
       else if(strcasecmp("QUICK_FLUX",optstr)==0) {
@@ -909,12 +909,16 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     nrerror(ErrStr);
   }
 
-  // Validate the output step
+  // Validate the output step OUT_STEP
   if (global_param.out_dt == 0 || IS_INVALID(global_param.out_dt)) {
     global_param.out_dt = global_param.dt;
   }
   else if (global_param.out_dt < global_param.dt || global_param.out_dt > 24 || (float)global_param.out_dt/(float)global_param.dt != (float)(global_param.out_dt/global_param.dt)){
     nrerror("Invalid output step specified.  Output step must be an integer multiple of the model time step; >= model time step and <= 24");
+  }
+  if(options.OUTPUT_FORCE) { // catch the case where sub-daily OUT_STEP is incorrectly set different from TIME_STEP when OUTPUT_FORCE=TRUE
+  	if (global_param.out_dt != global_param.dt)
+  		nrerror("Invalid output step specified.  Output step must be equal to the model time step when producing disaggregated forcings.");
   }
 
   // Validate SNOW_STEP and set NR and NF

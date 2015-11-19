@@ -4,10 +4,10 @@
 #------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
-                     ***** VIC MODEL RELEASE NOTES *****
+                     ***** VIC Glacier (PCIC) MODEL RELEASE NOTES *****
 --------------------------------------------------------------------------------
 README.txt - general notes on VIC model source code. For details on differences
-between versions see Revisions.txt
+between versions see the GitHub repository at https://github.com/pacificclimate/VIC
 --------------------------------------------------------------------------------
 
 Usage:
@@ -21,6 +21,11 @@ Usage:
 	     <global_parameter_file> is a file that contains all needed model
 	     parameters as well as model option flags, and the names and
 	     locations of all other files.
+
+
+Code and functionality changes:
+-------------------------------
+Updates to the VIC Glacier code and functionalities from version 4.1.2 onward can be viewed at the GitHub repository at https://github.com/pacificclimate/VIC.  Older changes are documented in the rest of this file.
 
 
 --------------------------------------------------------------------------------

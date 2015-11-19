@@ -126,15 +126,6 @@ all:
 	make depend
 	make model
 
-disagg:
-	sed -i.bak 's/OUTPUT_FORCE FALSE/OUTPUT_FORCE TRUE/' user_def.h
-	make clean
-	make depend
-	make vicDisagg
-	sed -i.bak 's/OUTPUT_FORCE TRUE/OUTPUT_FORCE FALSE/' user_def.h
-	make clean
-	make depend
-
 default:
 	make depend
 	make model
@@ -144,16 +135,12 @@ full:
 	make depend
 	make tags
 	make model
-	make disagg
 
 clean::
 	/bin/rm -f *.o core log *~
 
 model: $(OBJS)
 	$(CC) -o vicNl$(EXT) $(OBJS) $(CFLAGS) $(LIBRARY)
-
-vicDisagg: $(OBJS)
-	$(CC) -o vicDisagg $(OBJS) $(CFLAGS) $(LIBRARY)
 
 # WriteOutputNetCDF is explicitly built this way to have the macro defines included at compile time
 # This allows the timestamp and version number to automatically be added to the code.

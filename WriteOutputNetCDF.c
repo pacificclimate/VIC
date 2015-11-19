@@ -17,8 +17,8 @@ using namespace netCDF;
 
 WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
-  // The divisor will convert the difference to either hours or days respectively.
-  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.dt) : (60 * 60 * 24); //new (*state->global_param.dt)
+  // The divisor will convert the difference to sub-daily (e.g. hourly, 3/4/6/8/12-hourly) or daily, respectively.
+  timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.out_dt) : (60 * 60 * 24); //new (*state->global_param.dt)
 }
 
 WriteOutputNetCDF::~WriteOutputNetCDF() {
@@ -143,7 +143,8 @@ void addGlobalAttributes(NcFile* netCDF, const ProgramState* state) {
 
   netCDF->putAtt("source", source.c_str());
   netCDF->putAtt("history", history.c_str());
-  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? "hour" : "day");
+  std::string frequency = std::to_string(state->global_param.out_dt);
+  netCDF->putAtt("frequency", state->global_param.out_dt < 24 ? frequency+=" hour" : "day");
   netCDF->putAtt("Conventions", "CF-1.6");
 }
 
@@ -220,11 +221,13 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
   std::stringstream ss;
   if (state->global_param.out_dt < 24) {
-    ss << "hours since " << state->global_param.starthour << ":00 " << "on ";
+    ss << "hours since ";
   } else {
     ss << "days since ";
   }
   ss << state->global_param.startyear << "-" << state->global_param.startmonth << "-" << state->global_param.startday;
+  if (state->global_param.out_dt < 24)
+    ss << " " << state->global_param.starthour << ":00";
 
   timeVar.putAtt("axis", "T");
   timeVar.putAtt("standard name", "time");
@@ -237,7 +240,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   count.push_back(1);
   for (int i = 0; i < timeSize; i++) {
     start[0] = i;
-    float index = i;
+    float index = state->global_param.out_dt < 24 ? (i * state->global_param.out_dt) : i;
     timeVar.putVar(start, count, &index);
   }
 
