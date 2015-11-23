@@ -187,7 +187,6 @@ int main(int argc, char *argv[])
       fclose(filep.snowband);
     if (state.options.LAKES)
       fclose(filep.lakeparam);
-
   }
 
 #if VERBOSE
@@ -265,11 +264,9 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
       } else {
       	currentCell.outputFormat = new WriteOutputAscii(&state);
       }
-
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
-
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
@@ -450,6 +447,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #endif /* VERBOSE */
 
 #if PARALLEL
+  WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
+  outputwriter->openFile();
+
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 #endif
@@ -459,11 +459,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   ********************************************************/
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-  	// Meteorological forcings for entire time range is written in one shot for each grid cell
+  	// Disaggregated meteorological forcings for entire time range is written in one shot for each grid cell
   	if (state->options.OUTPUT_FORCE) break;
 
 #if PARALLEL
-//  	fprintf(stderr, "Time rec: %d of %d.  Requesting %d threads.\n", rec, state->global_param.nrecs, cell_data_structs.size());
   	omp_set_dynamic(0);
 //  	omp_set_num_threads(omp_get_num_procs());
   	omp_set_num_threads(2);
@@ -555,12 +554,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if PARALLEL
     // Write output data for all cells on this time iteration to file
     if(rec >= state->global_param.skipyear) {
-//    	fprintf(stderr,"writing data to file...");
-
-    	WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
-    	outputwriter->openFile();
     	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
-//    	outputwriter->closeFile();
 
       // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
     	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
@@ -578,6 +572,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   } // for - time loop
 
 #if PARALLEL
+  //    	outputwriter->closeFile();
+	delete outputwriter;
+
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end-start;
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
