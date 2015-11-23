@@ -136,7 +136,7 @@ void   calc_forcing_stats(int, atmos_data_struct *, const int);
 void   calc_longwave(double *, double, double, double, const ProgramState*);
 void   calc_netlongwave(double *, double, double, double);
 double calc_netshort(double, int, double, double *);
-double calc_rainonly(double,double,double,double,double);
+double calc_rainonly(double,double,double,double,double, const ProgramState*);
 double calc_rc(double,double,float,double,double,double,double,char);
 void   calc_root_fractions(std::vector<HRU>&, soil_con_struct *, const ProgramState*);
 double calc_snow_coverage(int *, double, double, double, double, double, 

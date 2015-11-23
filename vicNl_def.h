@@ -203,6 +203,10 @@ inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
 #define LW_CLOUD_BRAS       0
 #define LW_CLOUD_DEARDORFF  1
 
+/***** Rain-snow partitioning algorithm options *****/
+#define VIC_412  0
+#define KIENZLE  1
+
 /***** Potential Evap types *****/
 #define N_PET_TYPES 6
 #define N_PET_TYPES_NON_NAT 4
@@ -750,6 +754,8 @@ typedef struct {
                             VP_ITER_ALWAYS = always iterate with SW
                             VP_ITER_ANNUAL = use annual Epot/PRCP criterion
                             VP_ITER_CONVERGE = always iterate until convergence */
+  char   TEMP_TH_TYPE;   /* VIC_412 = partition precipitation into rain and snow linearly between temperatures MAX_SNOW_TEMP and MIN_RAIN_TEMP
+  	  	  	  	  	  	    KIENZLE = partition precipitation into rain and snow using 2-parameter S-shaped curve of Kienzle (2008) */
   int    Nlakenode;      /* Number of lake thermal nodes in the model. */
 
   // input options

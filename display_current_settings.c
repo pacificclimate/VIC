@@ -277,10 +277,12 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     fprintf(stderr,"TFALLBACK\t\tTRUE\n");
   else
     fprintf(stderr,"TFALLBACK\t\tFALSE\n");
+
   if (options.VP_INTERP == TRUE)
     fprintf(stderr,"VP_INTERP\t\tTRUE\n");
   else
     fprintf(stderr,"VP_INTERP\t\tFALSE\n");
+
   if (options.VP_ITER == VP_ITER_NONE)
     fprintf(stderr,"VP_ITER\t\tVP_ITER_NONE\n");
   else if (options.VP_ITER == VP_ITER_ALWAYS)
@@ -289,6 +291,12 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     fprintf(stderr,"VP_ITER\t\tVP_ITER_ANNUAL\n");
   else if (options.VP_ITER == VP_ITER_CONVERGE)
     fprintf(stderr,"VP_ITER\t\tVP_ITER_CONVERGE\n");
+
+  if (options.TEMP_TH_TYPE == VIC_412)
+    fprintf(stderr,"TEMP_TH_TYPE\t\tVIC_412\n");
+  else
+    fprintf(stderr,"TEMP_TH_TYPE\t\tKIENZLE\n");
+
   fprintf(stderr,"PREC_EXPT\t\t%f\n",options.PREC_EXPT);
   fprintf(stderr,"WIND_H\t\t\t%f\n",global_param.wind_h);
   fprintf(stderr,"MEASURE_H\t\t%f\n",global_param.measure_h);

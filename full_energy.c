@@ -766,7 +766,7 @@ int  full_energy(char                 NEWCELL,
         + wetland_baseflow) * soil_con->cell_area * 0.001; // m3
     prcp->lake_var.channel_in = atmos->channel_in[state->NR] * soil_con->cell_area * 0.001; // m3
     prcp->lake_var.prec = atmos->prec[state->NR] * prcp->lake_var.sarea * 0.001; // m3
-    rainonly = calc_rainonly(atmos->air_temp[state->NR], atmos->prec[state->NR], soil_con->MAX_SNOW_TEMP, soil_con->MIN_RAIN_TEMP, 1);
+    rainonly = calc_rainonly(atmos->air_temp[state->NR], atmos->prec[state->NR], soil_con->MAX_SNOW_TEMP, soil_con->MIN_RAIN_TEMP, 1, state);
     if ((int) rainonly == ERROR) {
       return (ERROR);
     }

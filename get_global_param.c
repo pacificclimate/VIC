@@ -485,6 +485,11 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         if(strcasecmp("VP_ITER_CONVERGE",flgstr)==0) options.VP_ITER=VP_ITER_CONVERGE;
         else options.VP_INTERP = VP_ITER_ALWAYS;
       }
+      else if(strcasecmp("TEMP_TH_TYPE",optstr)==0) {
+        sscanf(cmdstr,"%*s %s",flgstr);
+        if(strcasecmp("VIC_412",flgstr)==0) options.TEMP_TH_TYPE=VIC_412;
+        else options.TEMP_TH_TYPE = KIENZLE;
+      }
 
       /*************************************
        Define state files

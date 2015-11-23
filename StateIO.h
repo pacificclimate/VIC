@@ -169,6 +169,7 @@ enum StateMetaDataVariableIndices {
   OPTIONS_TFALLBACK, //new
   OPTIONS_VP_INTERP, //new
   OPTIONS_VP_ITER, //new
+  OPTIONS_TEMP_TH_TYPE, //new MS, 19-10-15
   OPTIONS_NLAKENODE, //new
   OPTIONS_ALMA_INPUT, //new
   OPTIONS_ARC_SOIL, //new

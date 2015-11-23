@@ -239,7 +239,7 @@ int surface_fluxes_glac(
     step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];  // precipitation in mm
 
     rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP,
-        soil_con->MIN_RAIN_TEMP, hru.mu);
+        soil_con->MIN_RAIN_TEMP, hru.mu, state);
     snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly);
     rainfall[WET] = gauge_correction[RAIN] * rainOnly;
     snowfall[DRY] = 0.;
