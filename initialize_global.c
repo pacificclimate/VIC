@@ -159,6 +159,7 @@ void ProgramState::initialize_global() {
   options.TFALLBACK             = TRUE;
   options.VP_INTERP             = TRUE;
   options.VP_ITER               = VP_ITER_ALWAYS;
+  options.TEMP_TH_TYPE			= KIENZLE;
   // input options
   options.ARC_SOIL              = FALSE;
   options.BASEFLOW              = ARNO;

@@ -157,7 +157,7 @@ double solve_snow(char     overstory,
 
   /** Calculate Fraction of Precipitation that falls as Rain **/
   rainonly      = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, 
-				MIN_RAIN_TEMP, precipitation_mu); 
+				MIN_RAIN_TEMP, precipitation_mu, state);
   snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly);
   rainfall[WET] = gauge_correction[RAIN] * rainonly;
   snowfall[DRY] = 0.;
