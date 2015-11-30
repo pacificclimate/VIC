@@ -90,12 +90,18 @@ baseH5 = h5py.File(basefile, 'r')
 
 # grab NaN fill value of non-initialized NetCDF records
 for var in baseH5:
-    fill_value_base = baseH5[var].attrs['_FillValue']
+    try:
+        fill_value_base = baseH5[var].attrs['_FillValue']
+    except:
+        continue
     if fill_value_base is not None:
         break
 print 'basefile NetCDF _FillValue: {}'.format(fill_value_base)
 for var in testH5:
-    fill_value_test = testH5[var].attrs['_FillValue']
+    try:
+        fill_value_test = testH5[var].attrs['_FillValue']
+    except:
+        continue
     if fill_value_test is not None:
         break
 print 'testfile NetCDF _FillValue: {}'.format(fill_value_test)
