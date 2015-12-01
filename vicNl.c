@@ -398,6 +398,20 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	// Create vector for holding output data from one time iteration for all cells.
 	std::vector<out_data_struct*> current_output_data;
 
+	// Single WriteOutputAllCells object outputwriter takes care of writing one or all cells' data at a given time step
+  WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
+  outputwriter->openFile();
+
+#if PARALLEL_AVAILABLE
+  unsigned int num_threads_allowed = std::max(atoi(std::getenv("OMP_NUM_THREADS")), 1);
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+  if (num_threads_allowed > 1){
+  	if (state->options.OUTPUT_FORCE) {
+  		start = std::chrono::system_clock::now();
+  	}
+  }
+#endif
+
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
@@ -430,29 +444,42 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
        std::vector<out_data_struct*> out_data_template;
        copy_output_data(out_data_template, out_data_list, state);
        cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
-
     }
+  } // for - grid cell loop
 
-    /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
-    forcing data array is written to file(s), and the full model run is skipped. */
-    if (state->options.OUTPUT_FORCE) {
-    	fprintf(stderr, "Writing forcing file...\n");
-      write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, cell_data_structs[cellidx].outputFormat, out_data_list, state, dmy);
-      continue;
-    }
+  /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+  forcing data array is written to file(s), and the full model run is skipped. */
+  if (state->options.OUTPUT_FORCE) {
+  	fprintf(stderr, "Writing forcing file...\n");
+  	for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+#if PARALLEL_AVAILABLE
+#pragma omp parallel for
+#endif
+      for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+    	write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
+      }
+      outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+			// Reset the aggdata for all variables
+			for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+				for (unsigned int cell_idx = 0; cell_idx < cell_data_structs.size(); cell_idx++) {
+					for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+						current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
+					}
+				}
+			}
+  	}
   }
 
+  if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
         fprintf(stderr, "Running Model...\n");
 #endif /* VERBOSE */
-
-#if PARALLEL
-  WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
-  outputwriter->openFile();
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  start = std::chrono::system_clock::now();
+#if PARALLEL_AVAILABLE
+        if (num_threads_allowed > 1){
+        	start = std::chrono::system_clock::now();
+        }
 #endif
+  }
 
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
@@ -462,10 +489,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   	// Disaggregated meteorological forcings for entire time range is written in one shot for each grid cell
   	if (state->options.OUTPUT_FORCE) break;
 
-#if PARALLEL
-  	omp_set_dynamic(0);
-//  	omp_set_num_threads(omp_get_num_procs());
-  	omp_set_num_threads(2);
+#if PARALLEL_AVAILABLE
 #pragma omp parallel for
 #endif
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
@@ -551,15 +575,15 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       }
 #endif /* QUICK_FS */
     } // for - grid cell loop
-#if PARALLEL
+
     // Write output data for all cells on this time iteration to file
     if(rec >= state->global_param.skipyear) {
     	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
 
       // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
-    	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
-    		for (int cell_idx = 0; cell_idx < current_output_data.size(); cell_idx++) {
-    			for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+    	for (unsigned int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+    		for (unsigned int cell_idx = 0; cell_idx < current_output_data.size(); cell_idx++) {
+    			for (unsigned int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
     				current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
     			}
     		  // Reset the step count
@@ -567,18 +591,20 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     		}
     	}
     }
-#endif
 //  	fprintf(stderr,".");
   } // for - time loop
 
-#if PARALLEL
-  //    	outputwriter->closeFile();
 	delete outputwriter;
 
-  end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end-start;
-  std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-  std::cout << "elapsed time in parallel loop: " << elapsed_seconds.count() << "s\n";
+#if PARALLEL_AVAILABLE
+  //    	outputwriter->closeFile();
+
+	if (num_threads_allowed > 1){
+		end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end-start;
+		std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+		std::cout << "elapsed time in parallel loop: " << elapsed_seconds.count() << " seconds\n";
+	}
 #endif
 
   // Close NetCDF forcing file

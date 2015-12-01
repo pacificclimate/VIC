@@ -742,26 +742,6 @@ int  put_data(cell_info_struct  *cell,
       out_data[OUT_VP].aggdata[0] *= 1000;
       out_data[OUT_VPD].aggdata[0] *= 1000;
     }
-
-    /*************
-      Write Data
-    *************/
-// This per-cell write is only done if we are not using OpenMP parallelization across cells at every time step (otherwise the WriteOutputAllCells object is used in vicNl.c).
-#if !(PARALLEL)
-    if(rec >= skipyear) {
-      output->write_data(out_data, dmy, state->global_param.out_dt, state);
-    }
-
-    // Reset the step count
-    cell->fallBackStats.step_count = 0;
-
-    // Reset the agg data
-    for (int v=0; v<N_OUTVAR_TYPES; v++) {
-      for (int i=0; i<out_data[v].nelem; i++) {
-        out_data[v].aggdata[i] = 0;
-      }
-    }
-#endif
   } // End of output procedure
 
   return (0);

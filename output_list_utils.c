@@ -5,8 +5,6 @@
 
 static char vcid[] = "$Id$";
 
-// NOTE: does it make sense to calloc and loop for N_OUTVAR_TYPES?
-// Hasn't this already been cut down to only the variables selected in the global file at the set_output_defaults() stage?
 void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_data_struct *out_data_list, const ProgramState *state) {
 	out_data_struct *cur_data = (out_data_struct*) calloc(N_OUTVAR_TYPES, sizeof(out_data_struct));
   for (int i = 0; i < N_OUTVAR_TYPES; i++) {
