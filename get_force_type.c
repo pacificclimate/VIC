@@ -230,7 +230,7 @@ void get_force_type(char   *cmdstr,
   	  	strcpy(input_varname, tempstr3);
   	  	state->set_forcing_variable_name(std::string(state->param_set.TYPE[type].varname), std::string(input_varname));
   	  	}
-  	  	// grab flgstr and multiplier values
+  	  	// grab flgstr and multiplier values.  This will also handle the legacy compressed case, e.g. TMIN 	SIGNED 	100
   	  	sscanf(cmdstr,"%*s %*s %s %lf",flgstr, &state->param_set.TYPE[type].multiplier);
   	  	if(strcasecmp("SIGNED",flgstr)==0) state->param_set.TYPE[type].SIGNED=TRUE;
   	  	else state->param_set.TYPE[type].SIGNED=FALSE;
