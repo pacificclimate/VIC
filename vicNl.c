@@ -255,7 +255,7 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   #if NETCDF_OUTPUT_AVAILABLE
       }
       else if (state.options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-	#if PARALLEL
+	#if PARALLEL_AVAILABLE
       	currentCell.outputFormat = new WriteOutputAllCells(&state);
 	#else
       	currentCell.outputFormat = new WriteOutputNetCDF(&state);
@@ -403,7 +403,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   outputwriter->openFile();
 
 #if PARALLEL_AVAILABLE
-  unsigned int num_threads_allowed = std::max(atoi(std::getenv("OMP_NUM_THREADS")), 1);
+//  unsigned int num_threads_allowed = std::max(atoi(std::getenv("OMP_NUM_THREADS")), 1);
 	std::chrono::time_point<std::chrono::system_clock> start, end;
   if (num_threads_allowed > 1){
   	if (state->options.OUTPUT_FORCE) {
