@@ -27,7 +27,7 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
-    dmy_struct* dmy, const ProgramState* state);
+    dmy_struct* dmy, ProgramState* state);
 
 int initializeCell(cell_info_struct& cell,
     filep_struct filep, dmy_struct* dmy, filenames_struct filenames,
@@ -153,6 +153,11 @@ int main(int argc, char *argv[])
   /** Make Date Data Structure **/
   dmy_struct* dmy = make_dmy(&state.global_param, &state);
 
+  /** Calculate ratio between simulation time step interval and output writing interval **/
+  state.dt_sec = state.global_param.dt*SECPHOUR;
+  state.out_dt_sec = state.global_param.out_dt*SECPHOUR;
+  state.out_step_ratio = (int)(state.out_dt_sec/state.dt_sec);
+
   /** Initialize state **/
   std::vector<cell_info_struct> cell_data_structs; // Stores physical parameters for each grid cell
   readSoilData(cell_data_structs, filep, filenames, dmy, state);
@@ -169,6 +174,12 @@ int main(int argc, char *argv[])
       context.stream->initializeOutput();
     }
   }
+
+  // Set the number of parallel threads allowed during simulation
+#if PARALLEL_AVAILABLE
+  omp_set_num_threads(state.global_param.num_threads);
+  omp_set_dynamic(0);
+#endif
 
   runModel(cell_data_structs, filep, filenames, out_data_files, out_data_list, dmy, &state);
 
@@ -393,7 +404,7 @@ void printThreadInformation() {
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
     out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
-    dmy_struct* dmy, const ProgramState* state) {
+    dmy_struct* dmy, ProgramState* state) {
 
 	// Create vector for holding output data from one time iteration for all cells.
 	std::vector<out_data_struct*> current_output_data;
@@ -403,9 +414,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   outputwriter->openFile();
 
 #if PARALLEL_AVAILABLE
-//  unsigned int num_threads_allowed = std::max(atoi(std::getenv("OMP_NUM_THREADS")), 1);
 	std::chrono::time_point<std::chrono::system_clock> start, end;
-  if (num_threads_allowed > 1){
+  if (state->global_param.num_threads > 1){
   	if (state->options.OUTPUT_FORCE) {
   		start = std::chrono::system_clock::now();
   	}
@@ -456,7 +466,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #pragma omp parallel for
 #endif
       for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
-    	write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
+        //printThreadInformation();
+      	write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
       }
       outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
 			// Reset the aggdata for all variables
@@ -475,7 +486,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         fprintf(stderr, "Running Model...\n");
 #endif /* VERBOSE */
 #if PARALLEL_AVAILABLE
-        if (num_threads_allowed > 1){
+        if (state->global_param.num_threads > 1){
         	start = std::chrono::system_clock::now();
         }
 #endif
@@ -489,12 +500,14 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   	// Disaggregated meteorological forcings for entire time range is written in one shot for each grid cell
   	if (state->options.OUTPUT_FORCE) break;
 
+  	// Increment the intra-record time step count (important when writing out at lower frequency than the simulation time step)
+    if (rec >= 0) (state->step_count)++;
+
 #if PARALLEL_AVAILABLE
 #pragma omp parallel for
 #endif
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
-
-//    	printThreadInformation();
+      //printThreadInformation();
 
     	// If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
     	if (cell_data_structs[cellidx].isValid == FALSE) continue;
@@ -576,18 +589,18 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #endif /* QUICK_FS */
     } // for - grid cell loop
 
-    // Write output data for all cells on this time iteration to file
-    if(rec >= state->global_param.skipyear) {
+    // Write output data for all cells to file if we have completed an output interval (OUT_STEP)
+    if((rec >= state->global_param.skipyear) && (state->step_count == state->out_step_ratio)) {
     	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
 
       // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
-    	for (unsigned int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+    	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
     		for (unsigned int cell_idx = 0; cell_idx < current_output_data.size(); cell_idx++) {
-    			for (unsigned int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+    			for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
     				current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
     			}
     		  // Reset the step count
-    			cell_data_structs[cell_idx].fallBackStats.step_count = 0;
+    			state->step_count = 0;
     		}
     	}
     }
@@ -599,7 +612,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if PARALLEL_AVAILABLE
   //    	outputwriter->closeFile();
 
-	if (num_threads_allowed > 1){
+  if (state->global_param.num_threads > 1){
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end-start;
 		std::time_t end_time = std::chrono::system_clock::to_time_t(end);

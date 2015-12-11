@@ -204,7 +204,6 @@ enum StateMetaDataVariableIndices {
   CELL_ERRSTR, //new
   CELL_CV_SUM, //new
 
-  FALLBACK_step_count, //new
   FALLBACK_Tfoliage_fbcount_total, //new
   FALLBACK_Tcanopy_fbcount_total, //new
   FALLBACK_Tsnowsurf_fbcount_total, //new

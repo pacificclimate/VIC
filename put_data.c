@@ -173,10 +173,9 @@ int  put_data(cell_info_struct  *cell,
 
   dp = cell->soil_con.dp;
   skipyear = state->global_param.skipyear;
-  dt_sec = state->global_param.dt*SECPHOUR;
-  out_dt_sec = state->global_param.out_dt*SECPHOUR;
-  out_step_ratio = (int)(out_dt_sec/dt_sec);
-  if (rec >= 0) (cell->fallBackStats.step_count)++;
+  dt_sec = state->dt_sec;
+  out_dt_sec = state->out_dt_sec;
+  out_step_ratio = state->out_step_ratio;
 
   if(state->options.DIST_PRCP)
     Ndist = 2;
@@ -675,7 +674,7 @@ int  put_data(cell_info_struct  *cell,
     Output procedure
     (only execute when we've completed an output interval)
   ********************/
-  if (cell->fallBackStats.step_count == out_step_ratio) {
+  if (state->step_count == out_step_ratio) {
 
     /***********************************************
       Change of units for ALMA-compliant output
