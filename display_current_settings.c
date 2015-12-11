@@ -431,6 +431,8 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   else
   	fprintf(stderr, "OUTPUT_FORCE\t\tFALSE\n");
 
+  fprintf(stderr, "PARALLEL_THREADS\t%d\n", global_param.num_threads);
+
   if (options.COMPRESS)
     fprintf(stderr,"COMPRESS\t\tTRUE\n");
   else
