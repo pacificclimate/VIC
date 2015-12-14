@@ -173,10 +173,9 @@ int  put_data(cell_info_struct  *cell,
 
   dp = cell->soil_con.dp;
   skipyear = state->global_param.skipyear;
-  dt_sec = state->global_param.dt*SECPHOUR;
-  out_dt_sec = state->global_param.out_dt*SECPHOUR;
-  out_step_ratio = (int)(out_dt_sec/dt_sec);
-  if (rec >= 0) (cell->fallBackStats.step_count)++;
+  dt_sec = state->dt_sec;
+  out_dt_sec = state->out_dt_sec;
+  out_step_ratio = state->out_step_ratio;
 
   if(state->options.DIST_PRCP)
     Ndist = 2;
@@ -675,7 +674,7 @@ int  put_data(cell_info_struct  *cell,
     Output procedure
     (only execute when we've completed an output interval)
   ********************/
-  if (cell->fallBackStats.step_count == out_step_ratio) {
+  if (state->step_count == out_step_ratio) {
 
     /***********************************************
       Change of units for ALMA-compliant output
@@ -742,25 +741,6 @@ int  put_data(cell_info_struct  *cell,
       out_data[OUT_VP].aggdata[0] *= 1000;
       out_data[OUT_VPD].aggdata[0] *= 1000;
     }
-
-    /*************
-      Write Data
-    *************/
-    if(rec >= skipyear) {
-      output->write_data(out_data, dmy, state->global_param.out_dt, state);
-
-    }
-
-    // Reset the step count
-    cell->fallBackStats.step_count = 0;
-
-    // Reset the agg data
-    for (int v=0; v<N_OUTVAR_TYPES; v++) {
-      for (int i=0; i<out_data[v].nelem; i++) {
-        out_data[v].aggdata[i] = 0;
-      }
-    }
-
   } // End of output procedure
 
   return (0);

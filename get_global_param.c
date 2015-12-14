@@ -261,7 +261,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->result_dir,   "MISSING");
   strcpy(names->netCDFOutputFileName, "results.nc");
   global_param.out_dt        = INVALID_INT;
-
+  global_param.num_threads        = 1;
 
   // Open the file
   FILE* gp = open_file(global_file_name, "r");
@@ -283,7 +283,10 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       /*************************************
        Get Model Global Parameters
       *************************************/
-      if(strcasecmp("NLAYER",optstr)==0) {
+      if(strcasecmp("PARALLEL_THREADS",optstr)==0) {
+        sscanf(cmdstr,"%*s %d",&global_param.num_threads);
+      }
+      else if(strcasecmp("NLAYER",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&options.Nlayer);
       }
       else if(strcasecmp("NODES",optstr)==0) {

@@ -223,7 +223,8 @@ void   compute_runoff_and_asat(const soil_con_struct *, double *, double, double
 void   compute_soil_layer_thermal_properties(layer_data_struct *, const soil_con_struct*, int);
 void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double *, char *, const ProgramState*);
 double compute_zwt(const soil_con_struct *, int, double);
-out_data_struct* copy_output_data(out_data_struct* out_data, const ProgramState* state);
+void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_data_struct *out_data_list, const ProgramState *state);
+
 out_data_struct *create_output_list(const ProgramState*);
 
 int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, WriteOutputFormat *,

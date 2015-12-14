@@ -895,6 +895,8 @@ typedef struct {
   double gridNumLatDivisions;
   double gridNumLonDivisions;
   std::vector<std::pair<std::string, std::string> > netCDFGlobalAttributes;
+
+  int num_threads; /* Number of parallel threads that can be run when PARALLEL_AVAILABLE is TRUE */
 } global_param_struct;
 
 /***********************************************************
@@ -1510,10 +1512,9 @@ struct CellBalanceErrors {
   See put_data.c for its use.
   ***********************************************************/
 struct FallBackStats {
-  FallBackStats() : step_count(0), Tfoliage_fbcount_total(0),
+  FallBackStats() : Tfoliage_fbcount_total(0),
       Tcanopy_fbcount_total(0), Tsnowsurf_fbcount_total(0),
       Tsurf_fbcount_total(0), Tsoil_fbcount_total(0), Tglacsurf_fbcount_total(0) {}
-  int step_count;
   int Tfoliage_fbcount_total;
   int Tcanopy_fbcount_total;
   int Tsnowsurf_fbcount_total;
@@ -1589,7 +1590,7 @@ struct cell_info_struct {
   ********************************************************/
 class ProgramState {
 public:
-  ProgramState() { veg_lib = NULL; }
+  ProgramState() { veg_lib = NULL; step_count = 0;}
   global_param_struct global_param;
   veg_lib_struct *veg_lib;
   option_struct options;
@@ -1601,9 +1602,13 @@ public:
   Error_struct Error;
   param_set_struct param_set;
   int num_veg_types;
+  int num_gmb_terms; /* number of terms to capture Glacier Mass Balance information for a grid cell (see initialize_global) */
   int NR;  /* array index for atmos struct that indicates the model step average or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
-  int num_gmb_terms; // number of terms to capture Glacier Mass Balance information for a grid cell (see initialize_global)
+  int step_count; /* running count of how many time record steps have been taken since the last write to file (for temporal aggregation) */
+  int dt_sec; /* simulation time step in seconds */
+  int out_dt_sec; /* simulation output time step in seconds */
+  int out_step_ratio; /* ratio between output time step and simulation time step */
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
   void init_global_param(filenames_struct *, const char* global_file_name);

@@ -57,7 +57,7 @@ DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_T
 NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
 LIBRARY = -lm $(NETCDF_LIBS)
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
+CFLAGS  = -I. -g -Wall -std=c++11 -fopenmp -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
 
 # Uncomment to include execution profiling information
 #CFLAGS  = -I. -O3 -pg -Wall -Wno-unused
@@ -110,12 +110,11 @@ OBJS =  accumulateGlacierMassBalance.o \
 	soil_thermal_eqn.o solve_snow.o solve_snow_glac.o solve_glacier.o store_moisture_for_debug.o \
 	surface_fluxes.o surface_fluxes_glac.o svp.o VegConditions.o vicNl.o vicerror.o write_atmosdata.o \
 	write_debug.o write_forcing_file.o write_layer.o \
-	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o \
+	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o WriteOutputAllCells.o \
 	write_model_state.o write_snow_data.o write_soilparam.o \
 	write_vegparam.o write_vegvar.o lakes.eb.o initialize_lake.o \
 	read_lakeparam.o ice_melt.o IceEnergyBalance.o water_energy_balance.o \
 	water_under_ice.o variable_mapping.o
-	#variable_mapping.o
 
 SRCS = $(OBJS:%.o=%.c) 
 

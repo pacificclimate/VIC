@@ -10,9 +10,13 @@
 #include <sstream>
 #include <vector>
 
+#include <chrono>
+#include <ctime>
+
 #include "WriteOutputAscii.h"
 #include "WriteOutputBinary.h"
 #include "WriteOutputNetCDF.h"
+#include "WriteOutputAllCells.h"
 
 static char vcid[] = "$Id: vicNl.c,v 5.14.2.19 2011/01/05 22:35:53 vicadmin Exp $";
 
@@ -22,8 +26,8 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
 
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
-    out_data_file_struct* out_data_files_template, out_data_struct* out_data,
-    dmy_struct* dmy, const ProgramState* state);
+    out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
+    dmy_struct* dmy, ProgramState* state);
 
 int initializeCell(cell_info_struct& cell,
     filep_struct filep, dmy_struct* dmy, filenames_struct filenames,
@@ -131,9 +135,9 @@ int main(int argc, char *argv[])
   /** Read Global Control File **/
   state.init_global_param(&filenames, filenames.global);
   /** Set up output data structures **/
-  out_data_struct *out_data = create_output_list(&state);
-  out_data_file_struct *out_data_files = set_output_defaults(out_data, &state);
-  parse_output_info(filenames.global, out_data_files, out_data, &state);
+  out_data_struct *out_data_list = create_output_list(&state);
+  out_data_file_struct *out_data_files = set_output_defaults(out_data_list, &state);
+  parse_output_info(filenames.global, out_data_files, out_data_list, &state);
 
   /** Check and Open Files **/
   filep_struct filep = get_files(&filenames, &state);
@@ -149,12 +153,16 @@ int main(int argc, char *argv[])
   /** Make Date Data Structure **/
   dmy_struct* dmy = make_dmy(&state.global_param, &state);
 
+  /** Calculate ratio between simulation time step interval and output writing interval **/
+  state.dt_sec = state.global_param.dt*SECPHOUR;
+  state.out_dt_sec = state.global_param.out_dt*SECPHOUR;
+  state.out_step_ratio = (int)(state.out_dt_sec/state.dt_sec);
+
   /** Initialize state **/
   std::vector<cell_info_struct> cell_data_structs; // Stores physical parameters for each grid cell
   readSoilData(cell_data_structs, filep, filenames, dmy, state);
   state.initGrid(cell_data_structs); // Calculate the grid cell parameters. This is used for NetCDF outputs.
-//  initializeNetCDFOutput(&filenames, out_data_files, &state);
-  initializeNetCDFOutput(&filenames, out_data_files, out_data, &state);
+  initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state);
 
   // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
@@ -167,12 +175,18 @@ int main(int argc, char *argv[])
     }
   }
 
-  runModel(cell_data_structs, filep, filenames, out_data_files, out_data, dmy, &state);
+  // Set the number of parallel threads allowed during simulation
+#if PARALLEL_AVAILABLE
+  omp_set_num_threads(state.global_param.num_threads);
+  omp_set_dynamic(0);
+#endif
+
+  runModel(cell_data_structs, filep, filenames, out_data_files, out_data_list, dmy, &state);
 
   /** cleanup **/
   free_dmy(&dmy);
   delete [] out_data_files;
-  free_out_data(&out_data);
+  free_out_data(&out_data_list);
   if (!state.options.OUTPUT_FORCE) {
     free_veglib(&state.veg_lib);
   }
@@ -184,7 +198,6 @@ int main(int argc, char *argv[])
       fclose(filep.snowband);
     if (state.options.LAKES)
       fclose(filep.lakeparam);
-
   }
 
 #if VERBOSE
@@ -253,16 +266,18 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   #if NETCDF_OUTPUT_AVAILABLE
       }
       else if (state.options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
+	#if PARALLEL_AVAILABLE
+      	currentCell.outputFormat = new WriteOutputAllCells(&state);
+	#else
       	currentCell.outputFormat = new WriteOutputNetCDF(&state);
+  #endif
   #endif
       } else {
       	currentCell.outputFormat = new WriteOutputAscii(&state);
       }
-
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
-
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
@@ -365,20 +380,39 @@ int initializeCell(cell_info_struct& cell,
  ************************************/
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
-    out_data_file_struct* out_data_files_template, out_data_struct* out_data,
-    dmy_struct* dmy, const ProgramState* state) {
+    out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
+    dmy_struct* dmy, ProgramState* state) {
+
+	// Create vector for holding output data from one time iteration for all cells.
+	std::vector<out_data_struct*> current_output_data;
+
+	// Single WriteOutputAllCells object outputwriter takes care of writing one or all cells' data at a given time step
+  WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
+  outputwriter->openFile();
+
+#if PARALLEL_AVAILABLE
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+  if (state->global_param.num_threads > 1){
+  	if (state->options.OUTPUT_FORCE) {
+  		start = std::chrono::system_clock::now();
+  	}
+  }
+#endif
 
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
 
-	  int initError = 0;
+  	int initError = 0;
     initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     if (initError == ERROR) {
   	  cell_data_structs[cellidx].isValid = FALSE;
     }
 
-    // Copy the format of the out_data_files_struct template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
+    // Copy the format of the out_data_files_template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
+
+    // Copy the format of the out_data_list (which is specific to this model run) and allocate space for this cell's element of current_output_data
+    copy_output_data(current_output_data, out_data_list, state);
 
     /* Create output filename(s), and open (if already created, just open for appending).
         ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
@@ -386,38 +420,74 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     // Write output file headers at initialization (does nothing in the NetCDF output format case)
     if (state->options.PRT_HEADER) {
-      // Use out_data as a template for the current_output_data, used for constructing the header of the output file (in ASCII mode)
-      out_data_struct* current_output_data = copy_output_data(out_data, state);
-      cell_data_structs[cellidx].outputFormat->write_header(current_output_data, dmy, state);
-    }
+      // Use out_data_list as a template for constructing the header of the output file (in ASCII mode)
+//      out_data_struct out_data_template = copy_output_data(out_data_list, state);
 
-    /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
-    forcing data array is written to file(s), and the full model run is skipped. */
-    if (state->options.OUTPUT_FORCE) {
-      write_forcing_file(&cell_data_structs[cellidx], state->global_param.nrecs, cell_data_structs[cellidx].outputFormat, out_data, state, dmy);
-      continue;
+    	// NOTE: commented out next 3 lines and replaced with vector-based implementation, as per vector implementation of copy_output_data.  NEED TO TEST THIS IN ASCII MODE
+//      out_data_struct* out_data_template;
+//      copy_output_data(out_data_template, out_data_list, state);
+//      cell_data_structs[cellidx].outputFormat->write_header(out_data_template, dmy, state);
+//
+       std::vector<out_data_struct*> out_data_template;
+       copy_output_data(out_data_template, out_data_list, state);
+       cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
     }
+  } // for - grid cell loop
+
+  /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+  forcing data array is written to file(s), and the full model run is skipped. */
+  if (state->options.OUTPUT_FORCE) {
+  	fprintf(stderr, "Writing forcing file...\n");
+  	for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+#if PARALLEL_AVAILABLE
+#pragma omp parallel for
+#endif
+      for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+        //printThreadInformation();
+      	write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
+      }
+      outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+			// Reset the aggdata for all variables
+			for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+				for (unsigned int cell_idx = 0; cell_idx < cell_data_structs.size(); cell_idx++) {
+					for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+						current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
+					}
+				}
+			}
+  	}
   }
 
+  if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
-        fprintf(stderr, "Running Model\n");
+        fprintf(stderr, "Running Model...\n");
 #endif /* VERBOSE */
+#if PARALLEL_AVAILABLE
+        if (state->global_param.num_threads > 1){
+        	start = std::chrono::system_clock::now();
+        }
+#endif
+  }
 
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
   ********************************************************/
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-  	  // Meteorological forcings for entire time range is written in one shot for each grid cell
+  	// Disaggregated meteorological forcings for entire time range is written in one shot for each grid cell
   	if (state->options.OUTPUT_FORCE) break;
 
+  	// Increment the intra-record time step count (important when writing out at lower frequency than the simulation time step)
+    if (rec >= 0) (state->step_count)++;
+
+#if PARALLEL_AVAILABLE
+#pragma omp parallel for
+#endif
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+      //printThreadInformation();
 
     	// If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
     	if (cell_data_structs[cellidx].isValid == FALSE) continue;
-
-      // Use out_data as a template for the current_output_data, the output data for this cell on this time iteration
-      out_data_struct* current_output_data = copy_output_data(out_data, state);
 
     //TODO: These error files should not be global like this
     /** Update Error Handling Structure **/
@@ -427,7 +497,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       // Initialize storage terms on first time step
       if (rec == 0) {
         // Initialize the storage terms in the water and energy balances
-        int putDataError = put_data(&cell_data_structs[cellidx], cell_data_structs[cellidx].outputFormat, current_output_data, &dmy[0],
+        int putDataError = put_data(&cell_data_structs[cellidx], cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], &dmy[0],
                 		-state->global_param.nrecs, state);
 
         // Skip the rest of this cell if there is an error here.
@@ -444,8 +514,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         }
       }
 
-      int distPrecError = dist_prec(&cell_data_structs[cellidx], dmy, &filep,
-      		cell_data_structs[cellidx].outputFormat, current_output_data, rec, FALSE, state);
+      int distPrecError = dist_prec(&cell_data_structs[cellidx], dmy, &filep, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], rec, FALSE, state);
 
       if (distPrecError == ERROR) {
       	cell_data_structs[cellidx].isValid = FALSE;
@@ -454,7 +523,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
           fprintf(stderr,
               "Error processing cell %d (method dist_prec) at record (time step) %d.  Cell has been marked as invalid and will be skipped for remainder of model run.  An incomplete output file has been generated, check your inputs before re-running the simulation.\n",
               cell_data_structs[cellidx].soil_con.gridcel, rec);
-          break;
         } else {
           // Else exit program on cell solution error as in previous versions
           sprintf(cell_data_structs[cellidx].ErrStr,
@@ -465,7 +533,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       }
 
       // FIXME: should accumulateGlacierMassBalance have error checking?
-      accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
+      if (cell_data_structs[cellidx].isValid)
+        accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
       /************************************
        Save model state at assigned date
@@ -495,10 +564,38 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         }
       }
 #endif /* QUICK_FS */
-      // Close output files and free up current_output_data for this cell
-      free_out_data(&current_output_data);
     } // for - grid cell loop
+
+    // Write output data for all cells to file if we have completed an output interval (OUT_STEP)
+    if((rec >= state->global_param.skipyear) && (state->step_count == state->out_step_ratio)) {
+    	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+
+      // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
+    	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+    		for (unsigned int cell_idx = 0; cell_idx < current_output_data.size(); cell_idx++) {
+    			for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+    				current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
+    			}
+    		  // Reset the step count
+    			state->step_count = 0;
+    		}
+    	}
+    }
+//  	fprintf(stderr,".");
   } // for - time loop
+
+	delete outputwriter;
+
+#if PARALLEL_AVAILABLE
+  //    	outputwriter->closeFile();
+
+  if (state->global_param.num_threads > 1){
+		end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end-start;
+		std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+		std::cout << "elapsed time in parallel loop: " << elapsed_seconds.count() << " seconds\n";
+	}
+#endif
 
   // Close NetCDF forcing file
   if(state->param_set.FORCE_FORMAT[0] == NETCDF)
