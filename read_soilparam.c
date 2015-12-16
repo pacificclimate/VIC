@@ -654,18 +654,17 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
 #endif // EXCESS_ICE
 
-      /* If specified, read cell average July air temperature in the final
-         column of the soil parameter file */
-      token = strtok (NULL, delimiters);      // Always tokenize this value (assume it is there) even if not actually using it since the next values might need to be read.
-      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+     /* If specified, read cell average July air temperature in the next column of the soil parameter file */
       if (state->options.JULY_TAVG_SUPPLIED) {
-        if( token == NULL ) {
-          sprintf(ErrStr,"ERROR: Can't find values for average July Tair in soil file\n");
-          nrerror(ErrStr);
-        }
-        sscanf(token, "%lf", &tempdbl);
-        temp.avgJulyAirTemp = tempdbl;
+       token = strtok (NULL, delimiters);
+         while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+         if( token == NULL ) {
+           sprintf(ErrStr,"ERROR: Can't find values for average July Tair in soil file\n");
+        nrerror(ErrStr);
       }
+        sscanf(token, "%lf", &tempdbl);
+      temp.avgJulyAirTemp = tempdbl;
+     }
 
       // Assign defaults, these will be overwritten if read from the soil file.
       temp.NEW_SNOW_ALB = 0.85;
