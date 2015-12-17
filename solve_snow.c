@@ -156,13 +156,12 @@ double solve_snow(char     overstory,
   (*melt_energy)     = 0.;
 
   /** Calculate Fraction of Precipitation that falls as Rain **/
-  rainonly      = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, 
-				MIN_RAIN_TEMP, precipitation_mu, state);
+  rainonly = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, MIN_RAIN_TEMP, precipitation_mu, state);
   snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly);
   rainfall[WET] = gauge_correction[RAIN] * rainonly;
   snowfall[DRY] = 0.;
   rainfall[DRY] = 0.;
-  if ( snowfall[WET] < 1e-5 ) snowfall[WET] = 0.;
+
   (*out_prec) = snowfall[WET] + rainfall[WET];
   (*out_rain) = rainfall[WET];
   (*out_snow) = snowfall[WET];

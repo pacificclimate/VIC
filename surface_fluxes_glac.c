@@ -245,8 +245,6 @@ int surface_fluxes_glac(
     snowfall[DRY] = 0.;
     rainfall[DRY] = 0.;
 
-    if(snowfall[WET] < 1e-5) snowfall[WET] = 0;
-
     step_out_prec = snowfall[WET] + rainfall[WET];
     step_out_rain = rainfall[WET];
     step_out_snow = snowfall[WET];
