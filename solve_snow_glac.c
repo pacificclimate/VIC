@@ -14,29 +14,29 @@ double solve_snow_glac(
       double              *NetShortSnow, // net SW at snow surface
       double              *ShortUnderIn, // surface incoming SW
       double              *Torg_snow,
-      VegConditions       &aero_resist,
-      AeroResistUsed      &aero_resist_used,
+     VegConditions       &aero_resist,
+     AeroResistUsed      &aero_resist_used,
       double              *coverage, // best guess snow coverage
       double              *delta_coverage, // cover fract change
-      VegConditions       &displacement,
+     VegConditions       &displacement,
       double              *melt_energy,
       double              *ppt,
       double              *rainfall,
-      VegConditions       &ref_height,
-      VegConditions       &roughness,
+     VegConditions       &ref_height,
+     VegConditions       &roughness,
       double              *snow_inflow,
       double              *snowfall,
-      VegConditions       &wind_speed,
+     VegConditions       &wind_speed,
       int                  dt,
       int                  rec,
       int                  hidx,
-      VegConditions::VegSurfType &UnderStory,
+     VegConditions::VegSurfType &UnderStory,
       const dmy_struct    *dmy,
       const atmos_data_struct &atmos,
-      energy_bal_struct   *energy,
-      snow_data_struct    *snow,
+     energy_bal_struct   *energy,
+     snow_data_struct    *snow,
       const soil_con_struct *soil_con,
-      glac_data_struct    *glacier,
+     glac_data_struct    *glacier,
       const ProgramState*  state) {
 /*********************************************************************
 

@@ -472,7 +472,7 @@ int surface_fluxes(char                 overstory,
 
       do {
 
-        /** Iterate for understory solution - itererates to find snow flux **/
+        /** Iterate for understory solution - iterates to find snow flux **/
 
         under_iter++;
         last_tol_under = tol_under;

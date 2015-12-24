@@ -11,7 +11,7 @@ void read_snowband(FILE    *snowband,
 /**********************************************************************
   read_snowband		Keith Cherkauer		July 9, 1998
 
-  This routine reads snow band median elevaton, and 
+  This routine reads snow band median elevation, and
   precipitation fraction for use with the snow model.
 
   04-25-03 Modified to allocate treeline variable.            KAC
@@ -32,7 +32,6 @@ void read_snowband(FILE    *snowband,
   int     cell;
   double  total;
   double  area_fract;
-  double  prec_frac;
   float   band_elev;
   float   avg_elev;
 
@@ -93,31 +92,28 @@ void read_snowband(FILE    *snowband,
       soil_con->Tfactor[band] = ( soil_con->elevation - soil_con->BandElev[band] ) / 1000. * soil_con->T_LAPSE;
     }
 
-    /** Read Precipitation Fraction **/
-    total = 0.;
+   /** Calculate Precipitation Fraction **/
+   total = 0.;
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
-
-      fscanf(snowband, "%lf", &prec_frac); // prec_frac is read but ignored in case other variables are eventually added after prec_factor in the snow bands file.
-
-      soil_con->Pfactor[band] = (1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation)) * soil_con->AreaFract[band];
+     soil_con->Pfactor[band] = (1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation)) * soil_con->AreaFract[band];
       if (soil_con->Pfactor[band] < 0) {
         sprintf(ErrStr, "Snow band precipitation factor (%f) must be between 0 and 1", soil_con->Pfactor[band]);
-        nrerror(ErrStr);
-      }
-      total += soil_con->Pfactor[band];
-    }
+      nrerror(ErrStr);
+     }
+     total += soil_con->Pfactor[band];
+   }
     if ( total != 1. ) {
       fprintf(stderr,"WARNING: Sum of the snow band precipitation fractions does not equal %d (%f), dividing each fraction by the sum\n",
 	      1, total);
       for(band = 0; band < num_elevation_snow_bands; band++)
-	soil_con->Pfactor[band] /= total;
-    }
+	    soil_con->Pfactor[band] /= total;
+   }
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
       if (soil_con->AreaFract[band] > 0)
-	soil_con->Pfactor[band] /= soil_con->AreaFract[band];
+	    soil_con->Pfactor[band] /= soil_con->AreaFract[band];
       else 
-	soil_con->Pfactor[band]  = 0.;
-    }
+	    soil_con->Pfactor[band]  = 0.;
+   }
 
   }
 

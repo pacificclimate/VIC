@@ -199,7 +199,7 @@ void read_atmos_data(FILE                 *infile,
     /* handle vars */
     for (int varidx = 0; varidx < Nfields; ++varidx) {
       int attlen;
-      float scale_factor = NAN, inverse_scale_factor = NAN; /* leave uninitialized in case of has_inverse_scale_factor */
+      float scale_factor = NAN, inverse_scale_factor = NAN; /* leave uninitialised in case of has_inverse_scale_factor */
       int has_inverse_scale_factor = 0;
 
       /* Get varid + check type */
