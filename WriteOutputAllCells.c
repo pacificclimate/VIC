@@ -36,7 +36,8 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
   std::vector<size_t> start4(start4Vals, start4Vals + 4), count4(count4Vals, count4Vals + 4);
 
   std::multimap<std::string, netCDF::NcVar> allVars = netCDF->getVars();
-  int num_cells = all_out_data.size();
+  int num_cells = state->global_param.gridNumLatDivisions * state->global_param.gridNumLonDivisions;
+	bool *valid_cell_ptr;
 
 	// Loop through (legacy) out_data_files_template for listing of output variables
 	for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
@@ -46,17 +47,27 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
 //  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
       // Create temporary array of data for this variable across all cells
-    	double *vardata, *vardata_ptr;
+    	float *vardata, *vardata_ptr;
     	int varnumelem = all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].nelem;
 			bool use4Dimensions = varnumelem > 1;
     	int vardatasize = varnumelem * num_cells;
-      vardata = new double [vardatasize];
-      vardata_ptr = vardata;
+    	int valid_cell_idx = 0; // index among valid cells
 
+      vardata = new float [vardatasize];
+      vardata_ptr = vardata;
+      valid_cell_ptr = state->valid_cell_mask;
+
+  		// Interleave data from each cell for this variable in temporary array vardata
       for (int elem=0; elem<varnumelem; elem++) {
       	for (int cell_idx = 0; cell_idx < num_cells; cell_idx++) {
-      		// Interleave data from each cell for this variable in temporary array vardata
-      		*vardata_ptr = all_out_data[cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[elem];
+      		if (*valid_cell_ptr) { // Check if this cell is marked as valid in valid_cell_mask
+      			*vardata_ptr = all_out_data[valid_cell_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[elem];
+      			valid_cell_idx++;
+      		}
+      		else {
+      			*vardata_ptr = NETCDF_FILL_VALUE; // NetCDF FillValue
+      		}
+      		valid_cell_ptr++;
 				  vardata_ptr++;
       	}
       }
@@ -80,7 +91,3 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
   }
 }
 
-//void WriteOutputAllCells::closeFile(){
-//
-//
-//}

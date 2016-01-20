@@ -117,6 +117,7 @@
  * If this option is turned off then output will not be available in netCDF format.
  */
 #define NETCDF_OUTPUT_AVAILABLE TRUE
+#define NETCDF_FILL_VALUE 1e20f
 
 /* Enable if OpenMP is supported on the target platform. Allows users to run VIC
  * with multithreading across cells at each time step by setting the NUM_PARALLEL_THREADS

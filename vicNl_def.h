@@ -128,6 +128,7 @@
 #include <limits>
 #include <climits>
 #include <vector>
+#include <set>
 #include <exception>
 #include <string>
 #include <map>
@@ -890,6 +891,8 @@ typedef struct {
   // The gridStart variables are defined as the position of the lower left hand corner of the grid.
   double gridStartLat;
   double gridStartLon;
+  double gridEndLat;
+  double gridEndLon;
   double gridStepLat;   // The gridSteps are defined by the smallest difference in position between cells.
   double gridStepLon;
   double gridNumLatDivisions;
@@ -1609,8 +1612,11 @@ public:
   int dt_sec; /* simulation time step in seconds */
   int out_dt_sec; /* simulation output time step in seconds */
   int out_step_ratio; /* ratio between output time step and simulation time step */
+  std::set<std::tuple<double, double>> valid_cell_coordinates;
+  bool *valid_cell_mask;
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
+  void initCellMask(const std::vector<cell_info_struct>& cells);
   void init_global_param(filenames_struct *, const char* global_file_name);
   void build_forcing_variable_mapping();
   void set_forcing_variable_name(std::string, std::string);
