@@ -50,7 +50,7 @@ double calc_rainonly(double air_temp,
   	    		  range over which mixed precipitation occurs (TR). This
   	    		  algorithm follows Kienzle (2008).  MAS
 **********************************************************************/
-
+	char            ErrStr[MAXSTRING];
   double rainonly = 0;
 
   if(state->options.TEMP_TH_TYPE == VIC_412){
@@ -71,8 +71,8 @@ double calc_rainonly(double air_temp,
   else if(state->options.TEMP_TH_TYPE == KIENZLE){
 
 	if(MIN_RAIN_TEMP <= 0.){
-	  fprintf( stderr, "ERROR: For method KIENZLE, temperature range (MIN_RAIN_TEMP) must be greater than 0");
-	  return(ERROR);
+    sprintf(ErrStr,"ERROR: For method KIENZLE, temperature range (MIN_RAIN_TEMP) must be greater than 0\n");
+    nrerror(ErrStr);
 	}
 
 	double rfrac = 0.;

@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
   std::vector<cell_info_struct> cell_data_structs; // Stores physical parameters for each grid cell
   readSoilData(cell_data_structs, filep, filenames, dmy, state);
   state.initGrid(cell_data_structs); // Calculate the grid cell parameters. This is used for NetCDF outputs.
-  initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state);
+  initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state); // Create and initialize a NetCDF output file
 
   // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
