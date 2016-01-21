@@ -779,7 +779,6 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.PGRAD);
-
       // Read GLAC_SURF_THICK.
       token = strtok (NULL, delimiters);
       while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);

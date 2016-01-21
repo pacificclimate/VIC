@@ -160,9 +160,10 @@ int main(int argc, char *argv[])
 
   /** Initialize state **/
   std::vector<cell_info_struct> cell_data_structs; // Stores physical parameters for each grid cell
-  readSoilData(cell_data_structs, filep, filenames, dmy, state);
+  readSoilData(cell_data_structs, filep, filenames, dmy, state); // Read soil file and add elements to cell_data_structs
   state.initGrid(cell_data_structs); // Calculate the grid cell parameters. This is used for NetCDF outputs.
   initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state);
+  state.initCellMask(cell_data_structs); // Create mask to account for invalid cells included in the output NetCDF spatial domain
 
   // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
@@ -246,6 +247,9 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   int    *cellnum = NULL;
 
   soil_con_struct temp_soil_con;
+
+  std::vector<std::tuple<double, double>> valid_cell_coords;
+
   while (!done_reading_soil_file) {
     if (state.options.ARC_SOIL) {
       assert(0); // presently unsupported; maybe support vector functionality later?
@@ -260,7 +264,9 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     if (is_valid_soil_cell) {
       cell_info_struct currentCell;
       currentCell.soil_con = temp_soil_con;
+      valid_cell_coords.push_back(std::make_tuple(temp_soil_con.lat, temp_soil_con.lng));
 
+// FIXME: all this OUTPUT_FORMAT stuff will go away with the replacement of WriteOutputNetCDF::write_data with WriteOutputAllCells::write_data
       if (state.options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT) {
       	currentCell.outputFormat = new WriteOutputBinary(&state);
   #if NETCDF_OUTPUT_AVAILABLE
@@ -278,6 +284,8 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
+  // Copy the valid_cell_coords vector into the state.valid_cell_coordinates set
+  std::copy(valid_cell_coords.begin(), valid_cell_coords.end(), std::inserter(state.valid_cell_coordinates, state.valid_cell_coordinates.end()));
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
@@ -339,7 +347,7 @@ int initializeCell(cell_info_struct& cell,
   #if VERBOSE
       fprintf(stderr, "Initializing Forcing Data for cell at %4.5f %4.5f\n", cell.soil_con.lat, cell.soil_con.lng);
   #endif /* VERBOSE */
-
+// NOTE: this should only be done for valid cells
   /** allocate memory for the atmos_data_struct **/
   cell.atmos = alloc_atmos(state->global_param.nrecs, state->NR);
   initialize_atmos(cell.atmos, dmy, filep.forcing, filep.forcing_ncid, &cell.soil_con, state);

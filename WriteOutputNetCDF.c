@@ -216,7 +216,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
     count.push_back(1);
     double value = state->global_param.gridStartLon + (i * state->global_param.gridStepLon);
     lonVar.putVar(start, count, &value);
-    fprintf(stderr, "lon value: %f", value);
   }
 
   std::stringstream ss;
@@ -282,7 +281,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
           data.putAtt("units", metaData.units.c_str());
           data.putAtt("standard_name", metaData.standardName.c_str());
           data.putAtt("cell_methods", metaData.cellMethods.c_str());
-          data.putAtt("_FillValue", ncFloat, 1e20f);
+          data.putAtt("_FillValue", ncFloat, NETCDF_FILL_VALUE);
           data.putAtt("internal_vic_name", varName); // This should be the same as that given next to OUTVAR in the global file (and the key used to find variable metadata in state->mapping)
           data.putAtt("category", dataFiles[file_idx]->prefix);
           if (state->options.COMPRESS) {

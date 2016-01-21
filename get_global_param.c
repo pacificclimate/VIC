@@ -73,8 +73,8 @@ void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
     global_param.gridStartLon = cells[0].soil_con.lng;
     global_param.gridStepLat = INT_MAX;
     global_param.gridStepLon = INT_MAX;
-    double largestLat = cells[0].soil_con.lat;
-    double largestLon = cells[0].soil_con.lng;
+    global_param.gridEndLat = cells[0].soil_con.lat;
+    global_param.gridEndLon = cells[0].soil_con.lng;
 
     for (unsigned int i = 0; i < cells.size(); i++) {
       // Find the minimum lat and long in the grid, use this as start of indices.
@@ -84,11 +84,11 @@ void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
       if (cells[i].soil_con.lng < global_param.gridStartLon) {
         global_param.gridStartLon = cells[i].soil_con.lng;
       }
-      if (cells[i].soil_con.lat > largestLat) {
-        largestLat = cells[i].soil_con.lat;
+      if (cells[i].soil_con.lat > global_param.gridEndLat) {
+      	global_param.gridEndLat = cells[i].soil_con.lat;
       }
-      if (cells[i].soil_con.lng > largestLon) {
-        largestLon = cells[i].soil_con.lng;
+      if (cells[i].soil_con.lng > global_param.gridEndLon) {
+      	global_param.gridEndLon = cells[i].soil_con.lng;
       }
       // Find the smallest distance between cells for lat and lon
       for (unsigned int n = 0; n < cells.size(); n++) {
@@ -102,9 +102,39 @@ void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
         }
       }
     }
-    global_param.gridNumLatDivisions = ((largestLat - global_param.gridStartLat) / global_param.gridStepLat) + 1;
-    global_param.gridNumLonDivisions = ((largestLon - global_param.gridStartLon) / global_param.gridStepLon) + 1;
+    global_param.gridNumLatDivisions = ((global_param.gridEndLat - global_param.gridStartLat) / global_param.gridStepLat) + 1;
+    global_param.gridNumLonDivisions = ((global_param.gridEndLon - global_param.gridStartLon) / global_param.gridStepLon) + 1;
   }
+}
+
+void ProgramState::initCellMask(const std::vector<cell_info_struct>& cells) {
+
+  char            ErrStr[MAXSTRING];
+	int total_num_cells = global_param.gridNumLatDivisions * global_param.gridNumLonDivisions;
+	valid_cell_mask = new bool [total_num_cells];
+	float lat = global_param.gridStartLat;
+	float lon = global_param.gridStartLon;
+  int cellidx = 0;
+  int count = 0;
+
+	// Check all possible lat/lon pairs in the grid and check if each exists within valid_cell_coordinates set
+	while (lat <= global_param.gridEndLat){
+		while (lon <= global_param.gridEndLon){
+			count = valid_cell_coordinates.count(std::make_tuple(lat, lon));
+			if (count == 1)
+				valid_cell_mask[cellidx] = true;
+			else if (count == 0)
+				valid_cell_mask[cellidx] = false;
+			else {
+				sprintf(ErrStr,"ERROR: Duplicate cell found with coordinates %f, %f in soil file\n", lat, lon);
+				nrerror(ErrStr);
+			}
+		lon += global_param.gridStepLon;
+		cellidx++;
+		}
+		lat += global_param.gridStepLat;
+		lon = global_param.gridStartLon;
+	}
 }
 
 void ProgramState::init_global_param(filenames_struct *names, const char* global_file_name)
