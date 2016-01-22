@@ -238,6 +238,7 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   /*****************************************
    * Read soil for all "active" grid cells *
    *****************************************/
+  char ErrStr[MAXSTRING];
   char done_reading_soil_file = FALSE, is_valid_soil_cell;
   int nallocatedcells = 10; /* arbitrary */
   int currentCellNumber = 0;
@@ -245,10 +246,10 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
   double *lat = NULL;
   double *lng = NULL;
   int    *cellnum = NULL;
-
+  int cells_loaded = 0;
   soil_con_struct temp_soil_con;
-
-  std::vector<std::tuple<double, double>> valid_cell_coords;
+  cell_info_struct lastCell;
+  std::vector<std::tuple<double, double>> modeled_cell_coords;
 
   while (!done_reading_soil_file) {
     if (state.options.ARC_SOIL) {
@@ -264,9 +265,23 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     if (is_valid_soil_cell) {
       cell_info_struct currentCell;
       currentCell.soil_con = temp_soil_con;
-      valid_cell_coords.push_back(std::make_tuple(temp_soil_con.lat, temp_soil_con.lng));
+    	if (cells_loaded > 0){
+    		// Cells must be provided in groups of increasing latitude
+    		if (currentCell.soil_con.lat < lastCell.soil_con.lat){
+          sprintf(ErrStr,"ERROR: soil file grid cells must be ordered by increasing latitude by increasing longitude.\n");
+          nrerror(ErrStr);
+    		}
+    		// Within a given latitude group, cells must be ordered by increasing longitude
+    		else if (currentCell.soil_con.lat == lastCell.soil_con.lat && currentCell.soil_con.lng < lastCell.soil_con.lng){
+          sprintf(ErrStr,"ERROR: soil file grid cells must be ordered by increasing latitude by increasing longitude.\n");
+          nrerror(ErrStr);
+    		}
+    	}
+      modeled_cell_coords.push_back(std::make_tuple(currentCell.soil_con.lat, currentCell.soil_con.lng));
+    	cells_loaded++;
+    	lastCell = currentCell;
 
-// FIXME: all this OUTPUT_FORMAT stuff will go away with the replacement of WriteOutputNetCDF::write_data with WriteOutputAllCells::write_data
+// FIXME: all this OUTPUT_FORMAT stuff will go away with the removal of all non-NetCDF output format functionalities
       if (state.options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT) {
       	currentCell.outputFormat = new WriteOutputBinary(&state);
   #if NETCDF_OUTPUT_AVAILABLE
@@ -284,8 +299,8 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
-  // Copy the valid_cell_coords vector into the state.valid_cell_coordinates set
-  std::copy(valid_cell_coords.begin(), valid_cell_coords.end(), std::inserter(state.valid_cell_coordinates, state.valid_cell_coordinates.end()));
+  // Copy the modeled_cell_coords vector into the state.modeled_cell_coordinates set
+  std::copy(modeled_cell_coords.begin(), modeled_cell_coords.end(), std::inserter(state.modeled_cell_coordinates, state.modeled_cell_coordinates.end()));
   sanityCheckNumberOfCells(cell_data_structs.size(), &state);
 }
 
