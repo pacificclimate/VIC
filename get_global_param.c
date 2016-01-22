@@ -109,31 +109,22 @@ void ProgramState::initGrid(const std::vector<cell_info_struct>& cells) {
 
 void ProgramState::initCellMask(const std::vector<cell_info_struct>& cells) {
 
-  char            ErrStr[MAXSTRING];
+  char ErrStr[MAXSTRING];
 	int total_num_cells = global_param.gridNumLatDivisions * global_param.gridNumLonDivisions;
-	valid_cell_mask = new bool [total_num_cells];
-	float lat = global_param.gridStartLat;
-	float lon = global_param.gridStartLon;
+	modeled_cell_mask = new bool [total_num_cells];
   int cellidx = 0;
   int count = 0;
 
-	// Check all possible lat/lon pairs in the grid and check if each exists within valid_cell_coordinates set
-	while (lat <= global_param.gridEndLat){
-		while (lon <= global_param.gridEndLon){
-			count = valid_cell_coordinates.count(std::make_tuple(lat, lon));
+	// Check all possible lat/lon pairs in the grid and check if each exists within modeled_cell_coordinates set
+  for (float lat = global_param.gridStartLat; lat < global_param.gridEndLat; lat += global_param.gridStepLat) {
+  	for (float lon = global_param.gridStartLon; lon < global_param.gridEndLon; lon += global_param.gridStepLon){
+			count = modeled_cell_coordinates.count(std::make_tuple(lat, lon));
 			if (count == 1)
-				valid_cell_mask[cellidx] = true;
-			else if (count == 0)
-				valid_cell_mask[cellidx] = false;
-			else {
-				sprintf(ErrStr,"ERROR: Duplicate cell found with coordinates %f, %f in soil file\n", lat, lon);
-				nrerror(ErrStr);
-			}
-		lon += global_param.gridStepLon;
+				modeled_cell_mask[cellidx] = true;
+			else
+				modeled_cell_mask[cellidx] = false;
 		cellidx++;
 		}
-		lat += global_param.gridStepLat;
-		lon = global_param.gridStartLon;
 	}
 }
 

@@ -1612,8 +1612,8 @@ public:
   int dt_sec; /* simulation time step in seconds */
   int out_dt_sec; /* simulation output time step in seconds */
   int out_step_ratio; /* ratio between output time step and simulation time step */
-  std::set<std::tuple<double, double>> valid_cell_coordinates;
-  bool *valid_cell_mask;
+  std::set<std::tuple<double, double>> modeled_cell_coordinates;
+  bool *modeled_cell_mask;
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
   void initCellMask(const std::vector<cell_info_struct>& cells);
