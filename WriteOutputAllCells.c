@@ -44,7 +44,7 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
 
-			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
+//			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
 			// Create temporary array of data for this variable across all cells
 			float *vardata, *vardata_ptr;
