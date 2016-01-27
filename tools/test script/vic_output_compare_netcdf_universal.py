@@ -252,13 +252,14 @@ for lat in lats:
 print'\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
 of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)'
 
+# global flag indicating whether there are *any* differences between the files
+diffs_exist = False
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
 for lat_label in lats:
     for lon_label in lons:
         cell_labels.append(repr(lat_label) + '_' + repr(lon_label))
 for cell in cell_labels:
-    diffs_exist = False
     # if we want to output the test dataset to CSV format for inspection
     if csv_out == True: 
         # Create tables that will be written into CSV files
