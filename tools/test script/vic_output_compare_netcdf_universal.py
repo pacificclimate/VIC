@@ -12,6 +12,8 @@ import h5py
 import numpy as np
 from collections import defaultdict
 
+debug = False
+
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s]n' % message)
@@ -164,10 +166,12 @@ if var_map_file:
                 for idx, mapped_var_name in enumerate(split_line):
                     if idx > 0:
                         var_map[var].append(mapped_var_name)
-else: # use the variable names provided in the basefile, assuming the testfile variable naming agrees
-    for var in baseH5:
+                        #print 'appended {} to var_map[{}]'.format(mapped_var_name, var)
+else: # use the variable names provided in the testfile, assuming the basefile variable naming agrees
+    #for var in baseH5:
+    for var in test_data_keys:
         var_map[var] = var
-
+print 'var_map: {}'.format(var_map)
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)
 
@@ -181,7 +185,7 @@ for lat in lats:
         cell_label = '{}_{}'.format(lat, lon)
         print '\nLoading cell {} data...'.format(cell_label)
         for variable in test_data_keys:
-            if verbose:
+            if debug:
                 print 'loading variable from test file: {}'.format(variable)
             if test_is_time_major == True: # test file is time-major format
                 if len(testH5[variable].shape) == 4: # 4D variable
@@ -216,7 +220,7 @@ for lat in lats:
                     for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
                         all_test_data[cell_label][variable][depth][all_test_data[cell_label][variable][depth] == fill_value_test] = fill_value_base
         for variable in base_data_keys:
-            if verbose:
+            if debug:
                 print 'loading variable from base file: {}'.format(variable)
             if base_is_time_major == True: # base file is time-major format
                 if len(baseH5[variable].shape) == 4: # 4D variable
@@ -281,43 +285,55 @@ for cell in cell_labels:
         print'\n'
         print'Cell ' + str(cell) + ': \n'
         print ''
-    # Have to handle the situation where the outupt variable names for the same thing may differ between base and test files
-    for key in var_map:
+       # print 'var_map: {}'.format(var_map)
+    # Have to handle the situation where the output variable names for the same thing may differ between base and test files
+    for variable in var_map:
         test_var_found = False
         base_var_found = False
-        for var_name in var_map[key]:
-            #print 'checking {}, {}...'.format(key, var_name)
-            if var_name in test_data_keys:
-                test_variable = var_name
-                test_var_found = True
-                #print 'found {} in testfile'.format(test_variable)
-            elif key in test_data_keys:
-                test_variable = key
-                test_var_found = True
-                #print 'found {} in testfile'.format(test_variable)
-            if var_name in base_data_keys:
-                base_variable = var_name
-                base_var_found = True
-                #print 'found {} in basefile'.format(base_variable)
-            elif key in base_data_keys:
-                base_variable = key
-                base_var_found = True
-                #print 'found {} in basefile'.format(base_variable)
-        if not test_var_found: # this var isn't present in the test data; skip to next one in the map
-            #print 'No entry for {} output variable found in test file.'.format(key)
-            continue
-        if not base_var_found:
-            print 'No entry for {} output variable found in base file.  Exiting.\n'.format(key)
-            sys.exit(0)
+        agreement = False
         diffs = []
         diffs_depths = []
+
+        if verbose:
+            print 'checking {}...'.format(variable)
+        # Determine the name of the variable in the testfile
+        if variable in test_data_keys:
+            test_variable = variable
+            test_var_found = True
+        else: # look for other matches in var_map loaded from file
+            for var_name in var_map[variable]:
+                if var_name in test_data_keys:
+                    test_variable = var_name
+                    test_var_found = True  
+        if test_var_found:  
+            if debug:
+                    print 'Found match: {} = {} in testfile'.format(variable, test_variable)
+        else: # TODO: add option to skip this variable if not present (and tell the user)
+            print 'No entry for {} output variable found in testfile.  Exiting.\n'.format(variable)
+            sys.exit(0)
+        # Determine the name of the variable in the basefile
+        if variable in base_data_keys:
+            base_variable = variable
+            base_var_found = True
+        else: # look for other matches in var_map loaded from file
+            for var_name in var_map[variable]:
+                if var_name in base_data_keys:
+                    base_variable = var_name
+                    base_var_found = True
+        if base_var_found:  
+            if debug:
+                    print 'Found match: {} = {} in basefile'.format(variable, base_variable)
+        else: # TODO: add option to skip this variable if not present (and tell the user)
+            print 'No entry for {} output variable found in basefile.  Exiting.\n'.format(variable)
+            sys.exit(0)
+
         if len(testH5[test_variable].shape) == 3: # 3D variable
             if tolerance > 0:
                 agreement = np.allclose(all_test_data[cell][test_variable], all_base_data[cell][base_variable], 0, tolerance)
             else:
                 agreement = np.array_equal(all_test_data[cell][test_variable], all_base_data[cell][base_variable])
             if csv_out == True:
-                column_header = key
+                column_header = variable
                 general_headers.append(column_header)
                 test_table = np.column_stack([test_table, all_test_data[cell][test_variable]])
                 base_table = np.column_stack([base_table, all_base_data[cell][base_variable]])
@@ -331,13 +347,13 @@ for cell in cell_labels:
                 max_diff = np.max(diffs)
                 sum_diffs = np.sum(diffs)
                 if verbose:
-                    print '    ' + key + ': ' + str(agreement)
+                    print '    ' + variable + ': ' + str(agreement)
                     print '      Number of different entries: {} '.format(num_diffs),
                     print 'Maximum absolute difference: {} '.format(max_diff),
-                    print 'Total sum of differences: {}'.format(sum_diffs) 
+                    print 'Total sum of differences: {} '.format(sum_diffs) 
             else:
                 if verbose:
-                    print '    ' + key + ': ' + str(agreement)
+                    print '    ' + variable + ': ' + str(agreement)
         elif len(testH5[test_variable].shape) == 4: # 4D variable
             max_diff = 0
             num_diffs = 0
@@ -349,9 +365,10 @@ for cell in cell_labels:
                 if csv_out == True:
                     test_band_table = np.column_stack([test_band_table, all_test_data[cell][test_variable][depth]])
                     base_band_table = np.column_stack([base_band_table, all_base_data[cell][base_variable][depth]])
-                    column_header = key + '_' + str(depth)
+                    column_header = variable + '_' + str(depth)
                     band_headers.append(column_header)
                 if agreement == False:
+                    #print '{} disagrees at depth {}'.format(test_variable, depth)
                     diffs_exist = True
                     diffs_band = abs(all_test_data[cell][test_variable][depth] - all_base_data[cell][base_variable][depth])
                     if csv_out == True:
@@ -364,9 +381,9 @@ for cell in cell_labels:
                     num_diffs += len(diffs_band[diffs_band > tolerance]) # running number of differences across all bands
             if verbose:    
                 if not diffs_depths: # no differences were found at any depth
-                    print '    ' + key + ': ' + str(agreement)
+                    print '    ' + variable + ': ' + str(agreement)
                 else:
-                    print '    ' + key + ': False '
+                    print '    ' + variable + ': False '
                     print '      Differences at depths ' + str(diffs_depths) + ' ',
                     print 'Number of different entries across all bands: {} '.format(num_diffs), 
                     print 'Maximum absolute difference across all bands: {}'.format(max_diff) 
