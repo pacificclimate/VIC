@@ -31,10 +31,10 @@ void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struc
 			&& (((state->global_param.dt <= 12) && (dmy[rec].hour == 23)) || (state->global_param.dt == 24 )) ) {
 
     GlacierMassBalanceResult result(prcp->hruList, soil, dmy[rec]);
-#if VERBOSE
+#if LINK_DEBUG
         fprintf(stderr, "accumulateGlacierMassBalance for cell at %4.5f %4.5f:\n", soil->lat, soil->lng );
         result.printForDebug();
-#endif /* VERBOSE */
+#endif /* LINK_DEBUG */
     resetAccumulationValues(&(prcp->hruList));
     *gmbEquation = result.equation; // update GMB polynomial for this cell
 
