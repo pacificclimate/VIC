@@ -56,8 +56,8 @@ double calc_rainonly(double air_temp,
   if(state->options.TEMP_TH_TYPE == VIC_412){
 
     if ( MAX_SNOW_TEMP <= MIN_RAIN_TEMP ) {
-      fprintf( stderr, "ERROR: For method VIC_412, MAX_SNOW_TEMP must be greater than MIN_RAIN_TEMP");
-      return (ERROR);
+    	sprintf(ErrStr, "ERROR: For method VIC_412, MAX_SNOW_TEMP must be greater than MIN_RAIN_TEMP\n");
+    	nrerror(ErrStr);
     }
     if(air_temp < MAX_SNOW_TEMP && air_temp > MIN_RAIN_TEMP) {
       rainonly = (air_temp - MIN_RAIN_TEMP)
