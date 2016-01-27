@@ -55,10 +55,10 @@ void WriteOutputAllCells::write_data(std::vector<out_data_struct*>& all_out_data
 
 			vardata = new float [vardatasize];
 			vardata_ptr = vardata;
-			modeled_cell_mask_ptr = state->modeled_cell_mask;
 
 			// Interleave data from each cell for this variable in temporary array vardata
 			for (int elem=0; elem<varnumelem; elem++) {
+				modeled_cell_mask_ptr = state->modeled_cell_mask;
 				modeled_cell_idx = 0;
 				for (int cell_idx = 0; cell_idx < num_cells; cell_idx++) {
 					if (*modeled_cell_mask_ptr) { // Check if this cell is marked as modeled in modeled_cell_mask
