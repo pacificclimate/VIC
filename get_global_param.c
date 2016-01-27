@@ -116,8 +116,8 @@ void ProgramState::initCellMask(const std::vector<cell_info_struct>& cells) {
   int count = 0;
 
 	// Check all possible lat/lon pairs in the grid and check if each exists within modeled_cell_coordinates set
-  for (float lat = global_param.gridStartLat; lat < global_param.gridEndLat; lat += global_param.gridStepLat) {
-  	for (float lon = global_param.gridStartLon; lon < global_param.gridEndLon; lon += global_param.gridStepLon){
+  for (float lat = global_param.gridStartLat; lat <= global_param.gridEndLat; lat += global_param.gridStepLat) {
+  	for (float lon = global_param.gridStartLon; lon <= global_param.gridEndLon; lon += global_param.gridStepLon){
 			count = modeled_cell_coordinates.count(std::make_tuple(lat, lon));
 			if (count == 1)
 				modeled_cell_mask[cellidx] = true;
