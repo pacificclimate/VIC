@@ -141,17 +141,18 @@ test_data_keys = dict.fromkeys(testH5.keys())
 del test_data_keys['lat']
 del test_data_keys['lon']
 del test_data_keys['time']
-del test_data_keys['bnds']
 del test_data_keys['depth']
-#del test_data_keys['OUT_WIND'] # uncomment this to test new vs. old disaggregated forcing files
+if 'bnds' in test_data_keys.keys():
+    del test_data_keys['bnds']
 
 # initialize with keys from NetCDF file, and empty values
 base_data_keys = dict.fromkeys(baseH5.keys()) 
 del base_data_keys['lat']
 del base_data_keys['lon']
 del base_data_keys['time']
-del base_data_keys['bnds']
 del base_data_keys['depth']
+if 'bnds' in base_data_keys.keys():
+    del base_data_keys['bnds']
 
 # define basefile to testfile variable name mapping (e.g. precipitation might be called OUT_PREC in one, and PREC or pr in another)
 var_map = {}
@@ -252,13 +253,15 @@ for lat in lats:
 print'\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
 of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)'
 
-# global flag indicating whether there are *any* differences between the files
-diffs_exist = False
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
 for lat_label in lats:
     for lon_label in lons:
         cell_labels.append(repr(lat_label) + '_' + repr(lon_label))
+
+# global flag indicating whether there are *any* differences between the files
+diffs_exist = False
+
 for cell in cell_labels:
     # if we want to output the test dataset to CSV format for inspection
     if csv_out == True: 
@@ -388,7 +391,7 @@ for cell in cell_labels:
                     print '      Differences at depths ' + str(diffs_depths) + ' ',
                     print 'Number of different entries across all bands: {} '.format(num_diffs), 
                     print 'Maximum absolute difference across all bands: {}'.format(max_diff) 
-    
+ 
     if csv_out == True:
         if csv_diffs_only == False:
             test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
