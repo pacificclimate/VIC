@@ -8,7 +8,8 @@
 import sys
 import argparse
 import os.path
-import h5py
+# import h5py
+import netCDF4
 import numpy as np
 from collections import defaultdict
 
@@ -60,59 +61,56 @@ base_end_rec = options.base_end_rec
 verbose = options.verbose
 var_map_file = options.var_map_file
 
-print '\n------- vic_output_compare_netcdf_universal -------'
+print('\n------- vic_output_compare_netcdf_universal -------')
 # print interpretation of input
-print 'testfile: {} \nbasefile: {}'.format(testfile, basefile)
-print ''
+print('testfile: {} \nbasefile: {}\n'.format(testfile, basefile))
+
 if test_is_time_major:
-    print 'testfile declared as time-major with depth dimension in position {}'.format(pos_depth_dim_test)
+    print('testfile declared as time-major with depth dimension in position {}'.format(pos_depth_dim_test))
 else:
-    print 'testfile declared as cell-major with depth dimension in position {}'.format(pos_depth_dim_test)
+    print('testfile declared as cell-major with depth dimension in position {}'.format(pos_depth_dim_test))
 
 if base_is_time_major:
-    print 'basefile declared as time-major with depth dimension in position {}'.format(pos_depth_dim_base)
+    print('basefile declared as time-major with depth dimension in position {}\n'.format(pos_depth_dim_base))
 else:
-    print 'basefile declared as cell-major with depth dimension in position {}\n'.format(pos_depth_dim_base)
+    print('basefile declared as cell-major with depth dimension in position {}\n'.format(pos_depth_dim_base))
 
-print 'Absolute tolerance (-tolerance) for agreement between elements: {}\n'.format(tolerance)
+print('Absolute tolerance (-tolerance) for agreement between elements: {}\n'.format(tolerance))
 
 if csv_out:
-    print 'CSV output selected (--csv).'
+    print('CSV output selected (--csv).')
     if csv_diffs_only:
-        print 'Only differences between input files will be saved (-csv_diffs_only).'
-    # print '\n'
+        print('Only differences between input files will be saved (-csv_diffs_only).')
 
 # Open test output NetCDF file
-#testH5 = h5py.File('../out/results.nc', 'r')
-testH5 = h5py.File(testfile, 'r')
+testNC = netCDF4.Dataset(testfile, 'r').variables
 
 # Open out_base NetCDF file
-#baseH5 = h5py.File('../out_base/results.nc')
-baseH5 = h5py.File(basefile, 'r')
+baseNC = netCDF4.Dataset(basefile, 'r').variables
 
 # grab NaN fill value of non-initialized NetCDF records
-for var in baseH5:
+for var in baseNC:
     try:
-        fill_value_base = baseH5[var].attrs['_FillValue']
+        fill_value_base = baseNC[var]._FillValue
     except:
         continue
     if fill_value_base is not None:
         break
-print 'basefile NetCDF _FillValue: {}'.format(fill_value_base)
-for var in testH5:
+print('basefile NetCDF _FillValue: {}'.format(fill_value_base))
+for var in testNC:
     try:
-        fill_value_test = testH5[var].attrs['_FillValue']
+        fill_value_test = testNC[var]._FillValue
     except:
         continue
     if fill_value_test is not None:
         break
-print 'testfile NetCDF _FillValue: {}'.format(fill_value_test)
+print('testfile NetCDF _FillValue: {}'.format(fill_value_test))
 if csv_out:
-    print 'Empty records in output CSV files will be assigned the basefile NetCDF _FillValue.'
+    print('Empty records in output CSV files will be assigned the basefile NetCDF _FillValue.')
 
 # grab the number of time records
-test_time_len = len(testH5['time'])
-base_time_len = len(baseH5['time'])
+test_time_len = len(testNC['time'])
+base_time_len = len(baseNC['time'])
 
 if not test_end_rec:
     test_end_rec = test_time_len
@@ -123,21 +121,21 @@ if not base_end_rec:
 num_test_recs = test_end_rec - test_start_rec
 num_base_recs = base_end_rec - base_start_rec 
 
-print '\ntestfile data time record range to be read: {}:{} ({} records total)'.format(test_start_rec, test_end_rec, num_test_recs)
-print 'basefile data time record range to be read: {}:{} ({} records total)'.format(base_start_rec, base_end_rec, num_base_recs)
+print('\ntestfile data time record range to be read: {}:{} ({} records total)'.format(test_start_rec, test_end_rec, num_test_recs))
+print('basefile data time record range to be read: {}:{} ({} records total)'.format(base_start_rec, base_end_rec, num_base_recs))
 if num_test_recs != num_base_recs:
-    print 'Number of time records selected for comparison between testfile and basefile must be equal.  Exiting.\n'
+    print('Number of time records selected for comparison between testfile and basefile must be equal.  Exiting.\n')
     sys.exit(0)
 
 # grab lat and lon dimensions of grid cells
-lats = testH5['lat'][:]
-lons = testH5['lon'][:]
+lats = testNC['lat'][:]
+lons = testNC['lon'][:]
 
 lat_to_idx = dict([(x[1],x[0]) for x in enumerate(lats.tolist())])
 lon_to_idx = dict([(x[1],x[0]) for x in enumerate(lons.tolist())])
 
 # initialize with keys from NetCDF file, and empty values
-test_data_keys = dict.fromkeys(testH5.keys()) 
+test_data_keys = dict.fromkeys(testNC.keys()) 
 del test_data_keys['lat']
 del test_data_keys['lon']
 del test_data_keys['time']
@@ -146,7 +144,7 @@ if 'bnds' in test_data_keys.keys():
     del test_data_keys['bnds']
 
 # initialize with keys from NetCDF file, and empty values
-base_data_keys = dict.fromkeys(baseH5.keys()) 
+base_data_keys = dict.fromkeys(baseNC.keys()) 
 del base_data_keys['lat']
 del base_data_keys['lon']
 del base_data_keys['time']
@@ -157,7 +155,7 @@ if 'bnds' in base_data_keys.keys():
 # define basefile to testfile variable name mapping (e.g. precipitation might be called OUT_PREC in one, and PREC or pr in another)
 var_map = {}
 if var_map_file:
-    print '\nOutput variable name mapping defined in file {} will be used.'.format(var_map_file)
+    print('\nOutput variable name mapping defined in file {} will be used.'.format(var_map_file))
     with open(var_map_file, 'r') as f:
         for line in f:
             if (len(line) > 1):
@@ -169,11 +167,11 @@ if var_map_file:
                         var_map[var].append(mapped_var_name)
                         #print 'appended {} to var_map[{}]'.format(mapped_var_name, var)
 else: # use the variable names provided in the testfile, assuming the basefile variable naming agrees
-    #for var in baseH5:
+    #for var in baseNC:
     for var in test_data_keys:
         var_map[var] = var
 if debug:        
-    print 'var_map: {}'.format(var_map)
+    print('var_map: {}'.format(var_map))
 
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)
@@ -186,74 +184,74 @@ all_base_data = tree()
 for lat in lats:
     for lon in lons:
         cell_label = '{}_{}'.format(lat, lon)
-        print '\nLoading cell {} data...'.format(cell_label)
+        print('\nLoading cell {} data...'.format(cell_label))
         for variable in test_data_keys:
             if debug:
-                print 'loading variable from test file: {}'.format(variable)
+                print('loading variable from test file: {}'.format(variable))
             if test_is_time_major == True: # test file is time-major format
-                if len(testH5[variable].shape) == 4: # 4D variable
+                if len(testNC[variable].shape) == 4: # 4D variable
                     if pos_depth_dim_test == 1: # <time, depth, lat, lon>
-                        for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
-                            all_test_data[cell_label][variable][depth] = testH5[variable][test_start_rec:test_end_rec,depth,lat_to_idx[lat],lon_to_idx[lon]]
+                        for depth in range(0, testNC[variable].shape[pos_depth_dim_test]):
+                            all_test_data[cell_label][variable][depth] = testNC[variable][test_start_rec:test_end_rec,depth,lat_to_idx[lat],lon_to_idx[lon]]
                     elif pos_depth_dim_test == 3: # <time, lat, lon, depth>
-                        for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
+                        for depth in range(0, testNC[variable].shape[pos_depth_dim_test]):
                         #print 'cell_label: {} variable: {} depth: {}'.format(cell_label, variable, depth)
-                            all_test_data[cell_label][variable][depth] = testH5[variable][test_start_rec:test_end_rec,lat_to_idx[lat],lon_to_idx[lon],depth]
+                            all_test_data[cell_label][variable][depth] = testNC[variable][test_start_rec:test_end_rec,lat_to_idx[lat],lon_to_idx[lon],depth]
                     else:
-                        print 'The declared depth dimension position {} for a time-major NetCDF test file is not supported.'.format(pos_depth_dim_test)
+                        print('The declared depth dimension position {} for a time-major NetCDF test file is not supported.'.format(pos_depth_dim_test))
                         sys.exit(0)
-                elif len(testH5[variable].shape) == 3: # 3D variable
-                    all_test_data[cell_label][variable] = testH5[variable][test_start_rec:test_end_rec,lat_to_idx[lat],lon_to_idx[lon]]
+                elif len(testNC[variable].shape) == 3: # 3D variable
+                    all_test_data[cell_label][variable] = testNC[variable][test_start_rec:test_end_rec,lat_to_idx[lat],lon_to_idx[lon]]
 
             elif test_is_time_major == False: # test file is cell-major format
-                if len(testH5[variable].shape) == 4: # 4D variable
+                if len(testNC[variable].shape) == 4: # 4D variable
                     if pos_depth_dim_test == 0: # <depth, lat, lon, time>
-                        for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
-                            all_test_data[cell_label][variable][depth] = testH5[variable][depth,lat_to_idx[lat],lon_to_idx[lon],test_start_rec:test_end_rec]
+                        for depth in range(0, testNC[variable].shape[pos_depth_dim_test]):
+                            all_test_data[cell_label][variable][depth] = testNC[variable][depth,lat_to_idx[lat],lon_to_idx[lon],test_start_rec:test_end_rec]
                     else:
-                        print 'The declared depth dimension position {} for a cell-major NetCDF test file is not supported.'.format(pos_depth_dim_test)
+                        print('The declared depth dimension position {} for a cell-major NetCDF test file is not supported.'.format(pos_depth_dim_test))
                         sys.exit(0)
-                elif len(testH5[variable].shape) == 3: # 3D variable
-                    all_test_data[cell_label][variable] = testH5[variable][lat_to_idx[lat],lon_to_idx[lon],test_start_rec:test_end_rec]
+                elif len(testNC[variable].shape) == 3: # 3D variable
+                    all_test_data[cell_label][variable] = testNC[variable][lat_to_idx[lat],lon_to_idx[lon],test_start_rec:test_end_rec]
             if fill_value_test != fill_value_base:
                 # overwrite all testfile NetCDF _FillValue (NaNs) entries read in to all_test_data with the basefile _FillValue          
-                if len(testH5[variable].shape) == 3: # 3D variable
+                if len(testNC[variable].shape) == 3: # 3D variable
                     all_test_data[cell_label][variable][all_test_data[cell_label][variable] == fill_value_test] = fill_value_base
-                elif len(testH5[variable].shape) == 4: # 4D variable
-                    for depth in range(0, testH5[variable].shape[pos_depth_dim_test]):
+                elif len(testNC[variable].shape) == 4: # 4D variable
+                    for depth in range(0, testNC[variable].shape[pos_depth_dim_test]):
                         all_test_data[cell_label][variable][depth][all_test_data[cell_label][variable][depth] == fill_value_test] = fill_value_base
         for variable in base_data_keys:
             if debug:
-                print 'loading variable from base file: {}'.format(variable)
+                print('loading variable from base file: {}'.format(variable))
             if base_is_time_major == True: # base file is time-major format
-                if len(baseH5[variable].shape) == 4: # 4D variable
+                if len(baseNC[variable].shape) == 4: # 4D variable
                     if pos_depth_dim_base == 1: # <time, depth, lat, lon>
-                        for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-                            all_base_data[cell_label][variable][depth] = baseH5[variable][base_start_rec:base_end_rec,depth,lat_to_idx[lat],lon_to_idx[lon]]
+                        for depth in range(0, baseNC[variable].shape[pos_depth_dim_base]):
+                            all_base_data[cell_label][variable][depth] = baseNC[variable][base_start_rec:base_end_rec,depth,lat_to_idx[lat],lon_to_idx[lon]]
                     elif pos_depth_dim_base == 3: # <time, lat, lon, depth>
-                        for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-                            all_base_data[cell_label][variable][depth] = baseH5[variable][base_start_rec:base_end_rec,lat_to_idx[lat],lon_to_idx[lon],depth]
+                        for depth in range(0, baseNC[variable].shape[pos_depth_dim_base]):
+                            all_base_data[cell_label][variable][depth] = baseNC[variable][base_start_rec:base_end_rec,lat_to_idx[lat],lon_to_idx[lon],depth]
                     else:
-                        print 'The declared depth dimension position {} for a time-major NetCDF base file is not supported.'.format(pos_depth_dim_base)
+                        print('The declared depth dimension position {} for a time-major NetCDF base file is not supported.'.format(pos_depth_dim_base))
                         sys.exit(0)
-                elif len(baseH5[variable].shape) == 3: # 3D variable
-                    all_base_data[cell_label][variable] = baseH5[variable][base_start_rec:base_end_rec,lat_to_idx[lat],lon_to_idx[lon]]
+                elif len(baseNC[variable].shape) == 3: # 3D variable
+                    all_base_data[cell_label][variable] = baseNC[variable][base_start_rec:base_end_rec,lat_to_idx[lat],lon_to_idx[lon]]
 
             elif base_is_time_major == False: # base file is cell-major format
-                if len(baseH5[variable].shape) == 4: # 4D variable
+                if len(baseNC[variable].shape) == 4: # 4D variable
                     if pos_depth_dim_base == 0: # <depth, lat, lon, time>
-                        for depth in range(0, baseH5[variable].shape[pos_depth_dim_base]):
-                            all_base_data[cell_label][variable][depth] = baseH5[variable][depth,lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
+                        for depth in range(0, baseNC[variable].shape[pos_depth_dim_base]):
+                            all_base_data[cell_label][variable][depth] = baseNC[variable][depth,lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
                     else:
-                        print 'The declared depth dimension position {} for a cell-major NetCDF base file is not supported.'.format(pos_depth_dim_base)
+                        print('The declared depth dimension position {} for a cell-major NetCDF base file is not supported.'.format(pos_depth_dim_base))
                         sys.exit(0)
-                elif len(baseH5[variable].shape) == 3: # 3D variable
-                    all_base_data[cell_label][variable] = baseH5[variable][lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
+                elif len(baseNC[variable].shape) == 3: # 3D variable
+                    all_base_data[cell_label][variable] = baseNC[variable][lat_to_idx[lat],lon_to_idx[lon],base_start_rec:base_end_rec]
                               
 
 ## compare test data against base data
-print'\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
-of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)'
+print('\nChecking agreement between testfile variables data and those in the basefile...\n (Note: this will only check the set \
+of variables existing in your testfile against those same ones in the basefile, which may have a larger set of variables than testfile)')
 
 # create labels for each cell to use to index into defaultdicts we created
 cell_labels = []
@@ -271,28 +269,28 @@ for cell in cell_labels:
         # time record index read from file will form the first column of the output tables,
         # relative time record index (0 at test/base_start_rec position) in second column
         general_headers = ['time_rec','relative_time_rec']
-        test_table = testH5['time'][test_start_rec:test_end_rec]
+        test_table = testNC['time'][test_start_rec:test_end_rec]
         test_table = np.column_stack([test_table, range(0,num_test_recs)])
-        base_table = baseH5['time'][base_start_rec:base_end_rec]
+        base_table = baseNC['time'][base_start_rec:base_end_rec]
         base_table = np.column_stack([base_table, range(0,num_base_recs)])
         band_headers = ['time_rec', 'relative_time_rec'] 
-        test_band_table = testH5['time'][test_start_rec:test_end_rec]
+        test_band_table = testNC['time'][test_start_rec:test_end_rec]
         test_band_table = np.column_stack([test_band_table, range(0,num_test_recs)])
-        base_band_table = baseH5['time'][base_start_rec:base_end_rec]
+        base_band_table = baseNC['time'][base_start_rec:base_end_rec]
         base_band_table = np.column_stack([base_band_table, range(0,num_base_recs)])
         diffs_headers = ['time', 'relative_time_rec']
-        diffs_table = baseH5['time'][base_start_rec:base_end_rec]
+        diffs_table = baseNC['time'][base_start_rec:base_end_rec]
         diffs_table = np.column_stack([diffs_table, range(0,num_base_recs)])
         diffs_band_headers = ['time', 'relative_time_rec']
-        diffs_band_table = baseH5['time'][base_start_rec:base_end_rec]
+        diffs_band_table = baseNC['time'][base_start_rec:base_end_rec]
         diffs_band_table = np.column_stack([diffs_band_table, range(0,num_base_recs)])
 
     if verbose:    
-        print'\n'
-        print'Cell ' + str(cell) + ': \n'
+        print('\n')
+        print('Cell {}\n'.format(str(cell)))
        # print 'var_map: {}'.format(var_map)
-        print '\tVariable\tAgrees\tNum diffs\t\tMax abs diff\t\tSum of diffs'
-        print '\t'+'-'*145
+        print('\tVariable\tAgrees\tNum diffs\t\tMax abs diff\t\tSum of diffs')
+        print('\t'+'-'*145)
     # Have to handle the situation where the output variable names for the same thing may differ between base and test files
     for variable in var_map:
         test_var_found = False
@@ -312,9 +310,9 @@ for cell in cell_labels:
                     test_var_found = True  
         if test_var_found:  
             if debug:
-                    print 'Found match: {} = {} in testfile'.format(variable, test_variable)
+                    print('Found match: {} = {} in testfile'.format(variable, test_variable))
         else: # TODO: add option to skip this variable if not present (and tell the user)
-            print 'No entry for {} output variable found in testfile.  Exiting.\n'.format(variable)
+            print('No entry for {} output variable found in testfile.  Exiting.\n'.format(variable))
             sys.exit(0)
         # Determine the name of the variable in the basefile
         if variable in base_data_keys:
@@ -327,12 +325,12 @@ for cell in cell_labels:
                     base_var_found = True
         if base_var_found:  
             if debug:
-                    print 'Found match: {} = {} in basefile'.format(variable, base_variable)
+                    print('Found match: {} = {} in basefile'.format(variable, base_variable))
         else: # TODO: add option to skip this variable if not present (and tell the user)
-            print 'No entry for {} output variable found in basefile.  Exiting.\n'.format(variable)
+            print('No entry for {} output variable found in basefile.  Exiting.\n'.format(variable))
             sys.exit(0)
 
-        if len(testH5[test_variable].shape) == 3: # 3D variable
+        if len(testNC[test_variable].shape) == 3: # 3D variable
             if tolerance > 0:
                 agreement = np.allclose(all_test_data[cell][test_variable], all_base_data[cell][base_variable], 0, tolerance)
             else:
@@ -352,14 +350,14 @@ for cell in cell_labels:
                 max_diff = np.max(diffs)
                 sum_diffs = np.sum(diffs)
                 if verbose:
-                    print '\t{}\t{}\t{}\t\t{}\t\t{}'.format(variable, str(agreement), num_diffs, max_diff, sum_diffs)
+                    print('\t{}\t{}\t{}\t\t{}\t\t{}'.format(variable, str(agreement), num_diffs, max_diff, sum_diffs))
             else:
                 if verbose:
-                    print '\t{}\t{}'.format(variable, str(agreement))
-        elif len(testH5[test_variable].shape) == 4: # 4D variable
+                    print('\t{}\t{}'.format(variable, str(agreement)))
+        elif len(testNC[test_variable].shape) == 4: # 4D variable
             max_diff = 0
             num_diffs = 0
-            for depth in range(0, testH5[test_variable].shape[pos_depth_dim_test]):
+            for depth in range(0, testNC[test_variable].shape[pos_depth_dim_test]):
                 if tolerance > 0:
                     agreement = np.allclose(all_test_data[cell][test_variable][depth], all_base_data[cell][base_variable][depth], 0, tolerance)
                 else:
@@ -370,11 +368,9 @@ for cell in cell_labels:
                     column_header = variable + '_' + str(depth)
                     band_headers.append(column_header)
                 if agreement == False:
-                    #print '{} disagrees at depth {}'.format(test_variable, depth)
                     diffs_exist = True
                     diffs_band = abs(all_test_data[cell][test_variable][depth] - all_base_data[cell][base_variable][depth])
                     if csv_out == True:
-                        #diffs_band_table = np.column_stack([diffs_band_table, diffs_band[depth]])        
                         diffs_band_table = np.column_stack([diffs_band_table, diffs_band])        
                         diffs_band_headers.append(column_header)
                     diffs_depths.append(depth)
@@ -383,13 +379,10 @@ for cell in cell_labels:
                     num_diffs += len(diffs_band[diffs_band > tolerance]) # running number of differences across all bands
             if verbose:    
                 if not diffs_depths: # no differences were found at any depth
-                    print '\t{}\t{}'.format(variable, str(agreement))
+                    print('\t{}\t{}'.format(variable, str(agreement)))
                 else:
-                    print '\t{}\t{}'.format(variable, str(agreement)),
-                    print '\t [4D] Diffs at bands ' + str(diffs_depths) + ' ',
-                    print 'Num diffs across bands: {} '.format(num_diffs), 
-                    print 'Max abs diff across bands: {}'.format(max_diff) 
- 
+                    print('\t{}\t{}\t [4D] Diffs at bands {} Num diffs across bands: {} Max abs diff across bands: {}'.format(variable, str(agreement), str(diffs_depths), num_diffs, max_diff))
+                    
     if csv_out == True:
         if csv_diffs_only == False:
             test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
@@ -409,8 +402,8 @@ for cell in cell_labels:
             np.savetxt(diffs_4D_csv_filename, diffs_band_table, delimiter=',', fmt='%3.22f', header=",".join(diffs_band_headers), comments='')
 
 if diffs_exist:
-    print '\nEquivalence test FAILED. Differences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance)
+    print('\nEquivalence test FAILED. Differences exist between testfile and basefile at the given tolerance of {}\n'.format(tolerance))
 else:
-    print '\nEquivalence test PASSED. The testfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance)
+    print('\nEquivalence test PASSED. The testfile and basefile are in agreement within the given tolerance of {}.\n'.format(tolerance))
 
-print '\nvic_output_compare_netcdf_universal finished.'
+print('\nvic_output_compare_netcdf_universal finished.')
