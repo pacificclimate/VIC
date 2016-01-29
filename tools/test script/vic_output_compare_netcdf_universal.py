@@ -62,8 +62,8 @@ var_map_file = options.var_map_file
 
 print '\n------- vic_output_compare_netcdf_universal -------'
 # print interpretation of input
-print 'Checking testfile {} against basefile {}'.format(testfile, basefile)
-
+print 'testfile: {} \nbasefile: {}'.format(testfile, basefile)
+print ''
 if test_is_time_major:
     print 'testfile declared as time-major with depth dimension in position {}'.format(pos_depth_dim_test)
 else:
@@ -172,7 +172,9 @@ else: # use the variable names provided in the testfile, assuming the basefile v
     #for var in baseH5:
     for var in test_data_keys:
         var_map[var] = var
-print 'var_map: {}'.format(var_map)
+if debug:        
+    print 'var_map: {}'.format(var_map)
+
 # need this in order to nest defaultdict objects beyond 2 levels
 def tree(): return defaultdict(tree)
 
@@ -288,8 +290,9 @@ for cell in cell_labels:
     if verbose:    
         print'\n'
         print'Cell ' + str(cell) + ': \n'
-        print ''
        # print 'var_map: {}'.format(var_map)
+        print '\tVariable\tAgrees\tNum diffs\t\tMax abs diff\t\tSum of diffs'
+        print '\t'+'-'*145
     # Have to handle the situation where the output variable names for the same thing may differ between base and test files
     for variable in var_map:
         test_var_found = False
@@ -298,8 +301,6 @@ for cell in cell_labels:
         diffs = []
         diffs_depths = []
 
-        if verbose:
-            print 'checking {}...'.format(variable)
         # Determine the name of the variable in the testfile
         if variable in test_data_keys:
             test_variable = variable
@@ -351,13 +352,10 @@ for cell in cell_labels:
                 max_diff = np.max(diffs)
                 sum_diffs = np.sum(diffs)
                 if verbose:
-                    print '    ' + variable + ': ' + str(agreement)
-                    print '      Number of different entries: {} '.format(num_diffs),
-                    print 'Maximum absolute difference: {} '.format(max_diff),
-                    print 'Total sum of differences: {} '.format(sum_diffs) 
+                    print '\t{}\t{}\t{}\t\t{}\t\t{}'.format(variable, str(agreement), num_diffs, max_diff, sum_diffs)
             else:
                 if verbose:
-                    print '    ' + variable + ': ' + str(agreement)
+                    print '\t{}\t{}'.format(variable, str(agreement))
         elif len(testH5[test_variable].shape) == 4: # 4D variable
             max_diff = 0
             num_diffs = 0
@@ -385,12 +383,12 @@ for cell in cell_labels:
                     num_diffs += len(diffs_band[diffs_band > tolerance]) # running number of differences across all bands
             if verbose:    
                 if not diffs_depths: # no differences were found at any depth
-                    print '    ' + variable + ': ' + str(agreement)
+                    print '\t{}\t{}'.format(variable, str(agreement))
                 else:
-                    print '    ' + variable + ': False '
-                    print '      Differences at depths ' + str(diffs_depths) + ' ',
-                    print 'Number of different entries across all bands: {} '.format(num_diffs), 
-                    print 'Maximum absolute difference across all bands: {}'.format(max_diff) 
+                    print '\t{}\t{}'.format(variable, str(agreement)),
+                    print '\t [4D] Diffs at bands ' + str(diffs_depths) + ' ',
+                    print 'Num diffs across bands: {} '.format(num_diffs), 
+                    print 'Max abs diff across bands: {}'.format(max_diff) 
  
     if csv_out == True:
         if csv_diffs_only == False:
