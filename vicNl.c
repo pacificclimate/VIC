@@ -599,10 +599,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     			for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
     				current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
     			}
-    		  // Reset the step count
-    			state->step_count = 0;
     		}
     	}
+		  // Reset the step count
+			state->step_count = 0;
     }
 //  	fprintf(stderr,".");
   } // for - time loop
