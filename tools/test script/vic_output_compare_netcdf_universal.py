@@ -13,7 +13,8 @@ import netCDF4
 import numpy as np
 from collections import defaultdict
 
-debug = False
+# need this in order to nest defaultdict objects beyond 2 levels
+def tree(): return defaultdict(tree)
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -38,6 +39,7 @@ parser.add_argument('-tolerance', action="store", dest="tolerance", type=float, 
 parser.add_argument('--csv', action="store_true", dest="csv_out", default=False, help = 'set if you want output of data read from NetCDF to CSV')
 parser.add_argument('-csv-diffs-only', action="store_true", dest="csv_diffs_only", default=False, help = 'set if you want to output only the differences to CSV and not the original data')
 parser.add_argument('--v', action="store_true", dest="verbose", default=False, help = 'for verbose output')
+parser.add_argument('--debug', action="store_true", dest="debug", default=False, help = 'for debug output')
 parser.add_argument('--var-map-file', action="store", dest="var_map_file", type=str, help = 'file name and path of a file providing NetCDF output variable name mapping (e.g. Snow Melt could be named snm / SNOW_MELT / OUT_SNOW_MELT, depending on the version of VIC or user-defined mappings).  Each line of the file should start with the general OUT_ variable name, followed by all possible alternate names, tab-separated, e.g. OUT_SNOW_MELT   SNOW_MELT   snm')
 
 if len(sys.argv) == 1:
@@ -59,6 +61,7 @@ test_end_rec = options.test_end_rec
 base_start_rec = options.base_start_rec
 base_end_rec = options.base_end_rec
 verbose = options.verbose
+debug = options.debug
 var_map_file = options.var_map_file
 
 print('\n------- vic_output_compare_netcdf_universal -------')
@@ -142,6 +145,8 @@ del test_data_keys['time']
 del test_data_keys['depth']
 if 'bnds' in test_data_keys.keys():
     del test_data_keys['bnds']
+if debug:        
+    print('test_data_keys loaded: {}'.format(test_data_keys))
 
 # initialize with keys from NetCDF file, and empty values
 base_data_keys = dict.fromkeys(baseNC.keys()) 
@@ -151,11 +156,16 @@ del base_data_keys['time']
 del base_data_keys['depth']
 if 'bnds' in base_data_keys.keys():
     del base_data_keys['bnds']
+if debug:        
+    print('base_data_keys loaded: {}'.format(base_data_keys))
 
-# define basefile to testfile variable name mapping (e.g. precipitation might be called OUT_PREC in one, and PREC or pr in another)
+# define basefile to testfile variable name mapping (e.g. precipitation might be called
+# OUT_PREC, PREC, or pr in different files) and build up a vars_to_test nested dict like:
+# {OUT_PREC:{'test_var': 'PREC', 'base_var': 'pr'}, OUT_WIND: ...} using the "OUT_" form as the key
 var_map = {}
+vars_to_test = {}
 if var_map_file:
-    print('\nOutput variable name mapping defined in file {} will be used.'.format(var_map_file))
+    print('\nOutput variable name mapping options given in file {} will be used.'.format(var_map_file))
     with open(var_map_file, 'r') as f:
         for line in f:
             if (len(line) > 1):
@@ -165,16 +175,40 @@ if var_map_file:
                 for idx, mapped_var_name in enumerate(split_line):
                     if idx > 0:
                         var_map[var].append(mapped_var_name)
-                        #print 'appended {} to var_map[{}]'.format(mapped_var_name, var)
-else: # use the variable names provided in the testfile, assuming the basefile variable naming agrees
-    #for var in baseNC:
-    for var in test_data_keys:
-        var_map[var] = var
+    for variable in var_map:
+        test_var_found = False
+        base_var_found = False
+        if variable in test_data_keys:
+            vars_to_test[variable] = {}
+            vars_to_test[variable]['test_var'] = variable
+            test_var_found = True
+        else: # look for other matches in var_map loaded from file
+            for var_name in var_map[variable]:
+                if var_name in test_data_keys:
+                    vars_to_test[variable] = {}
+                    vars_to_test[variable]['test_var'] = var_name
+                    test_var_found = True
+        if not test_var_found:
+            continue
+        if variable in base_data_keys:
+            vars_to_test[variable]['base_var'] = variable
+            base_var_found = True
+        else: # look for other matches in var_map loaded from file
+            for var_name in var_map[variable]:
+                if var_name in base_data_keys:
+                    vars_to_test[variable]['base_var'] = var_name
+                    base_var_found = True
+        # TODO: add an option to skip comparison of vars that do not appear in the basefile
+        if not base_var_found:
+            print('No entry for {} output variable found in basefile.  Exiting.\n'.format(variable))
+            sys.exit(0)
+else: # use the variable names provided in the testfile, which assumes the basefile variable naming agrees
+    for variable in test_data_keys:
+        vars_to_test[variable] = {}
+        vars_to_test[variable]['test_var'] = variable
+        vars_to_test[variable]['base_var'] = variable
 if debug:        
-    print('var_map: {}'.format(var_map))
-
-# need this in order to nest defaultdict objects beyond 2 levels
-def tree(): return defaultdict(tree)
+    print('vars_to_test: {}'.format(vars_to_test))
 
 # create a big nested dictionary with all data for all cells, one for test data and one for out_base data
 all_test_data = tree()
@@ -291,58 +325,26 @@ for cell in cell_labels:
        # print 'var_map: {}'.format(var_map)
         print('\tVariable\tAgrees\tNum diffs\t\tMax abs diff\t\tSum of diffs')
         print('\t'+'-'*145)
-    # Have to handle the situation where the output variable names for the same thing may differ between base and test files
-    for variable in var_map:
-        test_var_found = False
-        base_var_found = False
+
+    # Check agreement between all variables present in the testfile and their equivalent in the basefile
+    for variable in vars_to_test:
         agreement = False
         diffs = []
         diffs_depths = []
 
-        # Determine the name of the variable in the testfile
-        if variable in test_data_keys:
-            test_variable = variable
-            test_var_found = True
-        else: # look for other matches in var_map loaded from file
-            for var_name in var_map[variable]:
-                if var_name in test_data_keys:
-                    test_variable = var_name
-                    test_var_found = True  
-        if test_var_found:  
-            if debug:
-                    print('Found match: {} = {} in testfile'.format(variable, test_variable))
-        else: # TODO: add option to skip this variable if not present (and tell the user)
-            print('No entry for {} output variable found in testfile.  Exiting.\n'.format(variable))
-            sys.exit(0)
-        # Determine the name of the variable in the basefile
-        if variable in base_data_keys:
-            base_variable = variable
-            base_var_found = True
-        else: # look for other matches in var_map loaded from file
-            for var_name in var_map[variable]:
-                if var_name in base_data_keys:
-                    base_variable = var_name
-                    base_var_found = True
-        if base_var_found:  
-            if debug:
-                    print('Found match: {} = {} in basefile'.format(variable, base_variable))
-        else: # TODO: add option to skip this variable if not present (and tell the user)
-            print('No entry for {} output variable found in basefile.  Exiting.\n'.format(variable))
-            sys.exit(0)
-
-        if len(testNC[test_variable].shape) == 3: # 3D variable
+        if len(testNC[vars_to_test[variable]['test_var']].shape) == 3: # 3D variable
             if tolerance > 0:
-                agreement = np.allclose(all_test_data[cell][test_variable], all_base_data[cell][base_variable], 0, tolerance)
+                agreement = np.allclose(all_test_data[cell][vars_to_test[variable]['test_var']], all_base_data[cell][vars_to_test[variable]['base_var']], 0, tolerance)
             else:
-                agreement = np.array_equal(all_test_data[cell][test_variable], all_base_data[cell][base_variable])
+                agreement = np.array_equal(all_test_data[cell][vars_to_test[variable]['test_var']], all_base_data[cell][vars_to_test[variable]['base_var']])
             if csv_out == True:
                 column_header = variable
                 general_headers.append(column_header)
-                test_table = np.column_stack([test_table, all_test_data[cell][test_variable]])
-                base_table = np.column_stack([base_table, all_base_data[cell][base_variable]])
+                test_table = np.column_stack([test_table, all_test_data[cell][vars_to_test[variable]['test_var']]])
+                base_table = np.column_stack([base_table, all_base_data[cell][vars_to_test[variable]['base_var']]])
             if agreement == False:
                 diffs_exist = True
-                diffs = abs(all_test_data[cell][test_variable] - all_base_data[cell][base_variable])
+                diffs = abs(all_test_data[cell][vars_to_test[variable]['test_var']] - all_base_data[cell][vars_to_test[variable]['base_var']])
                 if csv_out == True:
                     diffs_table = np.column_stack([diffs_table, diffs])        
                     diffs_headers.append(column_header) 
@@ -354,22 +356,22 @@ for cell in cell_labels:
             else:
                 if verbose:
                     print('\t{}\t{}'.format(variable, str(agreement)))
-        elif len(testNC[test_variable].shape) == 4: # 4D variable
+        elif len(testNC[vars_to_test[variable]['test_var']].shape) == 4: # 4D variable
             max_diff = 0
             num_diffs = 0
-            for depth in range(0, testNC[test_variable].shape[pos_depth_dim_test]):
+            for depth in range(0, testNC[vars_to_test[variable]['test_var']].shape[pos_depth_dim_test]):
                 if tolerance > 0:
-                    agreement = np.allclose(all_test_data[cell][test_variable][depth], all_base_data[cell][base_variable][depth], 0, tolerance)
+                    agreement = np.allclose(all_test_data[cell][vars_to_test[variable]['test_var']][depth], all_base_data[cell][vars_to_test[variable]['base_var']][depth], 0, tolerance)
                 else:
-                    agreement = np.array_equal(all_test_data[cell][test_variable][depth], all_base_data[cell][base_variable][depth])
+                    agreement = np.array_equal(all_test_data[cell][vars_to_test[variable]['test_var']][depth], all_base_data[cell][vars_to_test[variable]['base_var']][depth])
                 if csv_out == True:
-                    test_band_table = np.column_stack([test_band_table, all_test_data[cell][test_variable][depth]])
-                    base_band_table = np.column_stack([base_band_table, all_base_data[cell][base_variable][depth]])
+                    test_band_table = np.column_stack([test_band_table, all_test_data[cell][vars_to_test[variable]['test_var']][depth]])
+                    base_band_table = np.column_stack([base_band_table, all_base_data[cell][vars_to_test[variable]['base_var']][depth]])
                     column_header = variable + '_' + str(depth)
                     band_headers.append(column_header)
                 if agreement == False:
                     diffs_exist = True
-                    diffs_band = abs(all_test_data[cell][test_variable][depth] - all_base_data[cell][base_variable][depth])
+                    diffs_band = abs(all_test_data[cell][vars_to_test[variable]['test_var']][depth] - all_base_data[cell][vars_to_test[variable]['base_var']][depth])
                     if csv_out == True:
                         diffs_band_table = np.column_stack([diffs_band_table, diffs_band])        
                         diffs_band_headers.append(column_header)
