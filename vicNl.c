@@ -278,24 +278,9 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
     		}
     	}
       modeled_cell_coords.push_back(std::make_tuple(currentCell.soil_con.lat, currentCell.soil_con.lng));
-    	cells_loaded++;
-    	lastCell = currentCell;
-
-// FIXME: all this OUTPUT_FORMAT stuff will go away with the removal of all non-NetCDF output format functionalities
-      if (state.options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT) {
-      	currentCell.outputFormat = new WriteOutputBinary(&state);
-  #if NETCDF_OUTPUT_AVAILABLE
-      }
-      else if (state.options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-	#if PARALLEL_AVAILABLE
-      	currentCell.outputFormat = new WriteOutputAllCells(&state);
-	#else
-      	currentCell.outputFormat = new WriteOutputNetCDF(&state);
-  #endif
-  #endif
-      } else {
-      	currentCell.outputFormat = new WriteOutputAscii(&state);
-      }
+      cells_loaded++;
+      lastCell = currentCell;
+      currentCell.outputFormat = new WriteOutputNetCDF(&state);
       cell_data_structs.push_back(currentCell); // add an element to cell_data_structs vector
     }
   }
@@ -409,17 +394,12 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	// Create vector for holding output data from one time iteration for all cells.
 	std::vector<out_data_struct*> current_output_data;
 
-	// Single WriteOutputAllCells object outputwriter takes care of writing one or all cells' data at a given time step
-  WriteOutputAllCells *outputwriter = new WriteOutputAllCells(state);
-  outputwriter->openFile();
+	// outputwriter takes care of writing all cells' data at a given time step. Only used if OUTPUT_FORCE=FALSE
+	WriteOutputNetCDF *outputwriter = new WriteOutputNetCDF(state);
+	outputwriter->openFile();
 
 #if PARALLEL_AVAILABLE
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-  if (state->global_param.num_threads > 1){
-  	if (state->options.OUTPUT_FORCE) {
-  		start = std::chrono::system_clock::now();
-  	}
-  }
+    	std::chrono::time_point<std::chrono::system_clock> start, end;
 #endif
 
   // Initializations
@@ -455,31 +435,28 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
        copy_output_data(out_data_template, out_data_list, state);
        cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
     }
-  } // for - grid cell loop
 
   /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
   forcing data array is written to file(s), and the full model run is skipped. */
-  if (state->options.OUTPUT_FORCE) {
-  	fprintf(stderr, "Writing forcing file...\n");
-  	for (int rec = 0; rec < state->global_param.nrecs; rec++) {
-#if PARALLEL_AVAILABLE
-#pragma omp parallel for
-#endif
-      for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
-        //printThreadInformation();
-      	write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
-      }
-      outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
-			// Reset the aggdata for all variables
-			for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
-				for (unsigned int cell_idx = 0; cell_idx < cell_data_structs.size(); cell_idx++) {
-					for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
-						current_output_data[cell_idx][var_idx].aggdata[elem] = 0;
-					}
-				}
+	  if (state->options.OUTPUT_FORCE) {
+		  fprintf(stderr, "Writing to forcing file...\n\n");
+
+		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
+				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
+		//    		outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+//				outputwriter->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
+				cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
 			}
-  	}
-  }
+		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
+
+		  // Reset the aggdata for all variables
+		  for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+			  for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+				  current_output_data[cellidx][var_idx].aggdata[elem] = 0;
+			  }
+		  }
+	  }
+  } // for - grid cell loop
 
   if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
@@ -491,6 +468,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         }
 #endif
   }
+
 
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
@@ -591,7 +569,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     // Write output data for all cells to file if we have completed an output interval (OUT_STEP)
     if((rec >= state->global_param.skipyear) && (state->step_count == state->out_step_ratio)) {
-    	outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+    	outputwriter->write_data_all_cells(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
 
       // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
     	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
@@ -627,7 +605,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   // Free up cell_data_structs
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);
-    free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
+    if (!state->options.OUTPUT_FORCE) // this will have been already freed otherwise
+    	free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
     free_vegcon(cell_data_structs[cellidx]);
     free(cell_data_structs[cellidx].soil_con.AreaFract);
     free(cell_data_structs[cellidx].soil_con.BandElev);
