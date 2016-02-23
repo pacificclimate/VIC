@@ -443,8 +443,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
-		//    		outputwriter->write_data(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
-//				outputwriter->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
 				cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
 			}
 		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
@@ -487,13 +485,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
       //printThreadInformation();
 
-    	// If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
-    	if (cell_data_structs[cellidx].isValid == FALSE) continue;
-
-    //TODO: These error files should not be global like this
-    /** Update Error Handling Structure **/
-    //state->Error.filep = filep;
-    //state->Error.out_data_files = out_data_files;
+      // If this cell has been deemed invalid due to an error in an earlier time step, we don't process it.
+      if (cell_data_structs[cellidx].isValid == FALSE) continue;
 
       // Initialize storage terms on first time step
       if (rec == 0) {
