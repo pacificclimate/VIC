@@ -8,7 +8,7 @@ static char vcid[] = "$Id$";
 int  dist_prec(cell_info_struct* cell,
                const dmy_struct    *dmy,
                filep_struct        *filep,
-               WriteOutputFormat   *outputFormat,
+               WriteOutputNetCDF   *outputFormat,
                out_data_struct     *out_data,
                int                  time_step_record,
                char                 NEWCELL,

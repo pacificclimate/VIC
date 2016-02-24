@@ -5,7 +5,7 @@
 static char vcid[] = "$Id$";
 
 int  put_data(cell_info_struct  *cell,
-              WriteOutputFormat *output,
+              WriteOutputNetCDF *output,
               out_data_struct   *out_data,
               const dmy_struct  *dmy,
               int                rec,

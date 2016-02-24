@@ -1,7 +1,5 @@
-#include "vicNl.h"   // Need to know the NETCDF_OUTPUT_AVAILABLE option here.
+#include "vicNl.h"
 #include "StateIONetCDF.h"
-
-#if NETCDF_OUTPUT_AVAILABLE
 
 #include <netcdf>
 #include <sstream>
@@ -490,5 +488,3 @@ void StateIONetCDF::populateMetaData() {
   metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
 
 }
-
-#endif // NETCDF_OUTPUT_AVAILABLE

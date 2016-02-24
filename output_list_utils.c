@@ -531,18 +531,6 @@ void init_output_list(out_data_struct *out_data, int write, const char *format, 
 
 }
 
-/*
-int set_output_var(out_data_file_struct *out_data_files,
-                    int write,
-                    int filenum,
-                    out_data_struct *out_data,
-                    const char *varname,
-										const char *output_varname,
-                    int varnum,
-                    const char *format,
-                    int type,
-                    float mult) {
-                    */
 int set_output_var(out_data_file_struct *out_data_files,
 	                    int write,
 	                    int filenum,

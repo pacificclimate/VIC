@@ -240,6 +240,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         } ;
   bool outputTypeSet = false;
   bool outputStateTypeSet = false;
+  options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
 
   /** Initialize global parameters (that aren't part of the options struct) **/
   global_param.dt            = INVALID_INT;
@@ -529,50 +530,17 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       } else if (strcasecmp("STATENAME", optstr) == 0) {
         sscanf(cmdstr, "%*s %s", names->statefile);
         options.SAVE_STATE = TRUE;
+        options.STATE_FORMAT = StateOutputFormat::NETCDF_STATEFILE;
       } else if (strcasecmp("STATEYEAR", optstr) == 0) {
         sscanf(cmdstr, "%*s %d", &global_param.stateyear);
       } else if (strcasecmp("STATEMONTH", optstr) == 0) {
         sscanf(cmdstr, "%*s %d", &global_param.statemonth);
       } else if (strcasecmp("STATEDAY", optstr) == 0) {
         sscanf(cmdstr, "%*s %d", &global_param.stateday);
-      } else if (strcasecmp("BINARY_STATE_FILE", optstr) == 0) {
-        sscanf(cmdstr, "%*s %s", flgstr);
-        if (strcasecmp("FALSE", flgstr) == 0)
-          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
-        else
-          options.STATE_FORMAT = StateOutputFormat::BINARY_STATEFILE;
+      }
 
-        if (outputStateTypeSet) {
-          throw VICException(
-                             "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
-        }
-        outputStateTypeSet = true;
-      } else if (strcasecmp("STATE_FORMAT", optstr) == 0) {
-        if (outputStateTypeSet) {
-          throw VICException(
-                             "ERROR: state output format specified more than once. Check for multiples of BINARY_STATE_FILE and STATE_OUTPUT_FORMAT in the global options file.\n");
-        }
-        outputStateTypeSet = true;
-        sscanf(cmdstr, "%*s %s", flgstr);
-        if (strcasecmp("BINARY", flgstr) == 0) {
-          options.STATE_FORMAT = StateOutputFormat::BINARY_STATEFILE;
-        } else if (strcasecmp("ASCII", flgstr) == 0) {
-          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
-        } else if (strcasecmp("NETCDF", flgstr) == 0) {
-          options.STATE_FORMAT = StateOutputFormat::NETCDF_STATEFILE;
-#if !NETCDF_OUTPUT_AVAILABLE
-          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the STATE_FORMAT type (in the global input file) to BINARY or ASCII");
-#endif
-        } else {
-          fprintf(stderr,
-                  "Warning, input for option STATE_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n",
-                  optstr);
-          fprintf(stderr, "STATE_FORMAT will default to ASCII\n");
-          options.STATE_FORMAT = StateOutputFormat::ASCII_STATEFILE;
-        }
-
-
-      } else if (strcasecmp("MAX_MEMORY", optstr) == 0) {
+      // Amount of RAM (in Gb) available to run the model with. The user will be warned if the projected memory use exceeds this limit.
+      else if (strcasecmp("MAX_MEMORY", optstr) == 0) {
         sscanf(cmdstr, "%*s %s", flgstr);
         options.MAX_MEMORY = atof(flgstr);  // Conversion atof defaults to 0.0 on error (which is consistent with our default value).
       }
@@ -778,37 +746,6 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         sscanf(cmdstr,"%*s %s",flgstr);
         if(strcasecmp("TRUE",flgstr)==0) options.COMPRESS=TRUE;
         else options.COMPRESS = FALSE;
-      }
-      else if(strcasecmp("BINARY_OUTPUT",optstr)==0) {
-        if (outputTypeSet) {
-          throw VICException("ERROR: output format specified more than once. Check for multiples of BINARY_OUTPUT and OUTPUT_FORMAT in the global options file.\n");
-        }
-        outputTypeSet = true;
-        fprintf(stderr, "Warning: the BINARY_OUTPUT option is now deprecated. Instead, use OUTPUT_FORMAT set to BINARY, ASCII, or NETCDF\n");
-        sscanf(cmdstr,"%*s %s",flgstr);
-        if(strcasecmp("TRUE",flgstr)==0) options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
-        else options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
-      }
-      else if (strcasecmp("OUTPUT_FORMAT", optstr) == 0) {
-        if (outputTypeSet) {
-          throw VICException("ERROR: output format specified more than once. Check for multiples of BINARY_OUTPUT and OUTPUT_FORMAT in the global options file.\n");
-        }
-        outputTypeSet = true;
-        sscanf(cmdstr, "%*s %s", flgstr);
-        if (strcasecmp("BINARY", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::BINARY_FORMAT;
-        } else if (strcasecmp("ASCII", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
-        } else if (strcasecmp("NETCDF", flgstr) == 0) {
-          options.OUTPUT_FORMAT = OutputFormat::NETCDF_FORMAT;
-#if !NETCDF_OUTPUT_AVAILABLE
-          throw VICException("If the NETCDF output is enabled, then VIC must be built with the NETCDF_OUTPUT_AVAILABLE define set to true for this support (In user_def.h)! Please recompile with NETCDF_OUTPUT_AVAILABLE TRUE or change the OUTPUT_FORMAT type (in the global input file) to BINARY or ASCII");
-#endif
-        } else {
-          fprintf(stderr, "Warning, input for option OUTPUT_FORMAT was expecting either BINARY, ASCII, or NETCDF, but received: \"%s\"\n", optstr);
-          fprintf(stderr, "OUTPUT_FORMAT will default to ASCII\n");
-          options.OUTPUT_FORMAT = OutputFormat::ASCII_FORMAT;
-        }
       }
       else if(strcasecmp("ALMA_OUTPUT",optstr)==0) {
         sscanf(cmdstr,"%*s %s",flgstr);
@@ -1269,16 +1206,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     if ( options.SAVE_STATE )
       fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
               global_param.stateday, global_param.statemonth, global_param.stateyear);
-    if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
-      fprintf(stderr,"Model output is in standard BINARY format.\n");
-    } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
-      fprintf(stderr,"Model output is in standard ASCII format.\n");
-    } else if (options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-      fprintf(stderr, "Model output is in NETCDF format.\n");
-    } else {
-      fprintf(stderr, "Warning: model output is undefined (should be either BINARY, ASCII, or NETCDF).\n");
-    }
-    if ( LINK_DEBUG ) 
+        if ( LINK_DEBUG )
       fprintf(stderr,"Debugging code has been included in the executable.\n");
     else 
       fprintf(stderr,"Debugging code has not been compiled.\n");

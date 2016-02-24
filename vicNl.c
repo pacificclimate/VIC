@@ -421,21 +421,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].outputFormat, state);
 
-    // Write output file headers at initialization (does nothing in the NetCDF output format case)
-    if (state->options.PRT_HEADER) {
-      // Use out_data_list as a template for constructing the header of the output file (in ASCII mode)
-//      out_data_struct out_data_template = copy_output_data(out_data_list, state);
-
-    	// NOTE: commented out next 3 lines and replaced with vector-based implementation, as per vector implementation of copy_output_data.  NEED TO TEST THIS IN ASCII MODE
-//      out_data_struct* out_data_template;
-//      copy_output_data(out_data_template, out_data_list, state);
-//      cell_data_structs[cellidx].outputFormat->write_header(out_data_template, dmy, state);
-//
-       std::vector<out_data_struct*> out_data_template;
-       copy_output_data(out_data_template, out_data_list, state);
-       cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
-    }
-
   /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
   forcing data array is written to file(s), and the full model run is skipped. */
 	  if (state->options.OUTPUT_FORCE) {

@@ -116,7 +116,8 @@
 #include "SnowPackEnergyBalance.h"
 #include "StateIO.h"
 #include "VegConditions.h"
-#include "WriteOutputContext.h"
+//#include "WriteOutputContext.h"
+#include "WriteOutputNetCDF.h"
 
 /*** SubRoutine Prototypes ***/
 void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state);
@@ -227,7 +228,7 @@ void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_dat
 
 out_data_struct *create_output_list(const ProgramState*);
 
-int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, WriteOutputFormat *,
+int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, WriteOutputNetCDF *,
     out_data_struct *, int, char, const ProgramState*);
 
 int distribute_node_moisture_properties(energy_bal_struct*,
@@ -357,8 +358,7 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state);
-//void copy_output_format(WriteOutputContext* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
-void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
+//void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
 
@@ -383,7 +383,7 @@ double linear_interp(double,double,double,double,double);
 
 dmy_struct *make_dmy(global_param_struct *, const ProgramState*);
 void make_in_files(filep_struct *, filenames_struct *, soil_con_struct *, const ProgramState*);
-void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, WriteOutputFormat *, const ProgramState*);
+void make_out_files(filep_struct *, filenames_struct *, soil_con_struct *, WriteOutputNetCDF *, const ProgramState*);
 void   MassRelease(double *,double *,double *,double *);
 double maximum_unfrozen_water(double, double, double, double);
 double maximum_unfrozen_water_quick(double, double, double **);
@@ -401,8 +401,7 @@ void parse_output_info(const char*, out_data_file_struct *, out_data_struct *, P
 double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
-int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
-//int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, ProgramState*);
+int put_data(cell_info_struct *, WriteOutputNetCDF*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
@@ -432,7 +431,6 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
-//int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, const char *, int, const char *, int, float);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
@@ -562,7 +560,7 @@ double volumetric_heat_capacity(double,double,double,double);
 void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
-void write_forcing_file(cell_info_struct*, int, WriteOutputFormat *, out_data_struct *, const ProgramState*, dmy_struct*);
+void write_forcing_file(cell_info_struct*, int, WriteOutputNetCDF *, out_data_struct *, const ProgramState*, dmy_struct*);
 void write_layer(layer_data_struct *, int, int, const double*);
 void write_model_state(cell_info_struct* cell, const char* filename, const ProgramState  *state);
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "vicNl.h"
 #include "WriteOutputNetCDF.h"
 
@@ -7,19 +8,14 @@ static char vcid[] = "$Id$";
 
 void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const out_data_struct* outData, ProgramState *state) {
 
-	// Initialise the netcdf full path name.
-  strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);
-  strcat(state->options.NETCDF_FULL_FILE_PATH, "/");
-  strcat(state->options.NETCDF_FULL_FILE_PATH, fnames->netCDFOutputFileName);
+	// Initialise the NetCDF full path name.
+	strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);
+	strcat(state->options.NETCDF_FULL_FILE_PATH, "/");
+	strcat(state->options.NETCDF_FULL_FILE_PATH, fnames->netCDFOutputFileName);
 
-  if (state->options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-#if NETCDF_OUTPUT_AVAILABLE
-    WriteOutputNetCDF output(state);
-    copy_data_file_format(outFiles, output.dataFiles, state);
-    output.initializeFile(state, outData);  // This is only done once per invocation of VIC. It creates a fresh netcdf output file.
-
-#endif /* NETCDF_OUTPUT_AVAILABLE */
-  }
+	WriteOutputNetCDF output(state);
+	copy_data_file_format(outFiles, output.dataFiles, state);
+	output.initializeFile(state, outData);  // This is only done once per invocation of VIC. It creates a fresh NetCDF output file.
 }
 
 filep_struct get_files(const filenames_struct *fnames, ProgramState* state)

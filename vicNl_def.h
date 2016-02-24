@@ -595,6 +595,7 @@ OUT_TYPE_INT     , /* int */
 OUT_TYPE_FLOAT   , /* single-precision floating point */
 OUT_TYPE_DOUBLE  , /* double-precision floating point */
 };
+
 /***** Output aggregation method types *****/
 enum AggregationMethodTypes {
 AGG_TYPE_AVG,      /* average over agg interval */
@@ -655,13 +656,13 @@ typedef struct {
 
 namespace OutputFormat {
 enum Type {
-  BINARY_FORMAT, ASCII_FORMAT, NETCDF_FORMAT
+  NETCDF_FORMAT
 };
 }
 
 namespace StateOutputFormat {
 enum Type {
-  BINARY_STATEFILE, ASCII_STATEFILE, NETCDF_STATEFILE
+  NETCDF_STATEFILE
 };
 }
 
@@ -1561,8 +1562,8 @@ private:
   double     *DELTA_H;
 };
 
-class ProgramState;
-class WriteOutputContext; //added
+//class ProgramState;
+class WriteOutputNetCDF;
 
 /***********************************************************
   This structure stores the per-cell data that must exist
@@ -1574,9 +1575,9 @@ struct cell_info_struct {
   cell_info_struct() : isValid(TRUE), Cv_sum(0), atmos(NULL) {}
   soil_con_struct  soil_con;
   char             ErrStr[MAXSTRING];
-  bool						isValid;	// to indicate if a cell was properly initialized for the model run
+  bool				isValid;	// to indicate if a cell was properly initialized for the model run
   double           Cv_sum;           /* total fraction of vegetation coverage */
-  WriteOutputFormat *outputFormat;
+  WriteOutputNetCDF *outputFormat;
   WriteDebug      writeDebug;
   dist_prcp_struct prcp;
   lake_con_struct  lake_con;

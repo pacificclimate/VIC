@@ -1,8 +1,6 @@
 #include "WriteOutputNetCDF.h"
 #include "user_def.h"
 
-#if NETCDF_OUTPUT_AVAILABLE
-
 #ifdef __unix__
 //the uname function is unix specific
 #include <sys/utsname.h>
@@ -10,12 +8,11 @@
 
 #include <netcdf>
 #include <ctime>
-//#include <map>
 #include <sstream>
 
 using namespace netCDF;
 
-WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFormat(state), netCDF(NULL) {
+WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) {
   netCDFOutputFileName = state->options.NETCDF_FULL_FILE_PATH;
   // The divisor will convert the difference to sub-daily (e.g. hourly, 3/4/6/8/12-hourly) or daily, respectively.
   timeIndexDivisor = state->global_param.out_dt < 24 ? (60 * 60 * state->global_param.out_dt) : (60 * 60 * 24); //new (*state->global_param.dt)
@@ -24,6 +21,9 @@ WriteOutputNetCDF::WriteOutputNetCDF(const ProgramState* state) : WriteOutputFor
 WriteOutputNetCDF::~WriteOutputNetCDF() {
   if (netCDF != NULL) {
     delete netCDF;
+  }
+  for (unsigned int filenum = 0; filenum< dataFiles.size(); filenum++) {
+    delete dataFiles[filenum];
   }
 }
 
@@ -375,7 +375,6 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 	}
 
 	const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
-
 	const size_t start3Vals [] = { timeIndex, 0, 0 };     // (t, y, x)
 	const size_t count3Vals [] = { 1,(size_t) state->global_param.gridNumLatDivisions,(size_t) state->global_param.gridNumLonDivisions };
 	const size_t start4Vals [] = { timeIndex, 0, 0, 0 };  // (t, z, y, x)
@@ -392,7 +391,7 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
 
-//			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
+//			  		fprintf(stderr, "WriteOutputNetCDF::write_data_all_cells: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
 			// Create temporary array of data for this variable across all cells
 			float *vardata, *vardata_ptr;
@@ -439,16 +438,3 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 		}
 	}
 }
-
-void WriteOutputNetCDF::compressFiles() {
-  // NetCDF output is not compressed at this point, if the compression option is on, then
-  // each NetCDF variable will be compressed internally (built-in compression is a feature of NetCDF).
-  // This method is intentionally empty.
-}
-
-void WriteOutputNetCDF::write_header(out_data_struct* out_data, const dmy_struct* dmy,
-    const ProgramState* state) {
-  // This is not applicable for netCDF output format. Intentionally empty.
-}
-
-#endif // NETCDF_OUTPUT_AVAILABLE

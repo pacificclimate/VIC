@@ -170,13 +170,13 @@ void ProgramState::initialize_global() {
   options.LAI_SRC               = LAI_FROM_VEGLIB;
   options.GLACIER_ID            = -1;
   // state options
-  options.STATE_FORMAT          = StateOutputFormat::ASCII_STATEFILE;
+  options.STATE_FORMAT          = StateOutputFormat::NETCDF_STATEFILE;
   options.INIT_STATE            = FALSE;
   options.SAVE_STATE            = FALSE;
   options.MAX_MEMORY            = 0.0;    // Assume no restrictions on memory if none are given.
   // output options
   options.ALMA_OUTPUT           = FALSE;
-  options.OUTPUT_FORMAT         = OutputFormat::ASCII_FORMAT;
+  options.OUTPUT_FORMAT         = OutputFormat::NETCDF_FORMAT;
   options.COMPRESS              = FALSE;
   options.MOISTFRACT            = FALSE;
   options.Noutfiles             = 1; // Minimum case - there's only one output file per grid cell in ASCII mode when OUTPUT_FORCE=TRUE

@@ -112,11 +112,8 @@
        calibration) *****/
 #define LWAVE_COR	1.
 
-/***** Allows users to compile without the netcdf c++ libraries installed.
- * This is for when the OUTPUT_FORMAT is set to NETCDF.
- * If this option is turned off then output will not be available in netCDF format.
+/***** Standard NetCDF value for empty data points
  */
-#define NETCDF_OUTPUT_AVAILABLE TRUE
 #define NETCDF_FILL_VALUE 1e20f
 
 /* Enable if OpenMP is supported on the target platform. Allows users to run VIC

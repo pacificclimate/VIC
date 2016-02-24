@@ -1,9 +1,6 @@
 #ifndef STATEIONETCDF_H_
 #define STATEIONETCDF_H_
-#include "user_def.h"   // Need to know the NETCDF_OUTPUT_AVAILABLE option here.
-
-#if NETCDF_OUTPUT_AVAILABLE
-
+#include "user_def.h"
 #include <map>
 #include <string>
 
@@ -52,7 +49,5 @@ private:
   netCDF::NcFile* netCDF;
   std::map<StateVariables::StateVariableDimensionId, int> curDimensionIndices;
 };
-
-#endif // NETCDF_OUTPUT_AVAILABLE
 
 #endif /* STATEIONETCDF_H_ */
