@@ -466,8 +466,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
         }
 #endif
   }
-
-
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
   ********************************************************/
@@ -581,9 +579,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	delete outputwriter;
 
 #if PARALLEL_AVAILABLE
-  //    	outputwriter->closeFile();
-
-  if (state->global_param.num_threads > 1){
+	if ((!state->options.OUTPUT_FORCE) && (state->global_param.num_threads > 1)){
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end-start;
 		std::time_t end_time = std::chrono::system_clock::to_time_t(end);
