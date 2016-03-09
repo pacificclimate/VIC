@@ -444,15 +444,19 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
 				cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
-			}
+		  }
+		  // Free all memory allocated for processing this cell
 		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
+		  delete cell_data_structs[cellidx].outputFormat;
+		  free(current_output_data[cellidx]->data);
+		  free(current_output_data[cellidx]->aggdata);
 
 		  // Reset the aggdata for all variables
-		  for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
-			  for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
-				  current_output_data[cellidx][var_idx].aggdata[elem] = 0;
-			  }
-		  }
+//		  for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
+//			  for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
+//				  current_output_data[cellidx][var_idx].aggdata[elem] = 0;
+//			  }
+//		  }
 	  }
   } // for - grid cell loop
 
@@ -596,13 +600,14 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);
     if (!state->options.OUTPUT_FORCE) // this will have been already freed otherwise
     	free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
+    	delete cell_data_structs[cellidx].outputFormat;
     free_vegcon(cell_data_structs[cellidx]);
     free(cell_data_structs[cellidx].soil_con.AreaFract);
     free(cell_data_structs[cellidx].soil_con.BandElev);
     free(cell_data_structs[cellidx].soil_con.Tfactor);
     free(cell_data_structs[cellidx].soil_con.Pfactor);
     free(cell_data_structs[cellidx].soil_con.AboveTreeLine);
-    delete cell_data_structs[cellidx].outputFormat;
+
   }
 
 }  // runModel
