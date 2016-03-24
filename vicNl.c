@@ -598,9 +598,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   // Free up cell_data_structs
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
     cell_data_structs[cellidx].writeDebug.cleanup(cell_data_structs[cellidx].prcp.hruList.size(), state);
-    if (!state->options.OUTPUT_FORCE) // this will have been already freed otherwise
+    if (!state->options.OUTPUT_FORCE) { // this will have been already freed otherwise
     	free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
     	delete cell_data_structs[cellidx].outputFormat;
+    }
     free_vegcon(cell_data_structs[cellidx]);
     free(cell_data_structs[cellidx].soil_con.AreaFract);
     free(cell_data_structs[cellidx].soil_con.BandElev);
