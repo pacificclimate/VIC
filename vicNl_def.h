@@ -992,7 +992,8 @@ typedef struct {
   double   SNOW_ALB_THAW_B;    /* Melt exponent (-)              */
   double   MIN_RAIN_TEMP;      /* Air temperature below which all precip occurs as snow (C) */
   double   MAX_SNOW_TEMP;      /* Air temperature above which all precip occurs as rain (C) */
-  double   PADJ;               /* Precipitation adjustment factor (-) */
+  double   PADJ_R;             /* Rainfall adjustment factor (-) */
+  double   PADJ_S;			   /* Snowfall adjustment factor (-) */
   double   T_LAPSE;            /* Temperature lapse rate (C km-1) */
   double   PGRAD;              /* Precipitation Gradient (km-1) */
   double   GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */

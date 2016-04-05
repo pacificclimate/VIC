@@ -776,8 +776,8 @@ int  full_energy(char                 NEWCELL,
      **********************************************************************/
 
     oldsnow = prcp->lake_var.snow.swq;
-    snowprec = gauge_correction[SNOW] * (atmos->prec[state->NR] - rainonly);
-    rainprec = gauge_correction[SNOW] * rainonly;
+    snowprec = gauge_correction[SNOW] * (atmos->prec[state->NR] - rainonly) * soil_con->PADJ_S;
+    rainprec = gauge_correction[RAIN] * rainonly * soil_con->PADJ_R;
     atmos->out_prec += (snowprec + rainprec) * lake_con->Cl[0] * lakefrac;
 
     ErrorFlag = solve_lake(snowprec, rainprec, atmos->air_temp[state->NR],

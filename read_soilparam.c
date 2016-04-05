@@ -674,7 +674,8 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.SNOW_ALB_THAW_B = 0.46;
       temp.MIN_RAIN_TEMP = -1.0;
       temp.MAX_SNOW_TEMP = 5.0;
-      temp.PADJ = 1.0;
+      temp.PADJ_R = 1.0;
+      temp.PADJ_S = 1.0;
       temp.T_LAPSE = 6.5;
       temp.PGRAD = 0.0;
       temp.GLAC_SURF_THICK = 100.0;
@@ -753,14 +754,23 @@ soil_con_struct read_soilparam(FILE *soilparam,
       }
       sscanf(token, "%lf", &temp.MAX_SNOW_TEMP);
 
-      // Read PADJ.
+      // Read PADJ_R.
       token = strtok (NULL, delimiters);
       while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
       if( token == NULL ) {
-        sprintf(ErrStr,"ERROR: Can't find values for PADJ in soil file\n");
+        sprintf(ErrStr,"ERROR: Can't find values for PADJ_R in soil file\n");
         nrerror(ErrStr);
       }
-      sscanf(token, "%lf", &temp.PADJ);
+      sscanf(token, "%lf", &temp.PADJ_R);
+
+      // Read PADJ_S.
+      token = strtok (NULL, delimiters);
+      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+      if( token == NULL ) {
+        sprintf(ErrStr,"ERROR: Can't find values for PADJ_S in soil file\n");
+        nrerror(ErrStr);
+      }
+      sscanf(token, "%lf", &temp.PADJ_S);
 
       // Read T_LAPSE.
       token = strtok (NULL, delimiters);

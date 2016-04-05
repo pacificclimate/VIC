@@ -468,8 +468,12 @@ enum StateMetaDataVariableIndices {
   ENERGY_GLACIER_FLUX, //new
   ENERGY_DELTACC_GLAC, //new
 
-	GLAC_MASS_BALANCE_INFO, // to store the Glacier Mass Balance information (grid cell num and equation) for use in VIC-RGM integration
-	NUM_GLAC_MASS_BALANCE_INFO_TERMS,
+  GLAC_MASS_BALANCE_INFO, // to store the Glacier Mass Balance information (grid cell num and equation) for use in VIC-RGM integration
+  NUM_GLAC_MASS_BALANCE_INFO_TERMS,
+
+  SOIL_PADJ_R, //new
+  SOIL_PADJ_S, //new
+
 };
 
 enum StateVariableDimensionId {
