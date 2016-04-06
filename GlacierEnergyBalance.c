@@ -74,26 +74,22 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Calculate advected heat flux from rain
      Equation 7.3.12 from H.B.H. for rain falling on melting snowpack */
-
   if ( TSurf == 0 )
     *AdvectedEnergy = (CH_WATER * (Tair) * Rain) / (Dt);
   else
     *AdvectedEnergy = 0.;
 
   /* Calculate change in cold content */
-  /* *DeltaColdContent = CH_ICE * IceWE * (TSurf - OldTSurf) / (Dt); */
-  *DeltaColdContent = CH_ICE * IceDepth * (TMean - OldTMean) / (Dt);
+  *DeltaColdContent = CH_ICE * ice_density * IceDepth * (TMean - OldTMean) / (Dt);
 
   /* Calculate Ground Heat Flux */
   /* Estimate of ice thermal conductivity (at atmospheric pressure) adapted from Slack (1980), Table 1; assumes
        linear relationship between TSurf and K above -75C */
-  /* *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth / (Dt); */
   *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth;
 
-  /* Calculate energy balance error at the snowpack surface */
+  /* Calculate energy balance error at the glacier surface */
   Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy;
-  /* RestTerm = Fbal - *DeltaColdContent + *GroundFlux; */
-  RestTerm = Fbal - *DeltaColdContent;
+  RestTerm = Fbal - *DeltaColdContent + *GroundFlux;
 
   /* Melting occurs when surface at melting point and surface energy flux is positive */
   if (TSurf == 0.0 && RestTerm >= 0.) RestTerm = 0.;

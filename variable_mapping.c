@@ -212,6 +212,7 @@ void ProgramState:: build_output_variable_mapping() {
 		//Glacier energy balance terms - fluxes
 		{"OUT_GLAC_DELTACC",     	VariableMetaData("W m-2", "GLAC_DELTACC", "", "rate of change of cold content in glacier surface layer", "time: mean area: mean")},
 		{"OUT_GLAC_FLUX",    		VariableMetaData("W m-2", "GLAC_FLUX", "", "energy flux through glacier surface layer", "time: mean area: mean")},
+		{"OUT_GLAC_MELT_ENERGY",	VariableMetaData("W m-2", "GLAC_MELT_ENERGY", "", "energy used to thaw glacier ice", "time: mean area: mean")},
 		//Glacier band-specific quantities
 		{"OUT_GLAC_AREA_BAND",     	VariableMetaData("1", "GLAC_AREA_BAND", "", "Glacier surface area fraction", "")},
 		{"OUT_GLAC_WAT_STOR_BAND",	VariableMetaData("mm", "GLAC_WAT_STOR_BAND", "", "Glacier water storage", "")},

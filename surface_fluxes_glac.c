@@ -122,6 +122,7 @@ int surface_fluxes_glac(
   double                 store_snow_flux = 0;
   double                 store_deltaCC_glac = 0;
   double                 store_glacier_flux = 0;
+  double                 store_glacier_melt_energy = 0;
   // glacier structure
   double                 store_melt_glac = 0;
   double                 store_vapor_flux_glac = 0;
@@ -300,6 +301,7 @@ int surface_fluxes_glac(
       step_glacier.vapor_flux = 0.;
       step_energy.glacier_flux = 0.;
       step_energy.deltaCC_glac = 0.;
+      step_energy.glacier_melt_energy = 0.;
       step_energy.snow_flux = -step_energy.grnd_flux;
       step_energy.LongUnderOut = LongUnderIn - NetLongSnow;
 
@@ -332,6 +334,13 @@ int surface_fluxes_glac(
       step_glacier.accumulation = 0.;
 
     }
+
+    //Put surface fluxes into atmospheric storage
+    step_energy.AtmosLatent = step_energy.latent;
+    step_energy.AtmosLatentSub = step_energy.latent_sub;
+    step_energy.AtmosSensible = step_energy.sensible;
+    step_energy.NetLongAtmos = step_energy.NetLongUnder;
+    step_energy.NetShortAtmos = step_energy.NetShortUnder;
 
     /**************************************
      Compute Potential Evap
@@ -419,6 +428,7 @@ int surface_fluxes_glac(
     store_accum_glac += step_glacier.accumulation;
     store_glacier_flux += step_energy.glacier_flux;
     store_deltaCC_glac += step_energy.deltaCC_glac;
+    store_glacier_melt_energy += step_energy.glacier_melt_energy;
 
     store_advected_sensible += step_energy.advected_sensible
         * (step_snow.coverage + delta_coverage);
@@ -504,6 +514,7 @@ int surface_fluxes_glac(
   hru.energy.sensible = store_sensible / (double) N_steps;
   hru.energy.glacier_flux = store_glacier_flux / (double) N_steps;
   hru.energy.deltaCC_glac = store_deltaCC_glac / (double) N_steps;
+  hru.energy.glacier_melt_energy = store_glacier_melt_energy / (double) N_steps;
   hru.energy.advection = store_advection / (double) N_steps;
   hru.energy.deltaCC = store_deltaCC / (double) N_steps;
   hru.energy.refreeze_energy = store_refreeze_energy / (double) N_steps;

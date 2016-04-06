@@ -616,14 +616,23 @@ int  put_data(cell_info_struct  *cell,
   /********************
     Check Energy Balance
   ********************/
-  if(state->options.FULL_ENERGY)
+  if(state->options.FULL_ENERGY){
     calc_energy_balance_error(rec, out_data[OUT_NET_SHORT].data[0] + out_data[OUT_NET_LONG].data[0],
-			      out_data[OUT_LATENT].data[0]+out_data[OUT_LATENT_SUB].data[0],
-			      out_data[OUT_SENSIBLE].data[0]+out_data[OUT_ADV_SENS].data[0],
-			      out_data[OUT_GRND_FLUX].data[0]+out_data[OUT_DELTAH].data[0]+out_data[OUT_FUSION].data[0],
-			      out_data[OUT_ADVECTION].data[0] - out_data[OUT_DELTACC].data[0]
-			      - out_data[OUT_SNOW_FLUX].data[0] + out_data[OUT_RFRZ_ENERGY].data[0],
+			      out_data[OUT_LATENT].data[0] + out_data[OUT_LATENT_SUB].data[0],
+			      out_data[OUT_SENSIBLE].data[0] + out_data[OUT_ADV_SENS].data[0],
+			      out_data[OUT_GRND_FLUX].data[0] + out_data[OUT_DELTAH].data[0] + out_data[OUT_FUSION].data[0],
+			      out_data[OUT_ADVECTION].data[0] - out_data[OUT_DELTACC].data[0]- out_data[OUT_SNOW_FLUX].data[0] + out_data[OUT_RFRZ_ENERGY].data[0],
+				  -out_data[OUT_GLAC_DELTACC].data[0] - out_data[OUT_GLAC_FLUX].data[0] - out_data[OUT_GLAC_MELT_ENERGY].data[0],
 			      state->global_param.nrecs, &cell->cellErrors);
+
+    fprintf(stderr, "%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
+      		out_data[OUT_NET_SHORT].data[0], out_data[OUT_NET_LONG].data[0], out_data[OUT_LATENT].data[0], out_data[OUT_LATENT_SUB].data[0],
+  			out_data[OUT_SENSIBLE].data[0], out_data[OUT_ADV_SENS].data[0], out_data[OUT_GRND_FLUX].data[0], out_data[OUT_DELTAH].data[0],
+  			out_data[OUT_FUSION].data[0], out_data[OUT_ADVECTION].data[0], out_data[OUT_DELTACC].data[0], out_data[OUT_SNOW_FLUX].data[0],
+  			out_data[OUT_RFRZ_ENERGY].data[0], out_data[OUT_GLAC_DELTACC].data[0], out_data[OUT_GLAC_FLUX].data[0], out_data[OUT_GLAC_MELT_ENERGY].data[0],
+  			out_data[OUT_RAINF].data[0], out_data[OUT_SNOWF].data[0], out_data[OUT_SWE].data[0], out_data[OUT_SNOW_MELT].data[0], out_data[OUT_REFREEZE].data[0],
+  			out_data[OUT_SURF_TEMP].data[0], out_data[OUT_SNOW_SURF_TEMP].data[0], out_data[OUT_SNOW_PACK_TEMP].data[0], out_data[OUT_GLAC_SURF_TEMP].data[0]);
+  }
 
 
 
@@ -1123,6 +1132,7 @@ void collect_eb_terms(const energy_bal_struct& energy,
     out_data[OUT_GLAC_SURF_TEMP].data[0] += glacier.surf_temp * AreaFactor;
     out_data[OUT_GLAC_DELTACC].data[0] += energy.deltaCC_glac * AreaFactor;
     out_data[OUT_GLAC_FLUX].data[0] += energy.glacier_flux * AreaFactor;
+    out_data[OUT_GLAC_MELT_ENERGY].data[0] += energy.glacier_melt_energy * AreaFactor;
   }
  
   /**********************************

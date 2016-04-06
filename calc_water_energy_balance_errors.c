@@ -54,6 +54,7 @@ void calc_energy_balance_error(int    rec,
 			       double sensible,
 			       double grnd_flux,
 			       double snow_fluxes,
+				   double glac_fluxes,
 			       int    Nrecs,
 			       CellBalanceErrors* errors) {
 /***************************************************************
@@ -73,7 +74,7 @@ void calc_energy_balance_error(int    rec,
     errors->energy_max_error = 0;
   }
   else {
-    error = net_rad - latent - sensible - grnd_flux + snow_fluxes;
+    error = net_rad - latent - sensible - grnd_flux + snow_fluxes + glac_fluxes;
     errors->energy_cum_error += error;
     if(fabs(error)>fabs(errors->energy_max_error) && fabs(error)>0.001) {
       errors->energy_max_error = error;

@@ -84,6 +84,7 @@ int glacier_melt(double Le,
     double *save_Qnet,
     double *save_advection,
     double *save_deltaCC_glac,
+	double *save_glacier_melt_energy,
     double *save_grnd_flux,
     double *save_latent,
     double *save_latent_sub,
@@ -198,24 +199,19 @@ int glacier_melt(double Le,
 
       /* since we iterated, the surface layer is below freezing and no snowmelt */
       GlacMelt = 0.0;
-      GlacCC = CH_ICE * glacier->surf_temp * soil->GLAC_SURF_WE;
+      GlacCC = CH_ICE * ice_density * glacier->surf_temp * soil->GLAC_SURF_THICK;
 
     }
   }
 
   melt[0] = GlacMelt;
 
-  /* Mass balance test */
-  /* MassBalanceError = (InitialSwq - snow->swq) + (RainFall + SnowFall)
-   - melt[0] + snow->vapor_flux; */
-
-  /*  printf("%d %d %g\n", y, x, MassBalanceError);*/
-
   /*melt[0] *= 1000.;*/ /* converts back to mm */
   glacier->cold_content = GlacCC;
   glacier->vapor_flux *= -1.;
   *save_advection = advection;
   *save_deltaCC_glac = deltaCC_glac;
+  *save_glacier_melt_energy = melt_energy;
   *save_grnd_flux = grnd_flux;
   *save_latent = latent_heat;
   *save_latent_sub = latent_heat_sub;
