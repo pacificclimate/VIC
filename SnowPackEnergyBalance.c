@@ -90,16 +90,12 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   /* Internal Routine Variables */
 
   double Density;                 /* Density of water/ice at TMean (kg/m3) */
-  /* double LongRadOut; */		  /* long wave radiation emitted by surface
-				     (W/m2) */
-  double NetRad;		  /* Net radiation exchange at surface 
-				     (W/m2) */
-  double RestTerm;		  /* Rest term in surface energy balance
-				     (W/m2) */
+  /* double LongRadOut; */		  /* long wave radiation emitted by surface (W/m2) */
+  double NetRad;		  /* Net radiation exchange at surface (W/m2) */
+  double RestTerm;		  /* Rest term in surface energy balance (W/m2) */
   double TMean;                   /* Average temperature for time step (C) */
   double Tmp;
-  double VaporMassFlux;           /* Mass flux of water vapor to or from the
-				     intercepted snow (kg/m2s) */
+  double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
   double BlowingMassFlux;         /* Mass flux of water vapor from blowing snow. (kg/m2s) */
   double SurfaceMassFlux;         /* Mass flux of water vapor from pack snow. (kg/m2s) */
 

@@ -255,9 +255,8 @@ double solve_snow_glac(
   }
 
   /** Compute energy balance components for snowpack */
-
-  (*NetLongSnow) *= (snow->coverage);
-  (*NetShortSnow) *= (snow->coverage);
+  (*NetLongSnow) *= (snow->coverage + *delta_coverage);
+  (*NetShortSnow) *= (snow->coverage + *delta_coverage);
   energy->latent *= (snow->coverage + *delta_coverage);
   energy->latent_sub *= (snow->coverage + *delta_coverage);
   energy->sensible *= (snow->coverage + *delta_coverage);

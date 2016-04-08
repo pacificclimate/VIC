@@ -199,7 +199,7 @@ int glacier_melt(double Le,
 
       /* since we iterated, the surface layer is below freezing and no snowmelt */
       GlacMelt = 0.0;
-      GlacCC = CH_ICE * ice_density * glacier->surf_temp * soil->GLAC_SURF_THICK;
+      GlacCC = CH_ICE * glacier->surf_temp * soil->GLAC_SURF_THICK/1000.;
 
     }
   }
