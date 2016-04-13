@@ -52,412 +52,412 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
   int file_num;
 
   if (mode == DISP_VERSION) {
-    fprintf(stderr,"***** VIC Version %s *****\n",SOURCE_VERSION);
+    fprintf(stdout,"***** VIC Version %s *****\n",SOURCE_VERSION);
     return;
   }
   else {
-    fprintf(stderr,"\n***** VIC Version %s - Current Model Settings *****\n",SOURCE_VERSION);
+    fprintf(stdout,"\n***** VIC Version %s - Current Model Settings *****\n",SOURCE_VERSION);
   }
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"COMPILE-TIME OPTIONS (set in user_def.h)\n");
-  fprintf(stderr,"----------------------------------------\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"COMPILE-TIME OPTIONS (set in user_def.h)\n");
+  fprintf(stdout,"----------------------------------------\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Output to Screen:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Output to Screen:\n");
 #if OUTPUT_FORCE_STATS
-  fprintf(stderr,"OUTPUT_FORCE_STATS\tTRUE\n");
+  fprintf(stdout,"OUTPUT_FORCE_STATS\tTRUE\n");
 #else
-  fprintf(stderr,"OUTPUT_FORCE_STATS\tFALSE\n");
+  fprintf(stdout,"OUTPUT_FORCE_STATS\tFALSE\n");
 #endif
 #if VERBOSE
-  fprintf(stderr,"VERBOSE\t\t\tTRUE\n");
+  fprintf(stdout,"VERBOSE\t\t\tTRUE\n");
 #else
-  fprintf(stderr,"VERBOSE\t\t\tFALSE\n");
+  fprintf(stdout,"VERBOSE\t\t\tFALSE\n");
 #endif
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Files:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Files:\n");
 #if NO_REWIND
-  fprintf(stderr,"NO_REWIND\t\tTRUE\n");
+  fprintf(stdout,"NO_REWIND\t\tTRUE\n");
 #else
-  fprintf(stderr,"NO_REWIND\t\tFALSE\n");
+  fprintf(stdout,"NO_REWIND\t\tFALSE\n");
 #endif
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Output Files:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Output Files:\n");
 #if LINK_DEBUG
-  fprintf(stderr,"LINK_DEBUG\t\tTRUE\n");
+  fprintf(stdout,"LINK_DEBUG\t\tTRUE\n");
 #else
-  fprintf(stderr,"LINK_DEBUG\t\tFALSE\n");
+  fprintf(stdout,"LINK_DEBUG\t\tFALSE\n");
 #endif
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Simulation Parameters:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Simulation Parameters:\n");
 #if CLOSE_ENERGY
-  fprintf(stderr,"CLOSE_ENERGY\t\tTRUE\n");
+  fprintf(stdout,"CLOSE_ENERGY\t\tTRUE\n");
 #else
-  fprintf(stderr,"CLOSE_ENERGY\t\tFALSE\n");
+  fprintf(stdout,"CLOSE_ENERGY\t\tFALSE\n");
 #endif
 #if LOW_RES_MOIST
-  fprintf(stderr,"LOW_RES_MOIST\t\tTRUE\n");
+  fprintf(stdout,"LOW_RES_MOIST\t\tTRUE\n");
 #else
-  fprintf(stderr,"LOW_RES_MOIST\t\tFALSE\n");
+  fprintf(stdout,"LOW_RES_MOIST\t\tFALSE\n");
 #endif
 #if QUICK_FS
-  fprintf(stderr,"QUICK_FS\t\tTRUE\n");
-  fprintf(stderr,"QUICK_FS_TEMPS\t%d\n",QUICK_FS_TEMPS);
+  fprintf(stdout,"QUICK_FS\t\tTRUE\n");
+  fprintf(stdout,"QUICK_FS_TEMPS\t%d\n",QUICK_FS_TEMPS);
 #else
-  fprintf(stderr,"QUICK_FS\t\tFALSE\n");
+  fprintf(stdout,"QUICK_FS\t\tFALSE\n");
 #endif
 #if SPATIAL_FROST
-  fprintf(stderr,"SPATIAL_FROST\t\tTRUE\n");
-  fprintf(stderr,"FROST_SUBAREAS\t\t%d\n",FROST_SUBAREAS);
+  fprintf(stdout,"SPATIAL_FROST\t\tTRUE\n");
+  fprintf(stdout,"FROST_SUBAREAS\t\t%d\n",FROST_SUBAREAS);
 #else
-  fprintf(stderr,"SPATIAL_FROST\t\tFALSE\n");
+  fprintf(stdout,"SPATIAL_FROST\t\tFALSE\n");
 #endif
 #if SPATIAL_SNOW
-  fprintf(stderr,"SPATIAL_SNOW\t\tTRUE\n");
+  fprintf(stdout,"SPATIAL_SNOW\t\tTRUE\n");
 #else
-  fprintf(stderr,"SPATIAL_SNOW\t\tFALSE\n");
+  fprintf(stdout,"SPATIAL_SNOW\t\tFALSE\n");
 #endif
 #if EXCESS_ICE
-  fprintf(stderr,"EXCESS_ICE\t\tTRUE\n");
+  fprintf(stdout,"EXCESS_ICE\t\tTRUE\n");
 #else
-  fprintf(stderr,"EXCESS_ICE\t\tFALSE\n");
+  fprintf(stdout,"EXCESS_ICE\t\tFALSE\n");
 #endif
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Maximum Array Sizes:\n");
-  fprintf(stderr,"MAX_BANDS\t\t%2d\n",MAX_BANDS);
-  fprintf(stderr,"MAX_FRONTS\t\t%2d\n",MAX_FRONTS);
-  fprintf(stderr,"MAX_LAKE_NODES\t\t%2d\n",MAX_LAKE_NODES);
-  fprintf(stderr,"MAX_LAYERS\t\t%2d\n",MAX_LAYERS);
-  fprintf(stderr,"MAX_NODES\t\t%2d\n",MAX_NODES);
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Snow Constants:\n");
-  fprintf(stderr,"TraceSnow\t\t%f\n",TraceSnow);
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Other Constants:\n");
-  fprintf(stderr,"LAI_WATER_FACTOR\t%f\n",LAI_WATER_FACTOR);
-  fprintf(stderr,"LWAVE_COR\t\t%f\n",LWAVE_COR);
-  fprintf(stderr,"MAXIT_FE\t\t%2d\n",MAXIT_FE);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Maximum Array Sizes:\n");
+  fprintf(stdout,"MAX_BANDS\t\t%2d\n",MAX_BANDS);
+  fprintf(stdout,"MAX_FRONTS\t\t%2d\n",MAX_FRONTS);
+  fprintf(stdout,"MAX_LAKE_NODES\t\t%2d\n",MAX_LAKE_NODES);
+  fprintf(stdout,"MAX_LAYERS\t\t%2d\n",MAX_LAYERS);
+  fprintf(stdout,"MAX_NODES\t\t%2d\n",MAX_NODES);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Snow Constants:\n");
+  fprintf(stdout,"TraceSnow\t\t%f\n",TraceSnow);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Other Constants:\n");
+  fprintf(stdout,"LAI_WATER_FACTOR\t%f\n",LAI_WATER_FACTOR);
+  fprintf(stdout,"LWAVE_COR\t\t%f\n",LWAVE_COR);
+  fprintf(stdout,"MAXIT_FE\t\t%2d\n",MAXIT_FE);
 
   if (mode == DISP_COMPILE_TIME) {
     return;
   }
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"RUN-TIME OPTIONS (set in global parameter file)\n");
-  fprintf(stderr,"-----------------------------------------------\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"RUN-TIME OPTIONS (set in global parameter file)\n");
+  fprintf(stdout,"-----------------------------------------------\n");
 
-  fprintf(stderr,"Simulation Dimensions:\n");
-  fprintf(stderr,"NLAYER\t\t\t%d\n",options.Nlayer);
+  fprintf(stdout,"Simulation Dimensions:\n");
+  fprintf(stdout,"NLAYER\t\t\t%d\n",options.Nlayer);
   if ( options.EQUAL_AREA ) {
-    fprintf(stderr,"EQUAL_AREA\t\tTRUE\n");
+    fprintf(stdout,"EQUAL_AREA\t\tTRUE\n");
   }
   else {
-    fprintf(stderr,"EQUAL_AREA\t\tFALSE\n");
+    fprintf(stdout,"EQUAL_AREA\t\tFALSE\n");
   }
-  fprintf(stderr,"RESOLUTION\t\t%f\n",global_param.resolution);
-  fprintf(stderr,"TIME_STEP\t\t%d\n",global_param.dt);
-  fprintf(stderr,"SNOW_STEP\t\t%d\n",options.SNOW_STEP);
-  fprintf(stderr,"STARTYEAR\t\t%d\n",global_param.startyear);
-  fprintf(stderr,"STARTMONTH\t\t%d\n",global_param.startmonth);
-  fprintf(stderr,"STARTDAY\t\t%d\n",global_param.startday);
-  fprintf(stderr,"STARTHOUR\t\t%d\n",global_param.starthour);
+  fprintf(stdout,"RESOLUTION\t\t%f\n",global_param.resolution);
+  fprintf(stdout,"TIME_STEP\t\t%d\n",global_param.dt);
+  fprintf(stdout,"SNOW_STEP\t\t%d\n",options.SNOW_STEP);
+  fprintf(stdout,"STARTYEAR\t\t%d\n",global_param.startyear);
+  fprintf(stdout,"STARTMONTH\t\t%d\n",global_param.startmonth);
+  fprintf(stdout,"STARTDAY\t\t%d\n",global_param.startday);
+  fprintf(stdout,"STARTHOUR\t\t%d\n",global_param.starthour);
   if ( global_param.nrecs > 0 )
-    fprintf(stderr,"NRECS\t\t%d\n",global_param.nrecs);
+    fprintf(stdout,"NRECS\t\t%d\n",global_param.nrecs);
   else {
-    fprintf(stderr,"ENDYEAR\t\t\t%d\n",global_param.endyear);
-    fprintf(stderr,"ENDMONTH\t\t%d\n",global_param.endmonth);
-    fprintf(stderr,"ENDDAY\t\t\t%d\n",global_param.endday);
+    fprintf(stdout,"ENDYEAR\t\t\t%d\n",global_param.endyear);
+    fprintf(stdout,"ENDMONTH\t\t%d\n",global_param.endmonth);
+    fprintf(stdout,"ENDDAY\t\t\t%d\n",global_param.endday);
   }
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Simulation Parameters:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Simulation Parameters:\n");
   if (options.AERO_RESIST_CANSNOW == AR_406)
-    fprintf(stderr,"AERO_RESIST_CANSNOW\t\tAR_406\n");
+    fprintf(stdout,"AERO_RESIST_CANSNOW\t\tAR_406\n");
   else if (options.AERO_RESIST_CANSNOW == AR_406_LS)
-    fprintf(stderr,"AERO_RESIST_CANSNOW\t\tAR_406_LS\n");
+    fprintf(stdout,"AERO_RESIST_CANSNOW\t\tAR_406_LS\n");
   else if (options.AERO_RESIST_CANSNOW == AR_406_FULL)
-    fprintf(stderr,"AERO_RESIST_CANSNOW\t\tAR_406_FULL\n");
+    fprintf(stdout,"AERO_RESIST_CANSNOW\t\tAR_406_FULL\n");
   else if (options.AERO_RESIST_CANSNOW == AR_410)
-    fprintf(stderr,"AERO_RESIST_CANSNOW\t\tAR_410\n");
+    fprintf(stdout,"AERO_RESIST_CANSNOW\t\tAR_410\n");
   else if (options.AERO_RESIST_CANSNOW == AR_COMBO)
-    fprintf(stderr,"AERO_RESIST_CANSNOW\t\tAR_COMBO\n");
+    fprintf(stdout,"AERO_RESIST_CANSNOW\t\tAR_COMBO\n");
   if (options.BLOWING)
-    fprintf(stderr,"BLOWING\t\t\tTRUE\n");
+    fprintf(stdout,"BLOWING\t\t\tTRUE\n");
   else
-    fprintf(stderr,"BLOWING\t\t\tFALSE\n");
+    fprintf(stdout,"BLOWING\t\t\tFALSE\n");
   if (options.COMPUTE_TREELINE)
-    fprintf(stderr,"COMPUTE_TREELINE\t\tTRUE\n");
+    fprintf(stdout,"COMPUTE_TREELINE\t\tTRUE\n");
   else
-    fprintf(stderr,"COMPUTE_TREELINE\t\tFALSE\n");
+    fprintf(stdout,"COMPUTE_TREELINE\t\tFALSE\n");
   if (options.CONTINUEONERROR == TRUE)
-    fprintf(stderr,"CONTINUEONERROR\t\tTRUE\n");
+    fprintf(stdout,"CONTINUEONERROR\t\tTRUE\n");
   else
-    fprintf(stderr,"CONTINUEONERROR\t\tFALSE\n");
+    fprintf(stdout,"CONTINUEONERROR\t\tFALSE\n");
   if (options.CORRPREC)
-    fprintf(stderr,"CORRPREC\t\tTRUE\n");
+    fprintf(stdout,"CORRPREC\t\tTRUE\n");
   else
-    fprintf(stderr,"CORRPREC\t\tFALSE\n");
+    fprintf(stdout,"CORRPREC\t\tFALSE\n");
   if (options.DIST_PRCP)
-    fprintf(stderr,"DIST_PRCP\t\tTRUE\n");
+    fprintf(stdout,"DIST_PRCP\t\tTRUE\n");
   else
-    fprintf(stderr,"DIST_PRCP\t\tFALSE\n");
+    fprintf(stdout,"DIST_PRCP\t\tFALSE\n");
   if (options.EXP_TRANS)
-    fprintf(stderr,"EXP_TRANS\t\tTRUE\n");
+    fprintf(stdout,"EXP_TRANS\t\tTRUE\n");
   else
-    fprintf(stderr,"EXP_TRANS\t\tFALSE\n");
+    fprintf(stdout,"EXP_TRANS\t\tFALSE\n");
   if (options.FROZEN_SOIL)
-    fprintf(stderr,"FROZEN_SOIL\t\tTRUE\n");
+    fprintf(stdout,"FROZEN_SOIL\t\tTRUE\n");
   else
-    fprintf(stderr,"FROZEN_SOIL\t\tFALSE\n");
+    fprintf(stdout,"FROZEN_SOIL\t\tFALSE\n");
   if (options.FULL_ENERGY)
-    fprintf(stderr,"FULL_ENERGY\t\tTRUE\n");
+    fprintf(stdout,"FULL_ENERGY\t\tTRUE\n");
   else
-    fprintf(stderr,"FULL_ENERGY\t\tFALSE\n");
+    fprintf(stdout,"FULL_ENERGY\t\tFALSE\n");
   if (options.GRND_FLUX_TYPE == GF_406)
-    fprintf(stderr,"GRND_FLUX_TYPE\t\tGF_406\n");
+    fprintf(stdout,"GRND_FLUX_TYPE\t\tGF_406\n");
   else if (options.GRND_FLUX_TYPE == GF_410)
-    fprintf(stderr,"GRND_FLUX_TYPE\t\tGF_410\n");
+    fprintf(stdout,"GRND_FLUX_TYPE\t\tGF_410\n");
   else if (options.GRND_FLUX_TYPE == GF_FULL)
-    fprintf(stderr,"GRND_FLUX_TYPE\t\tGF_FULL\n");
+    fprintf(stdout,"GRND_FLUX_TYPE\t\tGF_FULL\n");
   if (options.LW_TYPE == LW_TVA)
-    fprintf(stderr,"LW_TYPE\t\tLW_TVA\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_TVA\n");
   else if (options.LW_TYPE == LW_ANDERSON)
-    fprintf(stderr,"LW_TYPE\t\tLW_ANDERSON\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_ANDERSON\n");
   else if (options.LW_TYPE == LW_BRUTSAERT)
-    fprintf(stderr,"LW_TYPE\t\tLW_BRUTSAERT\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_BRUTSAERT\n");
   else if (options.LW_TYPE == LW_SATTERLUND)
-    fprintf(stderr,"LW_TYPE\t\tLW_SATTERLUND\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_SATTERLUND\n");
   else if (options.LW_TYPE == LW_IDSO)
-    fprintf(stderr,"LW_TYPE\t\tLW_IDSO\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_IDSO\n");
   else if (options.LW_TYPE == LW_PRATA)
-    fprintf(stderr,"LW_TYPE\t\tLW_PRATA\n");
+    fprintf(stdout,"LW_TYPE\t\tLW_PRATA\n");
   if (options.LW_CLOUD == LW_CLOUD_DEARDORFF)
-    fprintf(stderr,"LW_CLOUD\t\tLW_CLOUD_DEARDORFF\n");
+    fprintf(stdout,"LW_CLOUD\t\tLW_CLOUD_DEARDORFF\n");
   else
-    fprintf(stderr,"LW_CLOUD\t\tLW_CLOUD_BRAS\n");
+    fprintf(stdout,"LW_CLOUD\t\tLW_CLOUD_BRAS\n");
   if (options.IMPLICIT)
-    fprintf(stderr,"IMPLICIT\t\tTRUE\n");
+    fprintf(stdout,"IMPLICIT\t\tTRUE\n");
   else
-    fprintf(stderr,"IMPLICIT\t\tFALSE\n");
+    fprintf(stdout,"IMPLICIT\t\tFALSE\n");
   if (options.NOFLUX)
-    fprintf(stderr,"NOFLUX\t\t\tTRUE\n");
+    fprintf(stdout,"NOFLUX\t\t\tTRUE\n");
   else
-    fprintf(stderr,"NOFLUX\t\t\tFALSE\n");
+    fprintf(stdout,"NOFLUX\t\t\tFALSE\n");
   if (options.MTCLIM_SWE_CORR)
-    fprintf(stderr,"MTCLIM_SWE_CORR\t\tTRUE\n");
+    fprintf(stdout,"MTCLIM_SWE_CORR\t\tTRUE\n");
   else
-    fprintf(stderr,"MTCLIM_SWE_CORR\t\tFALSE\n");
+    fprintf(stdout,"MTCLIM_SWE_CORR\t\tFALSE\n");
   if (options.PLAPSE)
-    fprintf(stderr,"PLAPSE\t\tTRUE\n");
+    fprintf(stdout,"PLAPSE\t\tTRUE\n");
   else
-    fprintf(stderr,"PLAPSE\t\tFALSE\n");
+    fprintf(stdout,"PLAPSE\t\tFALSE\n");
   if (options.QUICK_FLUX)
-    fprintf(stderr,"QUICK_FLUX\t\tTRUE\n");
+    fprintf(stdout,"QUICK_FLUX\t\tTRUE\n");
   else
-    fprintf(stderr,"QUICK_FLUX\t\tFALSE\n");
+    fprintf(stdout,"QUICK_FLUX\t\tFALSE\n");
   if (options.QUICK_SOLVE)
-    fprintf(stderr,"QUICK_SOLVE\t\tTRUE\n");
+    fprintf(stdout,"QUICK_SOLVE\t\tTRUE\n");
   else
-    fprintf(stderr,"QUICK_SOLVE\t\tFALSE\n");
+    fprintf(stdout,"QUICK_SOLVE\t\tFALSE\n");
   if (options.SNOW_ALBEDO == USACE)
-    fprintf(stderr,"SNOW_ALBEDO\t\tUSACE\n");
+    fprintf(stdout,"SNOW_ALBEDO\t\tUSACE\n");
   else if (options.SNOW_ALBEDO == SUN1999)
-    fprintf(stderr,"SNOW_ALBEDO\t\tSUN1999\n");
+    fprintf(stdout,"SNOW_ALBEDO\t\tSUN1999\n");
   if (options.SNOW_DENSITY == DENS_BRAS)
-    fprintf(stderr,"SNOW_DENSITY\t\tDENS_BRAS\n");
+    fprintf(stdout,"SNOW_DENSITY\t\tDENS_BRAS\n");
   else if (options.SNOW_DENSITY == DENS_SNTHRM)
-    fprintf(stderr,"SNOW_DENSITY\t\tDENS_SNTHRM\n");
-  fprintf(stderr,"SW_PREC_THRESH\t\t%f\n",options.SW_PREC_THRESH);
+    fprintf(stdout,"SNOW_DENSITY\t\tDENS_SNTHRM\n");
+  fprintf(stdout,"SW_PREC_THRESH\t\t%f\n",options.SW_PREC_THRESH);
   if (options.TFALLBACK == TRUE)
-    fprintf(stderr,"TFALLBACK\t\tTRUE\n");
+    fprintf(stdout,"TFALLBACK\t\tTRUE\n");
   else
-    fprintf(stderr,"TFALLBACK\t\tFALSE\n");
+    fprintf(stdout,"TFALLBACK\t\tFALSE\n");
 
   if (options.VP_INTERP == TRUE)
-    fprintf(stderr,"VP_INTERP\t\tTRUE\n");
+    fprintf(stdout,"VP_INTERP\t\tTRUE\n");
   else
-    fprintf(stderr,"VP_INTERP\t\tFALSE\n");
+    fprintf(stdout,"VP_INTERP\t\tFALSE\n");
 
   if (options.VP_ITER == VP_ITER_NONE)
-    fprintf(stderr,"VP_ITER\t\tVP_ITER_NONE\n");
+    fprintf(stdout,"VP_ITER\t\tVP_ITER_NONE\n");
   else if (options.VP_ITER == VP_ITER_ALWAYS)
-    fprintf(stderr,"VP_ITER\t\tVP_ITER_ALWAYS\n");
+    fprintf(stdout,"VP_ITER\t\tVP_ITER_ALWAYS\n");
   else if (options.VP_ITER == VP_ITER_ANNUAL)
-    fprintf(stderr,"VP_ITER\t\tVP_ITER_ANNUAL\n");
+    fprintf(stdout,"VP_ITER\t\tVP_ITER_ANNUAL\n");
   else if (options.VP_ITER == VP_ITER_CONVERGE)
-    fprintf(stderr,"VP_ITER\t\tVP_ITER_CONVERGE\n");
+    fprintf(stdout,"VP_ITER\t\tVP_ITER_CONVERGE\n");
 
   if (options.TEMP_TH_TYPE == VIC_412)
-    fprintf(stderr,"TEMP_TH_TYPE\t\tVIC_412\n");
+    fprintf(stdout,"TEMP_TH_TYPE\t\tVIC_412\n");
   else
-    fprintf(stderr,"TEMP_TH_TYPE\t\tKIENZLE\n");
+    fprintf(stdout,"TEMP_TH_TYPE\t\tKIENZLE\n");
 
-  fprintf(stderr,"PREC_EXPT\t\t%f\n",options.PREC_EXPT);
-  fprintf(stderr,"WIND_H\t\t\t%f\n",global_param.wind_h);
-  fprintf(stderr,"MEASURE_H\t\t%f\n",global_param.measure_h);
-  fprintf(stderr,"NODES\t\t\t%d\n",options.Nnode);
-  fprintf(stderr,"MIN_WIND_SPEED\t\t%f\n",options.MIN_WIND_SPEED);
+  fprintf(stdout,"PREC_EXPT\t\t%f\n",options.PREC_EXPT);
+  fprintf(stdout,"WIND_H\t\t\t%f\n",global_param.wind_h);
+  fprintf(stdout,"MEASURE_H\t\t%f\n",global_param.measure_h);
+  fprintf(stdout,"NODES\t\t\t%d\n",options.Nnode);
+  fprintf(stdout,"MIN_WIND_SPEED\t\t%f\n",options.MIN_WIND_SPEED);
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Forcing Data:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Forcing Data:\n");
   for (file_num=0; file_num<2; file_num++) {
     if (IS_VALID(global_param.forceyear[file_num]) && global_param.forceyear[file_num] > 0) {
-      fprintf(stderr,"Forcing File %d:\t\t%s*\n",file_num+1,names->f_path_pfx[file_num]);
-      fprintf(stderr,"FORCEYEAR\t\t%d\n",global_param.forceyear[file_num]);
-      fprintf(stderr,"FORCEMONTH\t\t%d\n",global_param.forcemonth[file_num]);
-      fprintf(stderr,"FORCEDAY\t\t%d\n",global_param.forceday[file_num]);
-      fprintf(stderr,"FORCEHOUR\t\t%d\n",global_param.forcehour[file_num]);
-      fprintf(stderr,"N_TYPES\t\t\t%d\n",param_set.N_TYPES[file_num]);
-      fprintf(stderr,"FORCE_DT\t\t%d\n",param_set.FORCE_DT[file_num]);
+      fprintf(stdout,"Forcing File %d:\t\t%s*\n",file_num+1,names->f_path_pfx[file_num]);
+      fprintf(stdout,"FORCEYEAR\t\t%d\n",global_param.forceyear[file_num]);
+      fprintf(stdout,"FORCEMONTH\t\t%d\n",global_param.forcemonth[file_num]);
+      fprintf(stdout,"FORCEDAY\t\t%d\n",global_param.forceday[file_num]);
+      fprintf(stdout,"FORCEHOUR\t\t%d\n",global_param.forcehour[file_num]);
+      fprintf(stdout,"N_TYPES\t\t\t%d\n",param_set.N_TYPES[file_num]);
+      fprintf(stdout,"FORCE_DT\t\t%d\n",param_set.FORCE_DT[file_num]);
       if (param_set.FORCE_ENDIAN[file_num] == LITTLE)
-        fprintf(stderr,"FORCE_ENDIAN\t\tLITTLE\n");
+        fprintf(stdout,"FORCE_ENDIAN\t\tLITTLE\n");
       else
-        fprintf(stderr,"FORCE_ENDIAN\t\tBIG\n");
+        fprintf(stdout,"FORCE_ENDIAN\t\tBIG\n");
       if (param_set.FORCE_FORMAT[file_num] == BINARY)
-        fprintf(stderr,"FORCE_FORMAT\t\tBINARY\n");
+        fprintf(stdout,"FORCE_FORMAT\t\tBINARY\n");
       else if (param_set.FORCE_FORMAT[file_num] == ASCII)
-        fprintf(stderr,"FORCE_FORMAT\t\tASCII\n");
+        fprintf(stdout,"FORCE_FORMAT\t\tASCII\n");
       else
-        fprintf(stderr,"FORCE_FORMAT\t\tNETCDF\n");        
+        fprintf(stdout,"FORCE_FORMAT\t\tNETCDF\n");
     }
   }
-  fprintf(stderr,"GRID_DECIMAL\t\t%d\n",options.GRID_DECIMAL);
+  fprintf(stdout,"GRID_DECIMAL\t\t%d\n",options.GRID_DECIMAL);
   if (options.ALMA_INPUT)
-    fprintf(stderr,"ALMA_INPUT\t\tTRUE\n");
+    fprintf(stdout,"ALMA_INPUT\t\tTRUE\n");
   else
-    fprintf(stderr,"ALMA_INPUT\t\tFALSE\n");
+    fprintf(stdout,"ALMA_INPUT\t\tFALSE\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Soil Data:\n");
-  fprintf(stderr,"Soil file\t\t%s\n",names->soil);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Soil Data:\n");
+  fprintf(stdout,"Soil file\t\t%s\n",names->soil);
   if (options.ARC_SOIL) {
-    fprintf(stderr,"ARC_SOIL\t\tTRUE\n");
-    fprintf(stderr,"Soil dir\t\t%s\n",names->soil_dir);
+    fprintf(stdout,"ARC_SOIL\t\tTRUE\n");
+    fprintf(stdout,"Soil dir\t\t%s\n",names->soil_dir);
   }
   else
-    fprintf(stderr,"ARC_SOIL\t\tFALSE\n");
+    fprintf(stdout,"ARC_SOIL\t\tFALSE\n");
   if (options.BASEFLOW == ARNO)
-    fprintf(stderr,"BASEFLOW\t\tARNO\n");
+    fprintf(stdout,"BASEFLOW\t\tARNO\n");
   else if (options.BASEFLOW == NIJSSEN2001)
-    fprintf(stderr,"BASEFLOW\t\tNIJSSEN2001\n");
+    fprintf(stdout,"BASEFLOW\t\tNIJSSEN2001\n");
   if (options.JULY_TAVG_SUPPLIED)
-    fprintf(stderr,"JULY_TAVG_SUPPLIED\t\tTRUE\n");
+    fprintf(stdout,"JULY_TAVG_SUPPLIED\t\tTRUE\n");
   else
-    fprintf(stderr,"JULY_TAVG_SUPPLIED\t\tFALSE\n");
+    fprintf(stdout,"JULY_TAVG_SUPPLIED\t\tFALSE\n");
   if (options.ORGANIC_FRACT)
-    fprintf(stderr,"ORGANIC_FRACT\t\tTRUE\n");
+    fprintf(stdout,"ORGANIC_FRACT\t\tTRUE\n");
   else
-    fprintf(stderr,"ORGANIC_FRACT\t\tFALSE\n");
+    fprintf(stdout,"ORGANIC_FRACT\t\tFALSE\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Veg Data:\n");
-  fprintf(stderr,"Veg library file\t%s\n",names->veglib);
-  fprintf(stderr,"Veg param file\t\t%s\n",names->veg);
-  fprintf(stderr,"ROOT_ZONES\t\t%d\n",options.ROOT_ZONES);
-  fprintf(stderr, "GLACIER_ID\t\t%d\n", options.GLACIER_ID);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Veg Data:\n");
+  fprintf(stdout,"Veg library file\t%s\n",names->veglib);
+  fprintf(stdout,"Veg param file\t\t%s\n",names->veg);
+  fprintf(stdout,"ROOT_ZONES\t\t%d\n",options.ROOT_ZONES);
+  fprintf(stdout, "GLACIER_ID\t\t%d\n", options.GLACIER_ID);
   if (options.VEGPARAM_LAI)
-    fprintf(stderr,"VEGPARAM_LAI\t\tTRUE\n");
+    fprintf(stdout,"VEGPARAM_LAI\t\tTRUE\n");
   else
-    fprintf(stderr,"VEGPARAM_LAI\t\tFALSE\n");
+    fprintf(stdout,"VEGPARAM_LAI\t\tFALSE\n");
   if (options.LAI_SRC == LAI_FROM_VEGPARAM)
-    fprintf(stderr,"LAI_SRC\t\tLAI_FROM_VEGPARAM\n");
+    fprintf(stdout,"LAI_SRC\t\tLAI_FROM_VEGPARAM\n");
   else if (options.LAI_SRC == LAI_FROM_VEGLIB)
-    fprintf(stderr,"LAI_SRC\t\tLAI_FROM_VEGLIB\n");
+    fprintf(stdout,"LAI_SRC\t\tLAI_FROM_VEGLIB\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Elevation Data:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Elevation Data:\n");
   if (options.SNOW_BAND > 1)
-    fprintf(stderr,"SNOW_BAND\t\t%d\t%s\n",options.SNOW_BAND,names->snowband);
+    fprintf(stdout,"SNOW_BAND\t\t%d\t%s\n",options.SNOW_BAND,names->snowband);
   else if (options.SNOW_BAND == 1)
-    fprintf(stderr,"SNOW_BAND\t\t%d\t(no input file needed for SNOW_BAND=1)\n",options.SNOW_BAND);
+    fprintf(stdout,"SNOW_BAND\t\t%d\t(no input file needed for SNOW_BAND=1)\n",options.SNOW_BAND);
   else
-    fprintf(stderr,"SNOW_BAND\t\t%d\n",options.SNOW_BAND);
+    fprintf(stdout,"SNOW_BAND\t\t%d\n",options.SNOW_BAND);
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input Lake Data:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input Lake Data:\n");
   if (options.LAKES)
-    fprintf(stderr,"LAKES\t\tTRUE\t%s\n",names->lakeparam);
+    fprintf(stdout,"LAKES\t\tTRUE\t%s\n",names->lakeparam);
   else
-    fprintf(stderr,"LAKES\t\tFALSE\n");
+    fprintf(stdout,"LAKES\t\tFALSE\n");
   if (options.LAKE_PROFILE)
-    fprintf(stderr,"LAKE_PROFILE\t\tTRUE\n");
+    fprintf(stdout,"LAKE_PROFILE\t\tTRUE\n");
   else
-    fprintf(stderr,"LAKE_PROFILE\t\tFALSE\n");
+    fprintf(stdout,"LAKE_PROFILE\t\tFALSE\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Input State File:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Input State File:\n");
   if (options.INIT_STATE) {
-    fprintf(stderr,"INIT_STATE\t\tTRUE\t%s\n",names->init_state);
+    fprintf(stdout,"INIT_STATE\t\tTRUE\t%s\n",names->init_state);
     if (options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE)
-      fprintf(stderr,"STATE_FORMAT\tBINARY_STATEFILE\n");
+      fprintf(stdout,"STATE_FORMAT\tBINARY_STATEFILE\n");
     else if (options.STATE_FORMAT == StateOutputFormat::ASCII_STATEFILE)
-      fprintf(stderr,"STATE_FORMAT\tASCII\n");
+      fprintf(stdout,"STATE_FORMAT\tASCII\n");
     else
-      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE");
+      fprintf(stdout,"STATE_FORMAT\tNETCDF_STATEFILE");
   }
   else
-    fprintf(stderr,"INIT_STATE\t\tFALSE\n");
+    fprintf(stdout,"INIT_STATE\t\tFALSE\n");
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Output State File:\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Output State File:\n");
   if (options.SAVE_STATE) {
-    fprintf(stderr,"SAVE_STATE\t\tTRUE\n");
-    fprintf(stderr,"STATENAME\t\t%s\n",names->statefile);
-    fprintf(stderr,"STATEYEAR\t\t%d\n",global_param.stateyear);
-    fprintf(stderr,"STATEMONTH\t\t%d\n",global_param.statemonth);
-    fprintf(stderr,"STATEDAY\t\t%d\n",global_param.stateday);
+    fprintf(stdout,"SAVE_STATE\t\tTRUE\n");
+    fprintf(stdout,"STATENAME\t\t%s\n",names->statefile);
+    fprintf(stdout,"STATEYEAR\t\t%d\n",global_param.stateyear);
+    fprintf(stdout,"STATEMONTH\t\t%d\n",global_param.statemonth);
+    fprintf(stdout,"STATEDAY\t\t%d\n",global_param.stateday);
     if (options.STATE_FORMAT == StateOutputFormat::BINARY_STATEFILE)
-      fprintf(stderr,"STATE_FORMAT\tBINARY_STATEFILE\n");
+      fprintf(stdout,"STATE_FORMAT\tBINARY_STATEFILE\n");
     else if (options.STATE_FORMAT == StateOutputFormat::ASCII_STATEFILE)
-      fprintf(stderr,"STATE_FORMAT\tASCII\n");
+      fprintf(stdout,"STATE_FORMAT\tASCII\n");
     else
-      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE");
+      fprintf(stdout,"STATE_FORMAT\tNETCDF_STATEFILE");
   }
   else {
-    fprintf(stderr,"SAVE_STATE\t\tFALSE\n");
+    fprintf(stdout,"SAVE_STATE\t\tFALSE\n");
   }
 
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Output Data:\n");
-  fprintf(stderr,"Result dir:\t\t%s\n",names->result_dir);
-  fprintf(stderr,"OUT_STEP\t\t%d\n",global_param.out_dt);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Output Data:\n");
+  fprintf(stdout,"Result dir:\t\t%s\n",names->result_dir);
+  fprintf(stdout,"OUT_STEP\t\t%d\n",global_param.out_dt);
   if (options.ALMA_OUTPUT)
-    fprintf(stderr,"ALMA_OUTPUT\t\tTRUE\n");
+    fprintf(stdout,"ALMA_OUTPUT\t\tTRUE\n");
   else
-    fprintf(stderr,"ALMA_OUTPUT\t\tFALSE\n");
+    fprintf(stdout,"ALMA_OUTPUT\t\tFALSE\n");
 
   WriteOutputContext context(this);
-  fprintf(stderr, "OUTPUT_FORMAT\t\t%s\n", context.outputFormat->getDescriptionOfOutputType());
+  fprintf(stdout, "OUTPUT_FORMAT\t\t%s\n", context.outputFormat->getDescriptionOfOutputType());
 
   if (options.OUTPUT_FORCE)
-  	fprintf(stderr, "OUTPUT_FORCE\t\tTRUE\n");
+  	fprintf(stdout, "OUTPUT_FORCE\t\tTRUE\n");
   else
-  	fprintf(stderr, "OUTPUT_FORCE\t\tFALSE\n");
+  	fprintf(stdout, "OUTPUT_FORCE\t\tFALSE\n");
 
-  fprintf(stderr, "PARALLEL_THREADS\t%d\n", global_param.num_threads);
+  fprintf(stdout, "PARALLEL_THREADS\t%d\n", global_param.num_threads);
 
   if (options.COMPRESS)
-    fprintf(stderr,"COMPRESS\t\tTRUE\n");
+    fprintf(stdout,"COMPRESS\t\tTRUE\n");
   else
-    fprintf(stderr,"COMPRESS\t\tFALSE\n");
+    fprintf(stdout,"COMPRESS\t\tFALSE\n");
   if (options.MOISTFRACT)
-    fprintf(stderr,"MOISTFRACT\t\tTRUE\n");
+    fprintf(stdout,"MOISTFRACT\t\tTRUE\n");
   else
-    fprintf(stderr,"MOISTFRACT\t\tFALSE\n");
+    fprintf(stdout,"MOISTFRACT\t\tFALSE\n");
   if (options.PRT_HEADER)
-    fprintf(stderr,"PRT_HEADER\t\tTRUE\n");
+    fprintf(stdout,"PRT_HEADER\t\tTRUE\n");
   else
-    fprintf(stderr,"PRT_HEADER\t\tFALSE\n");
+    fprintf(stdout,"PRT_HEADER\t\tFALSE\n");
   if (options.PRT_SNOW_BAND)
-    fprintf(stderr,"PRT_SNOW_BAND\t\tTRUE\n");
+    fprintf(stdout,"PRT_SNOW_BAND\t\tTRUE\n");
   else
-    fprintf(stderr,"PRT_SNOW_BAND\t\tFALSE\n");
-  fprintf(stderr,"SKIPYEAR\t\t%d\n",global_param.skipyear);
-  fprintf(stderr,"\n");
+    fprintf(stdout,"PRT_SNOW_BAND\t\tFALSE\n");
+  fprintf(stdout,"SKIPYEAR\t\t%d\n",global_param.skipyear);
+  fprintf(stdout,"\n");
 
 }

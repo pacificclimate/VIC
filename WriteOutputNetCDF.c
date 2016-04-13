@@ -176,7 +176,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
   int timeSize = getLengthOfTimeDimension(state);
   //int timeSize = state->global_param.nrecs; //new
   int valuesSize = MAX_BANDS;
-  fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld, time: %d\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions, timeSize);
+  fprintf(stdout, "Setting up grid dimensions, lat size: %ld, lon size: %ld, time: %d\n", (size_t)state->global_param.gridNumLatDivisions, (size_t)state->global_param.gridNumLonDivisions, timeSize);
 
   NcDim latDim = ncFile.addDim("lat", (size_t)state->global_param.gridNumLatDivisions);
   NcDim lonDim = ncFile.addDim("lon", (size_t)state->global_param.gridNumLonDivisions);
@@ -261,7 +261,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
   // Define a netCDF variable. For example, fluxes, snow.
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
-    fprintf(stderr, "parent variable: %s\n", dataFiles[file_idx]->prefix);
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
       bool use4Dimensions = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
@@ -270,7 +269,7 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
         throw VICException("Error: could not find variable in output_mapping: " + varName);
       }
       VariableMetaData metaData = state->output_mapping.at(varName);
-      fprintf(stderr, "WriteOutputNetCDF initializeFile: adding variable: %s (NetCDF output variable name: %s)\n", varName.c_str(), metaData.name.c_str());
+      fprintf(stdout, "WriteOutputNetCDF initializeFile: adding variable: %s (NetCDF output variable name: %s)\n", varName.c_str(), metaData.name.c_str());
 
       if (metaData.isBands) {
         throw VICException("Error: bands not supported yet on variable output mapping " + varName);
@@ -392,7 +391,7 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
 
-//			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
+//			  		fprintf(stdout, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
 
 			// Create temporary array of data for this variable across all cells
 			float *vardata, *vardata_ptr;
