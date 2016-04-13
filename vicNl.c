@@ -424,13 +424,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Write output file headers at initialization (does nothing in the NetCDF output format case)
     if (state->options.PRT_HEADER) {
       // Use out_data_list as a template for constructing the header of the output file (in ASCII mode)
-//      out_data_struct out_data_template = copy_output_data(out_data_list, state);
-
-    	// NOTE: commented out next 3 lines and replaced with vector-based implementation, as per vector implementation of copy_output_data.  NEED TO TEST THIS IN ASCII MODE
-//      out_data_struct* out_data_template;
-//      copy_output_data(out_data_template, out_data_list, state);
-//      cell_data_structs[cellidx].outputFormat->write_header(out_data_template, dmy, state);
-//
        std::vector<out_data_struct*> out_data_template;
        copy_output_data(out_data_template, out_data_list, state);
        cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
@@ -450,13 +443,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  delete cell_data_structs[cellidx].outputFormat;
 		  free(current_output_data[cellidx]->data);
 		  free(current_output_data[cellidx]->aggdata);
-
-		  // Reset the aggdata for all variables
-//		  for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
-//			  for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
-//				  current_output_data[cellidx][var_idx].aggdata[elem] = 0;
-//			  }
-//		  }
 	  }
   } // for - grid cell loop
 
