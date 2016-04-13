@@ -345,7 +345,7 @@ int initializeCell(cell_info_struct& cell,
        Have not Been Specifically Set
        **************************************************/
   #if VERBOSE
-      fprintf(stderr, "Initializing Forcing Data for cell at %4.5f %4.5f\n", cell.soil_con.lat, cell.soil_con.lng);
+      fprintf(stderr, "Initializing Forcing Data for cell at %4.5f %4.5f...\n", cell.soil_con.lat, cell.soil_con.lng);
   #endif /* VERBOSE */
 // NOTE: this should only be done for valid cells
   /** allocate memory for the atmos_data_struct **/
@@ -439,7 +439,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
   forcing data array is written to file(s), and the full model run is skipped. */
 	  if (state->options.OUTPUT_FORCE) {
-		  fprintf(stderr, "Writing to forcing file...\n\n");
+		  fprintf(stderr, "Writing to output forcing file...\n\n");
 
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
