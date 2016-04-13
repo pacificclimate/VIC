@@ -140,7 +140,7 @@ void StateIONetCDF::initializeOutput() {
 
   // Set up the dimensions and variables.
 
-  fprintf(stderr, "Setting up grid dimensions, lat size: %ld, lon size: %ld\n",
+  fprintf(stdout, "Setting up grid dimensions, lat size: %ld, lon size: %ld\n",
       (size_t) state->global_param.gridNumLatDivisions,
       (size_t) state->global_param.gridNumLonDivisions);
 

@@ -215,7 +215,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       sscanf(token, "%f", &temp.lng);
 #if VERBOSE
       /* add print statements for grid cell number -- EDM */
-      fprintf(stderr,"\ncell: %d,  lat: %.5f, lon: %.5f\n",temp.gridcel,temp.lat,temp.lng);
+      fprintf(stdout,"\ncell: %d,  lat: %.5f, lon: %.5f\n",temp.gridcel,temp.lat,temp.lng);
 #endif
 
       /* read infiltration parameter */

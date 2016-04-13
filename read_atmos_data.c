@@ -209,7 +209,7 @@ void read_atmos_data(FILE                 *infile,
     	        throw VICException("Error: could not find forcing variable in forcing_mapping: " + variableKey);
     	}
     	std::string varName = state->forcing_mapping.at(variableKey);
-      fprintf(stderr,
+      fprintf(stdout,
           "Reading NetCDF forcing variable %s (NetCDF input variable name %s), slice [%d..%d,%d..%d,%d..%d] ... ",
           state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname,
 					varName.c_str(),
@@ -247,7 +247,7 @@ void read_atmos_data(FILE                 *infile,
                 nc_strerror(ncerr));
             exit(1);
           }
-          fprintf(stderr, "done\n");
+          fprintf(stdout, "done\n");
           /* FIXME (and below) handle missing value (probably by bailing, because this data should be contiguous) */
           if (has_inverse_scale_factor)
             /* Implemented for numerically-identical operation to classic VIC input */
@@ -295,7 +295,7 @@ void read_atmos_data(FILE                 *infile,
 								nc_strerror(ncerr));
 						exit(1);
 					}
-          fprintf(stderr, "done\n");
+          fprintf(stdout, "done\n");
         	for (int rec = 0; rec < nforcesteps; rec++)
         	  forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = (double) data[rec];
 					free(data);
@@ -310,7 +310,7 @@ void read_atmos_data(FILE                 *infile,
 								nc_strerror(ncerr));
 						exit(1);
 					}
-          fprintf(stderr, "done\n");
+          fprintf(stdout, "done\n");
         	for (int rec = 0; rec < nforcesteps; rec++)
         	  forcing_data[state->param_set.FORCE_INDEX[file_num][varidx]][rec] = data[rec];
 					free(data);
