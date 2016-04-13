@@ -206,7 +206,6 @@ int glacier_melt(double Le,
 
   melt[0] = GlacMelt;
 
-  /*melt[0] *= 1000.;*/ /* converts back to mm */
   glacier->cold_content = GlacCC;
   glacier->vapor_flux *= -1.;
   *save_advection = advection;

@@ -34,8 +34,7 @@ int snow_melt_glac(double latent_heat_Le,
 
   double error;
   double DeltaPackCC; /* Change in cold content of the pack */
-  double DeltaPackSwq; /* Change in snow water equivalent of the
-   pack (m) */
+  double DeltaPackSwq; /* Change in snow water equivalent of the pack (m) */
   double Ice; /* Ice content of snow pack (m)*/
   double InitialSwq; /* Initial snow water equivalent (m) */
   double MassBalanceError; /* Mass balance error (m) */
@@ -342,7 +341,6 @@ int snow_melt_glac(double latent_heat_Le,
   }
 
   /* Update the liquid water content of the pack */
-
   MaxLiquidWater = LIQUID_WATER_CAPACITY * PackSwq;
   if (snow->pack_water > MaxLiquidWater) {
     melt[0] = snow->pack_water - MaxLiquidWater;

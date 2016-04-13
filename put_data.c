@@ -625,13 +625,13 @@ int  put_data(cell_info_struct  *cell,
 				  -out_data[OUT_GLAC_DELTACC].data[0] - out_data[OUT_GLAC_MELT_ENERGY].data[0],
 			      state->global_param.nrecs, &cell->cellErrors);
 
-    fprintf(stderr, "\%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
+    /* fprintf(stderr, "\%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
       		rec, out_data[OUT_NET_SHORT].data[0], out_data[OUT_NET_LONG].data[0], out_data[OUT_LATENT].data[0], out_data[OUT_LATENT_SUB].data[0],
   			out_data[OUT_SENSIBLE].data[0], out_data[OUT_ADV_SENS].data[0], out_data[OUT_GRND_FLUX].data[0], out_data[OUT_DELTAH].data[0],
   			out_data[OUT_FUSION].data[0], out_data[OUT_ADVECTION].data[0], out_data[OUT_DELTACC].data[0], out_data[OUT_SNOW_FLUX].data[0],
   			out_data[OUT_RFRZ_ENERGY].data[0], out_data[OUT_GLAC_DELTACC].data[0], out_data[OUT_GLAC_FLUX].data[0], out_data[OUT_GLAC_MELT_ENERGY].data[0],
   			out_data[OUT_RAINF].data[0], out_data[OUT_SNOWF].data[0], out_data[OUT_SWE].data[0], out_data[OUT_SNOW_MELT].data[0], out_data[OUT_REFREEZE].data[0],
-  			out_data[OUT_SURF_TEMP].data[0], out_data[OUT_SNOW_SURF_TEMP].data[0], out_data[OUT_SNOW_PACK_TEMP].data[0], out_data[OUT_GLAC_SURF_TEMP].data[0]);
+  			out_data[OUT_SURF_TEMP].data[0], out_data[OUT_SNOW_SURF_TEMP].data[0], out_data[OUT_SNOW_PACK_TEMP].data[0], out_data[OUT_GLAC_SURF_TEMP].data[0]); */
   }
 
 

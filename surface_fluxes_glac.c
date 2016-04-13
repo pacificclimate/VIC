@@ -283,8 +283,8 @@ int surface_fluxes_glac(
     LongUnderOut = step_energy.LongUnderOut;
 
     /* Debugging */
-    if (rec == 1411)
-  	  fprintf(stderr, "Record %i\n", rec);
+    /* if (rec == 1411)
+  	  fprintf(stderr, "Record %i\n", rec); */
 
     if (step_snow.swq > 0. || snowfall[WET] > 0.) {
       /** Solve snow accumulation and ablation on the glacier surface **/
