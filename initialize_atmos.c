@@ -327,10 +327,9 @@ void initialize_atmos(atmos_data_struct        *atmos,
   }
 
   /* Scale precipitation using PADJ */
-
-  for (int idx = 0; idx < (state->global_param.nrecs*state->NF); idx++) {
+  /* for (int idx = 0; idx < (state->global_param.nrecs*state->NF); idx++) {
     forcing_data[PREC][idx] *= soil_con->PADJ;
-  }
+  } */
 
   /*************************************************
     If provided, translate WIND_E and WIND_N into WIND

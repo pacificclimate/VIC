@@ -151,14 +151,13 @@ double solve_snow(char     overstory,
   ppt[WET] = 0.; 
   ppt[DRY] = 0.; 
 
-  /* initialize storage for energy consumed in changing snowpack
-     cover fraction */
+  /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
 
-  /** Calculate Fraction of Precipitation that falls as Rain **/
+  /** Calculate Fraction of Precipitation that falls as Rain; scale rainfall and snowfall**/
   rainonly = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, MIN_RAIN_TEMP, precipitation_mu, state);
-  snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly);
-  rainfall[WET] = gauge_correction[RAIN] * rainonly;
+  snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly) * soil_con->PADJ_S;
+  rainfall[WET] = gauge_correction[RAIN] * rainonly * soil_con->PADJ_R;
   snowfall[DRY] = 0.;
   rainfall[DRY] = 0.;
 
@@ -170,8 +169,7 @@ double solve_snow(char     overstory,
   /** Compute latent heats **/
   (*latent_heat_Le) = (2.501e6 - 0.002361e6 * air_temp);
 
-  /** verify that distributed precipitation fraction equals 1 if
-      snow is present or falling **/
+  /** verify that distributed precipitation fraction equals 1 if snow is present or falling **/
   if ( ( snow->swq > 0 || snowfall[WET] > 0.
 	 || (snow->snow_canopy>0. && overstory) ) ) {
     if ( precipitation_mu != 1 && state->options.FULL_ENERGY ) {
