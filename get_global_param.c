@@ -1219,7 +1219,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     }
 
     /*********************************
-    Output major options to stdout
+    Output major options to stderr
     *********************************/
 #if VERBOSE
     this->display_current_settings(DISP_ALL,names);
@@ -1228,53 +1228,53 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
 #endif
 
 #if VERBOSE
-    fprintf(stdout,"Time Step = %d hour(s)\n",global_param.dt);
-    fprintf(stdout,"Simulation start date = %02i/%02i/%04i\n",
+    fprintf(stderr,"Time Step = %d hour(s)\n",global_param.dt);
+    fprintf(stderr,"Simulation start date = %02i/%02i/%04i\n",
             global_param.startday, global_param.startmonth, global_param.startyear);
     if (IS_VALID(global_param.nrecs) && global_param.nrecs > 0 )
-      fprintf(stdout,"Number of Records = %d\n\n",global_param.nrecs);
+      fprintf(stderr,"Number of Records = %d\n\n",global_param.nrecs);
     else 
-      fprintf(stdout,"Simulation end date = %02i/%02i/%04i\n\n",
+      fprintf(stderr,"Simulation end date = %02i/%02i/%04i\n\n",
               global_param.endday, global_param.endmonth, global_param.endyear);
-    fprintf(stdout,"Full Energy...................(%d)\n",options.FULL_ENERGY);
-    fprintf(stdout,"Use Distributed Precipitation.(%d)\n",options.DIST_PRCP);
+    fprintf(stderr,"Full Energy...................(%d)\n",options.FULL_ENERGY);
+    fprintf(stderr,"Use Distributed Precipitation.(%d)\n",options.DIST_PRCP);
     if(options.DIST_PRCP)
-      fprintf(stdout,"..Using Precipitation Exponent of %f\n",options.PREC_EXPT);
-    fprintf(stdout,"Ground heat flux will be estimated ");
+      fprintf(stderr,"..Using Precipitation Exponent of %f\n",options.PREC_EXPT);
+    fprintf(stderr,"Ground heat flux will be estimated ");
     if ( options.QUICK_FLUX ) 
-      fprintf(stdout,"using Liang, Wood and Lettenmaier (1999).\n");
+      fprintf(stderr,"using Liang, Wood and Lettenmaier (1999).\n");
     else 
-      fprintf(stdout,"using Cherkauer and Lettenmaier (1999).\n");
-    fprintf(stdout,"Use Frozen Soil Model.........(%d)\n",options.FROZEN_SOIL);
+      fprintf(stderr,"using Cherkauer and Lettenmaier (1999).\n");
+    fprintf(stderr,"Use Frozen Soil Model.........(%d)\n",options.FROZEN_SOIL);
     if( options.IMPLICIT ) 
-      fprintf(stdout,".... Using the implicit solution for the soil heat equation.\n");
+      fprintf(stderr,".... Using the implicit solution for the soil heat equation.\n");
     else
-      fprintf(stdout,".... Using the explicit solution for the soil heat equation.\n");
+      fprintf(stderr,".... Using the explicit solution for the soil heat equation.\n");
     if( options.EXP_TRANS )
-      fprintf(stdout,".... Thermal nodes are exponentially distributed with depth.\n");
+      fprintf(stderr,".... Thermal nodes are exponentially distributed with depth.\n");
     else
-      fprintf(stdout,".... Thermal nodes are linearly distributed with depth (except top two nodes).\n");
+      fprintf(stderr,".... Thermal nodes are linearly distributed with depth (except top two nodes).\n");
     if( EXCESS_ICE )
-      fprintf(stdout,".... Excess ground ice is being considered.\n\t\tTherefore, ground ice (as a volumetric fraction) must be initialized for each\n\t\t   soil layer in the soil file.\n\t\tCAUTION: When excess ice melts, subsidence occurs.\n\t\t  Therefore, soil layer depths, damping depth, thermal node depths,\n\t\t     bulk densities, porosities, and other properties are now dynamic!\n\t\t  EXERCISE EXTREME CAUTION IN INTERPRETING MODEL OUTPUT.\n\t\t  It is recommended to add OUT_SOIL_DEPTH to your list of output variables.\n");
+      fprintf(stderr,".... Excess ground ice is being considered.\n\t\tTherefore, ground ice (as a volumetric fraction) must be initialized for each\n\t\t   soil layer in the soil file.\n\t\tCAUTION: When excess ice melts, subsidence occurs.\n\t\t  Therefore, soil layer depths, damping depth, thermal node depths,\n\t\t     bulk densities, porosities, and other properties are now dynamic!\n\t\t  EXERCISE EXTREME CAUTION IN INTERPRETING MODEL OUTPUT.\n\t\t  It is recommended to add OUT_SOIL_DEPTH to your list of output variables.\n");
     if ( QUICK_FS ){
-      fprintf(stdout,".... Using linearized UFWC curve with %d temperatures.\n", QUICK_FS_TEMPS);
+      fprintf(stderr,".... Using linearized UFWC curve with %d temperatures.\n", QUICK_FS_TEMPS);
     }
-    fprintf(stdout,"Run Snow Model Using a Time Step of %d hours\n",
+    fprintf(stderr,"Run Snow Model Using a Time Step of %d hours\n", 
             options.SNOW_STEP);
-    fprintf(stdout,"Compress Output Files.........(%d)\n",options.COMPRESS);
-    fprintf(stdout,"Correct Precipitation.........(%d)\n",options.CORRPREC);
-    fprintf(stdout,"\n");
-    fprintf(stdout,"Using %d Snow Bands\n",options.SNOW_BAND);
-    fprintf(stdout,"Using %d Root Zones\n",options.ROOT_ZONES);
+    fprintf(stderr,"Compress Output Files.........(%d)\n",options.COMPRESS);
+    fprintf(stderr,"Correct Precipitation.........(%d)\n",options.CORRPREC);
+    fprintf(stderr,"\n");
+    fprintf(stderr,"Using %d Snow Bands\n",options.SNOW_BAND);
+    fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
     if ( options.SAVE_STATE )
-      fprintf(stdout,"Model state will be saved on = %02i/%02i/%04i\n\n",
+      fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
               global_param.stateday, global_param.statemonth, global_param.stateyear);
     if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
-      fprintf(stdout,"Model output is in standard BINARY format.\n");
+      fprintf(stderr,"Model output is in standard BINARY format.\n");
     } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
-      fprintf(stdout,"Model output is in standard ASCII format.\n");
+      fprintf(stderr,"Model output is in standard ASCII format.\n");
     } else if (options.OUTPUT_FORMAT == OutputFormat::NETCDF_FORMAT) {
-      fprintf(stdout, "Model output is in NETCDF format.\n");
+      fprintf(stderr, "Model output is in NETCDF format.\n");
     } else {
       fprintf(stderr, "Warning: model output is undefined (should be either BINARY, ASCII, or NETCDF).\n");
     }
