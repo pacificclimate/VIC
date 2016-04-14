@@ -360,25 +360,27 @@ int initializeCell(cell_info_struct& cell,
   /**************************************************
    Initialize Energy Balance and Snow Variables
    **************************************************/
+  if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
       fprintf(stderr, "\nInitialising Model State\n");
 #endif
-  int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
+	  int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
 
-  if (ErrorFlag == ERROR) {
-    if (state->options.CONTINUEONERROR == TRUE) {
-      // Handle grid cell solution error
-      fprintf(stderr,
-          "Error initializing the model state (energy balance, water balance, and snow components) for cell %d (method initialize_model_state).  Cell has been marked as invalid and will be skipped for remainder of model run.\n",
-          cell.soil_con.gridcel);
-      return ERROR;
-    } else {
-      // Else exit program on cell solution error as in previous versions
-      sprintf(cell.ErrStr,
-          "Error initializing cell %d (method initialize_model_state).  Check your inputs before rerunning the simulation.  Exiting.\n",
-          cell.soil_con.gridcel);
-      vicerror(cell.ErrStr);
-    }
+	  if (ErrorFlag == ERROR) {
+		if (state->options.CONTINUEONERROR == TRUE) {
+		  // Handle grid cell solution error
+		  fprintf(stderr,
+			  "Error initializing the model state (energy balance, water balance, and snow components) for cell %d (method initialize_model_state).  Cell has been marked as invalid and will be skipped for remainder of model run.\n",
+			  cell.soil_con.gridcel);
+		  return ERROR;
+		} else {
+		  // Else exit program on cell solution error as in previous versions
+		  sprintf(cell.ErrStr,
+			  "Error initializing cell %d (method initialize_model_state).  Check your inputs before rerunning the simulation.  Exiting.\n",
+			  cell.soil_con.gridcel);
+		  vicerror(cell.ErrStr);
+		}
+	  }
   }
       return 0;
 }
