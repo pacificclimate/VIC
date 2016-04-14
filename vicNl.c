@@ -461,7 +461,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  init_end = std::chrono::system_clock::now();
 		  elapsed_init = init_end - init_start;
 #if VERBOSE
-		  fprintf(stderr, "Done. Elapsed time reading & writing forcings for this cell: %f seconds\n",  elapsed_init.count());
+		  fprintf(stderr, "Done. Elapsed time reading, generating, and writing forcings for this cell: %.3f seconds\n",  elapsed_init.count());
 #endif
 	  }
   } // for - grid cell loop
@@ -470,7 +470,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	  init_end = std::chrono::system_clock::now();
 	  elapsed_init = init_end - init_start;
 #if VERBOSE
-	  fprintf(stderr, "Done. Elapsed time reading forcings and initializing the model: %f seconds\n\n",  elapsed_init.count());
+	  fprintf(stderr, "Done. Elapsed time reading forcings and initializing the model: %.3f seconds\n\n",  elapsed_init.count());
       fprintf(stderr, "Running Model...\n");
 #endif
       start = std::chrono::system_clock::now();
@@ -592,17 +592,17 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 #if VERBOSE
 #if PARALLEL_AVAILABLE
 		if (state->global_param.num_threads > 1){
-			fprintf(stderr, "\nVIC model run done. Total parallel processing time: %f seconds\n", elapsed_seconds.count());
+			fprintf(stderr, "\nVIC model run done. Model execution time (parallel): %.3f seconds\n", elapsed_seconds.count());
 		}
 		else {
-			fprintf(stderr, "\nVIC model run done. Total serial processing time: %f seconds\n", elapsed_seconds.count());
+			fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_seconds.count());
 		}
 #else
-		fprintf(stderr, "\nVIC model run done. Total serial processing time: %f seconds\n", elapsed_seconds.count());
+		fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_seconds.count());
 #endif
 	} // Disagg mode does not use multithreading
 	else {
-		fprintf(stderr, "\nVIC forcings disaggregation done. Total processing time: %f seconds\n", elapsed_seconds.count());
+		fprintf(stderr, "\nVIC disaggregated forcings generation done. Total processing time (serial): %.3f seconds\n", elapsed_seconds.count());
 	}
 #endif // VERBOSE
 
