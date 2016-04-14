@@ -246,7 +246,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   forcing_data = read_forcing_data(infile, ncids, state->global_param, soil_con, state);
   
-  fprintf(stdout,"Finished reading meteorological forcing file\n");
+  fprintf(stderr,"\nRead meteorological forcing file\n");
 
   /*************************************************
     Pre-processing
@@ -1326,7 +1326,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
 //    if (local_forcing_data[i] != NULL)
 //      free((char *)local_forcing_data[i]);
       free(local_forcing_data[i]);
-//fprintf(stdout,"freed type %d\n",i);
+//fprintf(stderr,"freed type %d\n",i);
   }
 //  free((char *)forcing_data);
   free(forcing_data);

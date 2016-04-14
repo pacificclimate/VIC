@@ -42,7 +42,7 @@ FILE *open_file(const char *string, const char *type)
   stream = fopen(string,type);
 
 #if VERBOSE
-  fprintf(stdout,"\n");
+  fprintf(stderr,"\n");
 #endif
 
   if (stream == NULL) {
@@ -60,7 +60,7 @@ FILE *open_file(const char *string, const char *type)
 
     /** uncompress and open zipped file **/
 #if VERBOSE
-    fprintf(stdout,"unzipping \"%s\".",string);
+    fprintf(stderr,"unzipping \"%s\".",string);
 #endif
 
     sprintf(command,"gzip -d %s",zipname);
@@ -74,13 +74,13 @@ FILE *open_file(const char *string, const char *type)
   }
 
 #if VERBOSE
-  fprintf(stdout,"\n \"%s\" has been",string);
+  fprintf(stderr,"\n \"%s\" has been",string);
 #endif
 
   if(strcmp(type,"r") == 0) {
 
 #if VERBOSE
-    fprintf(stdout,"\n  opened for reading.");
+    fprintf(stderr,"\n  opened for reading.");
 #endif
 
     temp=fgetc(stream);
@@ -88,7 +88,7 @@ FILE *open_file(const char *string, const char *type)
     if(temp==35) {
 
 #if VERBOSE
-      fprintf(stdout,"... skipping header");
+      fprintf(stderr,"... skipping header");
 #endif
 
       headcnt = 0;
@@ -105,32 +105,31 @@ FILE *open_file(const char *string, const char *type)
   }
 
 #if VERBOSE
-  if(strcmp(type,"rb") == 0) fprintf(stdout,"\n  opened for reading.");
+  if(strcmp(type,"rb") == 0) fprintf(stderr,"\n  opened for reading.");
 
-  if(strcmp(type,"w") == 0) fprintf(stdout,"\n  truncated or created for writing.");
+  if(strcmp(type,"w") == 0) fprintf(stderr,"\n  truncated or created for writing.");
 
-  if(strcmp(type,"wb") == 0) fprintf(stdout,"\n  truncated or created for writing.");
+  if(strcmp(type,"wb") == 0) fprintf(stderr,"\n  truncated or created for writing.");
 
   if(strcmp(type,"a") == 0) {
-    fprintf(stdout,"\n  opened or created for writing at");
-    fprintf(stdout,"\n  the end-of-file.");
+    fprintf(stderr,"\n  opened or created for writing at");
+    fprintf(stderr,"\n  the end-of-file.");
   }
 
   if(strcmp(type,"r+") == 0)
-  fprintf(stdout,"\n  opened for update (reading and writing).");
+  fprintf(stderr,"\n  opened for update (reading and writing).");
 
   if(strcmp(type,"w+") == 0)
-  fprintf(stdout,"\n  truncated or updated for update.");
+  fprintf(stderr,"\n  truncated or updated for update.");
 
   if(strcmp(type,"a+") == 0) {
-    fprintf(stdout,"\n  opened or created for updating at");
-    fprintf(stdout,"\n  the end-of-file.");
+    fprintf(stderr,"\n  opened or created for updating at");
+    fprintf(stderr,"\n  the end-of-file.");
   }
 
-  fprintf(stdout,"\n");
+  fprintf(stderr,"\n");
 #endif
 
-  fflush(stdout);
   fflush(stderr);
 
   return stream;
