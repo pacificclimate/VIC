@@ -309,81 +309,81 @@ int data_alloc(const control_struct *ctrl, data_struct *data)
   ndays = ctrl->ndays;
   
   if (ok && ctrl->inyear && !(data->year = (int*) malloc(ndays * sizeof(int)))) {
-    printf("Error allocating for year array\n");
+	fprintf(stderr, "Error allocating for year array\n");
     ok=0;
   } 
   if (ok && !(data->yday = (int*) malloc(ndays * sizeof(int)))) {
-    printf("Error allocating for yearday array\n");
+	fprintf(stderr, "Error allocating for yearday array\n");
     ok=0;
   } 
   if (ok && !(data->tmax = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for tmax array\n");
+	fprintf(stderr, "Error allocating for tmax array\n");
     ok=0;
   }
   if (ok && !(data->tmin = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for tmin array\n");
+	fprintf(stderr, "Error allocating for tmin array\n");
     ok=0;
   }
   if (ok && !(data->prcp = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for prcp array\n");
+	fprintf(stderr, "Error allocating for prcp array\n");
     ok=0;
   }
   if (ok && ctrl->indewpt && 
       !(data->tdew = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for input humidity array\n");
+	fprintf(stderr, "Error allocating for input humidity array\n");
     ok=0;
   }
   if (ok && !(data->s_tmax = (double*) malloc(ndays * sizeof(double))))	{
-    printf("Error allocating for site Tmax array\n");
+	fprintf(stderr, "Error allocating for site Tmax array\n");
     ok=0;
   }
   if (ok && !(data->s_tmin = (double*) malloc(ndays * sizeof(double))))	{
-    printf("Error allocating for site Tmin array\n");
+	fprintf(stderr, "Error allocating for site Tmin array\n");
     ok=0;
   }
   if (ok && !(data->s_tday = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site Tday array\n");
+	fprintf(stderr, "Error allocating for site Tday array\n");
     ok=0;
   }
   if (ok && !(data->s_prcp = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site prcp array\n");
+	fprintf(stderr, "Error allocating for site prcp array\n");
     ok=0;
   }
   if (ok && !(data->s_hum = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site VPD array\n");
+	fprintf(stderr, "Error allocating for site VPD array\n");
     ok=0;
   }
   if (ok && !(data->s_srad = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site radiation array\n");
+	fprintf(stderr, "Error allocating for site radiation array\n");
     ok=0;
   }
   if (ok && !(data->s_dayl = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site daylength array\n");
+	fprintf(stderr, "Error allocating for site daylength array\n");
     ok=0;
   }
   if (ok && !(data->s_swe = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site snowpack array\n");
+	fprintf(stderr, "Error allocating for site snowpack array\n");
     ok=0;
   }
   /* start vic_change */
   if (ok && !(data->s_tskc = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site cloudiness array\n");
+	fprintf(stderr, "Error allocating for site cloudiness array\n");
     ok=0;
   }
   if (ok && !(data->s_ppratio = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site pet/prcp ratio array\n");
+	fprintf(stderr, "Error allocating for site pet/prcp ratio array\n");
     ok=0;
   }
   if (ok && !(data->s_tfmax = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site pet/prcp ratio array\n");
+	fprintf(stderr, "Error allocating for site pet/prcp ratio array\n");
     ok=0;
   }
   if (ok && !(data->s_potrad = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site pet/prcp ratio array\n");
+	fprintf(stderr, "Error allocating for site pet/prcp ratio array\n");
     ok=0;
   }
   if (ok && !(data->s_ttmax = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for site pet/prcp ratio array\n");
+	fprintf(stderr, "Error allocating for site pet/prcp ratio array\n");
     ok=0;
   }
   /* end vic_change */
@@ -515,7 +515,7 @@ int snowpack(const control_struct *ctrl, const parameter_struct *p,
     }
   }
 //for (i=0 ; i<ndays ; i++) {
-//fprintf(stdout,"i %d swe %f\n",i,data->s_swe[i]);
+//fprintf(stderr,"i %d swe %f\n",i,data->s_swe[i]);
 //}
 
   return (!ok);
@@ -591,11 +591,11 @@ int calc_srad_humidity(const control_struct *ctrl, const parameter_struct *p,
   /* estimate radiation using Tdew observations */
   /* allocate space for DTR and smoothed DTR arrays */
   if (!(dtr = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for DTR array\n");
+	fprintf(stderr, "Error allocating for DTR array\n");
     ok=0;
   }
   if (!(sm_dtr = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for smoothed DTR array\n");
+	fprintf(stderr, "Error allocating for smoothed DTR array\n");
     ok=0;
   }
   
@@ -610,13 +610,13 @@ int calc_srad_humidity(const control_struct *ctrl, const parameter_struct *p,
   /* smooth dtr array using a 30-day antecedent smoothing window */
   if (ndays >= 30) {
     if (pulled_boxcar(dtr, sm_dtr, ndays, 30, 0)) {
-      printf("Error in boxcar smoothing, calc_srad_humidity()\n");
+      fprintf(stderr, "Error in boxcar smoothing, calc_srad_humidity()\n");
       ok=0;
     }
   }
   else /* smoothing window width = ndays */ {
     if (pulled_boxcar(dtr, sm_dtr, ndays, ndays, 0)) {
-      printf("Error in boxcar smoothing, calc_srad_humidity()\n");
+      fprintf(stderr, "Error in boxcar smoothing, calc_srad_humidity()\n");
       ok=0;
     }
   }
@@ -900,7 +900,7 @@ data->s_tfmax[i] = t_fmax;
       if (sc > 100.0) sc = 100.0;
     }
     else sc = 0.0;
-//fprintf(stdout,"i %d sc %f\n",i,sc);
+//fprintf(stderr,"i %d sc %f\n",i,sc);
 
     /* save daily radiation and daylength */
 data->s_potrad[i] = (srad1+srad2+sc)/t_final;
@@ -916,17 +916,17 @@ data->s_potrad[i] = (srad1+srad2+sc)/t_final;
   
   /* allocate space for effective annual precip array */
   if (!(parray = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for effective annual precip array\n");
+	fprintf(stderr, "Error allocating for effective annual precip array\n");
     ok=0;
   }
   /* allocate space for the prcp totaling array */
   if (!(window = (double*) malloc((ndays+90)*sizeof(double)))) {
-    printf("Error allocating for prcp totaling array\n");
+	fprintf(stderr, "Error allocating for prcp totaling array\n");
     ok = 0;
   }
   /* allocate space for Tdew array */
   if (!(tdew = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for Tdew array\n");
+	fprintf(stderr, "Error allocating for Tdew array\n");
     ok=0;
   }
 
@@ -1015,7 +1015,7 @@ data->s_ppratio[i] = ratio*365.25;
     tdewk = tmink*(-0.127 + 1.121*(1.003 - 1.444*ratio + 12.312*ratio2 
                   - 32.766*ratio3) + 0.0006*(dtr[i]));
     tdew[i] = tdewk - KELVIN;
-//fprintf(stdout,"i %d tmink %f ratio %f tdew %f\n",i,tmink,ratio,tdew[i]);
+//fprintf(stderr,"i %d tmink %f ratio %f tdew %f\n",i,tmink,ratio,tdew[i]);
 
   }
 
@@ -1023,7 +1023,7 @@ data->s_ppratio[i] = ratio*365.25;
 
     /* now calculate vapor pressure from tdew */
     for (i=0 ; i<ndays ; i++) {
-//fprintf(stdout,"i %d tdew %f\n",i,tdew[i]);
+//fprintf(stderr,"i %d tdew %f\n",i,tdew[i]);
       /* start vic_change */
       /* pva = 610.7 * exp(17.38 * tdew[i] / (239.0 + tdew[i])); */
       pva = svp(tdew[i]);
@@ -1125,51 +1125,51 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   /* local array memory allocation */
   /* allocate space for DTR and smoothed DTR arrays */
   if (!(dtr = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for DTR array\n");
+	fprintf(stderr, "Error allocating for DTR array\n");
     ok=0;
   }
   if (!(sm_dtr = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for smoothed DTR array\n");
+	fprintf(stderr, "Error allocating for smoothed DTR array\n");
     ok=0;
   }
   /* allocate space for effective annual precip array */
   if (!(parray = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for effective annual precip array\n");
+	fprintf(stderr, "Error allocating for effective annual precip array\n");
     ok=0;
   }
   /* allocate space for the prcp totaling array */
   if (!(window = (double*) malloc((ndays+90)*sizeof(double)))) {
-    printf("Error allocating for prcp totaling array\n");
+	fprintf(stderr, "Error allocating for prcp totaling array\n");
     ok = 0;
   }
   /* allocate space for t_fmax */
   if (!(t_fmax = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for p_tt_max array\n");
-      ok=0;
+	fprintf(stderr, "Error allocating for p_tt_max array\n");
+    ok=0;
   }
   /* allocate space for Tdew array */
   if (!(tdew = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for Tdew array\n");
+	fprintf(stderr, "Error allocating for Tdew array\n");
     ok=0;
   }
   /* allocate space for pet array */
   if (!(pet = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for pet array\n");
+	fprintf(stderr, "Error allocating for pet array\n");
     ok=0;
   }
   /* allocate space for pva array */
   if (!(pva = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for pva array\n");
+	fprintf(stderr, "Error allocating for pva array\n");
     ok=0;
   }
   /* allocate space for tdew_save array */
   if (!(tdew_save = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for tdew_save array\n");
+	fprintf(stderr, "Error allocating for tdew_save array\n");
     ok=0;
   }
   /* allocate space for pva_save array */
   if (!(pva_save = (double*) malloc(ndays * sizeof(double)))) {
-    printf("Error allocating for pva_save array\n");
+	fprintf(stderr, "Error allocating for pva_save array\n");
     ok=0;
   }
 
@@ -1185,13 +1185,13 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   /* smooth dtr array: After Bristow and Campbell, 1984 */
   if (ndays >= 30) { /* use 30-day antecedent smoothing window */
     if (pulled_boxcar(dtr, sm_dtr, ndays, 30, 0)) {
-      printf("Error in boxcar smoothing, calc_srad_humidity()\n");
+      fprintf(stderr, "Error in boxcar smoothing, calc_srad_humidity()\n");
       ok=0;
     }
   }
   else { /* smoothing window width = ndays */
     if (pulled_boxcar(dtr, sm_dtr, ndays, ndays, 0)) {
-      printf("Error in boxcar smoothing, calc_srad_humidity()\n");
+      fprintf(stderr, "Error in boxcar smoothing, calc_srad_humidity()\n");
       ok=0;
     }
   }
@@ -1546,7 +1546,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
   /* humidity algorithm decision: 
   PET/prcp >= 2.5 -> arid correction
   PET/prcp <  2.5 -> use tdew=tmin */
-  printf("PET/PRCP = %.4lf\n",ann_pet/ann_prcp);
+  fprintf(stderr, "mtclim: PET/PRCP = %.4lf\n",ann_pet/ann_prcp);
 
   /* Reset humidity terms if no iteration desired */
   if (ctrl->indewpt || ctrl->invp || (state->options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) ) {
@@ -1558,7 +1558,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
 
   /* Set up srad-humidity iterations */
   if (state->options.VP_ITER == VP_ITER_ALWAYS || (state->options.VP_ITER == VP_ITER_ANNUAL && ann_pet/ann_prcp >= 2.5) || state->options.VP_ITER == VP_ITER_CONVERGE) {
-    printf("Using arid-climate humidity algorithm\n");
+    fprintf(stderr, "mtclim: Using arid-climate humidity algorithm\n");
     if (state->options.VP_ITER == VP_ITER_CONVERGE) {
       max_iter = 100;
     }
@@ -1567,7 +1567,7 @@ int calc_srad_humidity_iterative(const control_struct *ctrl,
     }
   }
   else {
-    printf("Using Tdew=Tmin humidity algorithm\n");
+	fprintf(stderr, "mtclim: Using Tdew=Tmin humidity algorithm\n");
     max_iter = 1;
   }
 
@@ -1705,7 +1705,7 @@ void compute_srad_humidity_onetime(int ndays, const control_struct *ctrl,
       if (sc > 100.0) sc = 100.0;
     }
     else sc = 0.0;
-//fprintf(stdout,"i %d sc %f\n",i,sc);
+//fprintf(stderr,"i %d sc %f\n",i,sc);
 
     /* save daily radiation */
     data->s_potrad[i] = (srad1+srad2+sc)/t_final;
@@ -1867,13 +1867,13 @@ int pulled_boxcar(double *input,double *output,int n,int w,int w_flag)
   double total,sum_wt;
   
   if (w > n) {
-    printf("Boxcar longer than array...\n");
-    printf("Resize boxcar and try again\n");
+	fprintf(stderr, "Boxcar longer than array...\n");
+	fprintf(stderr, "Resize boxcar and try again\n");
     ok=0;
   }
   
   if (ok && !(wt = (double*) malloc(w * sizeof(double)))) {
-    printf("Allocation error in boxcar()\n");
+	fprintf(stderr, "Allocation error in boxcar()\n");
     ok=0;
   }
   

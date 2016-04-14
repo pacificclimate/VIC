@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
   }
 
 #if VERBOSE
-  fprintf(stderr, "VIC exiting.\n");
+  fprintf(stderr, "\nVIC exiting.\n");
 #endif /* VERBOSE */
 
   return EXIT_SUCCESS;
@@ -344,9 +344,9 @@ int initializeCell(cell_info_struct& cell,
        Initialize Meteorological Forcing Values That
        Have not Been Specifically Set
        **************************************************/
-  #if VERBOSE
-      fprintf(stderr, "Initializing Forcing Data for cell at %4.5f %4.5f\n", cell.soil_con.lat, cell.soil_con.lng);
-  #endif /* VERBOSE */
+#if VERBOSE
+      fprintf(stderr, "\nInitialising Forcing Data for cell at %4.5f %4.5f...\n", cell.soil_con.lat, cell.soil_con.lng);
+#endif
 // NOTE: this should only be done for valid cells
   /** allocate memory for the atmos_data_struct **/
   cell.atmos = alloc_atmos(state->global_param.nrecs, state->NR);
@@ -360,9 +360,9 @@ int initializeCell(cell_info_struct& cell,
   /**************************************************
    Initialize Energy Balance and Snow Variables
    **************************************************/
-  #if VERBOSE
-      fprintf(stderr, "Model State Initialization\n"); //TODO: add information about which cell
-  #endif /* VERBOSE */
+#if VERBOSE
+      fprintf(stderr, "\nInitialising Model State\n");
+#endif
   int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
 
   if (ErrorFlag == ERROR) {
@@ -398,13 +398,27 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	WriteOutputNetCDF *outputwriter = new WriteOutputNetCDF(state);
 	outputwriter->openFile();
 
-#if PARALLEL_AVAILABLE
-    	std::chrono::time_point<std::chrono::system_clock> start, end;
-#endif
+	/* Performance timing variables:
+	 * (end - start) measures total time from cells initialization to program completion (just before memory clean-up).
+	 * (init_end - init_start) measures time spent in cells initialization (or processing one cell, when OUTPUT_FORCE=TRUE)
+	 */
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::duration<double> elapsed_seconds;
+    std::chrono::time_point<std::chrono::system_clock> init_start, init_end;
+	std::chrono::duration<double> elapsed_init;
+
+	if (!state->options.OUTPUT_FORCE) {
+		init_start = std::chrono::system_clock::now();
+	}
+	else {
+		start = std::chrono::system_clock::now();
+	}
 
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
-
+	if (state->options.OUTPUT_FORCE) {
+		init_start = std::chrono::system_clock::now();
+	}
   	int initError = 0;
     initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     if (initError == ERROR) {
@@ -424,13 +438,6 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Write output file headers at initialization (does nothing in the NetCDF output format case)
     if (state->options.PRT_HEADER) {
       // Use out_data_list as a template for constructing the header of the output file (in ASCII mode)
-//      out_data_struct out_data_template = copy_output_data(out_data_list, state);
-
-    	// NOTE: commented out next 3 lines and replaced with vector-based implementation, as per vector implementation of copy_output_data.  NEED TO TEST THIS IN ASCII MODE
-//      out_data_struct* out_data_template;
-//      copy_output_data(out_data_template, out_data_list, state);
-//      cell_data_structs[cellidx].outputFormat->write_header(out_data_template, dmy, state);
-//
        std::vector<out_data_struct*> out_data_template;
        copy_output_data(out_data_template, out_data_list, state);
        cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
@@ -439,8 +446,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
   forcing data array is written to file(s), and the full model run is skipped. */
 	  if (state->options.OUTPUT_FORCE) {
-		  fprintf(stderr, "Writing to forcing file...\n\n");
-
+#if VERBOSE
+		  fprintf(stderr, "Writing to output forcing file...\n");
+#endif
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
 				cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
@@ -450,25 +458,22 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  delete cell_data_structs[cellidx].outputFormat;
 		  free(current_output_data[cellidx]->data);
 		  free(current_output_data[cellidx]->aggdata);
-
-		  // Reset the aggdata for all variables
-//		  for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {
-//			  for (int elem=0; elem<out_data_list[var_idx].nelem; elem++) {
-//				  current_output_data[cellidx][var_idx].aggdata[elem] = 0;
-//			  }
-//		  }
+		  init_end = std::chrono::system_clock::now();
+		  elapsed_init = init_end - init_start;
+#if VERBOSE
+		  fprintf(stderr, "Done. Elapsed time reading & writing forcings for this cell: %f seconds\n",  elapsed_init.count());
+#endif
 	  }
   } // for - grid cell loop
 
   if (!state->options.OUTPUT_FORCE) {
+	  init_end = std::chrono::system_clock::now();
+	  elapsed_init = init_end - init_start;
 #if VERBOSE
-        fprintf(stderr, "Running Model...\n");
-#endif /* VERBOSE */
-#if PARALLEL_AVAILABLE
-        if (state->global_param.num_threads > 1){
-        	start = std::chrono::system_clock::now();
-        }
+	  fprintf(stderr, "Done. Elapsed time reading forcings and initializing the model: %f seconds\n\n",  elapsed_init.count());
+      fprintf(stderr, "Running Model...\n");
 #endif
+      start = std::chrono::system_clock::now();
   }
   /********************************************************
      Run Model for all Grid Cells, one Time Step at a time
@@ -577,19 +582,29 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  // Reset the step count
 			state->step_count = 0;
     }
-//  	fprintf(stderr,".");
   } // for - time loop
 
 	delete outputwriter;
 
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end - start;
+	if (!state->options.OUTPUT_FORCE) {
+#if VERBOSE
 #if PARALLEL_AVAILABLE
-	if ((!state->options.OUTPUT_FORCE) && (state->global_param.num_threads > 1)){
-		end = std::chrono::system_clock::now();
-		std::chrono::duration<double> elapsed_seconds = end-start;
-		std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-		std::cout << "elapsed time in parallel loop: " << elapsed_seconds.count() << " seconds\n";
-	}
+		if (state->global_param.num_threads > 1){
+			fprintf(stderr, "\nVIC model run done. Total parallel processing time: %f seconds\n", elapsed_seconds.count());
+		}
+		else {
+			fprintf(stderr, "\nVIC model run done. Total serial processing time: %f seconds\n", elapsed_seconds.count());
+		}
+#else
+		fprintf(stderr, "\nVIC model run done. Total serial processing time: %f seconds\n", elapsed_seconds.count());
 #endif
+	} // Disagg mode does not use multithreading
+	else {
+		fprintf(stderr, "\nVIC forcings disaggregation done. Total processing time: %f seconds\n", elapsed_seconds.count());
+	}
+#endif // VERBOSE
 
   // Close NetCDF forcing file
   if(state->param_set.FORCE_FORMAT[0] == NETCDF)

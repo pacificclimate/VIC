@@ -261,7 +261,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
   // Define a netCDF variable. For example, fluxes, snow.
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
-    fprintf(stderr, "parent variable: %s\n", dataFiles[file_idx]->prefix);
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
       bool use4Dimensions = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
@@ -270,8 +269,9 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
         throw VICException("Error: could not find variable in output_mapping: " + varName);
       }
       VariableMetaData metaData = state->output_mapping.at(varName);
+#if VERBOSE
       fprintf(stderr, "WriteOutputNetCDF initializeFile: adding variable: %s (NetCDF output variable name: %s)\n", varName.c_str(), metaData.name.c_str());
-
+#endif
       if (metaData.isBands) {
         throw VICException("Error: bands not supported yet on variable output mapping " + varName);
       } else {
