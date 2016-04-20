@@ -176,7 +176,9 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_ADV_SENS_BAND", 		VariableMetaData("W m-2", "ADV_SENS_BAND", "", "Net sensible flux advected to snow pack", "time: mean area: mean")},
 		{"OUT_ADVECTION_BAND",     	VariableMetaData("W m-2", "ADVECTION_BAND", "", "advected energy", "time: mean area: mean")},
 		{"OUT_ALBEDO_BAND",    		VariableMetaData("1", "ALBEDO_BAND", "surface_albedo", "Average surface albedo", "time: point area: mean")},
+		{"OUT_AREA_BAND",			VariableMetaData("1", "AREA_BAND", "", "Band area", "time: point area: sum")},
 		{"OUT_DELTACC_BAND",     	VariableMetaData("W m-2", "DELTACC_BAND", "", "Change in cold content in snow pack", "time: mean area: mean")},
+		{"OUT_ELEV_BAND",     		VariableMetaData("m", "ELEV_BAND", "", "Band elevation", "time: point area: median")},
 		{"OUT_GRND_FLUX_BAND",     	VariableMetaData("W m-2", "GRND_FLUX_BAND", "downward_heat_flux_at_ground_level_in_soil", "Net heat flux into ground", "time: mean area: mean")},
 		{"OUT_IN_LONG_BAND",    	VariableMetaData("W m-2", "IN_LONG_BAND", "", "Incoming longwave at ground surface (under vegetation) ", "time: mean area: mean")},
 		{"OUT_LATENT_BAND",    		VariableMetaData("W m-2", "LATENT_BAND", "surface_upward_latent_heat_flux", "net upward latent heat flux", "time: mean area: mean")},
@@ -214,7 +216,7 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_GLAC_FLUX",    		VariableMetaData("W m-2", "GLAC_FLUX", "", "energy flux through glacier surface layer", "time: mean area: mean")},
 		{"OUT_GLAC_MELT_ENERGY",	VariableMetaData("W m-2", "GLAC_MELT_ENERGY", "", "energy used to thaw glacier ice", "time: mean area: mean")},
 		//Glacier band-specific quantities
-		{"OUT_GLAC_AREA_BAND",     	VariableMetaData("1", "GLAC_AREA_BAND", "", "Glacier surface area fraction", "")},
+		{"OUT_GLAC_AREA_BAND",     	VariableMetaData("1", "GLAC_AREA_BAND", "", "Glacier surface area fraction", "time: point area: sum")},
 		{"OUT_GLAC_WAT_STOR_BAND",	VariableMetaData("mm", "GLAC_WAT_STOR_BAND", "", "Glacier water storage", "")},
 		{"OUT_GLAC_ACCUM_BAND",    	VariableMetaData("mm", "GLAC_ACCUM_BAND", "", "Glacier ice accumulation from conversion of firn to ice", "time: mean area: mean")},
 		{"OUT_GLAC_IMBAL_BAND",   	VariableMetaData("mm", "GLAC_IMBAL_BAND", "", "Glacier ice mass balance", "time: mean area: mean")},

@@ -289,6 +289,10 @@ int  put_data(cell_info_struct  *cell,
         if(ThisAreaFract > 0. && ( hru->isArtificialBareSoil
            || ( !cell->soil_con.AboveTreeLine[band] || (cell->soil_con.AboveTreeLine[band] && !overstory)))) {
 
+           /** Record band elevation - repeatedly overwritten, but will retain last value for each band **/
+           out_data[OUT_ELEV_BAND].data[band] = cell->soil_con.BandElev[hru->bandIndex];
+
+
           /*******************************************************
             Store Output for Wet and Dry Fractions
           *******************************************************/
@@ -1143,6 +1147,9 @@ void collect_eb_terms(const energy_bal_struct& energy,
   }
   double bandFactor = Cv * lakefactor / AreaFract;
 
+  /** record band area **/
+  out_data[OUT_AREA_BAND].data[band] += (Cv * lakefactor);
+
   /** record band snow water equivalent **/
   out_data[OUT_SWE_BAND].data[band] += snow.swq * bandFactor * 1000.;
 
@@ -1213,7 +1220,7 @@ void collect_eb_terms(const energy_bal_struct& energy,
     out_data[OUT_GLAC_DELTACC_BAND].data[band] += energy.deltaCC_glac;
     out_data[OUT_GLAC_FLUX_BAND].data[band] += energy.glacier_flux;
     out_data[OUT_GLAC_WAT_STOR_BAND].data[band] += glacier.water_storage * 1000.;
-    out_data[OUT_GLAC_AREA_BAND].data[band] += bandFactor;
+    out_data[OUT_GLAC_AREA_BAND].data[band] += Cv;
     out_data[OUT_GLAC_MBAL_BAND].data[band] += glacier.mass_balance * 1000.;
     out_data[OUT_GLAC_IMBAL_BAND].data[band] +=  glacier.ice_mass_balance * 1000.;
     out_data[OUT_GLAC_ACCUM_BAND].data[band] +=  glacier.accumulation * 1000.;
