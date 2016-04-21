@@ -418,7 +418,7 @@ void StateIONetCDF::populateMetaData() {
   metaData[SNOW_SURF_WATER] =         StateVariableMetaData("SNOW_SURF_WATER", HRU_DIM);
   metaData[SNOW_PACK_TEMP] =          StateVariableMetaData("SNOW_PACK_TEMP", HRU_DIM);
   metaData[SNOW_PACK_WATER] =         StateVariableMetaData("SNOW_PACK_WATER", HRU_DIM);
-  metaData[SNOW_DENSITY] =            StateVariableMetaData("SNOW_DENSITY"), HRU_DIM;
+  metaData[SNOW_DENSITY] =            StateVariableMetaData("SNOW_DENSITY", HRU_DIM);
   metaData[SNOW_COLD_CONTENT] =       StateVariableMetaData("SNOW_COLD_CONTENT", HRU_DIM);
   metaData[SNOW_CANOPY] =             StateVariableMetaData("SNOW_CANOPY", HRU_DIM);
   metaData[ENERGY_T] =                StateVariableMetaData("ENERGY_T", HRU_DIM, NODES_DIM);
