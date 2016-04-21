@@ -357,7 +357,6 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state);
-//void copy_output_format(WriteOutputContext* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void   init_output_list(out_data_struct *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
@@ -402,7 +401,6 @@ double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
 int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
-//int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, ProgramState*);
 
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
@@ -415,9 +413,7 @@ soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
-// MDF: changed read_vegparam return type to int to accommodate determination of max_num_HRUs
 int read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
-//void read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
 int redistribute_during_storm(HRU& hru, int rec, double Wdmax, double new_mu,
     double *max_moist, const ProgramState* state);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
@@ -434,7 +430,6 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
-//int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, const char *, int, const char *, int, float);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
 double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
