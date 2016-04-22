@@ -373,17 +373,17 @@ int StateIONetCDF::getCurrentDimensionIndex(StateVariables::StateVariableDimensi
 
 void StateIONetCDF::populateMetaDimensions() {
   using namespace StateVariables;
-  metaDimensions[NO_DIM] = StateVariableDimension("no_dim", 1);
-  metaDimensions[LAT_DIM] = StateVariableDimension(LAT_DIM_STR, state->global_param.gridNumLatDivisions);
-  metaDimensions[LON_DIM] = StateVariableDimension(LON_DIM_STR, state->global_param.gridNumLonDivisions);
-  metaDimensions[BNDS_DIM]= StateVariableDimension("bnds", 2);
-  metaDimensions[LAYERS_DIM] = StateVariableDimension("Nlayers", state->options.Nlayer);
-  metaDimensions[NODES_DIM] = StateVariableDimension("Nnodes", state->options.Nnode);
-  metaDimensions[LAKE_NODES_DIM] = StateVariableDimension("lake_active_nodes", MAX_LAKE_NODES+1);
+  metaDimensions[NO_DIM] = 						StateVariableDimension("no_dim", 1);
+  metaDimensions[LAT_DIM] = 					StateVariableDimension(LAT_DIM_STR, state->global_param.gridNumLatDivisions);
+  metaDimensions[LON_DIM] = 					StateVariableDimension(LON_DIM_STR, state->global_param.gridNumLonDivisions);
+  metaDimensions[BNDS_DIM]= 					StateVariableDimension("bnds", 2);
+  metaDimensions[LAYERS_DIM] = 				StateVariableDimension("Nlayers", state->options.Nlayer);
+  metaDimensions[NODES_DIM] = 				StateVariableDimension("Nnodes", state->options.Nnode);
+  metaDimensions[LAKE_NODES_DIM] = 		StateVariableDimension("lake_active_nodes", MAX_LAKE_NODES+1);
   metaDimensions[FROST_LAYER_AREAS_DIM] = StateVariableDimension("frost_layer_subareas", state->options.Nlayer * FROST_SUBAREAS);
-  metaDimensions[FROST_AREAS_DIM] = StateVariableDimension("frost_subareas", FROST_SUBAREAS);
-  metaDimensions[HRU_DIM] = StateVariableDimension("hru", state->max_num_HRUs);
-  metaDimensions[DIST_DIM] = StateVariableDimension("dist", 2); // Wet and dry.
+  metaDimensions[FROST_AREAS_DIM] = 	StateVariableDimension("frost_subareas", FROST_SUBAREAS);
+  metaDimensions[HRU_DIM] = 					StateVariableDimension("hru", state->max_num_HRUs);
+  metaDimensions[DIST_DIM] = 					StateVariableDimension("dist", 2); // Wet and dry.
   metaDimensions[GLAC_MASS_BALANCE_INFO_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);
 }
 
@@ -395,7 +395,7 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
   metaData[NUM_BANDS] =               StateVariableMetaData(NUM_BANDS_STR);
   metaData[VEG_TYPE_NUM] =            StateVariableMetaData(VEG_TYPE_NUM_STR);
 
-  metaData[GLAC_MASS_BALANCE_INFO] = StateVariableMetaData("GLAC_MASS_BALANCE_INFO", GLAC_MASS_BALANCE_INFO_DIM);
+  metaData[GLAC_MASS_BALANCE_INFO] = 	StateVariableMetaData("GLAC_MASS_BALANCE_INFO", GLAC_MASS_BALANCE_INFO_DIM);
 
   metaData[SOIL_DZ_NODE] =            StateVariableMetaData("SOIL_DZ_NODE", NODES_DIM);
   metaData[SOIL_ZSUM_NODE] =          StateVariableMetaData("SOIL_ZSUM_NODE", NODES_DIM);
@@ -411,84 +411,84 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
 
   metaData[SNOW_CANOPY] =             StateVariableMetaData("SNOW_CANOPY", HRU_DIM);
   metaData[SNOW_DENSITY] =            StateVariableMetaData("SNOW_DENSITY", HRU_DIM);
-  metaData[SNOW_DEPTH] = StateVariableMetaData("SNOW_DEPTH", HRU_DIM);
+  metaData[SNOW_DEPTH] = 							StateVariableMetaData("SNOW_DEPTH", HRU_DIM);
   metaData[SNOW_PACK_WATER] =         StateVariableMetaData("SNOW_PACK_WATER", HRU_DIM);
   metaData[SNOW_SURF_WATER] =         StateVariableMetaData("SNOW_SURF_WATER", HRU_DIM);
   metaData[SNOW_SWQ] =                StateVariableMetaData("SNOW_SWQ", HRU_DIM);
 
   // HRU glacier water storage
-  metaData[GLAC_WATER_STORAGE] = StateVariableMetaData("GLAC_WATER_STORAGE", HRU_DIM);
+  metaData[GLAC_WATER_STORAGE] = 			StateVariableMetaData("GLAC_WATER_STORAGE", HRU_DIM);
 
   // HRU glacier mass balance
-  metaData[GLAC_CUM_MASS_BALANCE] = StateVariableMetaData("GLAC_CUM_MASS_BALANCE", HRU_DIM);
+  metaData[GLAC_CUM_MASS_BALANCE] = 	StateVariableMetaData("GLAC_CUM_MASS_BALANCE", HRU_DIM);
 
   // HRU snow pack, glacier and soil energy
   metaData[ENERGY_T] =                StateVariableMetaData("ENERGY_T", HRU_DIM, NODES_DIM);
-  metaData[ENERGY_TFOLIAGE] = StateVariableMetaData("ENERGY_TFOLIAGE");
-  metaData[GLAC_SURF_TEMP] = StateVariableMetaData("GLAC_SURF_TEMP");
+  metaData[ENERGY_TFOLIAGE] = 				StateVariableMetaData("ENERGY_TFOLIAGE");
+  metaData[GLAC_SURF_TEMP] = 					StateVariableMetaData("GLAC_SURF_TEMP");
   metaData[SNOW_COLD_CONTENT] =       StateVariableMetaData("SNOW_COLD_CONTENT", HRU_DIM);
   metaData[SNOW_PACK_TEMP] =          StateVariableMetaData("SNOW_PACK_TEMP", HRU_DIM);
   metaData[SNOW_SURF_TEMP] =          StateVariableMetaData("SNOW_SURF_TEMP", HRU_DIM);
 
   // HRU snow surface properties
-  metaData[SNOW_ALBEDO] = StateVariableMetaData("SNOW_ALBEDO", HRU_DIM);
+  metaData[SNOW_ALBEDO] = 						StateVariableMetaData("SNOW_ALBEDO", HRU_DIM);
   metaData[SNOW_LAST_SNOW] =          StateVariableMetaData("SNOW_LAST_SNOW", HRU_DIM);
   metaData[SNOW_MELTING] =            StateVariableMetaData("SNOW_MELTING", HRU_DIM);
 
   // HRU program terms
-  metaData[ENERGY_TCANOPY_FBCOUNT] = StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT");
-  metaData[ENERGY_T_FBCOUNT] = StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
+  metaData[ENERGY_TCANOPY_FBCOUNT] = 	StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT");
+  metaData[ENERGY_T_FBCOUNT] = 				StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
   metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT");
-  metaData[ENERGY_TSURF_FBCOUNT] = StateVariableMetaData("ENERGY_TSURF_FBCOUNT");
-  metaData[GLAC_SURF_TEMP_FBCOUNT] = StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT");
-  metaData[SNOW_SURF_TEMP_FBCOUNT] = StateVariableMetaData("SNOW_SURF_TEMP_FBCOUNT", HRU_DIM);
+  metaData[ENERGY_TSURF_FBCOUNT] = 		StateVariableMetaData("ENERGY_TSURF_FBCOUNT");
+  metaData[GLAC_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT");
+  metaData[SNOW_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBCOUNT", HRU_DIM);
 
   // miscellaneous state variables (non-mandatory)
-  metaData[GLAC_QNET] = StateVariableMetaData("GLAC_QNET");
-  metaData[GLAC_SURF_TEMP_FBFLAG] = StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG");
-  metaData[GLAC_VAPOR_FLUX] = StateVariableMetaData("GLAC_VAPOR_FLUX");
-  metaData[SNOW_CANOPY_ALBEDO] = StateVariableMetaData("SNOW_CANOPY_ALBEDO", HRU_DIM);
-  metaData[SNOW_SURFACE_FLUX] = StateVariableMetaData("SNOW_SURFACE_FLUX", HRU_DIM);
-  metaData[SNOW_SURF_TEMP_FBFLAG] = StateVariableMetaData("SNOW_SURF_TEMP_FBFLAG", HRU_DIM);
-  metaData[SNOW_TMP_INT_STORAGE] = StateVariableMetaData("SNOW_TMP_INT_STORAGE", HRU_DIM);
-  metaData[SNOW_VAPOR_FLUX] = StateVariableMetaData("SNOW_VAPOR_FLUX", HRU_DIM);
+  metaData[GLAC_QNET] = 							StateVariableMetaData("GLAC_QNET");
+  metaData[GLAC_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG");
+  metaData[GLAC_VAPOR_FLUX] = 				StateVariableMetaData("GLAC_VAPOR_FLUX");
+  metaData[SNOW_CANOPY_ALBEDO] = 			StateVariableMetaData("SNOW_CANOPY_ALBEDO", HRU_DIM);
+  metaData[SNOW_SURFACE_FLUX] = 			StateVariableMetaData("SNOW_SURFACE_FLUX", HRU_DIM);
+  metaData[SNOW_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBFLAG", HRU_DIM);
+  metaData[SNOW_TMP_INT_STORAGE] = 		StateVariableMetaData("SNOW_TMP_INT_STORAGE", HRU_DIM);
+  metaData[SNOW_VAPOR_FLUX] = 				StateVariableMetaData("SNOW_VAPOR_FLUX", HRU_DIM);
 
   if (state->options.LAKES) {
   /* lake-related variables (currently not a tested code path) */
-  	metaData[LAKE_LAYER_MOIST] =        StateVariableMetaData("LAKE_LAYER_MOIST", DIST_DIM, LAYERS_DIM);
-		metaData[LAKE_LAYER_SOIL_ICE] =     StateVariableMetaData("LAKE_LAYER_SOIL_ICE", DIST_DIM, FROST_LAYER_AREAS_DIM);
-		metaData[LAKE_LAYER_ICE_CONTENT] =  StateVariableMetaData("LAKE_LAYER_ICE_CONTENT", DIST_DIM, LAYERS_DIM);
-		metaData[LAKE_SNOW_LAST_SNOW] =     StateVariableMetaData("LAKE_SNOW_LAST_SNOW");
-		metaData[LAKE_SNOW_MELTING] =       StateVariableMetaData("LAKE_SNOW_MELTING");
-		metaData[LAKE_SNOW_COVERAGE] =      StateVariableMetaData("LAKE_SNOW_COVERAGE");
-		metaData[LAKE_SNOW_SWQ] =           StateVariableMetaData("LAKE_SNOW_SWQ");
-		metaData[LAKE_SNOW_SURF_TEMP] =     StateVariableMetaData("LAKE_SNOW_SURF_TEMP");
-		metaData[LAKE_SNOW_SURF_WATER] =    StateVariableMetaData("LAKE_SNOW_SURF_WATER");
-		metaData[LAKE_SNOW_PACK_TEMP] =     StateVariableMetaData("LAKE_SNOW_PACK_TEMP");
-		metaData[LAKE_SNOW_PACK_WATER] =    StateVariableMetaData("LAKE_SNOW_PACK_WATER");
-		metaData[LAKE_SNOW_DENSITY] =       StateVariableMetaData("LAKE_SNOW_DENSITY");
-		metaData[LAKE_SNOW_COLD_CONTENT] =  StateVariableMetaData("LAKE_SNOW_COLD_CONTENT");
-		metaData[LAKE_SNOW_CANOPY] =        StateVariableMetaData("LAKE_SNOW_CANOPY");
-		metaData[LAKE_ENERGY_T] =           StateVariableMetaData("LAKE_ENERGY_T", LAKE_NODES_DIM);
-		metaData[LAKE_ACTIVENOD] =          StateVariableMetaData("LAKE_ACTIVENOD");
-		metaData[LAKE_DZ] =                 StateVariableMetaData("LAKE_DZ");
-		metaData[LAKE_SURFDZ] =             StateVariableMetaData("LAKE_SURFDZ");
-		metaData[LAKE_LDEPTH] =             StateVariableMetaData("LAKE_LDEPTH");
-		metaData[LAKE_SURFACE] =            StateVariableMetaData("LAKE_SURFACE", LAKE_NODES_DIM);
-		metaData[LAKE_SAREA] =              StateVariableMetaData("LAKE_SAREA");
-		metaData[LAKE_VOLUME] =             StateVariableMetaData("LAKE_VOLUME");
-		metaData[LAKE_TEMP] =               StateVariableMetaData("LAKE_TEMP", LAKE_NODES_DIM);
-		metaData[LAKE_TEMPAVG] =            StateVariableMetaData("LAKE_TEMPAVG");
-		metaData[LAKE_AREAI] =              StateVariableMetaData("LAKE_AREAI");
-		metaData[LAKE_NEW_ICE_AREA] =       StateVariableMetaData("LAKE_NEW_ICE_AREA");
-		metaData[LAKE_ICE_WATER_EQ] =       StateVariableMetaData("LAKE_ICE_WATER_EQ");
-		metaData[LAKE_HICE] =               StateVariableMetaData("LAKE_HICE");
-		metaData[LAKE_TEMPI] =              StateVariableMetaData("LAKE_TEMPI");
-		metaData[LAKE_SWE] =                StateVariableMetaData("LAKE_SWE");
-		metaData[LAKE_SURF_TEMP] =          StateVariableMetaData("LAKE_SURF_TEMP");
-		metaData[LAKE_PACK_TEMP] =          StateVariableMetaData("LAKE_PACK_TEMP");
-		metaData[LAKE_SALBEDO] =            StateVariableMetaData("LAKE_SALBEDO");
-		metaData[LAKE_SDEPTH] =             StateVariableMetaData("LAKE_SDEPTH");
+  	metaData[LAKE_LAYER_MOIST] =      StateVariableMetaData("LAKE_LAYER_MOIST", DIST_DIM, LAYERS_DIM);
+		metaData[LAKE_LAYER_SOIL_ICE] =   StateVariableMetaData("LAKE_LAYER_SOIL_ICE", DIST_DIM, FROST_LAYER_AREAS_DIM);
+		metaData[LAKE_LAYER_ICE_CONTENT] =StateVariableMetaData("LAKE_LAYER_ICE_CONTENT", DIST_DIM, LAYERS_DIM);
+		metaData[LAKE_SNOW_LAST_SNOW] =   StateVariableMetaData("LAKE_SNOW_LAST_SNOW");
+		metaData[LAKE_SNOW_MELTING] =     StateVariableMetaData("LAKE_SNOW_MELTING");
+		metaData[LAKE_SNOW_COVERAGE] =    StateVariableMetaData("LAKE_SNOW_COVERAGE");
+		metaData[LAKE_SNOW_SWQ] =         StateVariableMetaData("LAKE_SNOW_SWQ");
+		metaData[LAKE_SNOW_SURF_TEMP] =   StateVariableMetaData("LAKE_SNOW_SURF_TEMP");
+		metaData[LAKE_SNOW_SURF_WATER] =  StateVariableMetaData("LAKE_SNOW_SURF_WATER");
+		metaData[LAKE_SNOW_PACK_TEMP] =   StateVariableMetaData("LAKE_SNOW_PACK_TEMP");
+		metaData[LAKE_SNOW_PACK_WATER] =  StateVariableMetaData("LAKE_SNOW_PACK_WATER");
+		metaData[LAKE_SNOW_DENSITY] =     StateVariableMetaData("LAKE_SNOW_DENSITY");
+		metaData[LAKE_SNOW_COLD_CONTENT] =StateVariableMetaData("LAKE_SNOW_COLD_CONTENT");
+		metaData[LAKE_SNOW_CANOPY] =      StateVariableMetaData("LAKE_SNOW_CANOPY");
+		metaData[LAKE_ENERGY_T] =         StateVariableMetaData("LAKE_ENERGY_T", LAKE_NODES_DIM);
+		metaData[LAKE_ACTIVENOD] =        StateVariableMetaData("LAKE_ACTIVENOD");
+		metaData[LAKE_DZ] =               StateVariableMetaData("LAKE_DZ");
+		metaData[LAKE_SURFDZ] =           StateVariableMetaData("LAKE_SURFDZ");
+		metaData[LAKE_LDEPTH] =           StateVariableMetaData("LAKE_LDEPTH");
+		metaData[LAKE_SURFACE] =          StateVariableMetaData("LAKE_SURFACE", LAKE_NODES_DIM);
+		metaData[LAKE_SAREA] =            StateVariableMetaData("LAKE_SAREA");
+		metaData[LAKE_VOLUME] =           StateVariableMetaData("LAKE_VOLUME");
+		metaData[LAKE_TEMP] =             StateVariableMetaData("LAKE_TEMP", LAKE_NODES_DIM);
+		metaData[LAKE_TEMPAVG] =          StateVariableMetaData("LAKE_TEMPAVG");
+		metaData[LAKE_AREAI] =            StateVariableMetaData("LAKE_AREAI");
+		metaData[LAKE_NEW_ICE_AREA] =     StateVariableMetaData("LAKE_NEW_ICE_AREA");
+		metaData[LAKE_ICE_WATER_EQ] =     StateVariableMetaData("LAKE_ICE_WATER_EQ");
+		metaData[LAKE_HICE] =             StateVariableMetaData("LAKE_HICE");
+		metaData[LAKE_TEMPI] =            StateVariableMetaData("LAKE_TEMPI");
+		metaData[LAKE_SWE] =              StateVariableMetaData("LAKE_SWE");
+		metaData[LAKE_SURF_TEMP] =        StateVariableMetaData("LAKE_SURF_TEMP");
+		metaData[LAKE_PACK_TEMP] =        StateVariableMetaData("LAKE_PACK_TEMP");
+		metaData[LAKE_SALBEDO] =          StateVariableMetaData("LAKE_SALBEDO");
+		metaData[LAKE_SDEPTH] =           StateVariableMetaData("LAKE_SDEPTH");
   }
 
   /* unneeded state variables? */
