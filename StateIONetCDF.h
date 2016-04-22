@@ -39,7 +39,7 @@ public:
 private:
   template<typename T> int generalWrite(const T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
   template<typename T> int generalRead(T* data, int numValues, const StateVariables::StateMetaDataVariableIndices id);
-  void populateMetaData();
+  void populateMetaData(const ProgramState* state);
   void populateMetaDimensions();
   void initializeLatLonDims();
   std::map<StateVariables::StateMetaDataVariableIndices, StateVariableMetaData> metaData;
