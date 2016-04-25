@@ -220,8 +220,8 @@ void ProgramState::initialize_global() {
   }
 
   /* Set number of terms used in Glacier Mass Balance Equation polynomial.
-   * The first term is the soil_con.gridcel ID of the grid cell.  The remaining terms
-     should match the definition for GraphingEquation type (currently has 4 coefficients: b0, b1, b2, fitError)
+   * The terms should match the definition for GraphingEquation type
+   * which has 4 coefficients: b0, b1, b2, fitError
   */
-  num_gmb_terms = 5;
+  num_gmb_terms = 4;
 }
