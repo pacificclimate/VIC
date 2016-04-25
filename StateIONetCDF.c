@@ -424,8 +424,8 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
 
   // HRU snow pack, glacier and soil energy
   metaData[ENERGY_T] =                StateVariableMetaData("ENERGY_T", HRU_DIM, NODES_DIM);
-  metaData[ENERGY_TFOLIAGE] = 				StateVariableMetaData("ENERGY_TFOLIAGE");
-  metaData[GLAC_SURF_TEMP] = 					StateVariableMetaData("GLAC_SURF_TEMP");
+  metaData[ENERGY_TFOLIAGE] = 				StateVariableMetaData("ENERGY_TFOLIAGE", HRU_DIM);
+  metaData[GLAC_SURF_TEMP] = 					StateVariableMetaData("GLAC_SURF_TEMP", HRU_DIM);
   metaData[SNOW_COLD_CONTENT] =       StateVariableMetaData("SNOW_COLD_CONTENT", HRU_DIM);
   metaData[SNOW_PACK_TEMP] =          StateVariableMetaData("SNOW_PACK_TEMP", HRU_DIM);
   metaData[SNOW_SURF_TEMP] =          StateVariableMetaData("SNOW_SURF_TEMP", HRU_DIM);
@@ -436,17 +436,17 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
   metaData[SNOW_MELTING] =            StateVariableMetaData("SNOW_MELTING", HRU_DIM);
 
   // HRU program terms
-  metaData[ENERGY_TCANOPY_FBCOUNT] = 	StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT");
+  metaData[ENERGY_TCANOPY_FBCOUNT] = 	StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT", HRU_DIM);
   metaData[ENERGY_T_FBCOUNT] = 				StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
-  metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT");
-  metaData[ENERGY_TSURF_FBCOUNT] = 		StateVariableMetaData("ENERGY_TSURF_FBCOUNT");
-  metaData[GLAC_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT");
+  metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT", HRU_DIM);
+  metaData[ENERGY_TSURF_FBCOUNT] = 		StateVariableMetaData("ENERGY_TSURF_FBCOUNT", HRU_DIM);
+  metaData[GLAC_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT", HRU_DIM);
   metaData[SNOW_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBCOUNT", HRU_DIM);
 
   // miscellaneous state variables (non-mandatory)
-  metaData[GLAC_QNET] = 							StateVariableMetaData("GLAC_QNET");
-  metaData[GLAC_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG");
-  metaData[GLAC_VAPOR_FLUX] = 				StateVariableMetaData("GLAC_VAPOR_FLUX");
+  metaData[GLAC_QNET] = 							StateVariableMetaData("GLAC_QNET", HRU_DIM);
+  metaData[GLAC_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG", HRU_DIM);
+  metaData[GLAC_VAPOR_FLUX] = 				StateVariableMetaData("GLAC_VAPOR_FLUX", HRU_DIM);
   metaData[SNOW_CANOPY_ALBEDO] = 			StateVariableMetaData("SNOW_CANOPY_ALBEDO", HRU_DIM);
   metaData[SNOW_SURFACE_FLUX] = 			StateVariableMetaData("SNOW_SURFACE_FLUX", HRU_DIM);
   metaData[SNOW_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBFLAG", HRU_DIM);
@@ -454,7 +454,7 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
   metaData[SNOW_VAPOR_FLUX] = 				StateVariableMetaData("SNOW_VAPOR_FLUX", HRU_DIM);
 
   if (state->options.LAKES) {
-  /* lake-related variables (currently not a tested code path) */
+  /* FIXME: lake-related variables (currently not a tested code path, and dimensions are not correctly set for all below) */
   	metaData[LAKE_LAYER_MOIST] =      StateVariableMetaData("LAKE_LAYER_MOIST", DIST_DIM, LAYERS_DIM);
 		metaData[LAKE_LAYER_SOIL_ICE] =   StateVariableMetaData("LAKE_LAYER_SOIL_ICE", DIST_DIM, FROST_LAYER_AREAS_DIM);
 		metaData[LAKE_LAYER_ICE_CONTENT] =StateVariableMetaData("LAKE_LAYER_ICE_CONTENT", DIST_DIM, LAYERS_DIM);
