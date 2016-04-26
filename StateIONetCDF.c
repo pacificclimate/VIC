@@ -437,7 +437,7 @@ void StateIONetCDF::populateMetaData(const ProgramState* state) {
 
   // HRU program terms
   metaData[ENERGY_TCANOPY_FBCOUNT] = 	StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT", HRU_DIM);
-  metaData[ENERGY_T_FBCOUNT] = 				StateVariableMetaData("ENERGY_T_FBCOUNT", NODES_DIM);
+  metaData[ENERGY_T_FBCOUNT] = 				StateVariableMetaData("ENERGY_T_FBCOUNT", HRU_DIM, NODES_DIM);
   metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT", HRU_DIM);
   metaData[ENERGY_TSURF_FBCOUNT] = 		StateVariableMetaData("ENERGY_TSURF_FBCOUNT", HRU_DIM);
   metaData[GLAC_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT", HRU_DIM);
