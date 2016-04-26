@@ -32,7 +32,7 @@ const std::string NUM_BANDS_STR = "NUM_BANDS";
 const std::string NUM_GLAC_MASS_BALANCE_INFO_TERMS_STR = "state_nglac_mass_balance_terms";
 
 StateIONetCDF::StateIONetCDF(std::string filename, IOType ioType, const ProgramState* state) : StateIO(filename, ioType, state), netCDF(NULL) {
-  populateMetaData(state);
+  populateMetaData();
   populateMetaDimensions();
   initializeDimensionIndices();
   openFile();
@@ -383,11 +383,11 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[FROST_LAYER_AREAS_DIM] = StateVariableDimension("frost_layer_subareas", state->options.Nlayer * FROST_SUBAREAS);
   metaDimensions[FROST_AREAS_DIM] = 	StateVariableDimension("frost_subareas", FROST_SUBAREAS);
   metaDimensions[HRU_DIM] = 					StateVariableDimension("hru", state->max_num_HRUs);
-  metaDimensions[DIST_DIM] = 					StateVariableDimension("dist", 2); // Wet and dry.
+  metaDimensions[DIST_DIM] = 					StateVariableDimension("dist", state->options.DIST_PRCP ? 2 : 1 ); // Wet and dry.
   metaDimensions[GLAC_MASS_BALANCE_INFO_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);
 }
 
-void StateIONetCDF::populateMetaData(const ProgramState* state) {
+void StateIONetCDF::populateMetaData() {
   using namespace StateVariables;
   /* mandatory state variables */
   metaData[NONE] =                    StateVariableMetaData("NONE");
