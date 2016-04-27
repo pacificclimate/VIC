@@ -84,7 +84,7 @@ int glacier_melt(double Le,
     double *save_Qnet,
     double *save_advection,
     double *save_deltaCC_glac,
-	double *save_glacier_melt_energy,
+    double *save_glacier_melt_energy,
     double *save_grnd_flux,
     double *save_latent,
     double *save_latent_sub,
@@ -110,8 +110,7 @@ int glacier_melt(double Le,
 
   char ErrorString[MAXSTRING];
 
-  /* SnowFall = snowfall / 1000.;*/ /* convert to m */
- RainFall = rainfall / 1000.; /* convert to m */
+  RainFall = rainfall / 1000.; /* convert to m */
 
   (*OldTSurf) = glacier->surf_temp;
 
@@ -133,7 +132,6 @@ int glacier_melt(double Le,
   Qnet = glacierEnergy.calculate((double)0.0);
 
   /* If Qnet == 0.0, then set the surface temperature to 0.0 */
-  /* if (std::abs(Qnet) < 2e-7) { */
   if (Qnet == 0.0) {
     glacier->surf_temp = 0.;
     melt_energy = NetShort + (*NetLong) + sensible_heat

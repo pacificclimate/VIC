@@ -497,9 +497,9 @@ OUT_WIND            ,  /* near surface wind speed [m/s] */
 OUT_ADV_SENS_BAND       ,  /* net sensible heat flux advected to snow pack [W/m2] */
 OUT_ADVECTION_BAND      ,  /* advected energy [W/m2] */
 OUT_ALBEDO_BAND         ,  /* average surface albedo [fraction] */
-OUT_AREA_BAND			,  /* band area [fraction] */
+OUT_AREA_BAND		,  /* band area [fraction] */
 OUT_DELTACC_BAND        ,  /* change in cold content in snow pack [W/m2] */
-OUT_ELEV_BAND			,  /* band median elevation [m] */
+OUT_ELEV_BAND		,  /* band median elevation [m] */
 OUT_GRND_FLUX_BAND      ,  /* net heat flux into ground [W/m2] */
 OUT_IN_LONG_BAND        ,  /* incoming longwave at ground surface (under veg) [W/m2] */
 OUT_LATENT_BAND         ,  /* net upward latent heat flux [W/m2] */

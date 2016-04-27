@@ -54,7 +54,7 @@ void calc_energy_balance_error(int    rec,
 			       double sensible,
 			       double grnd_flux,
 			       double snow_fluxes,
-				   double glac_fluxes,
+			       double glac_fluxes,
 			       int    Nrecs,
 			       CellBalanceErrors* errors) {
 /***************************************************************

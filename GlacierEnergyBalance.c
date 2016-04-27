@@ -25,13 +25,12 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   double Tmp;
   double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
   double Fbal;                    /* Energy balance at glacier surface */
-  double temp_IceDepth;			  /* Local variable to hold scaled value for IceDepth */
 
 
   TMean = (TSurf + TGrnd)/2;
   OldTMean = (OldTSurf + TGrnd)/2;
   Density = RHO_W;
-  temp_IceDepth = IceDepth/1000.;	/* convert IceDepth to mm */
+  const double temp_IceDepth = IceDepth/1000.;	/* Local parameter to hold scaled value for IceDepth */
 
   /* Correct aerodynamic conductance for stable conditions
      Note: If air temp >> glacier temp then aero_cond -> 0 (i.e. very stable)
