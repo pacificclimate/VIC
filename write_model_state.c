@@ -154,7 +154,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
   gmbInfo[1] = cell->gmbEquation.b1;
   gmbInfo[2] = cell->gmbEquation.b2;
   gmbInfo[3] = cell->gmbEquation.fitError;
-  stream->process(gmbInfo, state->num_gmb_terms, GLAC_MASS_BALANCE_INFO);
+  stream->process(gmbInfo, state->num_gmb_terms, GLAC_MASS_BALANCE_EQN_TERMS);
 
   /* Output for all HRUs */
 	int dimcount = 0;

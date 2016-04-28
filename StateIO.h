@@ -131,7 +131,6 @@ enum StateMetaDataVariableIndices {
   VEG_LIB_RGL,
   VEG_LIB_VEG_CLASS,
 
-
   OPTIONS_ABOVETREELINEVEG,
   OPTIONS_AERO_RESIST_CANSNOW,
   OPTIONS_BLOWING,
@@ -312,7 +311,7 @@ enum StateMetaDataVariableIndices {
   SOIL_MIN_RAIN_TEMP,
   SOIL_MAX_SNOW_TEMP,
   SOIL_PADJ,
-  SOIL_T_LAPSE,
+	SOIL_T_LAPSE,
   SOIL_PGRAD,
   SOIL_GLAC_SURF_THICK,
   SOIL_GLAC_SURF_WE,
@@ -464,7 +463,7 @@ enum StateMetaDataVariableIndices {
   ENERGY_GLACIER_FLUX,
   ENERGY_DELTACC_GLAC,
 
-  GLAC_MASS_BALANCE_INFO, // to store the Glacier Mass Balance information (grid cell num and equation) for use in VIC-RGM integration
+	GLAC_MASS_BALANCE_EQN_TERMS,
   NUM_GLAC_MASS_BALANCE_INFO_TERMS,
 
   SOIL_PADJ_R,
@@ -483,7 +482,7 @@ enum StateVariableDimensionId {
   FROST_AREAS_DIM,
   HRU_DIM,
   DIST_DIM,
-	GLAC_MASS_BALANCE_INFO_DIM,
+	GLAC_MASS_BALANCE_EQN_DIM,
 };
 }
 
