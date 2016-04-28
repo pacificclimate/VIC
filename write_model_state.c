@@ -263,7 +263,7 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     // HRU snow surface properties
     stream->process(&it->snow.albedo, 1, SNOW_ALBEDO);
     stream->process(&it->snow.last_snow, 1, SNOW_LAST_SNOW);
-    stream->process(&it->snow.MELTING, 1, SNOW_MELTING);
+  	stream->process(&it->snow.MELTING, 1, SNOW_MELTING);
 
     // HRU program terms
     stream->process(&it->energy.Tcanopy_fbcount, 1, ENERGY_TCANOPY_FBCOUNT);

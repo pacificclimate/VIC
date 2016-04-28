@@ -431,7 +431,7 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
 int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
-double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
+double snow_albedo(double, double, double, double, double, double, int, bool, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
 int snow_intercept(double, double, double, double, double, double, double,
     double, double, double, double, double, double *, double *, double *,

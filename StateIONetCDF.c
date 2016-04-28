@@ -253,12 +253,22 @@ int StateIONetCDF::write(const double* data, int numValues, const StateVariables
   return generalWrite(data, numValues, id);
 }
 
-int StateIONetCDF::write(const float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+int StateIONetCDF::write(const float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   return generalWrite(data, numValues, id);
 }
 
-int StateIONetCDF::write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
-  return generalWrite(data, numValues, id);
+int StateIONetCDF::write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
+	/* Using a std:vector as a temporary holder of integers (0 or 1) representing bools to accommodate the fact that NetCDF
+	 * does not support writing Boolean variable types to file. This vector will automatically be deallocated once
+	 * out of scope, avoiding memory leaks.
+	 */
+	std::vector<int> var_to_int;
+	var_to_int.reserve(numValues);
+	for (int i=0;i<numValues;i++) {
+		var_to_int.push_back(int(data[i]));
+	}
+	// This will result in a call to the integer datatype version of overloaded NetCDF output function putData()
+	return generalWrite(&var_to_int[0], numValues, id);
 }
 
 int StateIONetCDF::write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
@@ -273,7 +283,7 @@ int StateIONetCDF::read(double* data, int numValues, const StateVariables::State
   return generalRead(data, numValues, id);
 }
 
-int StateIONetCDF::read(float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) { //new
+int StateIONetCDF::read(float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) {
   return generalRead(data, numValues, id);
 }
 
@@ -389,11 +399,16 @@ void StateIONetCDF::populateMetaDimensions() {
 
 void StateIONetCDF::populateMetaData() {
   using namespace StateVariables;
-  /* mandatory state variables */
+  /* The default output data type is double; those that are a different type are explicitly set */
+  /* mandatory state variables. */
+
   metaData[NONE] =                    StateVariableMetaData("NONE");
   metaData[GRID_CELL] =               StateVariableMetaData(GRID_CELL_STR);
+  metaData[GRID_CELL].type = netCDF::NcType::nc_INT;
   metaData[NUM_BANDS] =               StateVariableMetaData(NUM_BANDS_STR);
+  metaData[NUM_BANDS].type = netCDF::NcType::nc_INT;
   metaData[VEG_TYPE_NUM] =            StateVariableMetaData(VEG_TYPE_NUM_STR);
+  metaData[VEG_TYPE_NUM].type = netCDF::NcType::nc_INT;
 
   metaData[GLAC_MASS_BALANCE_INFO] = 	StateVariableMetaData("GLAC_MASS_BALANCE_INFO", GLAC_MASS_BALANCE_INFO_DIM);
 
@@ -402,7 +417,9 @@ void StateIONetCDF::populateMetaData() {
 
   // HRU metadata
   metaData[HRU_BAND_INDEX] =          StateVariableMetaData("HRU_BAND_INDEX", HRU_DIM);
+  metaData[HRU_BAND_INDEX].type = netCDF::NcType::nc_INT;
   metaData[HRU_VEG_INDEX] =           StateVariableMetaData("HRU_VEG_INDEX", HRU_DIM);
+  metaData[HRU_VEG_INDEX].type = netCDF::NcType::nc_INT;
 
   // HRU water balance
   metaData[LAYER_ICE_CONTENT] =       StateVariableMetaData("LAYER_ICE_CONTENT", HRU_DIM, DIST_DIM, LAYERS_DIM);
@@ -434,22 +451,31 @@ void StateIONetCDF::populateMetaData() {
   metaData[SNOW_ALBEDO] = 						StateVariableMetaData("SNOW_ALBEDO", HRU_DIM);
   metaData[SNOW_LAST_SNOW] =          StateVariableMetaData("SNOW_LAST_SNOW", HRU_DIM);
   metaData[SNOW_MELTING] =            StateVariableMetaData("SNOW_MELTING", HRU_DIM);
+  metaData[SNOW_MELTING].type = netCDF::NcType::nc_INT;
 
   // HRU program terms
   metaData[ENERGY_TCANOPY_FBCOUNT] = 	StateVariableMetaData("ENERGY_TCANOPY_FBCOUNT", HRU_DIM);
+  metaData[ENERGY_TCANOPY_FBCOUNT].type = netCDF::NcType::nc_INT;
   metaData[ENERGY_T_FBCOUNT] = 				StateVariableMetaData("ENERGY_T_FBCOUNT", HRU_DIM, NODES_DIM);
+  metaData[ENERGY_T_FBCOUNT].type = netCDF::NcType::nc_INT;
   metaData[ENERGY_TFOLIAGE_FBCOUNT] = StateVariableMetaData("ENERGY_TFOLIAGE_FBCOUNT", HRU_DIM);
+  metaData[ENERGY_TFOLIAGE_FBCOUNT].type = netCDF::NcType::nc_INT;
   metaData[ENERGY_TSURF_FBCOUNT] = 		StateVariableMetaData("ENERGY_TSURF_FBCOUNT", HRU_DIM);
+  metaData[ENERGY_TSURF_FBCOUNT].type = netCDF::NcType::nc_INT;
   metaData[GLAC_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBCOUNT", HRU_DIM);
+  metaData[GLAC_SURF_TEMP_FBCOUNT].type = netCDF::NcType::nc_INT;
   metaData[SNOW_SURF_TEMP_FBCOUNT] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBCOUNT", HRU_DIM);
+  metaData[SNOW_SURF_TEMP_FBCOUNT].type = netCDF::NcType::nc_INT;
 
   // miscellaneous state variables (non-mandatory)
   metaData[GLAC_QNET] = 							StateVariableMetaData("GLAC_QNET", HRU_DIM);
   metaData[GLAC_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG", HRU_DIM);
+  metaData[GLAC_SURF_TEMP_FBFLAG].type = netCDF::NcType::nc_INT;
   metaData[GLAC_VAPOR_FLUX] = 				StateVariableMetaData("GLAC_VAPOR_FLUX", HRU_DIM);
   metaData[SNOW_CANOPY_ALBEDO] = 			StateVariableMetaData("SNOW_CANOPY_ALBEDO", HRU_DIM);
   metaData[SNOW_SURFACE_FLUX] = 			StateVariableMetaData("SNOW_SURFACE_FLUX", HRU_DIM);
   metaData[SNOW_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("SNOW_SURF_TEMP_FBFLAG", HRU_DIM);
+  metaData[SNOW_SURF_TEMP_FBFLAG].type = netCDF::NcType::nc_INT;
   metaData[SNOW_TMP_INT_STORAGE] = 		StateVariableMetaData("SNOW_TMP_INT_STORAGE", HRU_DIM);
   metaData[SNOW_VAPOR_FLUX] = 				StateVariableMetaData("SNOW_VAPOR_FLUX", HRU_DIM);
 
@@ -459,7 +485,8 @@ void StateIONetCDF::populateMetaData() {
 		metaData[LAKE_LAYER_SOIL_ICE] =   StateVariableMetaData("LAKE_LAYER_SOIL_ICE", DIST_DIM, FROST_LAYER_AREAS_DIM);
 		metaData[LAKE_LAYER_ICE_CONTENT] =StateVariableMetaData("LAKE_LAYER_ICE_CONTENT", DIST_DIM, LAYERS_DIM);
 		metaData[LAKE_SNOW_LAST_SNOW] =   StateVariableMetaData("LAKE_SNOW_LAST_SNOW");
-		metaData[LAKE_SNOW_MELTING] =     StateVariableMetaData("LAKE_SNOW_MELTING");
+		metaData[LAKE_SNOW_MELTING] =     StateVariableMetaData("LAKE_SNOW_MELTING", HRU_DIM);
+		metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_INT;
 		metaData[LAKE_SNOW_COVERAGE] =    StateVariableMetaData("LAKE_SNOW_COVERAGE");
 		metaData[LAKE_SNOW_SWQ] =         StateVariableMetaData("LAKE_SNOW_SWQ");
 		metaData[LAKE_SNOW_SURF_TEMP] =   StateVariableMetaData("LAKE_SNOW_SURF_TEMP");
@@ -493,24 +520,15 @@ void StateIONetCDF::populateMetaData() {
 
   /* unneeded state variables? */
   //  metaData[INIT_STILL_STORM] =        StateVariableMetaData("INIT_STILL_STORM", HRU_DIM);
+  //  metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
   //  metaData[INIT_DRY_TIME] =           StateVariableMetaData("INIT_DRY_TIME", HRU_DIM);
+  //  metaData[INIT_DRY_TIME].type = netCDF::NcType::nc_INT;
 	//  metaData[SOIL_DEPTH] =              StateVariableMetaData("SOIL_DEPTH", LAYERS_DIM);
 	//  metaData[SOIL_EFFECTIVE_POROSITY] = StateVariableMetaData("SOIL_EFFECTIVE_POROSITY", LAYERS_DIM);
 	//  metaData[SNOW_COVERAGE] =           StateVariableMetaData("SNOW_COVERAGE", HRU_DIM);
 	//  metaData[LAYER_SOIL_ICE] =          StateVariableMetaData("LAYER_SOIL_ICE", HRU_DIM, DIST_DIM, FROST_LAYER_AREAS_DIM);
 	//  metaData[SOIL_DP] =                 StateVariableMetaData("SOIL_DP"); // what dims should this have?
   //  metaData[PRCP_MU] =                 StateVariableMetaData("PRCP_MU", HRU_DIM);
-
-
-  /* Make type adjustments if required (default type is double). */
-  //  metaData[INIT_STILL_STORM].type = netCDF::NcType::nc_CHAR;
-  //  metaData[INIT_DRY_TIME].type = netCDF::NcType::nc_INT;
-  metaData[HRU_VEG_INDEX].type = netCDF::NcType::nc_INT;
-  metaData[HRU_BAND_INDEX].type = netCDF::NcType::nc_INT;
-  metaData[SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
-  if (state->options.LAKES) {
-	  metaData[LAKE_SNOW_MELTING].type = netCDF::NcType::nc_CHAR;
-  }
 
 }
 

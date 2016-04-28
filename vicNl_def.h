@@ -1241,7 +1241,7 @@ typedef struct {
   int    last_snow;         /* time steps since last snowfall */
   double max_swq;           /* last maximum swq - used to determine coverage
 			       fraction during current melt period (m) */
-  char   MELTING;           /* flag indicating that snowpack melted 
+  bool   MELTING;           /* flag indicating that snowpack melted
 			       previously */
   double pack_temp;         /* depth averaged temperature of the snowpack (C) */
   double pack_water;        /* liquid water content of the snow pack (m) */
@@ -1253,8 +1253,8 @@ typedef struct {
   double store_swq;         /* stores newly accumulated snow over an 
 			       established snowpack melt distribution (m) */
   double surf_temp;         /* depth averaged temperature of the snow pack surface layer (C) */
-  double surf_temp_fbcount; /* running total number of times that previous step's temperature was used */
-  double surf_temp_fbflag;  /* flag indicating if previous step's temperature was used */
+  int surf_temp_fbcount; /* running total number of times that previous step's temperature was used */
+  bool surf_temp_fbflag;  /* flag indicating if previous step's temperature was used */
   double surf_water;        /* liquid water content of the surface layer (m) */
   double swq;               /* snow water equivalent of the entire pack (m) */
   double swq_slope;         /* slope of uniform snow distribution (m/fract) */

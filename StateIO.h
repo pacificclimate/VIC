@@ -551,8 +551,8 @@ public:
   virtual int write(const int* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int write(const double* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int write(const float* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
-  virtual int write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int write(const char* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
+  virtual int write(const bool* data, int numValues, const StateVariables::StateMetaDataVariableIndices id) = 0;
   virtual int processNewline();
   virtual StateHeader readHeader() = 0;
   virtual void notifyDimensionUpdate(StateVariables::StateVariableDimensionId dimension, int value = -1) {}
