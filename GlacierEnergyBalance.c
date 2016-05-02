@@ -17,7 +17,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   const char *Routine = "GlacierEnergyBalance";
 
   /* Internal Routine Variables */
-
   double Density;                 /* Density of water/ice at TSurf (kg/m3) */
   double NetRad;                  /* Net radiation exchange at surface (W/m2) */
   double RestTerm;                /* Rest term in surface energy balance (W/m2) */
@@ -31,7 +30,7 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   TMean = (TSurf + TGrnd)/2;
   OldTMean = (OldTSurf + TGrnd)/2;
   Density = RHO_W;
-  IceDepth /= 1000.;
+  const double temp_IceDepth = IceDepth/1000.;	/* Local parameter to hold scaled value for IceDepth */
 
   /* Correct aerodynamic conductance for stable conditions
      Note: If air temp >> glacier temp then aero_cond -> 0 (i.e. very stable)
@@ -41,8 +40,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
      NOTE: In the old code 2m was passed instead of Z-Displacement.  I (bart)
      think that it is more correct to calculate ALL fluxes at the same
      reference level */
-
-
   if (Wind > 0.0)
     Ra_used.surface = Ra / StabilityCorrection(Z, 0.f, TSurf, Tair, Wind, roughness.snowCovered);
   else
@@ -55,7 +52,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
   NetRad = NetShortUnder + (*NetLongUnder);
 
   /* Calculate the sensible heat flux */
-
   *SensibleHeat = AirDens * Cp * (Tair - TSurf) / Ra_used.surface;
 
   /* Convert sublimation terms from m/timestep to kg/m2s */
@@ -65,7 +61,6 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Calculate the saturated vapor pressure,
      (Equation 3.32, Bras 1990) */
-
    latent_heat_from_glacier(AirDens, EactAir, Lv, Press, Ra_used.surface, TSurf, Vpd,
       LatentHeat, LatentHeatSub, &VaporMassFlux);
 
@@ -74,26 +69,22 @@ double GlacierEnergyBalance::calculate(double TSurf) {
 
   /* Calculate advected heat flux from rain
      Equation 7.3.12 from H.B.H. for rain falling on melting snowpack */
-
   if ( TSurf == 0 )
     *AdvectedEnergy = (CH_WATER * (Tair) * Rain) / (Dt);
   else
     *AdvectedEnergy = 0.;
 
   /* Calculate change in cold content */
-  /* *DeltaColdContent = CH_ICE * IceWE * (TSurf - OldTSurf) / (Dt); */
-  *DeltaColdContent = CH_ICE * IceDepth * (TMean - OldTMean) / (Dt);
+  *DeltaColdContent = CH_ICE * temp_IceDepth * (TMean - OldTMean) / (Dt);
 
   /* Calculate Ground Heat Flux */
   /* Estimate of ice thermal conductivity (at atmospheric pressure) adapted from Slack (1980), Table 1; assumes
        linear relationship between TSurf and K above -75C */
-  /* *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth / (Dt); */
-  *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / IceDepth;
+  *GroundFlux = (GLAC_K_ICE + TSurf*(-0.0142)) * (TGrnd - TSurf) / temp_IceDepth;
 
-  /* Calculate energy balance error at the snowpack surface */
+  /* Calculate energy balance error at the glacier surface */
   Fbal = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub + *AdvectedEnergy;
-  /* RestTerm = Fbal - *DeltaColdContent + *GroundFlux; */
-  RestTerm = Fbal - *DeltaColdContent;
+  RestTerm = Fbal - *DeltaColdContent + *GroundFlux;
 
   /* Melting occurs when surface at melting point and surface energy flux is positive */
   if (TSurf == 0.0 && RestTerm >= 0.) RestTerm = 0.;

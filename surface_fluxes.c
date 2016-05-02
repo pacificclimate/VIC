@@ -550,8 +550,7 @@ int surface_fluxes(char                 overstory,
         /* Check that the snow surface temperature was estimated, if not
          prepare to include thin snowpack in the estimation of the
          snow-free surface energy balance */
-        if ((IS_INVALID(iter_snow.surf_temp) || UNSTABLE_SNOW)
-            && iter_snow.swq > 0) {
+        if ((IS_INVALID(iter_snow.surf_temp) || UNSTABLE_SNOW) && iter_snow.swq > 0) {
           INCLUDE_SNOW = UnderStory + 1;
           iter_soil_energy.advection = iter_snow_energy.advection;
           iter_snow.surf_temp = step_snow.surf_temp;

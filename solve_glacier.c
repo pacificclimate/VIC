@@ -87,15 +87,12 @@ double solve_glacier(
    ErrorFlag = glacier_melt((*Le), (*NetShortGlac), Tgrnd,
     roughness, aero_resist[UnderStory], aero_resist_used,
     air_temp, (double)dt * SECPHOUR, density,
-    displacement[UnderStory],
-    *LongUnderIn, pressure, rainfall[WET], vp, vpd,
-    wind_speed[UnderStory], ref_height[UnderStory],
-    NetLongGlac, Torg_snow, &melt, &energy->error,
-    &energy->advection,
-    &energy->deltaCC_glac, &energy->grnd_flux, &energy->latent,
-    &energy->latent_sub,
-    &energy->sensible,
-    rec, glacier, soil, state);
+    displacement[UnderStory], *LongUnderIn, pressure,
+	rainfall[WET], vp, vpd, wind_speed[UnderStory],
+	ref_height[UnderStory], NetLongGlac, Torg_snow, &melt,
+	&energy->error, &energy->advection, &energy->deltaCC_glac,
+	&energy->glacier_melt_energy, &energy->grnd_flux, &energy->latent,
+    &energy->latent_sub,&energy->sensible, rec, glacier, soil, state);
    if ( ErrorFlag == ERROR ) return ( ERROR );
 
    // store melt water and rainfall

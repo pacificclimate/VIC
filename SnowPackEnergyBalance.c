@@ -90,16 +90,11 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   /* Internal Routine Variables */
 
   double Density;                 /* Density of water/ice at TMean (kg/m3) */
-  /* double LongRadOut; */		  /* long wave radiation emitted by surface
-				     (W/m2) */
-  double NetRad;		  /* Net radiation exchange at surface 
-				     (W/m2) */
-  double RestTerm;		  /* Rest term in surface energy balance
-				     (W/m2) */
+  double NetRad;		  /* Net radiation exchange at surface (W/m2) */
+  double RestTerm;		  /* Rest term in surface energy balance (W/m2) */
   double TMean;                   /* Average temperature for time step (C) */
   double Tmp;
-  double VaporMassFlux;           /* Mass flux of water vapor to or from the
-				     intercepted snow (kg/m2s) */
+  double VaporMassFlux;           /* Mass flux of water vapor to or from the intercepted snow (kg/m2s) */
   double BlowingMassFlux;         /* Mass flux of water vapor from blowing snow. (kg/m2s) */
   double SurfaceMassFlux;         /* Mass flux of water vapor from pack snow. (kg/m2s) */
 
@@ -168,28 +163,23 @@ double SnowPackEnergyBalance::calculate(double TSurf)
   
   /* Calculate advected heat flux from rain 
      Equation 7.3.12 from H.B.H. for rain falling on melting snowpack */
-  
   if ( TMean == 0 )
     *AdvectedEnergy = (CH_WATER * (Tair) * Rain) / (Dt);
   else
     *AdvectedEnergy = 0.;
   
   /* Calculate change in cold content */
-  *DeltaColdContent = CH_ICE * SweSurfaceLayer * (TSurf - OldTSurf) /
-    (Dt);
+  *DeltaColdContent = CH_ICE * SweSurfaceLayer * (TSurf - OldTSurf) / (Dt);
 
   /* Calculate Ground Heat Flux */
   if(SnowDepth>0.) {
-    *GroundFlux = 2.9302e-6 * SnowDensity * SnowDensity
-        * (TGrnd - TMean) / SnowDepth / (Dt);
+    *GroundFlux = K_SNOW * SnowDensity * SnowDensity * (TGrnd - TMean) / SnowDepth / (Dt);
   }
   else *GroundFlux=0;
-  *DeltaColdContent -= *GroundFlux;
 
   /* Calculate energy balance error at the snowpack surface */
   RestTerm = NetRad + *SensibleHeat + *LatentHeat + *LatentHeatSub 
-    + *AdvectedEnergy - *DeltaColdContent
-    + *AdvectedSensibleHeat;
+    + *AdvectedEnergy + *AdvectedSensibleHeat - *DeltaColdContent + *GroundFlux;
 
   *RefreezeEnergy = (SurfaceLiquidWater * Lf * Density)/(Dt);
 

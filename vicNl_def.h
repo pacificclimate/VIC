@@ -263,8 +263,7 @@ extern const char ref_veg_ref_crop[];
 #define STEFAN_B     5.6696e-8	/* stefan-boltzmann const in unit W/m^2/K^4 */
 #define Lf           3.337e5	/* Latent heat of freezing (J/kg) at 0C */
 #define RHO_W        999.842594	/* Density of water (kg/m^3) at 0C */
-#define Cp           1013.0	/* Specific heat at constant pressure of moist air 
-				   (J/deg/K) (H.B.H. p.4.13)*/
+#define Cp           1013.0	/* Specific heat at constant pressure of moist air (J/deg/K) (H.B.H. p.4.13)*/
 #define CH_ICE       2100.0e3	/* Volumetric heat capacity (J/(m3*C)) of ice */
 #define CH_WATER     4186.8e3   /* volumetric heat capacity of water */
 #define K_SNOW       2.9302e-6  /* conductivity of snow (W/mK) */
@@ -298,21 +297,13 @@ extern const char ref_veg_ref_crop[];
 #define LAPSE_PM -0.006		/* environmental lapse rate in C/m */
 
 /***** Physical Constraints *****/
-#define MINSOILDEPTH 0.001	/* minimum layer depth with which model can
-					work (m) */
-#define STORM_THRES  0.001      /* thresehold at which a new storm is 
-				   decalred */
-#define SNOW_DT       5.0	/* Used to bracket snow surface temperatures
-				   while computing the snow surface energy 
-				   balance (C) */
-#define SURF_DT       1.0	/* Used to bracket soil surface temperatures 
-                                   while computing energy balance (C) */
-#define SOIL_DT       0.25      /* Used to bracket soil temperatures while
-                                   solving the soil thermal flux (C) */
-#define CANOPY_DT    1.0	/* Used to bracket canopy air temperatures 
-                                   while computing energy balance (C) */
-#define CANOPY_VP    25.0	/* Used to bracket canopy vapor pressures 
-                                   while computing moisture balance (Pa) */
+#define MINSOILDEPTH 0.001	/* minimum layer depth with which model can work (m) */
+#define STORM_THRES  0.001  /* thresehold at which a new storm is decalred */
+#define SNOW_DT       5.0	/* Used to bracket snow surface temperatures while computing the snow surface energy balance (C) */
+#define SURF_DT       1.0	/* Used to bracket soil surface temperatures while computing energy balance (C) */
+#define SOIL_DT       0.25  /* Used to bracket soil temperatures while solving the soil thermal flux (C) */
+#define CANOPY_DT    1.0	/* Used to bracket canopy air temperatures while computing energy balance (C) */
+#define CANOPY_VP    25.0	/* Used to bracket canopy vapor pressures while computing moisture balance (Pa) */
 
 /***** Define Boolean Values *****/
 #ifndef FALSE
@@ -506,7 +497,9 @@ OUT_WIND            ,  /* near surface wind speed [m/s] */
 OUT_ADV_SENS_BAND       ,  /* net sensible heat flux advected to snow pack [W/m2] */
 OUT_ADVECTION_BAND      ,  /* advected energy [W/m2] */
 OUT_ALBEDO_BAND         ,  /* average surface albedo [fraction] */
+OUT_AREA_BAND		,  /* band area [fraction] */
 OUT_DELTACC_BAND        ,  /* change in cold content in snow pack [W/m2] */
+OUT_ELEV_BAND		,  /* band median elevation [m] */
 OUT_GRND_FLUX_BAND      ,  /* net heat flux into ground [W/m2] */
 OUT_IN_LONG_BAND        ,  /* incoming longwave at ground surface (under veg) [W/m2] */
 OUT_LATENT_BAND         ,  /* net upward latent heat flux [W/m2] */
@@ -552,6 +545,7 @@ OUT_GLAC_TSURF_FBFLAG   ,   /* glacier surface temperature flag */
 //Glacier Energy Balance Terms - fluxes
 OUT_GLAC_DELTACC        ,   /* rate of change of cold content in glacier surface layer [W/m2] */
 OUT_GLAC_FLUX           ,   /* energy flux through glacier surface layer [W/m2] */
+OUT_GLAC_MELT_ENERGY	,	/* energy used to thaw glacier ice [W/m2] */
 
 //Glacier Miscellaneous types
 OUT_GLAC_OUTFLOW_COEF   ,   /* glacier outflow coefficient [fraction] */
@@ -635,21 +629,18 @@ typedef struct {
 } filep_struct;
 
 typedef struct {
-  char  forcing[2][MAXSTRING];  /* atmospheric forcing data file names */
-  char  f_path_pfx[2][MAXSTRING];  /* path and prefix for atmospheric forcing data file names */
-  char  global[MAXSTRING];      /* global control file name */
-  char  init_state[MAXSTRING];  /* initial model state file name */
-  char  lakeparam[MAXSTRING];   /* lake model constants file */
-  char  result_dir[MAXSTRING];  /* directory where results will be written */
-  char  snowband[MAXSTRING];    /* snow band parameter file name */
-  char  soil[MAXSTRING];        /* soil parameter file name, or name of 
-				   file that has a list of all soil
-				   ARC/INFO files */
-  char  soil_dir[MAXSTRING];    /* directory from which to read ARC/INFO 
-				   soil files */
-  char  statefile[MAXSTRING];   /* name of file in which to store model state */
-  char  veg[MAXSTRING];         /* vegetation grid coverage file */
-  char  veglib[MAXSTRING];      /* vegetation parameter library file */
+  char  forcing[2][MAXSTRING];  	/* atmospheric forcing data file names */
+  char  f_path_pfx[2][MAXSTRING];  	/* path and prefix for atmospheric forcing data file names */
+  char  global[MAXSTRING];      	/* global control file name */
+  char  init_state[MAXSTRING];  	/* initial model state file name */
+  char  lakeparam[MAXSTRING];   	/* lake model constants file */
+  char  result_dir[MAXSTRING];  	/* directory where results will be written */
+  char  snowband[MAXSTRING];    	/* snow band parameter file name */
+  char  soil[MAXSTRING];        	/* soil parameter file name, or name of file that has a list of all soil ARC/INFO files */
+  char  soil_dir[MAXSTRING];    	/* directory from which to read ARC/INFO soil files */
+  char  statefile[MAXSTRING];   	/* name of file in which to store model state */
+  char  veg[MAXSTRING];         	/* vegetation grid coverage file */
+  char  veglib[MAXSTRING];      	/* vegetation parameter library file */
   char netCDFOutputFileName[MAXSTRING]; /* name of the single output file if options.OUTPUT_TYPE==NETCDF */
 } filenames_struct;
 
@@ -992,7 +983,8 @@ typedef struct {
   double   SNOW_ALB_THAW_B;    /* Melt exponent (-)              */
   double   MIN_RAIN_TEMP;      /* Air temperature below which all precip occurs as snow (C) */
   double   MAX_SNOW_TEMP;      /* Air temperature above which all precip occurs as rain (C) */
-  double   PADJ;               /* Precipitation adjustment factor (-) */
+  double   PADJ_R;             /* Rainfall adjustment factor (-) */
+  double   PADJ_S;			   /* Snowfall adjustment factor (-) */
   double   T_LAPSE;            /* Temperature lapse rate (C km-1) */
   double   PGRAD;              /* Precipitation Gradient (km-1) */
   double   GLAC_SURF_THICK;    /* Thickness of glacier active layer (mm) */
@@ -1221,7 +1213,8 @@ typedef struct {
   double  ShortUnderIn;          /* incoming shortwave to understory */
   double  snow_flux;             /* thermal flux through the snow pack (Wm-2) */
   double  glacier_flux;          /* glacier specific, used in surface_fluxes_glac (Wm-2) */
-  double  deltaCC_glac;          /* glacier specific, change in snow heat storage (Wm-2) */
+  double  deltaCC_glac;          /* glacier specific, change in glacier heat storage (Wm-2) */
+  double  glacier_melt_energy;	 /* energy used to thaw glacier ice (Wm-2) */
 } energy_bal_struct;
 
 /***********************************************************************

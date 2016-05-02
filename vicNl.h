@@ -131,7 +131,7 @@ int   CalcAerodynamic(char, double, double, double, double, double,
     VegConditions&, VegConditions&, VegConditions&, VegConditions&, VegConditions&);
 void   calc_cloud_cover_fraction(atmos_data_struct *, dmy_struct *, int,
 				 int, int, double *);
-void   calc_energy_balance_error(int, double, double, double, double, double, int, CellBalanceErrors*);
+void   calc_energy_balance_error(int, double, double, double, double, double, double, int, CellBalanceErrors*);
 void   calc_forcing_stats(int, atmos_data_struct *, const int);
 void   calc_longwave(double *, double, double, double, const ProgramState*);
 void   calc_netlongwave(double *, double, double, double);
@@ -472,8 +472,8 @@ int glacier_melt(double Le, double NetShort, double Tgrnd, VegConditions& roughn
     double LongIn, double pressure, double rainfall, double vp, double vpd,
     double wind, double z2, double *NetLong, double *OldTSurf, double *melt,
     double *save_Qnet, double *save_advection,
-    double *save_deltaCC_glac, double *save_grnd_flux, double *save_latent,
-    double *save_latent_sub, double *save_sensible, int rec,
+    double *save_deltaCC_glac, double *save_glacier_melt_energy, double *save_grnd_flux,
+	double *save_latent, double *save_latent_sub, double *save_sensible, int rec,
     glac_data_struct *glacier, const soil_con_struct*, const ProgramState *state);
 double soil_conductivity(double, double, double, double, double, double, double, double);
 void   soil_thermal_calc(soil_con_struct *, layer_data_struct *,

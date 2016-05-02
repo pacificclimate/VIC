@@ -31,10 +31,10 @@ int snow_melt_glac(double latent_heat_Le,
     double *save_sensible, int rec, snow_data_struct *snow,
     const soil_con_struct *soil_con, glac_data_struct *glacier,
     const ProgramState* state) {
+
   double error;
   double DeltaPackCC; /* Change in cold content of the pack */
-  double DeltaPackSwq; /* Change in snow water equivalent of the
-   pack (m) */
+  double DeltaPackSwq; /* Change in snow water equivalent of the pack (m) */
   double Ice; /* Ice content of snow pack (m)*/
   double InitialSwq; /* Initial snow water equivalent (m) */
   double MassBalanceError; /* Mass balance error (m) */
@@ -46,8 +46,7 @@ int snow_melt_glac(double latent_heat_Le,
   double PackRefreezeEnergy; /* refreeze/melt energy in pack layer (W/m2) */
   double RefrozenWater; /* Amount of refrozen water (m) */
   double SnowFallCC; /* Cold content of new snowfall (J) */
-  double SnowMelt; /* Amount of snow melt during time interval
-   (m water equivalent) */
+  double SnowMelt; /* Amount of snow melt during time interval (m water equivalent) */
   double SurfaceCC; /* Cold content of snow pack (J) */
   double SurfaceSwq; /* Surface layer snow water equivalent (m) */
   double SnowFall;
@@ -71,7 +70,6 @@ int snow_melt_glac(double latent_heat_Le,
   (*OldTSurf) = snow->surf_temp;
 
   /* Initialize snowpack variables */
-
   Ice = snow->swq - snow->pack_water - snow->surf_water;
 
   /* Reconstruct snow pack */
@@ -211,8 +209,7 @@ int snow_melt_glac(double latent_heat_Le,
       Ice = 0.0;
       /* readjust melt energy to account for melt only of available snow */
       melt_energy -= RefreezeEnergy;
-      RefreezeEnergy = RefreezeEnergy / fabs(RefreezeEnergy) * SnowMelt * Lf
-          * RHO_W / (delta_t);
+      RefreezeEnergy = RefreezeEnergy / fabs(RefreezeEnergy) * SnowMelt * Lf * RHO_W / (delta_t);
       melt_energy += RefreezeEnergy;
     }
   }
@@ -220,8 +217,7 @@ int snow_melt_glac(double latent_heat_Le,
   /* Else, SnowPackEnergyBalance(T=0.0) <= 0.0 */
   else {
     /* Calculate surface layer temperature using "Brent method" */
-    if (SurfaceSwq > MIN_SWQ_EB_THRES) {
-      SnowPackEnergyBalance snowPackEnergyBalance(delta_t, aero_resist,
+    SnowPackEnergyBalance snowPackEnergyBalance(delta_t, aero_resist,
           aero_resist_used, displacement, z2, roughness, density, vp, LongSnowIn,
           latent_heat_Le, pressure, RainFall, NetShortSnow, vpd, wind,
           (*OldTSurf), coverage, snow->depth, snow->density, snow->surf_water,
@@ -230,17 +226,17 @@ int snow_melt_glac(double latent_heat_Le,
           &RefreezeEnergy, &sensible_heat, &snow->vapor_flux,
           &snow->blowing_flux, &snow->surface_flux);
 
-      snow->surf_temp = snowPackEnergyBalance.root_brent(
+    snow->surf_temp = snowPackEnergyBalance.root_brent(
           (double) (snow->surf_temp - SNOW_DT),
           (double) (snow->surf_temp + SNOW_DT), ErrorString);
 
-      if (snowPackEnergyBalance.resultIsError(snow->surf_temp)) {
-        if (state->options.TFALLBACK) {
-          snow->surf_temp = *OldTSurf;
-          snow->surf_temp_fbflag = 1;
-          snow->surf_temp_fbcount++;
-        } else {
-          error = ErrorPrintSnowPackEnergyBalanceGlacier(snow->surf_temp, rec,
+    if (snowPackEnergyBalance.resultIsError(snow->surf_temp)) {
+      if (state->options.TFALLBACK) {
+        snow->surf_temp = *OldTSurf;
+        snow->surf_temp_fbflag = 1;
+        snow->surf_temp_fbcount++;
+      } else {
+        error = ErrorPrintSnowPackEnergyBalanceGlacier(snow->surf_temp, rec,
               delta_t, aero_resist, aero_resist_used, displacement, z2,
               roughness, density, vp, LongSnowIn, latent_heat_Le, pressure, RainFall,
               NetShortSnow, vpd, wind, (*OldTSurf), coverage, snow->density,
@@ -249,19 +245,11 @@ int snow_melt_glac(double latent_heat_Le,
               &latent_heat, &latent_heat_sub, NetLongSnow, &RefreezeEnergy,
               &sensible_heat, &snow->vapor_flux, &snow->blowing_flux,
               &snow->surface_flux, ErrorString);
-          return (ERROR);
-        }
-      }
-    } else {
-      /* Thin snowpack */
-      if (air_temp < 0.) {
-        snow->surf_temp = air_temp;
-      } else {
-        snow->surf_temp = glacier->surf_temp; // Set default temperature.
+        return (ERROR);
       }
     }
-    if (IS_VALID(snow->surf_temp)
-        && RootBrent::resultIsError(snow->surf_temp) == false) {
+
+    if (IS_VALID(snow->surf_temp) && RootBrent::resultIsError(snow->surf_temp) == false) {
       SnowPackEnergyBalance snowPackEnergyBalanceSurfTemp(delta_t, aero_resist,
           aero_resist_used, displacement, z2, roughness, density, vp, LongSnowIn,
           latent_heat_Le, pressure, RainFall, NetShortSnow, vpd, wind,
@@ -289,7 +277,6 @@ int snow_melt_glac(double latent_heat_Le,
       if (SurfaceSwq < -(snow->vapor_flux)) {
         // if vapor_flux exceeds SurfaceSwq, we not only need to
         // re-scale vapor_flux, we need to re-scale surface_flux and blowing_flux
-//          snow->surface_flux *= -( SurfaceSwq / snow->vapor_flux );
         snow->blowing_flux *= -(SurfaceSwq / snow->vapor_flux);
         snow->vapor_flux = -SurfaceSwq;
         snow->surface_flux = -SurfaceSwq - snow->blowing_flux;
@@ -354,7 +341,6 @@ int snow_melt_glac(double latent_heat_Le,
   }
 
   /* Update the liquid water content of the pack */
-
   MaxLiquidWater = LIQUID_WATER_CAPACITY * PackSwq;
   if (snow->pack_water > MaxLiquidWater) {
     melt[0] = snow->pack_water - MaxLiquidWater;
@@ -459,6 +445,7 @@ double ErrorPrintSnowPackEnergyBalanceGlacier(double TSurf, int rec,
     double *BlowingMassFlux, /* Mass flux of water vapor to or from the intercepted snow */
     double *SurfaceMassFlux, /* Mass flux of water vapor to or from the intercepted snow */
     char *ErrorString) {
+
   /* print variables */
   fprintf(stderr, "%s", ErrorString);
   fprintf(stderr,

@@ -50,7 +50,7 @@ double calc_rainonly(double air_temp,
   	    		  range over which mixed precipitation occurs (TR). This
   	    		  algorithm follows Kienzle (2008).  MAS
 **********************************************************************/
-	char            ErrStr[MAXSTRING];
+  char   ErrStr[MAXSTRING];
   double rainonly = 0;
 
   if(state->options.TEMP_TH_TYPE == VIC_412){
@@ -60,8 +60,7 @@ double calc_rainonly(double air_temp,
     	nrerror(ErrStr);
     }
     if(air_temp < MAX_SNOW_TEMP && air_temp > MIN_RAIN_TEMP) {
-      rainonly = (air_temp - MIN_RAIN_TEMP)
-          / (MAX_SNOW_TEMP - MIN_RAIN_TEMP) * prec;
+      rainonly = (air_temp - MIN_RAIN_TEMP) / (MAX_SNOW_TEMP - MIN_RAIN_TEMP) * prec;
     }
     else if(air_temp >= MAX_SNOW_TEMP) {
       rainonly = prec;
@@ -76,8 +75,8 @@ double calc_rainonly(double air_temp,
 	}
 
 	double rfrac = 0.;
-	double TT = MAX_SNOW_TEMP;
-	double TR = MIN_RAIN_TEMP;
+	double TT = MIN_RAIN_TEMP;
+	double TR = MAX_SNOW_TEMP;
 	double D = 1.4 * TR;
 	double E1 = 5. *   pow((air_temp-TT)/D, 3.0);
 	double E2 = 6.76 * pow((air_temp-TT)/D, 2.0);
