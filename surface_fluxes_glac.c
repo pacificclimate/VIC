@@ -239,9 +239,8 @@ int surface_fluxes_glac(
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
     step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];  // precipitation in mm
 
-    /** Calculate fraction of precipitation that falls as fain; scale rainfall and snowfall**/
-    rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP,
-        soil_con->MIN_RAIN_TEMP, hru.mu, state);
+    /** Calculate fraction of precipitation that falls as rain; scale rainfall and snowfall**/
+    rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP, soil_con->MIN_RAIN_TEMP, hru.mu, state);
     snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly) * soil_con->PADJ_S;
     rainfall[WET] = gauge_correction[RAIN] * rainOnly * soil_con->PADJ_R;
     snowfall[DRY] = 0.;
@@ -283,9 +282,6 @@ int surface_fluxes_glac(
 
     LongUnderOut = step_energy.LongUnderOut;
 
-    /* Debugging */
-    /* if (rec == 1411)
-  	  fprintf(stderr, "Record %i\n", rec); */
 
     if (step_snow.swq > 0. || snowfall[WET] > 0.) {
       /** Solve snow accumulation and ablation on the glacier surface **/
