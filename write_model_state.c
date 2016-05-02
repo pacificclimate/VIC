@@ -274,7 +274,6 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
     stream->process(&it->snow.surf_temp_fbcount, 1, SNOW_SURF_TEMP_FBCOUNT);
 
     // miscellaneous state variables (non-mandatory)
-    stream->process(&it->glacier.Qnet, 1, GLAC_QNET);
     stream->process(&it->glacier.surf_temp_fbflag, 1, GLAC_SURF_TEMP_FBFLAG);
     stream->process(&it->glacier.vapor_flux, 1, GLAC_VAPOR_FLUX);
     stream->process(&it->snow.canopy_albedo, 1, SNOW_CANOPY_ALBEDO);

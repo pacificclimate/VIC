@@ -468,7 +468,6 @@ void StateIONetCDF::populateMetaData() {
   metaData[SNOW_SURF_TEMP_FBCOUNT].type = netCDF::NcType::nc_INT;
 
   // miscellaneous state variables (non-mandatory)
-  metaData[GLAC_QNET] = 							StateVariableMetaData("GLAC_QNET", HRU_DIM);
   metaData[GLAC_SURF_TEMP_FBFLAG] = 	StateVariableMetaData("GLAC_SURF_TEMP_FBFLAG", HRU_DIM);
   metaData[GLAC_SURF_TEMP_FBFLAG].type = netCDF::NcType::nc_INT;
   metaData[GLAC_VAPOR_FLUX] = 				StateVariableMetaData("GLAC_VAPOR_FLUX", HRU_DIM);
