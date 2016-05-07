@@ -12,7 +12,7 @@ void ProgramState::initialize_global() {
   This subroutine initalizes all global parameters before they are 
   called by the model.
 
-  option_strudt:           structure containing all global model options
+  option_struct:           structure containing all global model options
   options.FULL_ENERGY    = TRUE - compute full energy balance
   options.FROZEN_SOIL    = TRUE - compute frozen soils
   options.DIST_PRCP      = TRUE - use distributed precipitation
@@ -159,7 +159,7 @@ void ProgramState::initialize_global() {
   options.TFALLBACK             = TRUE;
   options.VP_INTERP             = TRUE;
   options.VP_ITER               = VP_ITER_ALWAYS;
-  options.TEMP_TH_TYPE			= KIENZLE;
+  options.TEMP_TH_TYPE          = KIENZLE;
   // input options
   options.ARC_SOIL              = FALSE;
   options.BASEFLOW              = ARNO;

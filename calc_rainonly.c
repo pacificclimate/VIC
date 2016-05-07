@@ -69,8 +69,8 @@ double calc_rainonly(double air_temp,
 
   else if(state->options.TEMP_TH_TYPE == KIENZLE){
 
-	if(MIN_RAIN_TEMP <= 0.){
-    sprintf(ErrStr,"ERROR: For method KIENZLE, temperature range (MIN_RAIN_TEMP) must be greater than 0\n");
+	if(MAX_SNOW_TEMP <= 0.){
+    sprintf(ErrStr,"ERROR: For method KIENZLE, temperature range (MAX_SNOW_TEMP) must be greater than 0\n");
     nrerror(ErrStr);
 	}
 
