@@ -1241,8 +1241,7 @@ typedef struct {
   int    last_snow;         /* time steps since last snowfall */
   double max_swq;           /* last maximum swq - used to determine coverage
 			       fraction during current melt period (m) */
-  bool   MELTING;           /* flag indicating that snowpack melted
-			       previously */
+  bool   MELTING;           /* flag indicating that snowpack melted previously */
   double pack_temp;         /* depth averaged temperature of the snowpack (C) */
   double pack_water;        /* liquid water content of the snow pack (m) */
   int    snow;              /* TRUE = snow, FALSE = no snow */
