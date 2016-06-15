@@ -1267,8 +1267,8 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     fprintf(stderr,"Using %d Snow Bands\n",options.SNOW_BAND);
     fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
     if ( options.SAVE_STATE )
-      fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
-              global_param.stateday, global_param.statemonth, global_param.stateyear);
+      fprintf(stderr,"Model state will be saved on = %04i-%02i-%02i\n\n",
+      		global_param.stateyear, global_param.statemonth, global_param.stateday);
     if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
       fprintf(stderr,"Model output is in standard BINARY format.\n");
     } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
