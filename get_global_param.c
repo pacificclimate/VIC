@@ -1128,7 +1128,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     }
     // Set the statename here to be able to compare with INIT_STATE name
     if( options.SAVE_STATE ) {
-      sprintf(names->statefile,"%s_%04i%02i%02i", names->statefile,
+      sprintf(names->statefile,"%s_%04i-%02i-%02i", names->statefile,
               global_param.stateyear, global_param.statemonth, global_param.stateday);
     }
     if( options.INIT_STATE && options.SAVE_STATE && (strcmp( names->init_state, names->statefile ) == 0))  {
