@@ -319,7 +319,7 @@ void read_atmos_data(FILE                 *infile,
         default:
         	fprintf(stderr,
         	          "Error reading NetCDF forcing variable %s. Type not supported.",
-        	          varids[varidx], state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname);
+        	          state->param_set.TYPE[state->param_set.FORCE_INDEX[file_num][varidx]].varname);
           assert(0);
           break;
       }
