@@ -1607,6 +1607,7 @@ public:
   int out_step_ratio; /* ratio between output time step and simulation time step */
   std::set<std::tuple<double, double>> modeled_cell_coordinates;
   bool *modeled_cell_mask;
+  bool glacier_accum_started; /* flag indicating that glacier accumulation has started (after wind-up period) */
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
   void initCellMask(const std::vector<cell_info_struct>& cells);
