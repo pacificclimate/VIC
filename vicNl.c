@@ -469,7 +469,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 					chunk_step_count++;
 		  	}
 		  	else { // write this output data chunk to disk
-		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[0], &dmy[rec], state->global_param.disagg_write_chunk_size, state);
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[0], &dmy[rec], size_t(state->global_param.disagg_write_chunk_size), state);
 		  		chunk_step_count = 0;
 		  	}
 		  }

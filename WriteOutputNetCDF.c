@@ -312,7 +312,7 @@ int WriteOutputNetCDF::getTimeIndex(const dmy_struct* curTime, const int timeInd
 }
 
 // This is called per time record.
-void WriteOutputNetCDF::write_data_one_cell(out_data_struct* out_data, const dmy_struct* dmy, int numTimeRecords, const ProgramState* state) {
+void WriteOutputNetCDF::write_data_one_cell(out_data_struct* out_data, const dmy_struct* dmy, size_t numTimeRecords, const ProgramState* state) {
 
   if (netCDF == NULL) {
     fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t%02i\t%02i\t%02i\t Lat: %f, Lon: %f. File: \"%s\".\n",
