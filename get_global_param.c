@@ -283,6 +283,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->netCDFOutputFileName, "results.nc");
   global_param.out_dt        = INVALID_INT;
   global_param.num_threads        = 1;
+  global_param.disagg_write_chunk_size = 1;
 
   // Open the file
   FILE* gp = open_file(global_file_name, "r");

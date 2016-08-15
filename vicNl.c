@@ -336,16 +336,15 @@ int initializeCell(cell_info_struct& cell,
     make_in_files(&filep, &filenames, &cell.soil_con, state);
   }
   if (!state->options.OUTPUT_FORCE) {
-      /** Read Elevation Band Data if Used **/
-      read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
-
+    /** Read Elevation Band Data if Used **/
+    read_snowband(filep.snowband, &cell.soil_con, state->options.SNOW_BAND);
   }
       /**************************************************
        Initialize Meteorological Forcing Values That
        Have not Been Specifically Set
        **************************************************/
 #if VERBOSE
-      fprintf(stderr, "\nInitialising Forcing Data for cell at %4.5f %4.5f...\n", cell.soil_con.lat, cell.soil_con.lng);
+  fprintf(stderr, "\nInitialising Forcing Data for cell at %4.5f %4.5f...\n", cell.soil_con.lat, cell.soil_con.lng);
 #endif
 // NOTE: this should only be done for valid cells
   /** allocate memory for the atmos_data_struct **/
@@ -362,7 +361,7 @@ int initializeCell(cell_info_struct& cell,
    **************************************************/
   if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
-      fprintf(stderr, "\nInitialising Model State\n");
+    fprintf(stderr, "\nInitialising Model State\n");
 #endif
 	  int ErrorFlag = initialize_model_state(&cell, dmy[0], filep, Ndist, filenames.init_state, state);
 
@@ -404,9 +403,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	 * (end - start) measures total time from cells initialization to program completion (just before memory clean-up).
 	 * (init_end - init_start) measures time spent in cells initialization (or processing one cell, when OUTPUT_FORCE=TRUE)
 	 */
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    std::chrono::duration<double> elapsed_seconds;
-    std::chrono::time_point<std::chrono::system_clock> init_start, init_end;
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::duration<double> elapsed_seconds;
+  std::chrono::time_point<std::chrono::system_clock> init_start, init_end;
 	std::chrono::duration<double> elapsed_init;
 
 	if (!state->options.OUTPUT_FORCE) {
@@ -418,9 +417,11 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
-	if (state->options.OUTPUT_FORCE) {
-		init_start = std::chrono::system_clock::now();
-	}
+		if (state->options.OUTPUT_FORCE) {
+			init_start = std::chrono::system_clock::now();
+		}
+
+		// Read in forcings, veg params, snowband, and initial state (if applicable) for this cell
   	int initError = 0;
     initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     if (initError == ERROR) {
@@ -430,8 +431,18 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Copy the format of the out_data_files_template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
 
-    // Copy the format of the out_data_list (which is specific to this model run) and allocate space for this cell's element of current_output_data
-    copy_output_data(current_output_data, out_data_list, state);
+    /* Copy the format of the out_data_list (which is specific to this model run) and allocate space for this cell's
+      output data element(s) of current_output_data */
+    // TODO: after confirming this works, we should avoid re-allocating (and later, freeing) this space for each cell in disagg mode,
+    // and instead reuse it for all subsequent cell-major iterations, and THEN free the memory
+    if (state->options.OUTPUT_FORCE) { // allocate current_output_data vector elements for write-out of a chunk of time steps'
+    	for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++){
+        copy_output_data(current_output_data, out_data_list, state);
+    	}
+    }
+    else { // allocating one current_output_data vector element per cell (i.e. we write once per time step)
+    	copy_output_data(current_output_data, out_data_list, state);
+    }
 
     /* Create output filename(s), and open (if already created, just open for appending).
         ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
@@ -445,21 +456,32 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
        cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
     }
 
-  /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
-  forcing data array is written to file(s), and the full model run is skipped. */
+    /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+  	 forcing data array is written to file(s), and the full model run is skipped. */
 	  if (state->options.OUTPUT_FORCE) {
 #if VERBOSE
 		  fprintf(stderr, "Writing to output forcing file...\n");
 #endif
+		  int chunk_step_count = 0; // count how many time steps' output have been chunked together for write out
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
-				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[cellidx], state, dmy);
-				cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[cellidx], &dmy[rec], state->global_param.out_dt, state);
+		  	if (chunk_step_count < state->global_param.disagg_write_chunk_size) { // add output data chunk to current_output_data
+					write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[chunk_step_count], state, dmy);
+					chunk_step_count++;
+		  	}
+		  	else { // write this output data chunk to disk
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[0], &dmy[rec], state->global_param.disagg_write_chunk_size, state);
+		  		chunk_step_count = 0;
+		  	}
 		  }
 		  // Free all memory allocated for processing this cell
 		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
 		  delete cell_data_structs[cellidx].outputFormat;
-		  free(current_output_data[cellidx]->data);
-		  free(current_output_data[cellidx]->aggdata);
+		  /* Only need to free up those members of current_output_data which were allocated using calloc.
+		  	The rest of the vector's components will be freed automatically. */
+		  for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++) {
+			  free(current_output_data[i]->data);
+			  free(current_output_data[i]->aggdata);
+		  }
 		  init_end = std::chrono::system_clock::now();
 		  elapsed_init = init_end - init_start;
 #if VERBOSE
@@ -473,7 +495,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	  elapsed_init = init_end - init_start;
 #if VERBOSE
 	  fprintf(stderr, "Done. Elapsed time reading forcings and initializing the model: %.3f seconds\n\n",  elapsed_init.count());
-      fprintf(stderr, "Running Model...\n");
+    fprintf(stderr, "Running Model...\n");
 #endif
       start = std::chrono::system_clock::now();
   }

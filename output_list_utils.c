@@ -24,6 +24,12 @@ void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_dat
     }
   }
   current_output_data.push_back(cur_data);
+  // The push_back to the current_output_data vector is implemented as a copy of cur_data, so cur_data can be freed
+  for (int i = 0; i < N_OUTVAR_TYPES; i++) {
+  	free(cur_data[i].data);
+  	free(cur_data[i].aggdata);
+  }
+  free(cur_data);
 }
 
 out_data_struct *create_output_list(const ProgramState* state) {

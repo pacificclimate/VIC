@@ -857,6 +857,7 @@ typedef struct {
   float  resolution; /* Model resolution (degrees) */
   int    dt;         /* Time step in hours (24/dt must be an integer) */
   int    out_dt;     /* Output time step in hours (24/out_dt must be an integer) */
+  int 	 disagg_write_chunk_size;  /* Number of simulation steps' output to write at once when in (serial) meteorological disaggregation mode */
   int    endday;     /* Last day of model simulation */
   int    endmonth;   /* Last month of model simulation */
   int    endyear;    /* Last year of model simulation */
