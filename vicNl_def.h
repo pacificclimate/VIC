@@ -18,7 +18,7 @@
               Added output variable types.  Added binary output format
               types.  Removed all output files except the state file from
               the outfiles_struct and the filenames_struct.  Added
-              Noutfiles to the option_struct.  Created new out_data_struct
+              Noutfiles to the option_struct.  Created new OutputData
               and out_data_files_struct.  Added new save_data structure.
               Organized the physical constants into one section; got rid
               of redundant Stefan-Boltzmann constant.  Implemented
@@ -133,6 +133,7 @@
 #include <string>
 #include <map>
 #include "GraphingEquation.h"
+#include "OutputData.h"
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -1427,32 +1428,6 @@ typedef struct {
 } save_data_struct;
 
 /*******************************************************
-  This structure stores output information for one variable.
-  *******************************************************/
-typedef struct {
-  char		varname[30]; /* name of variable */
-  int		write;       /* FALSE = don't write; TRUE = write */
-  char		format[10];  /* format, when written to an ascii file;
-		                should match the desired fprintf format specifier, e.g. %.4f */
-  int		type;        /* type, when written to a binary file;
-		                OUT_TYPE_USINT  = unsigned short int
-		                OUT_TYPE_SINT   = short int
-		                OUT_TYPE_FLOAT  = single precision floating point
-		                OUT_TYPE_DOUBLE = double precision floating point */
-  float		mult;        /* multiplier, when written to a binary file */
-  int		aggtype;     /* type of aggregation to use;
-				AGG_TYPE_AVG    = take average value over agg interval
-				AGG_TYPE_BEG    = take value at beginning of agg interval
-				AGG_TYPE_END    = take value at end of agg interval
-				AGG_TYPE_MAX    = take maximum value over agg interval
-				AGG_TYPE_MIN    = take minimum value over agg interval
-				AGG_TYPE_SUM    = take sum over agg interval */
-  int		nelem;       /* number of data values */
-  double	*data;       /* array of data values */
-  double	*aggdata;    /* array of aggregated data values */
-} out_data_struct;
-
-/*******************************************************
   This structure stores output information for one output file.
   *******************************************************/
 #define OUT_DATA_FILE_STRUCT_PREFIX_LENGTH 20
@@ -1479,7 +1454,7 @@ typedef struct {
   energy_bal_struct *energy;
   filep_struct       filep;
   int                rec;
-  out_data_struct   *out_data;
+  OutputData   *out_data;
   out_data_file_struct    *out_data_files;
   snow_data_struct  *snow;
   soil_con_struct    soil_con;

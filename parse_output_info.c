@@ -7,7 +7,7 @@ static char vcid[] = "$Id$";
 
 void parse_output_info(const char*           input_file_name,
                        out_data_file_struct  *out_data_files,
-                       out_data_struct       *out_data,
+                       OutputData       *out_data,
                        ProgramState          *state)
 /**********************************************************************
   parse_output_info	Ted Bohn	            September 10 2006

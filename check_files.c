@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const out_data_struct* outData, ProgramState *state) {
+void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const OutputData* outData, ProgramState *state) {
 
 	// Initialise the netcdf full path name.
   strcpy(state->options.NETCDF_FULL_FILE_PATH, fnames->result_dir);

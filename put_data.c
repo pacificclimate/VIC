@@ -6,7 +6,7 @@ static char vcid[] = "$Id$";
 
 int  put_data(cell_info_struct  *cell,
               WriteOutputFormat *output,
-              out_data_struct   *out_data,
+              OutputData   *out_data,
               const dmy_struct  *dmy,
               int                rec,
               const ProgramState* state)
@@ -775,7 +775,7 @@ void collect_wb_terms(const hru_data_struct&  cell,
                       int               overstory,
                       double           *depth,
                       double           *frost_fract,
-                      out_data_struct  *out_data,
+                      OutputData  *out_data,
                       const ProgramState* state)
 {
   double AreaFactor;
@@ -957,7 +957,7 @@ void collect_eb_terms(const energy_bal_struct& energy,
                       double           *dz,
                       double           *frost_fract,
                       double            frost_slope,
-                      out_data_struct  *out_data,
+                      OutputData  *out_data,
                       const ProgramState* state)
 {
 

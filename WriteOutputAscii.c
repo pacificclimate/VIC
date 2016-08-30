@@ -6,7 +6,7 @@ void WriteOutputAscii::openFile(){
 	}
 }
 
-void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
+void WriteOutputAscii::write_data(OutputData* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
 	// Loop over output files
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
 
@@ -31,7 +31,8 @@ void WriteOutputAscii::write_data(out_data_struct* out_data, const dmy_struct* d
         if (!(var_idx == 0 && elem_idx == 0)) {
           fprintf(dataFiles[file_idx]->fh, "\t ");
         }
-        fprintf(dataFiles[file_idx]->fh, out_data[dataFiles[file_idx]->varid[var_idx]].format, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx]);
+        // NOTE: write-out to file has been disabled by commenting out the following (ASCII output mode is being removed currently)
+//        fprintf(dataFiles[file_idx]->fh, out_data[dataFiles[file_idx]->varid[var_idx]].format, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata[elem_idx]);
       }
     }
     fprintf(dataFiles[file_idx]->fh, "\n");
@@ -63,7 +64,7 @@ void WriteOutputAscii::compressFiles() {
     start date  = Date and time of first record of file
     ALMA_OUTPUT = Indicates units of the variables; 0 = standard VIC units; 1 = ALMA units
     Nvars       = Number of variables in the file, including date fields*/
-void WriteOutputAscii::write_header(out_data_struct* out_data, const dmy_struct* dmy, const ProgramState* state) {
+void WriteOutputAscii::write_header(OutputData* out_data, const dmy_struct* dmy, const ProgramState* state) {
   char                tmp_ALMA_OUTPUT;
   char                Nvars;
 

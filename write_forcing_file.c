@@ -7,7 +7,7 @@ static char vcid[] = "$Id$";
 void write_forcing_file(cell_info_struct *cell,
 			int                rec,
 			WriteOutputFormat *outputFormat,
-			out_data_struct   *out_data,
+			OutputData   *out_data,
 			const ProgramState* state, dmy_struct* dmy)
 
 /**********************************************************************

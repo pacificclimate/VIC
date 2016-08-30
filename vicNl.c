@@ -13,6 +13,7 @@
 #include <chrono>
 #include <ctime>
 
+#include "OutputData.h"
 #include "WriteOutputAscii.h"
 #include "WriteOutputBinary.h"
 #include "WriteOutputNetCDF.h"
@@ -26,7 +27,7 @@ void readSoilData(std::vector<cell_info_struct>& cell_data_structs,
 
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
-    out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
+    out_data_file_struct* out_data_files_template, OutputData* out_data_list,
     dmy_struct* dmy, ProgramState* state);
 
 int initializeCell(cell_info_struct& cell,
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])
   /** Read Global Control File **/
   state.init_global_param(&filenames, filenames.global);
   /** Set up output data structures **/
-  out_data_struct *out_data_list = create_output_list(&state);
+  OutputData *out_data_list = create_output_list(&state);
   out_data_file_struct *out_data_files = set_output_defaults(out_data_list, &state);
   parse_output_info(filenames.global, out_data_files, out_data_list, &state);
 
@@ -187,7 +188,6 @@ int main(int argc, char *argv[])
   /** cleanup **/
   free_dmy(&dmy);
   delete [] out_data_files;
-  free_out_data(&out_data_list);
   if (!state.options.OUTPUT_FORCE) {
     free_veglib(&state.veg_lib);
   }
@@ -389,11 +389,11 @@ int initializeCell(cell_info_struct& cell,
  ************************************/
 void runModel(std::vector<cell_info_struct>& cell_data_structs,
     filep_struct filep, filenames_struct filenames,
-    out_data_file_struct* out_data_files_template, out_data_struct* out_data_list,
+    out_data_file_struct* out_data_files_template, OutputData* out_data_list,
     dmy_struct* dmy, ProgramState* state) {
 
 	// Create vector for holding output data from one time iteration for all cells.
-	std::vector<out_data_struct*> current_output_data;
+	std::vector<OutputData*> current_output_data;
 
 	// outputwriter takes care of writing all cells' data at a given time step. Only used if OUTPUT_FORCE=FALSE
 	WriteOutputNetCDF *outputwriter = new WriteOutputNetCDF(state);
@@ -431,10 +431,8 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Copy the format of the out_data_files_template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
 
-    /* Copy the format of the out_data_list (which is specific to this model run) and allocate space for this cell's
-      output data element(s) of current_output_data */
-    // TODO: after confirming this works, we should avoid re-allocating (and later, freeing) this space for each cell in disagg mode,
-    // and instead reuse it for all subsequent cell-major iterations, and THEN free the memory
+    /* Copy the format of the out_data_list (which is specific to this model run) and allocate space elements of
+       current_output_data for this cell's output data */
     if (state->options.OUTPUT_FORCE) { // allocate current_output_data vector elements for write-out of a chunk of time steps'
     	for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++){
         copy_output_data(current_output_data, out_data_list, state);
@@ -445,49 +443,44 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     }
 
     /* Create output filename(s), and open (if already created, just open for appending).
-        ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
+       ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].outputFormat, state);
 
-    // Write output file headers at initialization (does nothing in the NetCDF output format case)
-    if (state->options.PRT_HEADER) {
-      // Use out_data_list as a template for constructing the header of the output file (in ASCII mode)
-       std::vector<out_data_struct*> out_data_template;
-       copy_output_data(out_data_template, out_data_list, state);
-       cell_data_structs[cellidx].outputFormat->write_header(out_data_template[0], dmy, state);
-    }
-
     /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
-  	 forcing data array is written to file(s), and the full model run is skipped. */
+  	   forcing data array is written to file(s), and the full model run is skipped. */
 	  if (state->options.OUTPUT_FORCE) {
 #if VERBOSE
 		  fprintf(stderr, "Writing to output forcing file...\n");
 #endif
 		  int chunk_step_count = 0; // count how many time steps' output have been chunked together for write out
+		  int chunk_start_rec = 0;
 		  for (int rec = 0; rec < state->global_param.nrecs; rec++) {
-		  	if (chunk_step_count < state->global_param.disagg_write_chunk_size) { // add output data chunk to current_output_data
-					write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[chunk_step_count], state, dmy);
-					chunk_step_count++;
+				// copy forcing data to current_output_data for writeout (write_forcing_file does not actually write anything to file)
+				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[chunk_step_count], state, dmy);
+				chunk_step_count++;
+		  	if (rec >= state->global_param.nrecs-1) { // write this last output data chunk to disk (handles case if chunk_size does not divide evenly into nrecs)
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, size_t(state->global_param.nrecs - chunk_start_rec), state);
 		  	}
-		  	else { // write this output data chunk to disk
-		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data[0], &dmy[rec], size_t(state->global_param.disagg_write_chunk_size), state);
+		  	else if (chunk_step_count >= state->global_param.disagg_write_chunk_size) { // write this output data chunk to disk
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, size_t(state->global_param.disagg_write_chunk_size), state);
 		  		chunk_step_count = 0;
+		  		chunk_start_rec = rec+1;
+		  	}
+		  	else if (chunk_step_count < state->global_param.disagg_write_chunk_size) { // don't write anything out; just add this chunk to current_output_data
+		  	  continue;
 		  	}
 		  }
 		  // Free all memory allocated for processing this cell
 		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
 		  delete cell_data_structs[cellidx].outputFormat;
-		  /* Only need to free up those members of current_output_data which were allocated using calloc.
-		  	The rest of the vector's components will be freed automatically. */
-		  for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++) {
-			  free(current_output_data[i]->data);
-			  free(current_output_data[i]->aggdata);
-		  }
+
 		  init_end = std::chrono::system_clock::now();
 		  elapsed_init = init_end - init_start;
 #if VERBOSE
 		  fprintf(stderr, "Done. Elapsed time reading, generating, and writing forcings for this cell: %.3f seconds\n",  elapsed_init.count());
 #endif
 	  }
+
   } // for - grid cell loop
 
   if (!state->options.OUTPUT_FORCE) {
@@ -608,7 +601,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     }
   } // for - time loop
 
-	delete outputwriter;
+//	delete outputwriter;
 
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end - start;
