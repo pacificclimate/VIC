@@ -283,7 +283,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->netCDFOutputFileName, "results.nc");
   global_param.out_dt        = INVALID_INT;
   global_param.num_threads        = 1;
-  global_param.disagg_write_chunk_size = 10;
+  global_param.disagg_write_chunk_size = 1;
 
   // Open the file
   FILE* gp = open_file(global_file_name, "r");
@@ -305,7 +305,10 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       /*************************************
        Get Model Global Parameters
       *************************************/
-      if(strcasecmp("PARALLEL_THREADS",optstr)==0) {
+      if(strcasecmp("DISAGG_WRITE_CHUNK_SIZE",optstr)==0) {
+        sscanf(cmdstr,"%*s %d",&global_param.disagg_write_chunk_size);
+      }
+      else if(strcasecmp("PARALLEL_THREADS",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.num_threads);
       }
       else if(strcasecmp("NLAYER",optstr)==0) {
@@ -1284,6 +1287,9 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     else 
       fprintf(stderr,"Debugging code has not been compiled.\n");
 #endif
+  }
+  else { // options.OUTPUT_FORCE == TRUE
+  	fprintf(stderr, "\nDisaggregated forcings output chunk size is %d time records per write.\n", global_param.disagg_write_chunk_size);
   }
 
 }
