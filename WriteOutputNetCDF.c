@@ -320,7 +320,6 @@ void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_da
     return;
   }
 
-//  const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
   const size_t timeIndex = size_t(chunk_start_rec);
   const size_t lonIndex = longitudeToIndex(this->lon, state);
   const size_t latIndex = latitudeToIndex(this->lat, state);
