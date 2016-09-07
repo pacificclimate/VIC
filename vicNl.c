@@ -189,9 +189,6 @@ int main(int argc, char *argv[])
   delete [] out_data_files;
   if (!state.options.OUTPUT_FORCE) {
     free_veglib(&state.veg_lib);
-  }
-  fclose(filep.soilparam);
-  if (!state.options.OUTPUT_FORCE) {
     fclose(filep.vegparam);
     fclose(filep.veglib);
     if (state.options.SNOW_BAND > 1)
@@ -199,6 +196,7 @@ int main(int argc, char *argv[])
     if (state.options.LAKES)
       fclose(filep.lakeparam);
   }
+  fclose(filep.soilparam);
 
 #if VERBOSE
   fprintf(stderr, "\nVIC exiting.\n");
@@ -393,6 +391,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
 	// Create vector for holding output data from one time iteration for all cells.
 	std::vector<OutputData*> current_output_data;
+	bool output_data_allocated = false;
 
 	// outputwriter takes care of writing all cells' data at a given time step. Only used if OUTPUT_FORCE=FALSE
 	WriteOutputNetCDF *outputwriter = new WriteOutputNetCDF(state);
@@ -420,7 +419,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 			init_start = std::chrono::system_clock::now();
 		}
 
-		// Read in forcings, veg params, snowband, and initial state (if applicable) for this cell
+		// Read in forcings, veg params, snowband, atmospheric forcings, and initial state (if applicable) for this cell
   	int initError = 0;
     initError = initializeCell(cell_data_structs[cellidx], filep, dmy, filenames, state);
     if (initError == ERROR) {
@@ -430,24 +429,27 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     // Copy the format of the out_data_files_template and allocate in cell_data_structs[cellidx].outputFormat->dataFiles
     copy_data_file_format(out_data_files_template, cell_data_structs[cellidx].outputFormat->dataFiles, state);
 
-    /* Copy the format of the out_data_list (which is specific to this model run) and allocate space elements of
-       current_output_data for this cell's output data */
-    if (state->options.OUTPUT_FORCE) { // allocate current_output_data vector elements for write-out of a chunk of time steps'
-    	for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++){
-        copy_output_data(current_output_data, out_data_list, state);
-    	}
-    }
-    else { // allocating one current_output_data vector element per cell (i.e. we write once per time step)
-    	copy_output_data(current_output_data, out_data_list, state);
-    }
-
     /* Create output filename(s), and open (if already created, just open for appending).
        ASCII/binary output format will make two files per grid cell; NetCDF will make one file to rule them all */
     make_out_files(&filep, &filenames, &cell_data_structs[cellidx].soil_con, cell_data_structs[cellidx].outputFormat, state);
 
-    /* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
+    /* Copy the format of the out_data_list (which is specific to this model run) and allocate space elements of
+       current_output_data for this cell's output data */
+    if (!state->options.OUTPUT_FORCE) {
+    	// allocating one current_output_data vector element per cell (i.e. we write once per time step)
+    	copy_output_data(current_output_data, out_data_list, state);
+    }
+    else {
+    	/* If OUTPUT_FORCE is set to TRUE in the global parameters file then the full disaggregated
   	   forcing data array is written to file(s), and the full model run is skipped. */
-	  if (state->options.OUTPUT_FORCE) {
+    	if (!output_data_allocated) {
+    		// allocate current_output_data vector elements for write-out of a chunk of time steps'
+    		for (int i = 0; i < state->global_param.disagg_write_chunk_size; i++){
+    			copy_output_data(current_output_data, out_data_list, state);
+    		}
+    		output_data_allocated = true;
+    	}
+
 #if VERBOSE
 		  fprintf(stderr, "Writing to output forcing file...\n");
 #endif
