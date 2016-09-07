@@ -20,8 +20,8 @@ public:
   void initializeFile(const ProgramState*, const OutputData*);
   void openFile();
   void compressFiles();
-  void write_data_one_cell(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int chunk_start_rec, size_t numTimeRecords, const ProgramState* state);
-  void write_data_all_cells(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct *dmy, int dt, const ProgramState *state);
+  void write_data_one_cell(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int chunk_start_rec, const int num_recs, const ProgramState* state);
+  void write_data_all_cells(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int output_rec, const ProgramState *state);
   void write_header(OutputData *out_data, const dmy_struct *dmy, const ProgramState* state);
   int getLengthOfTimeDimension(const ProgramState* state);
   int getTimeIndex(const dmy_struct* curTime, const int timeIndexDivisor, const ProgramState* state);

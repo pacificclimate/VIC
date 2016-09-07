@@ -464,10 +464,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 				write_forcing_file(&cell_data_structs[cellidx], rec, cell_data_structs[cellidx].outputFormat, current_output_data[chunk_step_count], state, dmy);
 				chunk_step_count++;
 		  	if (rec >= state->global_param.nrecs-1) { // write this last output data chunk to disk (handles case if chunk_size does not divide evenly into nrecs)
-		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, size_t(state->global_param.nrecs - chunk_start_rec), state);
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, state->global_param.nrecs-chunk_start_rec, state);
 		  	}
 		  	else if (chunk_step_count >= state->global_param.disagg_write_chunk_size) { // write this output data chunk to disk
-		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, size_t(state->global_param.disagg_write_chunk_size), state);
+		  		cell_data_structs[cellidx].outputFormat->write_data_one_cell(current_output_data, out_data_files_template, chunk_start_rec, state->global_param.disagg_write_chunk_size, state);
 		  		chunk_step_count = 0;
 		  		chunk_start_rec = rec+1;
 		  	}
@@ -591,7 +591,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 
     // Write output data for all cells to file if we have completed an output interval (OUT_STEP)
     if((rec >= state->global_param.skipyear) && (state->step_count == state->out_step_ratio)) {
-    	outputwriter->write_data_all_cells(current_output_data, out_data_files_template, &dmy[rec], state->global_param.out_dt, state);
+    	outputwriter->write_data_all_cells(current_output_data, out_data_files_template, rec/state->out_step_ratio, state);
 
       // Reset the aggdata for all variables (even those not necessarily being written, as some variables' aggdata values are derived from other variables)
     	for (int var_idx=0; var_idx<N_OUTVAR_TYPES; var_idx++) {

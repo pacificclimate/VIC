@@ -312,7 +312,7 @@ int WriteOutputNetCDF::getTimeIndex(const dmy_struct* curTime, const int timeInd
 }
 
 // This is called for one cell, writing data for one or more time records to file.
-void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int chunk_start_rec, size_t numTimeRecords, const ProgramState* state) {
+void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int chunk_start_rec, const int num_recs, const ProgramState* state) {
 
   if (netCDF == NULL) {
 	  fprintf(stderr, "Warning: could not write to netCDF file. Chunk starting record %04i\t Lat: %f, Lon: %f. File: \"%s\".\n",
@@ -321,6 +321,7 @@ void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_da
   }
 
   const size_t timeIndex = size_t(chunk_start_rec);
+  const size_t numTimeRecords = size_t(num_recs);
   const size_t lonIndex = longitudeToIndex(this->lon, state);
   const size_t latIndex = latitudeToIndex(this->lat, state);
 
@@ -346,9 +347,6 @@ void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_da
   for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 	  // Loop over this output file's data variables
 	  for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
-
-		  //fprintf(stderr, "write_data_one_cell::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
-
 		  // Create temporary array of data for this variable across all cells
 		  float *vardata, *vardata_ptr;
 		  int varnumelem = all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].nelem;
@@ -386,16 +384,15 @@ void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_da
 }
 
 // This is called for all cells at once (intended for multithreading), writing data for one time record to file.
-void WriteOutputNetCDF::write_data_all_cells(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct *dmy, int dt, const ProgramState* state) {
+void WriteOutputNetCDF::write_data_all_cells(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int output_rec, const ProgramState* state) {
 
-	if (netCDF == NULL) {
-		fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t%02i\t%02i\t%02i\t. File: \"%s\".\n",
-				dmy->year, dmy->month, dmy->day, dmy->hour, state->options.NETCDF_FULL_FILE_PATH);
-		return;
-	}
+  if (netCDF == NULL) {
+	  fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t Lat: %f, Lon: %f. File: \"%s\".\n",
+	         output_rec, lat, lon, netCDFOutputFileName.c_str());
+    return;
+  }
 
-	const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
-
+	const size_t timeIndex = size_t(output_rec);
 	const size_t start3Vals [] = { timeIndex, 0, 0 };     // (t, y, x)
 	const size_t count3Vals [] = { 1,(size_t) state->global_param.gridNumLatDivisions,(size_t) state->global_param.gridNumLonDivisions };
 	const size_t start4Vals [] = { timeIndex, 0, 0, 0 };  // (t, z, y, x)
@@ -411,9 +408,6 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<OutputData*>& all_out_d
 	for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
-
-//			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
-
 			// Create temporary array of data for this variable across all cells
 			float *vardata, *vardata_ptr;
 			int varnumelem = all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].nelem;
