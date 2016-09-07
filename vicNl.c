@@ -397,21 +397,21 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	WriteOutputNetCDF *outputwriter = new WriteOutputNetCDF(state);
 	outputwriter->openFile();
 
-	/* Performance timing variables:
-	 * (end - start) measures total time from cells initialization to program completion (just before memory clean-up).
-	 * (init_end - init_start) measures time spent in cells initialization (or processing one cell, when OUTPUT_FORCE=TRUE)
+#if VERBOSE
+	/* Performance timing variables can be printed to console:
+	 * elapsed_total = (end - start) measures total time from cells initialization to program completion (just before memory clean-up).
+	 * elapsed_init = (init_end - init_start) measures time spent in cells initialization
+	 * elapsed_cell = (cell_start - cell_end), measures time spent processing one cell when OUTPUT_FORCE=TRUE
 	 */
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::duration<double> elapsed_seconds;
-  std::chrono::time_point<std::chrono::system_clock> init_start, init_end;
-	std::chrono::duration<double> elapsed_init;
-
+  std::chrono::time_point<std::chrono::system_clock> start, end, init_start, init_end, cell_start, cell_end;
+  std::chrono::duration<double> elapsed_init, elapsed_cell, elapsed_total;
 	if (!state->options.OUTPUT_FORCE) {
 		init_start = std::chrono::system_clock::now();
 	}
 	else {
 		start = std::chrono::system_clock::now();
 	}
+#endif
 
   // Initializations
   for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
@@ -451,7 +451,11 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
     	}
 
 #if VERBOSE
+		  init_end = std::chrono::system_clock::now();
+		  elapsed_init = init_end - init_start;
+		  fprintf(stderr, "Elapsed time loading input forcings and allocating memory for this cell: %.3f seconds\n",  elapsed_init.count());
 		  fprintf(stderr, "Writing to output forcing file...\n");
+			cell_start = std::chrono::system_clock::now();
 #endif
 		  int chunk_step_count = 0; // count how many time steps' output have been chunked together for write out
 		  int chunk_start_rec = 0;
@@ -475,10 +479,10 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 		  free_atmos(state->global_param.nrecs, &cell_data_structs[cellidx].atmos);
 		  delete cell_data_structs[cellidx].outputFormat;
 
-		  init_end = std::chrono::system_clock::now();
-		  elapsed_init = init_end - init_start;
 #if VERBOSE
-		  fprintf(stderr, "Done. Elapsed time reading, generating, and writing forcings for this cell: %.3f seconds\n",  elapsed_init.count());
+		  cell_end = std::chrono::system_clock::now();
+		  elapsed_cell = cell_end - cell_start;
+		  fprintf(stderr, "Done. Elapsed time generating and writing forcings for this cell: %.3f seconds\n", elapsed_cell.count());
 #endif
 	  }
 
@@ -488,7 +492,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 	  init_end = std::chrono::system_clock::now();
 	  elapsed_init = init_end - init_start;
 #if VERBOSE
-	  fprintf(stderr, "Done. Elapsed time reading forcings and initializing the model: %.3f seconds\n\n",  elapsed_init.count());
+	  fprintf(stderr, "Done. Elapsed time loading input forcings and initializing the model: %.3f seconds\n\n",  elapsed_init.count());
     fprintf(stderr, "Running Model...\n");
 #endif
       start = std::chrono::system_clock::now();
@@ -498,7 +502,7 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
   ********************************************************/
   for (int rec = 0; rec < state->global_param.nrecs; rec++) {
 
-  	// Disaggregated meteorological forcings for entire time range is written in one shot for each grid cell
+  	// If OUTPUT_FORCE=TRUE then we have already generated disaggregated meteorological forcings above, and can exit
   	if (state->options.OUTPUT_FORCE) break;
 
   	// Increment the intra-record time step count (important when writing out at lower frequency than the simulation time step)
@@ -605,22 +609,22 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
 //	delete outputwriter;
 
 	end = std::chrono::system_clock::now();
-	elapsed_seconds = end - start;
+	elapsed_total = end - start;
 	if (!state->options.OUTPUT_FORCE) {
 #if VERBOSE
 #if PARALLEL_AVAILABLE
 		if (state->global_param.num_threads > 1){
-			fprintf(stderr, "\nVIC model run done. Model execution time (parallel): %.3f seconds\n", elapsed_seconds.count());
+			fprintf(stderr, "\nVIC model run done. Model execution time (parallel): %.3f seconds\n", elapsed_total.count());
 		}
 		else {
-			fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_seconds.count());
+			fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_total.count());
 		}
 #else
-		fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_seconds.count());
+		fprintf(stderr, "\nVIC model run done. Model execution time (serial): %.3f seconds\n", elapsed_total.count());
 #endif
 	} // Disagg mode does not use multithreading
 	else {
-		fprintf(stderr, "\nVIC disaggregated forcings generation done. Total processing time (serial): %.3f seconds\n", elapsed_seconds.count());
+		fprintf(stderr, "\nVIC disaggregated forcings generation done. Total processing time (serial): %.3f seconds\n", elapsed_total.count());
 	}
 #endif // VERBOSE
 
