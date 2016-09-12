@@ -165,8 +165,15 @@ int main(int argc, char *argv[])
   initializeNetCDFOutput(&filenames, out_data_files, out_data_list, &state); // Create and initialize a NetCDF output file
   state.initCellMask(cell_data_structs); // Create mask to account for invalid cells included in the output NetCDF spatial domain
 
-  // Initialize state input/output if necessary.
   if (!state.options.OUTPUT_FORCE) {
+    /** Read Grid Cell Vegetation Parameters **/
+    for (unsigned int cellidx = 0; cellidx < cell_data_structs.size(); cellidx++) {
+      int numHRUs = read_vegparam(filep.vegparam, cell_data_structs[cellidx], &state);
+      if (numHRUs > state.max_num_HRUs) {
+      	state.update_max_num_HRUs(numHRUs);
+      }
+    }
+    // Initialize state input/output if necessary.
     if (state.options.INIT_STATE)
       check_state_file(filenames.init_state, &state);
     /** open state file if model state is to be saved **/
@@ -174,13 +181,12 @@ int main(int argc, char *argv[])
       StateIOContext context(filenames.statefile, StateIO::Writer, &state);
       context.stream->initializeOutput();
     }
+    // Set the number of parallel threads allowed during regular simulation run
+  #if PARALLEL_AVAILABLE
+    omp_set_num_threads(state.global_param.num_threads);
+    omp_set_dynamic(0);
+  #endif
   }
-
-  // Set the number of parallel threads allowed during simulation
-#if PARALLEL_AVAILABLE
-  omp_set_num_threads(state.global_param.num_threads);
-  omp_set_dynamic(0);
-#endif
 
   runModel(cell_data_structs, filep, filenames, out_data_files, out_data_list, dmy, &state);
 
@@ -314,11 +320,8 @@ int initializeCell(cell_info_struct& cell,
       }
   #endif /* QUICK_FS */
 
-
   if (!state->options.OUTPUT_FORCE) {
     make_in_files(&filep, &filenames, &cell.soil_con, state);
-    /** Read Grid Cell Vegetation Parameters **/
-    read_vegparam(filep.vegparam, cell, state);
     calc_root_fractions(cell.prcp.hruList, &cell.soil_con, state);
 #if LINK_DEBUG
     if (state->debug.PRT_VEGE) {

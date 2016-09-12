@@ -120,7 +120,7 @@
 #include "OutputData.h"
 
 /*** SubRoutine Prototypes ***/
-void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state);
+void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, ProgramState* state);
 double advected_sensible_heat(double, double, double, double, double);
 atmos_data_struct * alloc_atmos(int, int);
 double arno_evap(layer_data_struct *, layer_data_struct *, double, double, 
@@ -357,7 +357,6 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state);
-//void copy_output_format(WriteOutputContext* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void   init_output_list(OutputData *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
@@ -402,8 +401,6 @@ double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
 int put_data(cell_info_struct *, WriteOutputFormat*, OutputData*, const dmy_struct *, int, const ProgramState*);
-//int put_data(cell_info_struct *, WriteOutputFormat*, OutputData*, const dmy_struct *, int, ProgramState*);
-
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
 void   read_atmos_data(FILE *, int ncid, int, int, double **, soil_con_struct *, const ProgramState*);
@@ -415,7 +412,7 @@ soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
-void read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
+int read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
 int redistribute_during_storm(HRU& hru, int rec, double Wdmax, double new_mu,
     double *max_moist, const ProgramState* state);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
@@ -432,10 +429,8 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
 out_data_file_struct *set_output_defaults(OutputData *, const ProgramState* state);
-//int set_output_var(out_data_file_struct *, int, int, OutputData *, const char *, const char *, int, const char *, int, float);
-//int set_output_var(out_data_file_struct *, int, int, OutputData *, const char *, int, const char *, int, float);
 int set_output_var(out_data_file_struct *, int, int, OutputData *, std::string, int, std::string, int, float);
-double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
+double snow_albedo(double, double, double, double, double, double, int, bool, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
 int snow_intercept(double, double, double, double, double, double, double,
     double, double, double, double, double, double *, double *, double *,

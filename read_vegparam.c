@@ -19,6 +19,10 @@ HRU initHRU(veg_con_struct& veg, const ProgramState* state) {
   return hru;
 }
 
+void ProgramState::update_max_num_HRUs(int numHRUs){
+	max_num_HRUs = numHRUs;
+}
+
 // For any type T, get the next value from the provided stream.
 template<class T> void getValueFromStream(std::stringstream& stream, T& value) {
   if (!(stream >> value)) {
@@ -44,9 +48,15 @@ int getVegIndex(int vegClass, const ProgramState* state) {
   return veg_index;
 }
 
-void read_vegparam(FILE *vegparam,
+// MDF: changed return type to int so we can return numHRUs for main program to calculate the max # of HRUs across all cells,
+// used to allocate space for in the state file
+int read_vegparam(FILE *vegparam,
                    cell_info_struct& cell,
                    const ProgramState* state)
+
+//void read_vegparam(FILE *vegparam,
+//                   cell_info_struct& cell,
+//                   const ProgramState* state)
 /**********************************************************************
   read_vegparam.c    Keith Cherkauer and Dag Lohmann       1997
 
@@ -328,6 +338,8 @@ void read_vegparam(FILE *vegparam,
     }
     cell.Cv_sum = 1;
   }
+// MDF: added return of numHRUs for state file dimension allocation
+  return numHRUs;
 } 
 
 

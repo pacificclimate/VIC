@@ -12,7 +12,7 @@ void ProgramState::initialize_global() {
   This subroutine initalizes all global parameters before they are 
   called by the model.
 
-  option_strudt:           structure containing all global model options
+  option_struct:           structure containing all global model options
   options.FULL_ENERGY    = TRUE - compute full energy balance
   options.FROZEN_SOIL    = TRUE - compute frozen soils
   options.DIST_PRCP      = TRUE - use distributed precipitation
@@ -28,9 +28,10 @@ void ProgramState::initialize_global() {
   options.GRID_DECIMAL   = Number of decimal places used in the gridded
                            input and output file names
   options.SNOW_BAND      = Number of elevation bands over which to solve the
-                           enery balance snow model
+                           energy balance snow model
+  options.GLACIER_DYNAMICS = Run simulation with glacier dynamics (usually for coupling VIC with RGM)
  
-  debug_struct:            Structure cantains all debugging flags
+  debug_struct:            Structure contains all debugging flags
   debug.DEBUG            = TRUE - turn on all debugging
   debug.PRT_SOIL         = TRUE - print soil parameter debugging files
   debug.PRT_VEGE         = TRUE - print vegetation parameter debugging files
@@ -159,7 +160,8 @@ void ProgramState::initialize_global() {
   options.TFALLBACK             = TRUE;
   options.VP_INTERP             = TRUE;
   options.VP_ITER               = VP_ITER_ALWAYS;
-  options.TEMP_TH_TYPE			= KIENZLE;
+  options.TEMP_TH_TYPE					= KIENZLE;
+  options.GLACIER_DYNAMICS			= false;
   // input options
   options.ARC_SOIL              = FALSE;
   options.BASEFLOW              = ARNO;
@@ -174,6 +176,9 @@ void ProgramState::initialize_global() {
   options.INIT_STATE            = FALSE;
   options.SAVE_STATE            = FALSE;
   options.MAX_MEMORY            = 0.0;    // Assume no restrictions on memory if none are given.
+  options.NUM_GMB_TERMS 				= 4;	/* The current definition for GraphingEquation type
+																				has 4 coefficients: b0, b1, b2, fitError
+   	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	*/
   // output options
   options.ALMA_OUTPUT           = FALSE;
   options.OUTPUT_FORMAT         = OutputFormat::ASCII_FORMAT;
@@ -218,10 +223,4 @@ void ProgramState::initialize_global() {
     param_set.FORCE_FORMAT[i] = INVALID_INT;
     for(int j=0;j<N_FORCING_TYPES;j++) param_set.FORCE_INDEX[i][j] = INVALID_INT;
   }
-
-  /* Set number of terms used in Glacier Mass Balance Equation polynomial.
-   * The first term is the soil_con.gridcel ID of the grid cell.  The remaining terms
-     should match the definition for GraphingEquation type (currently has 4 coefficients: b0, b1, b2, fitError)
-  */
-  num_gmb_terms = 5;
 }

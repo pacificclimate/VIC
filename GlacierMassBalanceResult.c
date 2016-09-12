@@ -79,15 +79,16 @@ void GlacierMassBalanceResult::calculateEquationFromPoints() {
 // The output from printing (graph points list and function equation) can be directly copied to fooplot.com
 void GlacierMassBalanceResult::printForDebug() {
   std::stringstream output;
-  output << date.year << "\t" << date.month << "\t" << date.day << "\n" << equation.b0 << "\n" << equation.b1 << "\n" << equation.b2 << "\n";
-  output << "best fit equation: " << equation.b0 << " + " << equation.b1 << "*x + " << equation.b2 << "*x^2\n";
-  output << "Accumulated total error of the curve: " << equation.fitError;
+  output << date.year << "\t" << date.month << "\t" << date.day << "\n";
+  output << "    best fit equation: " << equation.b0 << " + " << equation.b1 << "*x + " << equation.b2 << "*x^2\n";
+  output << "    accumulated total error of the curve: " << equation.fitError << "\n";
+  output << "    elevation, mass balance points used for fit:";
   for (std::vector<GraphPoint>::iterator dataPoint = graphPoints.begin(); dataPoint != graphPoints.end(); ++dataPoint) {
-    output << "\n" << dataPoint->elevationX << "," << dataPoint->massBalanceY;
+    output << "\n        " << dataPoint->elevationX << "," << dataPoint->massBalanceY;
   }
 
   // Only print results if they mean anything (if there are actually data points to consider.
   if (graphPoints.size() > 0) {
-    fprintf(stderr, "Output from GlacierMassBalanceResult: %s\n", output.str().c_str());
+    fprintf(stderr, "Output from GlacierMassBalanceResult for: %s\n", output.str().c_str());
   }
 }
