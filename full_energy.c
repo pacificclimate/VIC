@@ -217,9 +217,7 @@ int  full_energy(char                 NEWCELL,
 
     /** Solve Veg Type only if Coverage Greater than 0% **/
 
-// FIXME: this is a test to support shadow glaciers
-//    if (hru->veg_con.Cv > 0.0) {
-  	if (hru->veg_con.Cv >= 0.0) {
+  	if ((hru->veg_con.Cv > 0.0) || (hru->isGlacier && state->options.GLACIER_DYNAMICS && hru->veg_con.Cv >= 0.0)) {
 
       Cv = hru->veg_con.Cv;
       Nbands = state->options.SNOW_BAND;
@@ -354,7 +352,6 @@ int  full_energy(char                 NEWCELL,
           return (ERROR);
 
       }
-// TODO: should this statement be entered in the case of shadow glaciers?
       /* Initialize final aerodynamic resistance values */
       if (soil_con->AreaFract[hru->bandIndex] > 0) {
         hru->cell[WET].aero_resist.surface = aero_resist[N_PET_TYPES].snowFree;
@@ -389,9 +386,7 @@ int  full_energy(char                 NEWCELL,
        Solve ground surface fluxes
        ******************************/
 
-// FIXME: this is a test to support shadow glaciers
-//      if (soil_con->AreaFract[hru->bandIndex] > 0) {
-      if (soil_con->AreaFract[hru->bandIndex] >= 0){
+    	if ((soil_con->AreaFract[hru->bandIndex] > 0) || (hru->isGlacier && state->options.GLACIER_DYNAMICS && soil_con->AreaFract[hru->bandIndex] >= 0.0)) {
 
         lag_one = hru->veg_con.lag_one;
         sigma_slope = hru->veg_con.sigma_slope;
@@ -516,9 +511,7 @@ int  full_energy(char                 NEWCELL,
       ave_ice = 0;
       max_ice_layer = 0;
       for(iveg = 0; iveg <= Nveg; iveg++) { //iveg
-// FIXME: this is a test to support shadow glaciers
-//        if (veg_con[iveg].Cv > 0.) {
-      	if ((veg_con[iveg].Cv >= 0.) {
+      	if ((veg_con[iveg].Cv > 0.) || (hru->isGlacier && state->options.GLACIER_DYNAMICS && veg_con[iveg].Cv >= 0.)) {
           Cv = veg_con[iveg].Cv;
           Nbands = state->options.SNOW_BAND;
           if (veg_con[iveg].LAKE) {
@@ -659,9 +652,7 @@ int  full_energy(char                 NEWCELL,
      using soil moisture values from previous time-step; i.e.
      as if prior runoff call did not occur.*/
     for(iveg = 0; iveg <= Nveg; iveg++) {
-// FIXME: this is a test to support shadow glaciers
-//      if (veg_con[iveg].Cv > 0.) {
-    	if (veg_con[iveg].Cv >= 0.) {
+    	if ((veg_con[iveg].Cv > 0.) || (hru->isGlacier && state->options.GLACIER_DYNAMICS && veg_con[iveg].Cv >= 0.)) {
         Nbands = state->options.SNOW_BAND;
         if (veg_con[iveg].LAKE) {
           Nbands = 1;
@@ -677,9 +668,7 @@ int  full_energy(char                 NEWCELL,
       }
     }
     for(iveg = 0; iveg <= Nveg; iveg++) {
-// FIXME: this is a test to support shadow glacier
-//      if (veg_con[iveg].Cv > 0.) {
-    	if (veg_con[iveg].Cv >= 0.) {
+    	if ((veg_con[iveg].Cv > 0.) || (hru->isGlacier && state->options.GLACIER_DYNAMICS && veg_con[iveg].Cv >= 0.)) {
         Nbands = state->options.SNOW_BAND;
         if (veg_con[iveg].LAKE) {
           Nbands = 1;
@@ -727,13 +716,11 @@ int  full_energy(char                 NEWCELL,
     wetland_runoff = wetland_baseflow = 0;
     sum_runoff = sum_baseflow = 0;
 
-    // Loop through all vegetation tiles
+    // Loop through all vegetation tiles (HRUs)
     for (std::vector<HRU>::iterator it = prcp->hruList.begin(); it != prcp->hruList.end(); ++it) {
 
       /** Solve Veg Tile only if Coverage Greater than 0% **/
-// FIXME: this is a test to support shadow glaciers
-//      if (it->veg_con.Cv > 0.) {
-    	if (it->veg_con.Cv >= 0.) {
+    	if ((it->veg_con.Cv > 0.) || (it->isGlacier && state->options.GLACIER_DYNAMICS && it->veg_con.Cv >= 0.)) {
         Cv = it->veg_con.Cv;
         Nbands = state->options.SNOW_BAND;
         if (it->veg_con.LAKE) {
@@ -743,9 +730,7 @@ int  full_energy(char                 NEWCELL,
 
         // For each of the prcp->snow elevation bands
 
-// FIXME: this is a test to support shadow glaciers
-//        if (soil_con->AreaFract[it->bandIndex] > 0) {
-        if (soil_con->AreaFract[it->bandIndex] >= 0) {
+      	if ((soil_con->AreaFract[it->bandIndex] > 0) || (it->isGlacier && state->options.GLACIER_DYNAMICS && soil_con->AreaFract[it->bandIndex] >= 0.)) {
           // Loop through distributed precipitation fractions
           for (int dist = 0; dist < 2; dist++) {
             hru_data_struct& cellRef = it->cell[dist];

@@ -749,6 +749,12 @@ typedef struct {
   char   TEMP_TH_TYPE;   /* VIC_412 = partition precipitation into rain and snow linearly between temperatures MAX_SNOW_TEMP and MIN_RAIN_TEMP
   	  	  	  	  	  	    KIENZLE = partition precipitation into rain and snow using 2-parameter S-shaped curve of Kienzle (2008) */
   int    Nlakenode;      /* Number of lake thermal nodes in the model. */
+  bool	 GLACIER_DYNAMICS;	/* Run simulation with glacier dynamics (usually for coupling VIC with RGM)
+  															TRUE = include glacier HRUs with zero area fraction in calculations in full_energy()
+  															FALSE = ignore glacier HRUs with zero area fraction (provided in vegetation parameter file) in calculations.
+  													*/
+  int 	NUM_GMB_TERMS;
+  int 	GLACIER_ID;        /* An index indicating which veg class in the vegetation library contains glacier information. */
 
   // input options
   char   ALMA_INPUT;     /* TRUE = input variables are in ALMA-compliant units; FALSE = standard VIC units */
@@ -785,7 +791,6 @@ typedef struct {
 				   variables are explicitly mentioned in global parameter file, this option
 				   is ignored. */
   char NETCDF_FULL_FILE_PATH[MAXSTRING]; /* Full file path to the netCDF output file, applies if OUTPUT_FILE == NETCDF */
-  int GLACIER_ID;        /* An index indicating which veg class in the vegetation library contains glacier information. */
 } option_struct;
 
 #if LINK_DEBUG
@@ -1397,7 +1402,7 @@ struct HRU {
   char            init_STILL_STORM;
   int             init_DRY_TIME;
   double          mu;         /* fraction of grid cell that receives precipitation */
-  bool isGlacier;             /* Does this HRU contain glacier? */
+  bool isGlacier;             /* Is this HRU a glacier? */
   bool isArtificialBareSoil;  /* Was this HRU added automatically (as bare soil) to make the cell Cv fractions add to 1? */
   int bandIndex;
 };
@@ -1597,8 +1602,7 @@ public:
   Error_struct Error;
   param_set_struct param_set;
   int num_veg_types;
-  int num_gmb_terms; /* number of terms to capture Glacier Mass Balance information for a grid cell (see initialize_global) */
-  int max_num_HRUs = 0; // the greatest number of HRUs within a grid cell, across all grid cells
+  int max_num_HRUs = 0; // the greatest number of HRUs within a grid cell, across all grid cells in the current simulation
   int NR;  /* array index for atmos struct that indicates the model step average or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   int step_count; /* running count of how many time record steps have been taken since the last write to file (for temporal aggregation) */

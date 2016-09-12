@@ -133,7 +133,7 @@ void StateIONetCDF::initializeOutput() {
   netCDF->putAtt(stateDay, netCDF::ncInt, state->global_param.stateday);
   netCDF->putAtt(stateNLayer, netCDF::ncInt, state->options.Nlayer);
   netCDF->putAtt(stateNNode, netCDF::ncInt, state->options.Nnode);
-  netCDF->putAtt(NUM_GLAC_MASS_BALANCE_EQN_TERMS_STR, netCDF::ncInt, state->num_gmb_terms);
+  netCDF->putAtt(NUM_GLAC_MASS_BALANCE_EQN_TERMS_STR, netCDF::ncInt, state->options.NUM_GMB_TERMS);
 
   verifyGlobalAttributes(*netCDF);
 
@@ -394,7 +394,7 @@ void StateIONetCDF::populateMetaDimensions() {
   metaDimensions[FROST_AREAS_DIM] = 	StateVariableDimension("frost_subareas", FROST_SUBAREAS);
   metaDimensions[HRU_DIM] = 					StateVariableDimension("hru", state->max_num_HRUs);
   metaDimensions[DIST_DIM] = 					StateVariableDimension("dist", state->options.DIST_PRCP ? 2 : 1 ); // Wet and dry.
-  metaDimensions[GLAC_MASS_BALANCE_EQN_DIM] = StateVariableDimension("NgmbTerms", state->num_gmb_terms);
+  metaDimensions[GLAC_MASS_BALANCE_EQN_DIM] = StateVariableDimension("NgmbTerms", state->options.NUM_GMB_TERMS);
 }
 
 void StateIONetCDF::populateMetaData() {

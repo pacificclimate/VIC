@@ -317,7 +317,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         sscanf(cmdstr,"%*s %d",&global_param.dt);
       }
       else if(strcasecmp("SNOW_STEP",optstr)==0) {
-	sscanf(cmdstr,"%*s %d",&options.SNOW_STEP);
+      	sscanf(cmdstr,"%*s %d",&options.SNOW_STEP);
       }
       else if(strcasecmp("STARTYEAR",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.startyear);
@@ -330,6 +330,13 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       }
       else if(strcasecmp("STARTHOUR",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.starthour);
+      }
+      else if (strcasecmp("GLACIER_DYNAMICS", optstr)==0) {
+        sscanf(cmdstr,"%*s %s",flgstr);
+        if(strcasecmp("TRUE",flgstr)==0) {
+        	options.GLACIER_DYNAMICS = TRUE;
+        }
+        else options.GLACIER_DYNAMICS = FALSE;
       }
       else if (strcasecmp("GLACIER_ACCUM_START_YEAR", optstr)==0) {
         sscanf(cmdstr,"%*s %d", &global_param.glacierAccumStartYear);

@@ -148,13 +148,13 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
 #endif
 
   /* Write Glacier Mass Balance equation for the grid cell */
-  float gmbInfo[state->num_gmb_terms];
-  // the following assumes that num_gmb_terms = 4
+  float gmbInfo[state->options.NUM_GMB_TERMS];
+  // NOTE: the following assumes that NUM_GMB_TERMS = 4
   gmbInfo[0] = cell->gmbEquation.b0;
   gmbInfo[1] = cell->gmbEquation.b1;
   gmbInfo[2] = cell->gmbEquation.b2;
   gmbInfo[3] = cell->gmbEquation.fitError;
-  stream->process(gmbInfo, state->num_gmb_terms, GLAC_MASS_BALANCE_EQN_TERMS);
+  stream->process(gmbInfo, state->options.NUM_GMB_TERMS, GLAC_MASS_BALANCE_EQN_TERMS);
 
   /* Output for all HRUs */
 	int dimcount = 0;
