@@ -323,12 +323,14 @@ for cell in cell_labels:
         print('\n')
         print('Cell {}\n'.format(str(cell)))
        # print 'var_map: {}'.format(var_map)
-        print('\tVariable\tAgrees\tNum diffs\t\tMax abs diff\t\tSum of diffs')
+        print('\tVariable\tAgrees\tNum diffs\tMax abs diff\t\tSum of diffs\t\tAverage diff')
         print('\t'+'-'*145)
 
+    np.set_printoptions(suppress=False, precision=6, formatter={'float':'{:g}'.format})
     # Check agreement between all variables present in the testfile and their equivalent in the basefile
     for variable in vars_to_test:
-        if len(testNC[vars_to_test[variable]['test_var']].shape) == 3: # 3D variable
+        # for 3D variables:
+        if len(testNC[vars_to_test[variable]['test_var']].shape) == 3:
             agreement = False
             diffs = []
             if tolerance > 0:
@@ -346,18 +348,21 @@ for cell in cell_labels:
                 if csv_out == True:
                     diffs_table = np.column_stack([diffs_table, diffs])        
                     diffs_headers.append(column_header) 
-                num_diffs = len(diffs[diffs > tolerance])
-                max_diff = np.max(diffs)
-                sum_diffs = np.sum(diffs)
-                if verbose:
-                    print('\t{}\t{}\t{}\t\t{}\t\t{}'.format(variable, str(agreement), num_diffs, max_diff, sum_diffs))
-            else:
-                if verbose:
+            if verbose:
+                if agreement == False:
+                    num_diffs = len(diffs[diffs > tolerance])
+                    max_diff = np.max(diffs)
+                    sum_diffs = np.sum(diffs)
+                    avg_diff = sum_diffs / num_diffs
+                    print('\t%s\t%s\t%d\t\t%g\t\t%g\t\t%g' % (variable, str(agreement), num_diffs, max_diff, sum_diffs, avg_diff))
+                else:
                     print('\t{}\t{}'.format(variable, str(agreement)))
-        elif len(testNC[vars_to_test[variable]['test_var']].shape) == 4: # 4D variable
+        # for 4D variables
+        elif len(testNC[vars_to_test[variable]['test_var']].shape) == 4:
             agreement_across_4D = False
             num_diffs = 0
             max_diff = 0
+            avg_diff = 0
             diffs_depths = []
             for depth in range(0, testNC[vars_to_test[variable]['test_var']].shape[pos_depth_dim_test]):
                 if tolerance > 0:
@@ -384,8 +389,9 @@ for cell in cell_labels:
                 if not diffs_depths: # no differences were found at any depth
                     print('\t{}\t{}'.format(variable, str(agreement)))
                 else:
-                    print('\t{}\t{}\t [4D] Diffs at bands {} Num diffs across bands: {} Max abs diff across bands: {}'.format(variable, str(agreement_across_4D), str(diffs_depths), num_diffs, max_diff))
-                    
+                    sum_diffs = np.sum(diffs_band)
+                    avg_diff = sum_diffs / num_diffs # average deviation from the base across all points in non-agreement
+                    print('\t%s\t%s\t [4D] Diffs exist at band(s) %s. Num diffs across bands: %d. Max abs diff across bands: %g. Sum of diffs across bands: %g. Average diff: %g.' % (variable, str(agreement_across_4D), str(diffs_depths), num_diffs, max_diff, sum_diffs, avg_diff))
     if csv_out == True:
         if csv_diffs_only == False:
             test_csv_filename = 'tabular_cell_{}_{}_test.csv'.format(cell, os.path.basename(testfile))
