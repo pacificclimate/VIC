@@ -328,11 +328,9 @@ for cell in cell_labels:
 
     # Check agreement between all variables present in the testfile and their equivalent in the basefile
     for variable in vars_to_test:
-        agreement = False
-        diffs = []
-        diffs_depths = []
-
         if len(testNC[vars_to_test[variable]['test_var']].shape) == 3: # 3D variable
+            agreement = False
+            diffs = []
             if tolerance > 0:
                 agreement = np.allclose(all_test_data[cell][vars_to_test[variable]['test_var']], all_base_data[cell][vars_to_test[variable]['base_var']], 0, tolerance)
             else:
@@ -357,8 +355,10 @@ for cell in cell_labels:
                 if verbose:
                     print('\t{}\t{}'.format(variable, str(agreement)))
         elif len(testNC[vars_to_test[variable]['test_var']].shape) == 4: # 4D variable
-            max_diff = 0
+            agreement_across_4D = False
             num_diffs = 0
+            max_diff = 0
+            diffs_depths = []
             for depth in range(0, testNC[vars_to_test[variable]['test_var']].shape[pos_depth_dim_test]):
                 if tolerance > 0:
                     agreement = np.allclose(all_test_data[cell][vars_to_test[variable]['test_var']][depth], all_base_data[cell][vars_to_test[variable]['base_var']][depth], 0, tolerance)
@@ -371,6 +371,7 @@ for cell in cell_labels:
                     band_headers.append(column_header)
                 if agreement == False:
                     diffs_exist = True
+                    agreement_across_4D = False
                     diffs_band = abs(all_test_data[cell][vars_to_test[variable]['test_var']][depth] - all_base_data[cell][vars_to_test[variable]['base_var']][depth])
                     if csv_out == True:
                         diffs_band_table = np.column_stack([diffs_band_table, diffs_band])        
@@ -379,11 +380,11 @@ for cell in cell_labels:
                     max_temp = np.max(diffs_band) 
                     max_diff = max_temp if max_temp > max_diff else max_diff # running max of differences across all bands
                     num_diffs += len(diffs_band[diffs_band > tolerance]) # running number of differences across all bands
-            if verbose:    
+            if verbose:
                 if not diffs_depths: # no differences were found at any depth
                     print('\t{}\t{}'.format(variable, str(agreement)))
                 else:
-                    print('\t{}\t{}\t [4D] Diffs at bands {} Num diffs across bands: {} Max abs diff across bands: {}'.format(variable, str(agreement), str(diffs_depths), num_diffs, max_diff))
+                    print('\t{}\t{}\t [4D] Diffs at bands {} Num diffs across bands: {} Max abs diff across bands: {}'.format(variable, str(agreement_across_4D), str(diffs_depths), num_diffs, max_diff))
                     
     if csv_out == True:
         if csv_diffs_only == False:
