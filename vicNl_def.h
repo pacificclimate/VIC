@@ -18,7 +18,7 @@
               Added output variable types.  Added binary output format
               types.  Removed all output files except the state file from
               the outfiles_struct and the filenames_struct.  Added
-              Noutfiles to the option_struct.  Created new out_data_struct
+              Noutfiles to the option_struct.  Created new OutputData
               and out_data_files_struct.  Added new save_data structure.
               Organized the physical constants into one section; got rid
               of redundant Stefan-Boltzmann constant.  Implemented
@@ -133,6 +133,7 @@
 #include <string>
 #include <map>
 #include "GraphingEquation.h"
+#include "OutputData.h"
 
 /***** Model Constants *****/
 #define MAXSTRING    2048
@@ -749,6 +750,12 @@ typedef struct {
   char   TEMP_TH_TYPE;   /* VIC_412 = partition precipitation into rain and snow linearly between temperatures MAX_SNOW_TEMP and MIN_RAIN_TEMP
   	  	  	  	  	  	    KIENZLE = partition precipitation into rain and snow using 2-parameter S-shaped curve of Kienzle (2008) */
   int    Nlakenode;      /* Number of lake thermal nodes in the model. */
+  bool	 GLACIER_DYNAMICS;	/* Run simulation with glacier dynamics (usually for coupling VIC with RGM)
+  															TRUE = include glacier HRUs with zero area fraction in calculations in full_energy()
+  															FALSE = ignore glacier HRUs with zero area fraction (provided in vegetation parameter file) in calculations.
+  													*/
+  int 	NUM_GMB_TERMS;
+  int 	GLACIER_ID;        /* An index indicating which veg class in the vegetation library contains glacier information. */
 
   // input options
   char   ALMA_INPUT;     /* TRUE = input variables are in ALMA-compliant units; FALSE = standard VIC units */
@@ -785,7 +792,6 @@ typedef struct {
 				   variables are explicitly mentioned in global parameter file, this option
 				   is ignored. */
   char NETCDF_FULL_FILE_PATH[MAXSTRING]; /* Full file path to the netCDF output file, applies if OUTPUT_FILE == NETCDF */
-  int GLACIER_ID;        /* An index indicating which veg class in the vegetation library contains glacier information. */
 } option_struct;
 
 #if LINK_DEBUG
@@ -857,6 +863,7 @@ typedef struct {
   float  resolution; /* Model resolution (degrees) */
   int    dt;         /* Time step in hours (24/dt must be an integer) */
   int    out_dt;     /* Output time step in hours (24/out_dt must be an integer) */
+  int 	 disagg_write_chunk_size;  /* Number of simulation steps' output to write at once when in (serial) meteorological disaggregation mode */
   int    endday;     /* Last day of model simulation */
   int    endmonth;   /* Last month of model simulation */
   int    endyear;    /* Last year of model simulation */
@@ -1241,8 +1248,7 @@ typedef struct {
   int    last_snow;         /* time steps since last snowfall */
   double max_swq;           /* last maximum swq - used to determine coverage
 			       fraction during current melt period (m) */
-  char   MELTING;           /* flag indicating that snowpack melted 
-			       previously */
+  bool   MELTING;           /* flag indicating that snowpack melted previously */
   double pack_temp;         /* depth averaged temperature of the snowpack (C) */
   double pack_water;        /* liquid water content of the snow pack (m) */
   int    snow;              /* TRUE = snow, FALSE = no snow */
@@ -1253,8 +1259,8 @@ typedef struct {
   double store_swq;         /* stores newly accumulated snow over an 
 			       established snowpack melt distribution (m) */
   double surf_temp;         /* depth averaged temperature of the snow pack surface layer (C) */
-  double surf_temp_fbcount; /* running total number of times that previous step's temperature was used */
-  double surf_temp_fbflag;  /* flag indicating if previous step's temperature was used */
+  int surf_temp_fbcount; /* running total number of times that previous step's temperature was used */
+  bool surf_temp_fbflag;  /* flag indicating if previous step's temperature was used */
   double surf_water;        /* liquid water content of the surface layer (m) */
   double swq;               /* snow water equivalent of the entire pack (m) */
   double swq_slope;         /* slope of uniform snow distribution (m/fract) */
@@ -1398,7 +1404,7 @@ struct HRU {
   char            init_STILL_STORM;
   int             init_DRY_TIME;
   double          mu;         /* fraction of grid cell that receives precipitation */
-  bool isGlacier;             /* Does this HRU contain glacier? */
+  bool isGlacier;             /* Is this HRU a glacier? */
   bool isArtificialBareSoil;  /* Was this HRU added automatically (as bare soil) to make the cell Cv fractions add to 1? */
   int bandIndex;
 };
@@ -1424,32 +1430,6 @@ typedef struct {
   double	swe;              /* snow water equivalent [mm] */
   double	wdew;             /* canopy interception [mm] */
 } save_data_struct;
-
-/*******************************************************
-  This structure stores output information for one variable.
-  *******************************************************/
-typedef struct {
-  char		varname[30]; /* name of variable */
-  int		write;       /* FALSE = don't write; TRUE = write */
-  char		format[10];  /* format, when written to an ascii file;
-		                should match the desired fprintf format specifier, e.g. %.4f */
-  int		type;        /* type, when written to a binary file;
-		                OUT_TYPE_USINT  = unsigned short int
-		                OUT_TYPE_SINT   = short int
-		                OUT_TYPE_FLOAT  = single precision floating point
-		                OUT_TYPE_DOUBLE = double precision floating point */
-  float		mult;        /* multiplier, when written to a binary file */
-  int		aggtype;     /* type of aggregation to use;
-				AGG_TYPE_AVG    = take average value over agg interval
-				AGG_TYPE_BEG    = take value at beginning of agg interval
-				AGG_TYPE_END    = take value at end of agg interval
-				AGG_TYPE_MAX    = take maximum value over agg interval
-				AGG_TYPE_MIN    = take minimum value over agg interval
-				AGG_TYPE_SUM    = take sum over agg interval */
-  int		nelem;       /* number of data values */
-  double	*data;       /* array of data values */
-  double	*aggdata;    /* array of aggregated data values */
-} out_data_struct;
 
 /*******************************************************
   This structure stores output information for one output file.
@@ -1478,7 +1458,7 @@ typedef struct {
   energy_bal_struct *energy;
   filep_struct       filep;
   int                rec;
-  out_data_struct   *out_data;
+  OutputData   *out_data;
   out_data_file_struct    *out_data_files;
   snow_data_struct  *snow;
   soil_con_struct    soil_con;
@@ -1598,7 +1578,7 @@ public:
   Error_struct Error;
   param_set_struct param_set;
   int num_veg_types;
-  int num_gmb_terms; /* number of terms to capture Glacier Mass Balance information for a grid cell (see initialize_global) */
+  int max_num_HRUs = 0; // the greatest number of HRUs within a grid cell, across all grid cells in the current simulation
   int NR;  /* array index for atmos struct that indicates the model step average or sum */
   int NF;  /* array index loop counter limit for atmos struct that indicates the SNOW_STEP values */
   int step_count; /* running count of how many time record steps have been taken since the last write to file (for temporal aggregation) */
@@ -1607,6 +1587,7 @@ public:
   int out_step_ratio; /* ratio between output time step and simulation time step */
   std::set<std::tuple<double, double>> modeled_cell_coordinates;
   bool *modeled_cell_mask;
+  bool glacier_accum_started; /* flag indicating that glacier accumulation has started (after wind-up period) */
   void initialize_global();
   void initGrid(const std::vector<cell_info_struct>& cells);
   void initCellMask(const std::vector<cell_info_struct>& cells);
@@ -1617,6 +1598,7 @@ public:
   void set_output_variable_name(std::string, std::string);
   void display_current_settings(int, filenames_struct *);
   void open_debug();
+  void update_max_num_HRUs(int numHRUs);
 };
 
 struct VICException : public std::exception

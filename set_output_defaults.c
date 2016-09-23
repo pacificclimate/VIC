@@ -5,7 +5,7 @@
 
 static char vcid[] = "$Id$";
 
-out_data_file_struct *set_output_defaults(out_data_struct *out_data, const ProgramState* state) {
+out_data_file_struct *set_output_defaults(OutputData *out_data, const ProgramState* state) {
 
 /*************************************************************
   set_output_defaults.c      Ted Bohn     September 08, 2006

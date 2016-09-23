@@ -9,7 +9,7 @@ int  dist_prec(cell_info_struct* cell,
                const dmy_struct    *dmy,
                filep_struct        *filep,
                WriteOutputFormat   *outputFormat,
-               out_data_struct     *out_data,
+               OutputData     *out_data,
                int                  time_step_record,
                char                 NEWCELL,
                const ProgramState  *state) {

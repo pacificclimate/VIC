@@ -59,18 +59,18 @@ void read_snowband(FILE    *snowband,
     total = 0.;
     for( band = 0; band < num_elevation_snow_bands; band++ ) {
       fscanf(snowband, "%lf", &area_fract);
-      if(area_fract<0) {
-	sprintf(ErrStr,"Negative snow band area fraction (%f) read from file", area_fract);
-	nrerror(ErrStr);
+      if(area_fract < 0) {
+      	sprintf(ErrStr,"Negative snow band area fraction (%f) read from file", area_fract);
+      	nrerror(ErrStr);
       }
       soil_con->AreaFract[band]  = area_fract;
       total              += area_fract;
     }
     if ( total != 1. ) {
-      fprintf(stderr,"WARNING: Sum of the snow band area fractions does not equal 1 (%f), dividing each fraction by the sum\n",
+      fprintf(stderr,"WARNING: Sum of the snow band area fractions (%f) does not equal 1; dividing each fraction by the sum\n",
 	      total);
       for ( band = 0; band < num_elevation_snow_bands; band++ )
-	soil_con->AreaFract[band] /= total;
+      	soil_con->AreaFract[band] /= total;
     }
 
     /** Read Band Elevation **/
@@ -78,14 +78,13 @@ void read_snowband(FILE    *snowband,
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
       fscanf(snowband, "%f", &band_elev);
       if ( band_elev < 0 ) {
-	fprintf(stderr,"Negative snow band elevation (%f) read from file\n", 
-		band_elev);
+      	fprintf(stderr,"Negative snow band elevation (%f) read from file\n", band_elev);
       }
       soil_con->BandElev[band] = band_elev;
       avg_elev += soil_con->BandElev[band]*soil_con->AreaFract[band];
     }
     if (fabs(avg_elev-soil_con->elevation) > 1.0) {
-      fprintf(stderr,"Warning: average band elevation %f not equal to grid_cell average elevation %f; setting grid cell elevation to average band elevation.\n", avg_elev, soil_con->elevation);
+      fprintf(stderr,"WARNING: average band elevation %f not equal to grid_cell average elevation %f; setting grid cell elevation to average band elevation.\n", avg_elev, soil_con->elevation);
       soil_con->elevation = (float)avg_elev;
     }
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
@@ -95,7 +94,7 @@ void read_snowband(FILE    *snowband,
    /** Calculate Precipitation Fraction **/
    total = 0.;
     for ( band = 0; band < num_elevation_snow_bands; band++ ) {
-     soil_con->Pfactor[band] = (1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation)) * soil_con->AreaFract[band];
+      soil_con->Pfactor[band] = (1.0 + soil_con->PGRAD * (soil_con->BandElev[band] - soil_con->elevation)) * soil_con->AreaFract[band];
       if (soil_con->Pfactor[band] < 0) {
         sprintf(ErrStr, "Snow band precipitation factor (%f) must be between 0 and 1", soil_con->Pfactor[band]);
       nrerror(ErrStr);
@@ -103,8 +102,8 @@ void read_snowband(FILE    *snowband,
      total += soil_con->Pfactor[band];
    }
     if ( total != 1. ) {
-      fprintf(stderr,"WARNING: Sum of the snow band precipitation fractions does not equal %d (%f), dividing each fraction by the sum\n",
-	      1, total);
+      fprintf(stderr,"WARNING: Sum of the snow band precipitation fractions (%f) does not equal 1; dividing each fraction by the sum\n",
+	      total);
       for(band = 0; band < num_elevation_snow_bands; band++)
 	    soil_con->Pfactor[band] /= total;
    }

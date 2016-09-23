@@ -246,7 +246,7 @@ void initialize_atmos(atmos_data_struct        *atmos,
 
   forcing_data = read_forcing_data(infile, ncids, state->global_param, soil_con, state);
   
-  fprintf(stderr,"\nRead meteorological forcing file\n");
+  fprintf(stderr,"Finished reading meteorological forcing file\n");
 
   /*************************************************
     Pre-processing

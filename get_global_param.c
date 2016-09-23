@@ -283,6 +283,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
   strcpy(names->netCDFOutputFileName, "results.nc");
   global_param.out_dt        = INVALID_INT;
   global_param.num_threads        = 1;
+  global_param.disagg_write_chunk_size = 1;
 
   // Open the file
   FILE* gp = open_file(global_file_name, "r");
@@ -304,7 +305,10 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       /*************************************
        Get Model Global Parameters
       *************************************/
-      if(strcasecmp("PARALLEL_THREADS",optstr)==0) {
+      if(strcasecmp("DISAGG_WRITE_CHUNK_SIZE",optstr)==0) {
+        sscanf(cmdstr,"%*s %d",&global_param.disagg_write_chunk_size);
+      }
+      else if(strcasecmp("PARALLEL_THREADS",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.num_threads);
       }
       else if(strcasecmp("NLAYER",optstr)==0) {
@@ -317,7 +321,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
         sscanf(cmdstr,"%*s %d",&global_param.dt);
       }
       else if(strcasecmp("SNOW_STEP",optstr)==0) {
-	sscanf(cmdstr,"%*s %d",&options.SNOW_STEP);
+      	sscanf(cmdstr,"%*s %d",&options.SNOW_STEP);
       }
       else if(strcasecmp("STARTYEAR",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.startyear);
@@ -330,6 +334,13 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
       }
       else if(strcasecmp("STARTHOUR",optstr)==0) {
         sscanf(cmdstr,"%*s %d",&global_param.starthour);
+      }
+      else if (strcasecmp("GLACIER_DYNAMICS", optstr)==0) {
+        sscanf(cmdstr,"%*s %s",flgstr);
+        if(strcasecmp("TRUE",flgstr)==0) {
+        	options.GLACIER_DYNAMICS = TRUE;
+        }
+        else options.GLACIER_DYNAMICS = FALSE;
       }
       else if (strcasecmp("GLACIER_ACCUM_START_YEAR", optstr)==0) {
         sscanf(cmdstr,"%*s %d", &global_param.glacierAccumStartYear);
@@ -1128,7 +1139,7 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     }
     // Set the statename here to be able to compare with INIT_STATE name
     if( options.SAVE_STATE ) {
-      sprintf(names->statefile,"%s_%04i%02i%02i", names->statefile,
+      sprintf(names->statefile,"%s_%04i-%02i-%02i", names->statefile,
               global_param.stateyear, global_param.statemonth, global_param.stateday);
     }
     if( options.INIT_STATE && options.SAVE_STATE && (strcmp( names->init_state, names->statefile ) == 0))  {
@@ -1267,8 +1278,8 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     fprintf(stderr,"Using %d Snow Bands\n",options.SNOW_BAND);
     fprintf(stderr,"Using %d Root Zones\n",options.ROOT_ZONES);
     if ( options.SAVE_STATE )
-      fprintf(stderr,"Model state will be saved on = %02i/%02i/%04i\n\n",
-              global_param.stateday, global_param.statemonth, global_param.stateyear);
+      fprintf(stderr,"Model state will be saved on = %04i-%02i-%02i\n\n",
+      		global_param.stateyear, global_param.statemonth, global_param.stateday);
     if ( options.OUTPUT_FORMAT == OutputFormat::BINARY_FORMAT ) {
       fprintf(stderr,"Model output is in standard BINARY format.\n");
     } else if ( options.OUTPUT_FORMAT == OutputFormat::ASCII_FORMAT){
@@ -1283,6 +1294,9 @@ void ProgramState::init_global_param(filenames_struct *names, const char* global
     else 
       fprintf(stderr,"Debugging code has not been compiled.\n");
 #endif
+  }
+  else { // options.OUTPUT_FORCE == TRUE
+  	fprintf(stderr, "\nDisaggregated forcings output chunk size is %d time records per write.\n", global_param.disagg_write_chunk_size);
   }
 
 }

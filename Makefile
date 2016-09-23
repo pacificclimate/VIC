@@ -99,6 +99,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	make_in_and_outfiles.o massrelease.o \
 	modify_Ksat.o mtclim_vic.o mtclim_wrapper.o newt_raph_func_fast.o nrerror.o \
 	open_debug.o open_file.o \
+	OutputData.o \
 	output_list_utils.o parse_output_info.o penman.o \
 	prepare_full_energy.o put_data.o read_arcinfo_ascii.o \
 	read_atmos_data.o read_forcing_data.o read_initial_model_state.o \
@@ -110,7 +111,7 @@ OBJS =  accumulateGlacierMassBalance.o \
 	soil_thermal_eqn.o solve_snow.o solve_snow_glac.o solve_glacier.o store_moisture_for_debug.o \
 	surface_fluxes.o surface_fluxes_glac.o svp.o VegConditions.o vicNl.o vicerror.o write_atmosdata.o \
 	write_debug.o write_forcing_file.o write_layer.o \
-	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o WriteOutputAllCells.o \
+	WriteOutputContext.o WriteOutputAscii.o WriteOutputBinary.o WriteOutputNetCDF.o \
 	write_model_state.o write_snow_data.o write_soilparam.o \
 	write_vegparam.o write_vegvar.o lakes.eb.o initialize_lake.o \
 	read_lakeparam.o ice_melt.o IceEnergyBalance.o water_energy_balance.o \

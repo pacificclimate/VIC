@@ -5,19 +5,20 @@
 
 static char vcid[] = "$Id$";
 
-void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_data_struct *out_data_list, const ProgramState *state) {
-	out_data_struct *cur_data = (out_data_struct*) calloc(N_OUTVAR_TYPES, sizeof(out_data_struct));
-  for (int i = 0; i < N_OUTVAR_TYPES; i++) {
-    strcpy(cur_data[i].varname, out_data_list[i].varname);
-    strcpy(cur_data[i].format, out_data_list[i].format);
+void copy_output_data(std::vector<OutputData*>&current_output_data, OutputData *out_data_list, const ProgramState *state) {
+	OutputData *cur_data = new OutputData[N_OUTVAR_TYPES];
+
+	for (int i = 0; i < N_OUTVAR_TYPES; i++) {
+	cur_data[i].varname = out_data_list[i].varname;
+	cur_data[i].format = out_data_list[i].format;
     cur_data[i].nelem = out_data_list[i].nelem;
     cur_data[i].aggtype = out_data_list[i].aggtype;
     cur_data[i].mult = out_data_list[i].mult;
     cur_data[i].type = out_data_list[i].type;
     cur_data[i].write = out_data_list[i].write;
     // Allocate space for data
-    cur_data[i].data = (double *)calloc(cur_data[i].nelem, sizeof(double));
-    cur_data[i].aggdata = (double *)calloc(cur_data[i].nelem, sizeof(double));
+    cur_data[i].data = new double[cur_data[i].nelem];
+    cur_data[i].aggdata = new double[cur_data[i].nelem];
     for (int element = 0; element < cur_data[i].nelem; element++) {
       cur_data[i].data[element] = out_data_list[i].data[element];
       cur_data[i].aggdata[element] = out_data_list[i].aggdata[element];
@@ -26,7 +27,7 @@ void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_dat
   current_output_data.push_back(cur_data);
 }
 
-out_data_struct *create_output_list(const ProgramState* state) {
+OutputData *create_output_list(const ProgramState* state) {
 /*************************************************************
   create_output_list()      Ted Bohn     September 08, 2006
 
@@ -81,218 +82,214 @@ out_data_struct *create_output_list(const ProgramState* state) {
 *************************************************************/
 
   int v;
-  out_data_struct *out_data;
+  OutputData *out_data;
 
-  out_data = (out_data_struct *)calloc(N_OUTVAR_TYPES,sizeof(out_data_struct));
+  out_data = new OutputData[N_OUTVAR_TYPES];
 
   // Build the list of supported output variables
 
   // Water Balance Terms - state variables
-  strcpy(out_data[OUT_ASAT].varname,"OUT_ASAT");                       /* saturated area fraction */
-  strcpy(out_data[OUT_LAKE_AREA_FRAC].varname,"OUT_LAKE_AREA_FRAC");   /* lake surface area as fraction of grid cell area [fraction] */
-  strcpy(out_data[OUT_LAKE_DEPTH].varname,"OUT_LAKE_DEPTH");           /* lake depth [m] */
-  strcpy(out_data[OUT_LAKE_ICE].varname,"OUT_LAKE_ICE");               /* moisture stored as lake ice [mm] */
-  strcpy(out_data[OUT_LAKE_ICE_FRACT].varname,"OUT_LAKE_ICE_FRACT");   /* fractional coverage of lake ice [fraction] */
-  strcpy(out_data[OUT_LAKE_ICE_HEIGHT].varname,"OUT_LAKE_ICE_HEIGHT"); /* thickness of lake ice [cm] */
-  strcpy(out_data[OUT_LAKE_MOIST].varname,"OUT_LAKE_MOIST");           /* liquid water stored in lake [mm over lake area?] */
-  strcpy(out_data[OUT_LAKE_SURF_AREA].varname,"OUT_LAKE_SURF_AREA");   /* lake surface area [m2] */
-  strcpy(out_data[OUT_LAKE_SWE].varname,"OUT_LAKE_SWE");               /* liquid water equivalent of snow on top of lake ice [m over lake ice] */
-  strcpy(out_data[OUT_LAKE_SWE_V].varname,"OUT_LAKE_SWE_V");           /* volumetric liquid water equivalent of snow on top of lake ice [m3] */
-  strcpy(out_data[OUT_LAKE_VOLUME].varname,"OUT_LAKE_VOLUME");         /* lake volume [m3] */
-  strcpy(out_data[OUT_ROOTMOIST].varname,"OUT_ROOTMOIST");             /* root zone soil moisture [mm] */
-  strcpy(out_data[OUT_SMFROZFRAC].varname,"OUT_SMFROZFRAC");           /* fraction of soil moisture (by mass) that is ice, for each soil layer */
-  strcpy(out_data[OUT_SMLIQFRAC].varname,"OUT_SMLIQFRAC");             /* fraction of soil moisture (by mass) that is liquid, for each soil layer */
-  strcpy(out_data[OUT_SNOW_CANOPY].varname,"OUT_SNOW_CANOPY");         /* snow interception storage in canopy [mm] */
-  strcpy(out_data[OUT_SNOW_COVER].varname,"OUT_SNOW_COVER");           /* fractional area of snow cover [fraction] */
-  strcpy(out_data[OUT_SNOW_DEPTH].varname,"OUT_SNOW_DEPTH");           /* depth of snow pack [cm] */
-  strcpy(out_data[OUT_SOIL_ICE].varname,"OUT_SOIL_ICE");               /* soil ice content [mm] for each soil layer */
-  strcpy(out_data[OUT_SOIL_ICE_TOT].varname,"OUT_SOIL_ICE_TOT");       /* soil ice content [mm] for all soil layers */
-  strcpy(out_data[OUT_SOIL_LIQ].varname,"OUT_SOIL_LIQ");               /* soil liquid moisture content [mm] for each soil layer */
-  strcpy(out_data[OUT_SOIL_LIQ_TOT].varname,"OUT_SOIL_LIQ_TOT");       /* soil liquid moisture content [mm] for all soil layers */
-  strcpy(out_data[OUT_SOIL_MOIST].varname,"OUT_SOIL_MOIST");           /* soil total moisture content [mm] for each soil layer */
-  strcpy(out_data[OUT_SOIL_MOIST_TOT].varname,"OUT_SOIL_MOIST_TOT");   /* soil total moisture content [mm] for all soil layers */
-  strcpy(out_data[OUT_SOIL_WET].varname,"OUT_SOIL_WET");               /* vertical average of (soil moisture - wilting point)/(maximum soil moisture - wilting point) [mm/mm] */
-  strcpy(out_data[OUT_SURFSTOR].varname,"OUT_SURFSTOR");               /* storage of liquid water on surface (ponding) [mm] */
-  strcpy(out_data[OUT_SURF_FROST_FRAC].varname,"OUT_SURF_FROST_FRAC"); /* fraction of soil surface that is frozen [fraction] */
-  strcpy(out_data[OUT_SWE].varname,"OUT_SWE");                         /* snow water equivalent in snow pack [mm] */
-  strcpy(out_data[OUT_WDEW].varname,"OUT_WDEW");                       /* total moisture interception storage in canopy [mm] */
-  strcpy(out_data[OUT_ZWT].varname,"OUT_ZWT");                         /* water table position [cm] - method 1 (zwt within lowest unsaturated layer) */
-  strcpy(out_data[OUT_ZWT2].varname,"OUT_ZWT2");                       /* water table position [cm] - method 2 (zwt of total moisture across top-most N-1 layers, lumped together) */
-  strcpy(out_data[OUT_ZWT3].varname,"OUT_ZWT3");                       /* water table position [cm] - method 3 (zwt of total moisture across all layers, lumped together) */
-  strcpy(out_data[OUT_ZWTL].varname,"OUT_ZWTL");                       /* per-layer water table positions [cm] (one per soil layer) */
+  out_data[OUT_ASAT].varname = "OUT_ASAT";                       /* saturated area fraction */
+  out_data[OUT_LAKE_AREA_FRAC].varname = "OUT_LAKE_AREA_FRAC";   /* lake surface area as fraction of grid cell area [fraction] */
+  out_data[OUT_LAKE_DEPTH].varname = "OUT_LAKE_DEPTH";           /* lake depth [m] */
+  out_data[OUT_LAKE_ICE].varname = "OUT_LAKE_ICE";               /* moisture stored as lake ice [mm] */
+  out_data[OUT_LAKE_ICE_FRACT].varname = "OUT_LAKE_ICE_FRACT";   /* fractional coverage of lake ice [fraction] */
+  out_data[OUT_LAKE_ICE_HEIGHT].varname = "OUT_LAKE_ICE_HEIGHT"; /* thickness of lake ice [cm] */
+  out_data[OUT_LAKE_MOIST].varname = "OUT_LAKE_MOIST";           /* liquid water stored in lake [mm over lake area?] */
+  out_data[OUT_LAKE_SURF_AREA].varname = "OUT_LAKE_SURF_AREA";   /* lake surface area [m2] */
+  out_data[OUT_LAKE_SWE].varname = "OUT_LAKE_SWE";               /* liquid water equivalent of snow on top of lake ice [m over lake ice] */
+  out_data[OUT_LAKE_SWE_V].varname = "OUT_LAKE_SWE_V";           /* volumetric liquid water equivalent of snow on top of lake ice [m3] */
+  out_data[OUT_LAKE_VOLUME].varname = "OUT_LAKE_VOLUME";         /* lake volume [m3] */
+  out_data[OUT_ROOTMOIST].varname = "OUT_ROOTMOIST";             /* root zone soil moisture [mm] */
+  out_data[OUT_SMFROZFRAC].varname = "OUT_SMFROZFRAC";           /* fraction of soil moisture (by mass) that is ice, for each soil layer */
+  out_data[OUT_SMLIQFRAC].varname = "OUT_SMLIQFRAC";             /* fraction of soil moisture (by mass) that is liquid, for each soil layer */
+  out_data[OUT_SNOW_CANOPY].varname = "OUT_SNOW_CANOPY";         /* snow interception storage in canopy [mm] */
+  out_data[OUT_SNOW_COVER].varname = "OUT_SNOW_COVER";           /* fractional area of snow cover [fraction] */
+  out_data[OUT_SNOW_DEPTH].varname = "OUT_SNOW_DEPTH";           /* depth of snow pack [cm] */
+  out_data[OUT_SOIL_ICE].varname = "OUT_SOIL_ICE";               /* soil ice content [mm] for each soil layer */
+  out_data[OUT_SOIL_ICE_TOT].varname = "OUT_SOIL_ICE_TOT";       /* soil ice content [mm] for all soil layers */
+  out_data[OUT_SOIL_LIQ].varname = "OUT_SOIL_LIQ";               /* soil liquid moisture content [mm] for each soil layer */
+  out_data[OUT_SOIL_LIQ_TOT].varname = "OUT_SOIL_LIQ_TOT";       /* soil liquid moisture content [mm] for all soil layers */
+  out_data[OUT_SOIL_MOIST].varname = "OUT_SOIL_MOIST";           /* soil total moisture content [mm] for each soil layer */
+  out_data[OUT_SOIL_MOIST_TOT].varname = "OUT_SOIL_MOIST_TOT";   /* soil total moisture content [mm] for all soil layers */
+  out_data[OUT_SOIL_WET].varname = "OUT_SOIL_WET";               /* vertical average of (soil moisture - wilting point)/(maximum soil moisture - wilting point) [mm/mm] */
+  out_data[OUT_SURFSTOR].varname = "OUT_SURFSTOR";               /* storage of liquid water on surface (ponding) [mm] */
+  out_data[OUT_SURF_FROST_FRAC].varname = "OUT_SURF_FROST_FRAC"; /* fraction of soil surface that is frozen [fraction] */
+  out_data[OUT_SWE].varname = "OUT_SWE";                         /* snow water equivalent in snow pack [mm] */
+  out_data[OUT_WDEW].varname = "OUT_WDEW";                       /* total moisture interception storage in canopy [mm] */
+  out_data[OUT_ZWT].varname = "OUT_ZWT";                         /* water table position [cm] - method 1 (zwt within lowest unsaturated layer) */
+  out_data[OUT_ZWT2].varname = "OUT_ZWT2";                       /* water table position [cm] - method 2 (zwt of total moisture across top-most N-1 layers, lumped together) */
+  out_data[OUT_ZWT3].varname = "OUT_ZWT3";                       /* water table position [cm] - method 3 (zwt of total moisture across all layers, lumped together) */
+  out_data[OUT_ZWTL].varname = "OUT_ZWTL";                       /* per-layer water table positions [cm] (one per soil layer) */
 
   // Water Balance Terms - fluxes
-  strcpy(out_data[OUT_BASEFLOW].varname,"OUT_BASEFLOW");               /* baseflow out of the bottom layer [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_DELINTERCEPT].varname,"OUT_DELINTERCEPT");       /* change in canopy interception storage [mm] */
-  strcpy(out_data[OUT_DELSOILMOIST].varname,"OUT_DELSOILMOIST");       /* change in soil water content [mm] */
-  strcpy(out_data[OUT_DELSWE].varname,"OUT_DELSWE");                   /* change in snow water equivalent [mm] */
-  strcpy(out_data[OUT_DELSURFSTOR].varname,"OUT_DELSURFSTOR");         /* change in surface liquid water storage  [mm] */
-  strcpy(out_data[OUT_EVAP].varname,"OUT_EVAP");                       /* total net evaporation [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_EVAP_BARE].varname,"OUT_EVAP_BARE");             /* net evaporation from bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_EVAP_CANOP].varname,"OUT_EVAP_CANOP");           /* net evaporation from canopy interception [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_INFLOW].varname,"OUT_INFLOW");                   /* moisture that reaches top of soil column [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_BF_IN].varname,"OUT_LAKE_BF_IN");           /* incoming baseflow from lake catchment [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_BF_IN_V].varname,"OUT_LAKE_BF_IN_V");       /* incoming volumetric baseflow from lake catchment [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_BF_OUT].varname,"OUT_LAKE_BF_OUT");         /* outgoing baseflow lake [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_BF_OUT_V].varname,"OUT_LAKE_BF_OUT_V");     /* outgoing volumetric baseflow from lake [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_CHAN_IN].varname,"OUT_LAKE_CHAN_IN");       /* channel inflow into lake [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_CHAN_IN_V].varname,"OUT_LAKE_CHAN_IN_V");   /* volumetric channel inflow into lake [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_CHAN_OUT].varname,"OUT_LAKE_CHAN_OUT");     /* channel outflow from lake [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_CHAN_OUT_V].varname,"OUT_LAKE_CHAN_OUT_V"); /* volumetric channel outflow from lake [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_DSTOR].varname,"OUT_LAKE_DSTOR");           /* change in lake moisture storage (liquid plus ice cover) [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_DSTOR_V].varname,"OUT_LAKE_DSTOR_V");       /* volumetric change in lake moisture storage (liquid plus ice cover) [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_DSWE].varname,"OUT_LAKE_DSWE");             /* change in snowpack on top of lake ice [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_DSWE_V].varname,"OUT_LAKE_DSWE_V");         /* volumetric change in snowpack on top of lake ice [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_EVAP].varname,"OUT_LAKE_EVAP");             /* net evaporation from lake surface [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_EVAP_V].varname,"OUT_LAKE_EVAP_V");         /* net volumetric evaporation from lake surface [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_PREC_V].varname,"OUT_LAKE_PREC_V");         /* volumetric precipitation over lake surface [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_RCHRG].varname,"OUT_LAKE_RCHRG");           /* recharge from lake to surrounding wetland [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_RCHRG_V].varname,"OUT_LAKE_RCHRG_V");       /* volumetric recharge from lake to surrounding wetland [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_RO_IN].varname,"OUT_LAKE_RO_IN");           /* incoming runoff from lake catchment [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_RO_IN_V].varname,"OUT_LAKE_RO_IN_V");       /* incoming volumetric runoff from lake catchment [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_LAKE_VAPFLX].varname,"OUT_LAKE_VAPFLX");         /* sublimation from lake snow pack [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_LAKE_VAPFLX_V].varname,"OUT_LAKE_VAPFLX_V");     /* volumetric sublimation from lake snow pack [m3] (ALMA_OUTPUT: [m3/s]) */
-  strcpy(out_data[OUT_PET_SATSOIL].varname,"OUT_PET_SATSOIL");         /* potential evap from saturated bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PET_H2OSURF].varname,"OUT_PET_H2OSURF");         /* potential evap from open water [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PET_SHORT].varname,"OUT_PET_SHORT");             /* potential evap from short reference crop (grass) [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PET_TALL].varname,"OUT_PET_TALL");               /* potential evap from tall reference crop (alfalfa) [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PET_NATVEG].varname,"OUT_PET_NATVEG");           /* potential evap from current vegetation and current canopy resistance [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PET_VEGNOCR].varname,"OUT_PET_VEGNOCR");         /* potential evap from current vegetation and 0 canopy resistance bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_PREC].varname,"OUT_PREC");                       /* incoming precipitation [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_RAINF].varname,"OUT_RAINF");                     /* rainfall [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_REFREEZE].varname,"OUT_REFREEZE");               /* refreezing of water in the snow [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_RUNOFF].varname,"OUT_RUNOFF");                   /* surface runoff [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SNOW_MELT].varname,"OUT_SNOW_MELT");             /* snow melt [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SNOWF].varname,"OUT_SNOWF");                     /* snowfall [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SUB_BLOWING].varname,"OUT_SUB_BLOWING");         /* net sublimation of blowing snow [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SUB_CANOP].varname,"OUT_SUB_CANOP");             /* net sublimation from snow stored in canopy [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SUB_SNOW].varname,"OUT_SUB_SNOW");               /* net sublimation from snow pack (surface and blowing) [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SUB_SURFACE].varname,"OUT_SUB_SURFACE");         /* net sublimation from snow pack surface [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_TRANSP_VEG].varname,"OUT_TRANSP_VEG");           /* net transpiration from vegetation [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_BASEFLOW].varname = "OUT_BASEFLOW";               /* baseflow out of the bottom layer [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_DELINTERCEPT].varname = "OUT_DELINTERCEPT";       /* change in canopy interception storage [mm] */
+  out_data[OUT_DELSOILMOIST].varname = "OUT_DELSOILMOIST";       /* change in soil water content [mm] */
+  out_data[OUT_DELSWE].varname = "OUT_DELSWE";                   /* change in snow water equivalent [mm] */
+  out_data[OUT_DELSURFSTOR].varname = "OUT_DELSURFSTOR";         /* change in surface liquid water storage  [mm] */
+  out_data[OUT_EVAP].varname = "OUT_EVAP";                       /* total net evaporation [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_EVAP_BARE].varname = "OUT_EVAP_BARE";             /* net evaporation from bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_EVAP_CANOP].varname = "OUT_EVAP_CANOP";           /* net evaporation from canopy interception [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_INFLOW].varname = "OUT_INFLOW";                   /* moisture that reaches top of soil column [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_BF_IN].varname = "OUT_LAKE_BF_IN";           /* incoming baseflow from lake catchment [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_BF_IN_V].varname = "OUT_LAKE_BF_IN_V";       /* incoming volumetric baseflow from lake catchment [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_BF_OUT].varname = "OUT_LAKE_BF_OUT";         /* outgoing baseflow lake [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_BF_OUT_V].varname = "OUT_LAKE_BF_OUT_V";     /* outgoing volumetric baseflow from lake [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_CHAN_IN].varname = "OUT_LAKE_CHAN_IN";       /* channel inflow into lake [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_CHAN_IN_V].varname = "OUT_LAKE_CHAN_IN_V";   /* volumetric channel inflow into lake [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_CHAN_OUT].varname = "OUT_LAKE_CHAN_OUT";     /* channel outflow from lake [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_CHAN_OUT_V].varname = "OUT_LAKE_CHAN_OUT_V"; /* volumetric channel outflow from lake [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_DSTOR].varname = "OUT_LAKE_DSTOR";           /* change in lake moisture storage (liquid plus ice cover) [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_DSTOR_V].varname = "OUT_LAKE_DSTOR_V";       /* volumetric change in lake moisture storage (liquid plus ice cover) [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_DSWE].varname = "OUT_LAKE_DSWE";             /* change in snowpack on top of lake ice [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_DSWE_V].varname = "OUT_LAKE_DSWE_V";         /* volumetric change in snowpack on top of lake ice [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_EVAP].varname = "OUT_LAKE_EVAP";             /* net evaporation from lake surface [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_EVAP_V].varname = "OUT_LAKE_EVAP_V";         /* net volumetric evaporation from lake surface [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_PREC_V].varname = "OUT_LAKE_PREC_V";         /* volumetric precipitation over lake surface [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_RCHRG].varname = "OUT_LAKE_RCHRG";           /* recharge from lake to surrounding wetland [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_RCHRG_V].varname = "OUT_LAKE_RCHRG_V";       /* volumetric recharge from lake to surrounding wetland [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_RO_IN].varname = "OUT_LAKE_RO_IN";           /* incoming runoff from lake catchment [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_RO_IN_V].varname = "OUT_LAKE_RO_IN_V";       /* incoming volumetric runoff from lake catchment [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_LAKE_VAPFLX].varname = "OUT_LAKE_VAPFLX";         /* sublimation from lake snow pack [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_LAKE_VAPFLX_V].varname = "OUT_LAKE_VAPFLX_V";     /* volumetric sublimation from lake snow pack [m3] (ALMA_OUTPUT: [m3/s]) */
+  out_data[OUT_PET_SATSOIL].varname = "OUT_PET_SATSOIL";         /* potential evap from saturated bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PET_H2OSURF].varname = "OUT_PET_H2OSURF";         /* potential evap from open water [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PET_SHORT].varname = "OUT_PET_SHORT";             /* potential evap from short reference crop (grass) [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PET_TALL].varname = "OUT_PET_TALL";               /* potential evap from tall reference crop (alfalfa) [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PET_NATVEG].varname = "OUT_PET_NATVEG";           /* potential evap from current vegetation and current canopy resistance [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PET_VEGNOCR].varname = "OUT_PET_VEGNOCR";         /* potential evap from current vegetation and 0 canopy resistance bare soil [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_PREC].varname = "OUT_PREC";                       /* incoming precipitation [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_RAINF].varname = "OUT_RAINF";                     /* rainfall [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_REFREEZE].varname = "OUT_REFREEZE";               /* refreezing of water in the snow [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_RUNOFF].varname = "OUT_RUNOFF";                   /* surface runoff [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SNOW_MELT].varname = "OUT_SNOW_MELT";             /* snow melt [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SNOWF].varname = "OUT_SNOWF";                     /* snowfall [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SUB_BLOWING].varname = "OUT_SUB_BLOWING";         /* net sublimation of blowing snow [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SUB_CANOP].varname = "OUT_SUB_CANOP";             /* net sublimation from snow stored in canopy [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SUB_SNOW].varname = "OUT_SUB_SNOW";               /* net sublimation from snow pack (surface and blowing) [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SUB_SURFACE].varname = "OUT_SUB_SURFACE";         /* net sublimation from snow pack surface [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_TRANSP_VEG].varname = "OUT_TRANSP_VEG";           /* net transpiration from vegetation [mm] (ALMA_OUTPUT: [mm/s]) */
 
   // Energy Balance Terms - state variables
-  strcpy(out_data[OUT_ALBEDO].varname,"OUT_ALBEDO");                   /* albedo [fraction] */
-  strcpy(out_data[OUT_BARESOILT].varname,"OUT_BARESOILT");             /* bare soil surface temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_FDEPTH].varname,"OUT_FDEPTH");                   /* depth of freezing fronts [cm] (ALMA_OUTPUT: [m]) for each freezing front */
-  strcpy(out_data[OUT_LAKE_ICE_TEMP].varname,"OUT_LAKE_ICE_TEMP");     /* lake ice temperature [K] */
-  strcpy(out_data[OUT_LAKE_SURF_TEMP].varname,"OUT_LAKE_SURF_TEMP");   /* lake surface temperature [K] */
-  strcpy(out_data[OUT_RAD_TEMP].varname,"OUT_RAD_TEMP");               /* average radiative surface temperature [K] */
-  strcpy(out_data[OUT_SALBEDO].varname,"OUT_SALBEDO");                 /* snow albedo [fraction] */
-  strcpy(out_data[OUT_SNOW_PACK_TEMP].varname,"OUT_SNOW_PACK_TEMP");   /* snow pack temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_SNOW_SURF_TEMP].varname,"OUT_SNOW_SURF_TEMP");   /* snow surface temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_SNOWT_FBFLAG].varname,"OUT_SNOWT_FBFLAG");       /* snow surface temperature flag */
-  strcpy(out_data[OUT_SOIL_TEMP].varname,"OUT_SOIL_TEMP");             /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil layer */
-  strcpy(out_data[OUT_SOIL_TNODE].varname,"OUT_SOIL_TNODE");           /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil thermal node */
-  strcpy(out_data[OUT_SOIL_TNODE_WL].varname,"OUT_SOIL_TNODE_WL");     /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil thermal node in the wetland */
-  strcpy(out_data[OUT_SOILT_FBFLAG].varname,"OUT_SOILT_FBFLAG");       /* soil temperature flag for each soil thermal node */
-  strcpy(out_data[OUT_SURF_TEMP].varname,"OUT_SURF_TEMP");             /* average surface temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_SURFT_FBFLAG].varname,"OUT_SURFT_FBFLAG");       /* surface temperature flag */
-  strcpy(out_data[OUT_TCAN_FBFLAG].varname,"OUT_TCAN_FBFLAG");         /* Tcanopy flag */
-  strcpy(out_data[OUT_TDEPTH].varname,"OUT_TDEPTH");                   /* depth of thawing fronts [cm] (ALMA_OUTPUT: [m]) for each thawing front */
-  strcpy(out_data[OUT_TFOL_FBFLAG].varname,"OUT_TFOL_FBFLAG");         /* Tfoliage flag */
-  strcpy(out_data[OUT_VEGT].varname,"OUT_VEGT");                       /* average vegetation canopy temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_ALBEDO].varname = "OUT_ALBEDO";                   /* albedo [fraction] */
+  out_data[OUT_BARESOILT].varname = "OUT_BARESOILT";             /* bare soil surface temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_FDEPTH].varname = "OUT_FDEPTH";                   /* depth of freezing fronts [cm] (ALMA_OUTPUT: [m]) for each freezing front */
+  out_data[OUT_LAKE_ICE_TEMP].varname = "OUT_LAKE_ICE_TEMP";     /* lake ice temperature [K] */
+  out_data[OUT_LAKE_SURF_TEMP].varname = "OUT_LAKE_SURF_TEMP";   /* lake surface temperature [K] */
+  out_data[OUT_RAD_TEMP].varname = "OUT_RAD_TEMP";               /* average radiative surface temperature [K] */
+  out_data[OUT_SALBEDO].varname = "OUT_SALBEDO";                 /* snow albedo [fraction] */
+  out_data[OUT_SNOW_PACK_TEMP].varname = "OUT_SNOW_PACK_TEMP";   /* snow pack temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_SNOW_SURF_TEMP].varname = "OUT_SNOW_SURF_TEMP";   /* snow surface temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_SNOWT_FBFLAG].varname = "OUT_SNOWT_FBFLAG";       /* snow surface temperature flag */
+  out_data[OUT_SOIL_TEMP].varname = "OUT_SOIL_TEMP";             /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil layer */
+  out_data[OUT_SOIL_TNODE].varname = "OUT_SOIL_TNODE";           /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil thermal node */
+  out_data[OUT_SOIL_TNODE_WL].varname = "OUT_SOIL_TNODE_WL";     /* soil temperature [C] (ALMA_OUTPUT: [K]) for each soil thermal node in the wetland */
+  out_data[OUT_SOILT_FBFLAG].varname = "OUT_SOILT_FBFLAG";       /* soil temperature flag for each soil thermal node */
+  out_data[OUT_SURF_TEMP].varname = "OUT_SURF_TEMP";             /* average surface temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_SURFT_FBFLAG].varname = "OUT_SURFT_FBFLAG";       /* surface temperature flag */
+  out_data[OUT_TCAN_FBFLAG].varname = "OUT_TCAN_FBFLAG";         /* Tcanopy flag */
+  out_data[OUT_TDEPTH].varname = "OUT_TDEPTH";                   /* depth of thawing fronts [cm] (ALMA_OUTPUT: [m]) for each thawing front */
+  out_data[OUT_TFOL_FBFLAG].varname = "OUT_TFOL_FBFLAG";         /* Tfoliage flag */
+  out_data[OUT_VEGT].varname = "OUT_VEGT";                       /* average vegetation canopy temperature [C] (ALMA_OUTPUT: [K]) */
 
   // Energy Balance Terms - fluxes
-  strcpy(out_data[OUT_ADV_SENS].varname,"OUT_ADV_SENS");               /* net sensible heat advected to snow pack [W/m2] */
-  strcpy(out_data[OUT_ADVECTION].varname,"OUT_ADVECTION");             /* advected energy [W/m2] */
-  strcpy(out_data[OUT_DELTACC].varname,"OUT_DELTACC");                 /* rate of change in cold content in snow pack [W/m2] */
-  strcpy(out_data[OUT_DELTAH].varname,"OUT_DELTAH");                   /* rate of change in heat storage [W/m2] */
-  strcpy(out_data[OUT_ENERGY_ERROR].varname,"OUT_ENERGY_ERROR");       /* energy budget error [W/m2] */
-  strcpy(out_data[OUT_WATER_ERROR].varname,"OUT_WATER_ERROR");         /* water budget error [mm] */
-  strcpy(out_data[OUT_FUSION].varname,"OUT_FUSION");                   /* net energy used to melt/freeze soil moisture [W/m2] */
-  strcpy(out_data[OUT_GRND_FLUX].varname,"OUT_GRND_FLUX");             /* net heat flux into ground [W/m2] */
-  strcpy(out_data[OUT_IN_LONG].varname,"OUT_IN_LONG");                 /* incoming longwave flux at surface (under veg) [W/m2] */
-  strcpy(out_data[OUT_LATENT].varname,"OUT_LATENT");                   /* net upward latent heat flux [W/m2] */
-  strcpy(out_data[OUT_LATENT_SUB].varname,"OUT_LATENT_SUB");           /* net upward latent heat flux from sublimation [W/m2] */
-  strcpy(out_data[OUT_MELT_ENERGY].varname,"OUT_MELT_ENERGY");         /* energy of fusion (melting) [W/m2] */
-  strcpy(out_data[OUT_NET_LONG].varname,"OUT_NET_LONG");               /* net downward longwave flux [W/m2] */
-  strcpy(out_data[OUT_NET_SHORT].varname,"OUT_NET_SHORT");             /* net downward shortwave flux [W/m2] */
-  strcpy(out_data[OUT_R_NET].varname,"OUT_R_NET");                     /* net downward radiation flux [W/m2] */
-  strcpy(out_data[OUT_RFRZ_ENERGY].varname,"OUT_RFRZ_ENERGY");         /* net energy used to refreeze liquid water in snowpack [W/m2] */
-  strcpy(out_data[OUT_SENSIBLE].varname,"OUT_SENSIBLE");               /* net upward sensible heat flux [W/m2] */
-  strcpy(out_data[OUT_SNOW_FLUX].varname,"OUT_SNOW_FLUX");             /* energy flux through snow pack [W/m2] */
+  out_data[OUT_ADV_SENS].varname = "OUT_ADV_SENS";               /* net sensible heat advected to snow pack [W/m2] */
+  out_data[OUT_ADVECTION].varname = "OUT_ADVECTION";             /* advected energy [W/m2] */
+  out_data[OUT_DELTACC].varname = "OUT_DELTACC";                 /* rate of change in cold content in snow pack [W/m2] */
+  out_data[OUT_DELTAH].varname = "OUT_DELTAH";                   /* rate of change in heat storage [W/m2] */
+  out_data[OUT_ENERGY_ERROR].varname = "OUT_ENERGY_ERROR";       /* energy budget error [W/m2] */
+  out_data[OUT_WATER_ERROR].varname = "OUT_WATER_ERROR";         /* water budget error [mm] */
+  out_data[OUT_FUSION].varname = "OUT_FUSION";                   /* net energy used to melt/freeze soil moisture [W/m2] */
+  out_data[OUT_GRND_FLUX].varname = "OUT_GRND_FLUX";             /* net heat flux into ground [W/m2] */
+  out_data[OUT_IN_LONG].varname = "OUT_IN_LONG";                 /* incoming longwave flux at surface (under veg) [W/m2] */
+  out_data[OUT_LATENT].varname = "OUT_LATENT";                   /* net upward latent heat flux [W/m2] */
+  out_data[OUT_LATENT_SUB].varname = "OUT_LATENT_SUB";           /* net upward latent heat flux from sublimation [W/m2] */
+  out_data[OUT_MELT_ENERGY].varname = "OUT_MELT_ENERGY";         /* energy of fusion (melting) [W/m2] */
+  out_data[OUT_NET_LONG].varname = "OUT_NET_LONG";               /* net downward longwave flux [W/m2] */
+  out_data[OUT_NET_SHORT].varname = "OUT_NET_SHORT";             /* net downward shortwave flux [W/m2] */
+  out_data[OUT_R_NET].varname = "OUT_R_NET";                     /* net downward radiation flux [W/m2] */
+  out_data[OUT_RFRZ_ENERGY].varname = "OUT_RFRZ_ENERGY";         /* net energy used to refreeze liquid water in snowpack [W/m2] */
+  out_data[OUT_SENSIBLE].varname = "OUT_SENSIBLE";               /* net upward sensible heat flux [W/m2] */
+  out_data[OUT_SNOW_FLUX].varname = "OUT_SNOW_FLUX";             /* energy flux through snow pack [W/m2] */
 
   // Miscellaneous Terms
-  strcpy(out_data[OUT_AERO_COND].varname,"OUT_AERO_COND");             /* "scene" aerodynamic conductance [m/s] (tiles with overstory contribute overstory conductance; others contribue surface conductance) */
-  strcpy(out_data[OUT_AERO_COND1].varname,"OUT_AERO_COND1");           /* surface aerodynamic conductance [m/s] */
-  strcpy(out_data[OUT_AERO_COND2].varname,"OUT_AERO_COND2");           /* overstory aerodynamic conductance [m/s] */
-  strcpy(out_data[OUT_AERO_RESIST].varname,"OUT_AERO_RESIST");         /* "scene" aerodynamic resistance [s/m] (tiles with overstory contribute overstory resistance; others contribue surface resistance)*/
-  strcpy(out_data[OUT_AERO_RESIST1].varname,"OUT_AERO_RESIST1");       /* surface aerodynamic resistance [m/s] */
-  strcpy(out_data[OUT_AERO_RESIST2].varname,"OUT_AERO_RESIST2");       /* overstory aerodynamic resistance [m/s] */
-  strcpy(out_data[OUT_AIR_TEMP].varname,"OUT_AIR_TEMP");               /* air temperature [C] */
-  // MDF: could put output_varname in at this point, as so:
-//  strcpy(out_data[OUT_AIR_TEMP].output_varname,state->);               /* air temperature [C] */
-  strcpy(out_data[OUT_DENSITY].varname,"OUT_DENSITY");                 /* near-surface atmospheric density [kg/m3] */
-  strcpy(out_data[OUT_LONGWAVE].varname,"OUT_LONGWAVE");               /* incoming longwave [W/m2] */
-  strcpy(out_data[OUT_PRESSURE].varname,"OUT_PRESSURE");               /* near surface atmospheric pressure [kPa] */
-  strcpy(out_data[OUT_QAIR].varname,"OUT_QAIR");                       /* specific humidity [kg/kg] */
-  strcpy(out_data[OUT_REL_HUMID].varname,"OUT_REL_HUMID");             /* relative humidity [fraction]*/
-  strcpy(out_data[OUT_SHORTWAVE].varname,"OUT_SHORTWAVE");             /* incoming shortwave [W/m2] */
-  strcpy(out_data[OUT_SURF_COND].varname,"OUT_SURF_COND");             /* surface conductance [m/s] */
-  strcpy(out_data[OUT_TSKC].varname,"OUT_TSKC");                       /* cloud cover fraction [fraction] */
-  strcpy(out_data[OUT_VP].varname,"OUT_VP");                           /* near surface vapor pressure [kPa] */
-  strcpy(out_data[OUT_VPD].varname,"OUT_VPD");                         /* near surface vapor pressure deficit [kPa] */
-  strcpy(out_data[OUT_WIND].varname,"OUT_WIND");                       /* near surface wind speed [m/s] */
+  out_data[OUT_AERO_COND].varname = "OUT_AERO_COND";             /* "scene" aerodynamic conductance [m/s] (tiles with overstory contribute overstory conductance; others contribue surface conductance) */
+  out_data[OUT_AERO_COND1].varname = "OUT_AERO_COND1";           /* surface aerodynamic conductance [m/s] */
+  out_data[OUT_AERO_COND2].varname = "OUT_AERO_COND2";           /* overstory aerodynamic conductance [m/s] */
+  out_data[OUT_AERO_RESIST].varname = "OUT_AERO_RESIST";         /* "scene" aerodynamic resistance [s/m] (tiles with overstory contribute overstory resistance; others contribue surface resistance)*/
+  out_data[OUT_AERO_RESIST1].varname = "OUT_AERO_RESIST1";       /* surface aerodynamic resistance [m/s] */
+  out_data[OUT_AERO_RESIST2].varname = "OUT_AERO_RESIST2";       /* overstory aerodynamic resistance [m/s] */
+  out_data[OUT_AIR_TEMP].varname = "OUT_AIR_TEMP";               /* air temperature [C] */
+  out_data[OUT_DENSITY].varname = "OUT_DENSITY";                 /* near-surface atmospheric density [kg/m3] */
+  out_data[OUT_LONGWAVE].varname = "OUT_LONGWAVE";               /* incoming longwave [W/m2] */
+  out_data[OUT_PRESSURE].varname = "OUT_PRESSURE";               /* near surface atmospheric pressure [kPa] */
+  out_data[OUT_QAIR].varname = "OUT_QAIR";                       /* specific humidity [kg/kg] */
+  out_data[OUT_REL_HUMID].varname = "OUT_REL_HUMID";             /* relative humidity [fraction]*/
+  out_data[OUT_SHORTWAVE].varname = "OUT_SHORTWAVE";             /* incoming shortwave [W/m2] */
+  out_data[OUT_SURF_COND].varname = "OUT_SURF_COND";             /* surface conductance [m/s] */
+  out_data[OUT_TSKC].varname = "OUT_TSKC";                       /* cloud cover fraction [fraction] */
+  out_data[OUT_VP].varname = "OUT_VP";                           /* near surface vapor pressure [kPa] */
+  out_data[OUT_VPD].varname = "OUT_VPD";                         /* near surface vapor pressure deficit [kPa] */
+  out_data[OUT_WIND].varname = "OUT_WIND";                       /* near surface wind speed [m/s] */
 
   // Dynamic Soil Layer Terms - EXCESS_ICE option
 #if EXCESS_ICE
-  strcpy(out_data[OUT_SOIL_DEPTH].varname,"OUT_SOIL_DEPTH");             /* soil moisture layer depths [m] */
-  strcpy(out_data[OUT_SUBSIDENCE].varname,"OUT_SUBSIDENCE");             /* subsidence of soil layer [mm] */
-  strcpy(out_data[OUT_POROSITY].varname,"OUT_POROSITY");                 /* porosity [mm/mm] */
-  strcpy(out_data[OUT_ZSUM_NODE].varname,"OUT_ZSUM_NODE");               /* depths of thermal nodes [m] */
+  out_data[OUT_SOIL_DEPTH].varname = "OUT_SOIL_DEPTH";             /* soil moisture layer depths [m] */
+  out_data[OUT_SUBSIDENCE].varname = "OUT_SUBSIDENCE";             /* subsidence of soil layer [mm] */
+  out_data[OUT_POROSITY].varname = "OUT_POROSITY";                 /* porosity [mm/mm] */
+  out_data[OUT_ZSUM_NODE].varname = "OUT_ZSUM_NODE";               /* depths of thermal nodes [m] */
 #endif
 
   // Band-specific quantities
-  strcpy(out_data[OUT_ADV_SENS_BAND].varname,"OUT_ADV_SENS_BAND");               /* net sensible heat flux advected to snow pack [W/m2] */
-  strcpy(out_data[OUT_ADVECTION_BAND].varname,"OUT_ADVECTION_BAND");             /* advected energy [W/m2] */
-  strcpy(out_data[OUT_ALBEDO_BAND].varname,"OUT_ALBEDO_BAND");                   /* albedo [fraction] */
-  strcpy(out_data[OUT_AREA_BAND].varname,"OUT_AREA_BAND");                   	 /* band area [fraction] */
-  strcpy(out_data[OUT_DELTACC_BAND].varname,"OUT_DELTACC_BAND");                 /* change in cold content in snow pack [W/m2] */
-  strcpy(out_data[OUT_ELEV_BAND].varname,"OUT_ELEV_BAND");                   	 /* median band elevation [m] */
-  strcpy(out_data[OUT_GRND_FLUX_BAND].varname,"OUT_GRND_FLUX_BAND");             /* net heat flux into ground [W/m2] */
-  strcpy(out_data[OUT_IN_LONG_BAND].varname,"OUT_IN_LONG_BAND");                 /* incoming longwave flux at surface (under veg) [W/m2] */
-  strcpy(out_data[OUT_LATENT_BAND].varname,"OUT_LATENT_BAND");                   /* net upward latent heat flux [W/m2] */
-  strcpy(out_data[OUT_LATENT_SUB_BAND].varname,"OUT_LATENT_SUB_BAND");           /* net upward latent heat flux from sublimation [W/m2] */
-  strcpy(out_data[OUT_MELT_ENERGY_BAND].varname,"OUT_MELT_ENERGY_BAND");         /* energy of fusion (melting) [W/m2] */
-  strcpy(out_data[OUT_NET_LONG_BAND].varname,"OUT_NET_LONG_BAND");               /* net downward longwave flux [W/m2] */
-  strcpy(out_data[OUT_NET_SHORT_BAND].varname,"OUT_NET_SHORT_BAND");             /* net downward shortwave flux [W/m2] */
-  strcpy(out_data[OUT_RFRZ_ENERGY_BAND].varname,"OUT_RFRZ_ENERGY_BAND");         /* net energy used to refreeze liquid water in snowpack [W/m2] */
-  strcpy(out_data[OUT_SENSIBLE_BAND].varname,"OUT_SENSIBLE_BAND");               /* net upward sensible heat flux [W/m2] */
-  strcpy(out_data[OUT_SNOW_CANOPY_BAND].varname,"OUT_SNOW_CANOPY_BAND");         /* snow interception storage in canopy [mm] */
-  strcpy(out_data[OUT_SNOW_COVER_BAND].varname,"OUT_SNOW_COVER_BAND");           /* fractional area of snow cover [fraction] */
-  strcpy(out_data[OUT_SNOW_DEPTH_BAND].varname,"OUT_SNOW_DEPTH_BAND");           /* depth of snow pack [cm] */
-  strcpy(out_data[OUT_SNOW_FLUX_BAND].varname,"OUT_SNOW_FLUX_BAND");             /* energy flux through snow pack [W/m2] */
-  strcpy(out_data[OUT_SNOW_MELT_BAND].varname,"OUT_SNOW_MELT_BAND");             /* snow melt [mm] (ALMA_OUTPUT: [mm/s]) */
-  strcpy(out_data[OUT_SNOW_PACKT_BAND].varname,"OUT_SNOW_PACKT_BAND");           /* snow pack temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_SNOW_SURFT_BAND].varname,"OUT_SNOW_SURFT_BAND");           /* snow surface temperature [C] (ALMA_OUTPUT: [K]) */
-  strcpy(out_data[OUT_SWE_BAND].varname,"OUT_SWE_BAND");                         /* snow water equivalent in snow pack [mm] */
+  out_data[OUT_ADV_SENS_BAND].varname = "OUT_ADV_SENS_BAND";               /* net sensible heat flux advected to snow pack [W/m2] */
+  out_data[OUT_ADVECTION_BAND].varname = "OUT_ADVECTION_BAND";             /* advected energy [W/m2] */
+  out_data[OUT_ALBEDO_BAND].varname = "OUT_ALBEDO_BAND";                   /* albedo [fraction] */
+  out_data[OUT_DELTACC_BAND].varname = "OUT_DELTACC_BAND";                 /* change in cold content in snow pack [W/m2] */
+  out_data[OUT_GRND_FLUX_BAND].varname = "OUT_GRND_FLUX_BAND";             /* net heat flux into ground [W/m2] */
+  out_data[OUT_IN_LONG_BAND].varname = "OUT_IN_LONG_BAND";                 /* incoming longwave flux at surface (under veg) [W/m2] */
+  out_data[OUT_LATENT_BAND].varname = "OUT_LATENT_BAND";                   /* net upward latent heat flux [W/m2] */
+  out_data[OUT_LATENT_SUB_BAND].varname = "OUT_LATENT_SUB_BAND";           /* net upward latent heat flux from sublimation [W/m2] */
+  out_data[OUT_MELT_ENERGY_BAND].varname = "OUT_MELT_ENERGY_BAND";         /* energy of fusion (melting) [W/m2] */
+  out_data[OUT_NET_LONG_BAND].varname = "OUT_NET_LONG_BAND";               /* net downward longwave flux [W/m2] */
+  out_data[OUT_NET_SHORT_BAND].varname = "OUT_NET_SHORT_BAND";             /* net downward shortwave flux [W/m2] */
+  out_data[OUT_RFRZ_ENERGY_BAND].varname = "OUT_RFRZ_ENERGY_BAND";         /* net energy used to refreeze liquid water in snowpack [W/m2] */
+  out_data[OUT_SENSIBLE_BAND].varname = "OUT_SENSIBLE_BAND";               /* net upward sensible heat flux [W/m2] */
+  out_data[OUT_SNOW_CANOPY_BAND].varname = "OUT_SNOW_CANOPY_BAND";         /* snow interception storage in canopy [mm] */
+  out_data[OUT_SNOW_COVER_BAND].varname = "OUT_SNOW_COVER_BAND";           /* fractional area of snow cover [fraction] */
+  out_data[OUT_SNOW_DEPTH_BAND].varname = "OUT_SNOW_DEPTH_BAND";           /* depth of snow pack [cm] */
+  out_data[OUT_SNOW_FLUX_BAND].varname = "OUT_SNOW_FLUX_BAND";             /* energy flux through snow pack [W/m2] */
+  out_data[OUT_SNOW_MELT_BAND].varname = "OUT_SNOW_MELT_BAND";             /* snow melt [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_SNOW_PACKT_BAND].varname = "OUT_SNOW_PACKT_BAND";           /* snow pack temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_SNOW_SURFT_BAND].varname = "OUT_SNOW_SURFT_BAND";           /* snow surface temperature [C] (ALMA_OUTPUT: [K]) */
+  out_data[OUT_SWE_BAND].varname = "OUT_SWE_BAND";                         /* snow water equivalent in snow pack [mm] */
 
   //Glacier Terms
-  strcpy(out_data[OUT_GLAC_WAT_STOR].varname, "OUT_GLAC_WAT_STOR");              /* glacier water storage [mm] */
-  strcpy(out_data[OUT_GLAC_AREA].varname, "OUT_GLAC_AREA");                      /* glacier surface area fraction */
-  strcpy(out_data[OUT_GLAC_MBAL].varname, "OUT_GLAC_MBAL");                      /* glacier mass balance [mm] */
-  strcpy(out_data[OUT_GLAC_IMBAL].varname, "OUT_GLAC_IMBAL");                    /* glacier ice mass balance [mm] */
-  strcpy(out_data[OUT_GLAC_ACCUM].varname, "OUT_GLAC_ACCUM");                    /* glacier ice accumulation from conversion of firn to ice [mm] */
-  strcpy(out_data[OUT_GLAC_MELT].varname, "OUT_GLAC_MELT");                      /* glacier ice melt [mm] */
-  strcpy(out_data[OUT_GLAC_SUB].varname, "OUT_GLAC_SUB");                        /* Net sublimation of glacier ice [mm] */
-  strcpy(out_data[OUT_GLAC_INFLOW].varname, "OUT_GLAC_INFLOW");                  /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
-  strcpy(out_data[OUT_GLAC_OUTFLOW].varname, "OUT_GLAC_OUTFLOW");                /* glacier water outflow [mm] */
-  strcpy(out_data[OUT_GLAC_SURF_TEMP].varname, "OUT_GLAC_SURF_TEMP");            /* glacier surface temperature [C] */
-  strcpy(out_data[OUT_GLAC_TSURF_FBFLAG].varname, "OUT_GLAC_TSURF_FBFLAG");      /* glacier surface temperature flag */
-  strcpy(out_data[OUT_GLAC_DELTACC].varname, "OUT_GLAC_DELTACC");                /* rate of change of cold content in glacier surface layer [W/m2] */
-  strcpy(out_data[OUT_GLAC_FLUX].varname, "OUT_GLAC_FLUX");                      /* energy flux through glacier surface layer [W/m2] */
-  strcpy(out_data[OUT_GLAC_OUTFLOW_COEF].varname, "OUT_GLAC_OUTFLOW_COEF");      /* glacier outflow coefficient [fraction] */
-  strcpy(out_data[OUT_GLAC_DELTACC_BAND].varname, "OUT_GLAC_DELTACC_BAND");      /* rate of change of cold content in glacier surface layer [W/m2] */
-  strcpy(out_data[OUT_GLAC_FLUX_BAND].varname, "OUT_GLAC_FLUX_BAND");            /* energy flux through glacier surface layer [W/m2] */
-  strcpy(out_data[OUT_GLAC_WAT_STOR_BAND].varname, "OUT_GLAC_WAT_STOR_BAND");    /* glacier water storage [mm] */
-  strcpy(out_data[OUT_GLAC_AREA_BAND].varname, "OUT_GLAC_AREA_BAND");            /* glacier surface area fraction */
-  strcpy(out_data[OUT_GLAC_MBAL_BAND].varname, "OUT_GLAC_MBAL_BAND");            /* glacier mass balance [mm] */
-  strcpy(out_data[OUT_GLAC_IMBAL_BAND].varname, "OUT_GLAC_IMBAL_BAND");          /* glacier ice mass balance [mm] */
-  strcpy(out_data[OUT_GLAC_ACCUM_BAND].varname, "OUT_GLAC_ACCUM_BAND");          /* glacier ice accumulation from conversion of firn to ice [mm] */
-  strcpy(out_data[OUT_GLAC_MELT_BAND].varname, "OUT_GLAC_MELT_BAND");            /* glacier ice melt [mm] */
-  strcpy(out_data[OUT_GLAC_SUB_BAND].varname, "OUT_GLAC_SUB_BAND");              /* Net sublimation of glacier ice [mm] */
-  strcpy(out_data[OUT_GLAC_INFLOW_BAND].varname, "OUT_GLAC_INFLOW_BAND");        /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
-  strcpy(out_data[OUT_GLAC_OUTFLOW_BAND].varname, "OUT_GLAC_OUTFLOW_BAND");      /* glacier water outflow [mm] */
+  out_data[OUT_GLAC_WAT_STOR].varname =  "OUT_GLAC_WAT_STOR";              /* glacier water storage [mm] */
+  out_data[OUT_GLAC_AREA].varname =  "OUT_GLAC_AREA";                      /* glacier surface area fraction */
+  out_data[OUT_GLAC_MBAL].varname =  "OUT_GLAC_MBAL";                      /* glacier mass balance [mm] */
+  out_data[OUT_GLAC_IMBAL].varname =  "OUT_GLAC_IMBAL";                    /* glacier ice mass balance [mm] */
+  out_data[OUT_GLAC_ACCUM].varname =  "OUT_GLAC_ACCUM";                    /* glacier ice accumulation from conversion of firn to ice [mm] */
+  out_data[OUT_GLAC_MELT].varname =  "OUT_GLAC_MELT";                      /* glacier ice melt [mm] */
+  out_data[OUT_GLAC_SUB].varname =  "OUT_GLAC_SUB";                        /* Net sublimation of glacier ice [mm] */
+  out_data[OUT_GLAC_INFLOW].varname =  "OUT_GLAC_INFLOW";                  /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+  out_data[OUT_GLAC_OUTFLOW].varname =  "OUT_GLAC_OUTFLOW";                /* glacier water outflow [mm] */
+  out_data[OUT_GLAC_SURF_TEMP].varname =  "OUT_GLAC_SURF_TEMP";            /* glacier surface temperature [C] */
+  out_data[OUT_GLAC_TSURF_FBFLAG].varname =  "OUT_GLAC_TSURF_FBFLAG";      /* glacier surface temperature flag */
+  out_data[OUT_GLAC_DELTACC].varname =  "OUT_GLAC_DELTACC";                /* rate of change of cold content in glacier surface layer [W/m2] */
+  out_data[OUT_GLAC_FLUX].varname =  "OUT_GLAC_FLUX";                      /* energy flux through glacier surface layer [W/m2] */
+  out_data[OUT_GLAC_OUTFLOW_COEF].varname =  "OUT_GLAC_OUTFLOW_COEF";      /* glacier outflow coefficient [fraction] */
+  out_data[OUT_GLAC_DELTACC_BAND].varname =  "OUT_GLAC_DELTACC_BAND";      /* rate of change of cold content in glacier surface layer [W/m2] */
+  out_data[OUT_GLAC_FLUX_BAND].varname =  "OUT_GLAC_FLUX_BAND";            /* energy flux through glacier surface layer [W/m2] */
+  out_data[OUT_GLAC_WAT_STOR_BAND].varname =  "OUT_GLAC_WAT_STOR_BAND";    /* glacier water storage [mm] */
+  out_data[OUT_GLAC_AREA_BAND].varname =  "OUT_GLAC_AREA_BAND";            /* glacier surface area fraction */
+  out_data[OUT_GLAC_MBAL_BAND].varname =  "OUT_GLAC_MBAL_BAND";            /* glacier mass balance [mm] */
+  out_data[OUT_GLAC_IMBAL_BAND].varname =  "OUT_GLAC_IMBAL_BAND";          /* glacier ice mass balance [mm] */
+  out_data[OUT_GLAC_ACCUM_BAND].varname =  "OUT_GLAC_ACCUM_BAND";          /* glacier ice accumulation from conversion of firn to ice [mm] */
+  out_data[OUT_GLAC_MELT_BAND].varname =  "OUT_GLAC_MELT_BAND";            /* glacier ice melt [mm] */
+  out_data[OUT_GLAC_SUB_BAND].varname =  "OUT_GLAC_SUB_BAND";              /* Net sublimation of glacier ice [mm] */
+  out_data[OUT_GLAC_INFLOW_BAND].varname =  "OUT_GLAC_INFLOW_BAND";        /* glacier water inflow from snow melt, ice melt and rainfall [mm] */
+  out_data[OUT_GLAC_OUTFLOW_BAND].varname =  "OUT_GLAC_OUTFLOW_BAND";      /* glacier water outflow [mm] */
 
   // Set number of elements - default is 1
   for (v=0; v<N_OUTVAR_TYPES; v++) {
@@ -481,8 +478,8 @@ out_data_struct *create_output_list(const ProgramState* state) {
 
   // Allocate space for data
   for (v=0; v<N_OUTVAR_TYPES; v++) {
-    out_data[v].data = (double *)calloc(out_data[v].nelem, sizeof(double));
-    out_data[v].aggdata = (double *)calloc(out_data[v].nelem, sizeof(double));
+    out_data[v].data = new double[out_data[v].nelem];
+    out_data[v].aggdata = new double[out_data[v].nelem];
   }
 
   // Initialize data values
@@ -517,7 +514,7 @@ void copy_data_file_format(const out_data_file_struct* out_template, std::vector
   }
 }
 
-void init_output_list(out_data_struct *out_data, int write, const char *format, int type, float mult) {
+void init_output_list(OutputData *out_data, int write, const char *format, int type, float mult) {
 /*************************************************************
   init_output_list()      Ted Bohn     September 08, 2006
 
@@ -528,7 +525,7 @@ void init_output_list(out_data_struct *out_data, int write, const char *format, 
 
   for (varid=0; varid<N_OUTVAR_TYPES; varid++) {
     out_data[varid].write = write;
-    strcpy(out_data[varid].format,format);
+    out_data[varid].format = format;
     out_data[varid].type = type;
     out_data[varid].mult = mult;
     for(i=0; i<out_data[varid].nelem; i++) {
@@ -538,25 +535,13 @@ void init_output_list(out_data_struct *out_data, int write, const char *format, 
 
 }
 
-/*
-int set_output_var(out_data_file_struct *out_data_files,
-                    int write,
-                    int filenum,
-                    out_data_struct *out_data,
-                    const char *varname,
-										const char *output_varname,
-                    int varnum,
-                    const char *format,
-                    int type,
-                    float mult) {
-                    */
 int set_output_var(out_data_file_struct *out_data_files,
 	                    int write,
 	                    int filenum,
-	                    out_data_struct *out_data,
-	                    const char *varname,
+	                    OutputData *out_data,
+	                    std::string varname,
 	                    int varnum,
-	                    const char *format,
+											std::string format,
 	                    int type,
 	                    float mult) {
 /*************************************************************
@@ -570,11 +555,11 @@ int set_output_var(out_data_file_struct *out_data_files,
   int status=0;
 
   for (varid=0; varid<N_OUTVAR_TYPES; varid++) {
-    if (strcmp(out_data[varid].varname,varname) == 0) {
+    if (out_data[varid].varname == varname) {
       found = TRUE;
       out_data[varid].write = write;
-      if (strcmp(format,"*") != 0)
-        strcpy(out_data[varid].format,format);
+      if (format != "*")
+        out_data[varid].format = format;
       if (type != 0)
         out_data[varid].type = type;
       if (mult != 0)
@@ -584,14 +569,15 @@ int set_output_var(out_data_file_struct *out_data_files,
   }
   if (!found) {
     status = -1;
-    fprintf(stderr, "Error: set_output_var: \"%s\" was not found in the list of supported output variable names.  Please use the exact name listed in vicNl_def.h.\n", varname);
+    std::cout << "Error: set_output_var: " << varname << " was not found in the list of supported output variable names.  Please use the exact name listed in vicNl_def.h.\n";
+
   }
   return status;
 
 }
 
 
-void zero_output_list(out_data_struct *out_data) {
+void zero_output_list(OutputData *out_data) {
 /*************************************************************
   zero_output_list()      Ted Bohn     September 08, 2006
 
@@ -607,22 +593,3 @@ void zero_output_list(out_data_struct *out_data) {
   }
 
 }
-
-void free_out_data(out_data_struct **out_data) {
-/*************************************************************
-  free_out_data()      Ted Bohn     April 19, 2007
-
-  This routine frees the memory in the out_data array.
-
-*************************************************************/
-
-  int varid;
-
-  for (varid=0; varid<N_OUTVAR_TYPES; varid++) {
-    free((char*)(*out_data)[varid].data);
-    free((char*)(*out_data)[varid].aggdata);
-  }
-  free((char*)(*out_data));
-
-}
-

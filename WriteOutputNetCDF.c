@@ -160,7 +160,7 @@ int WriteOutputNetCDF::getLengthOfTimeDimension(const ProgramState* state) {
 }
 
 // Called automatically only once at the beginning of the program.
-void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data_struct* out_data_defaults) {
+void WriteOutputNetCDF::initializeFile(const ProgramState* state, const OutputData* out_data_defaults) {
 
 	NcFile ncFile(netCDFOutputFileName.c_str(), NcFile::replace, NcFile::nc4);
 
@@ -261,7 +261,6 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
 
   // Define a netCDF variable. For example, fluxes, snow.
   for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
-    fprintf(stderr, "parent variable: %s\n", dataFiles[file_idx]->prefix);
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       const std::string varName = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].varname;
       bool use4Dimensions = out_data_defaults[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
@@ -270,8 +269,9 @@ void WriteOutputNetCDF::initializeFile(const ProgramState* state, const out_data
         throw VICException("Error: could not find variable in output_mapping: " + varName);
       }
       VariableMetaData metaData = state->output_mapping.at(varName);
+#if VERBOSE
       fprintf(stderr, "WriteOutputNetCDF initializeFile: adding variable: %s (NetCDF output variable name: %s)\n", varName.c_str(), metaData.name.c_str());
-
+#endif
       if (metaData.isBands) {
         throw VICException("Error: bands not supported yet on variable output mapping " + varName);
       } else {
@@ -311,16 +311,17 @@ int WriteOutputNetCDF::getTimeIndex(const dmy_struct* curTime, const int timeInd
   return INVALID_INT;
 }
 
-// This is called per time record.
-void WriteOutputNetCDF::write_data_one_cell(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
+// This is called for one cell, writing data for one or more time records to file.
+void WriteOutputNetCDF::write_data_one_cell(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int chunk_start_rec, const int num_recs, const ProgramState* state) {
 
   if (netCDF == NULL) {
-    fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t%02i\t%02i\t%02i\t Lat: %f, Lon: %f. File: \"%s\".\n",
-        dmy->year, dmy->month, dmy->day, dmy->hour, lat, lon, netCDFOutputFileName.c_str());
+	  fprintf(stderr, "Warning: could not write to netCDF file. Chunk starting record %04i\t Lat: %f, Lon: %f. File: \"%s\".\n",
+	         chunk_start_rec, lat, lon, netCDFOutputFileName.c_str());
     return;
   }
 
-  const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
+  const size_t timeIndex = size_t(chunk_start_rec);
+  const size_t numTimeRecords = size_t(num_recs);
   const size_t lonIndex = longitudeToIndex(this->lon, state);
   const size_t latIndex = latitudeToIndex(this->lat, state);
 
@@ -334,48 +335,64 @@ void WriteOutputNetCDF::write_data_one_cell(out_data_struct* out_data, const dmy
   // If you change the dimension ordering here, make sure that it is also changed in the WriteOutputNetCDF::initializeFile() method.
   // If the z dimension position changes also change the count4 vector update inside the nested loop below.
   const size_t start3Vals [] = { timeIndex, latIndex, lonIndex };     // (t, y, x)
-  const size_t count3Vals [] = { 1,1,1 };
+  const size_t count3Vals [] = { numTimeRecords,1,1 };
   const size_t start4Vals [] = { timeIndex, 0, latIndex, lonIndex };  // (t, z, y, x)
-  const size_t count4Vals [] = { 1,1,1,1 };
+  const size_t count4Vals [] = { numTimeRecords,1,1,1 };
   std::vector<size_t> start3(start3Vals, start3Vals + 3), count3(count3Vals, count3Vals + 3);
   std::vector<size_t> start4(start4Vals, start4Vals + 4), count4(count4Vals, count4Vals + 4);
 
   std::multimap<std::string, netCDF::NcVar> allVars = netCDF->getVars();
 
-  // Loop over output files
-  for (unsigned int file_idx = 0; file_idx < dataFiles.size(); file_idx++) {
-    // Loop over this output file's data variables
-    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
-      // Loop over this variable's elements
-      bool use4Dimensions = out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1;
-      count4.at(1) = out_data[dataFiles[file_idx]->varid[var_idx]].nelem; // Change the number of values to write to the z dimension (array of values).
+  // Loop through (legacy) out_data_files_template for listing of output variables
+  for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
+	  // Loop over this output file's data variables
+	  for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
+		  // Create temporary array of data for this variable across all cells
+		  float *vardata, *vardata_ptr;
+		  int varnumelem = all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].nelem;
+		  bool use4Dimensions = varnumelem > 1;
+		  int vardatasize = varnumelem * numTimeRecords;
 
-      try {
-      	NcVar variable = allVars.find(state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name)->second;
+		  vardata = new float [vardatasize];
+		  vardata_ptr = vardata;
 
-        if (use4Dimensions) {
-          variable.putVar(start4, count4, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
-        } else {
-          variable.putVar(start3, count3, out_data[dataFiles[file_idx]->varid[var_idx]].aggdata);
-        }
-      } catch (std::exception& e) {
-        fprintf(stderr, "Error writing variable: %s, at latIndex: %d, lonIndex: %d, timeIndex: %d\n", state->output_mapping.at(out_data[dataFiles[file_idx]->varid[var_idx]].varname).name.c_str(), (int)latIndex, (int)lonIndex, (int)timeIndex);
-        throw;
-      }
-    }
+		  // Interleave data from each time record for this variable in temporary array vardata
+		  for (int elem=0; elem<varnumelem; elem++) {
+			  for (int time_idx = 0; time_idx < numTimeRecords; time_idx++) {
+			  *vardata_ptr = all_out_data[time_idx][out_data_files_template[file_idx].varid[var_idx]].aggdata[elem];
+			  vardata_ptr++;
+			  }
+		  }
+		  // Write data to file for this variable
+		  try {
+			  NcVar variable = allVars.find(state->output_mapping.at(all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname).name)->second;
+
+			  if (use4Dimensions) {
+				  count4.at(1) = varnumelem;  // Set the number of values to write to the z dimension
+				  variable.putVar(start4, count4, vardata);
+			  } else {
+				  variable.putVar(start3, count3, vardata);
+			  }
+		  } catch (std::exception& e) {
+			  fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname.c_str(), (int)timeIndex);
+
+			  throw;
+		  }
+		  delete [] vardata;
+	  }
   }
 }
 
-void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_out_data, out_data_file_struct *out_data_files_template, const dmy_struct *dmy, int dt, const ProgramState* state) {
+// This is called for all cells at once (intended for multithreading), writing data for one time record to file.
+void WriteOutputNetCDF::write_data_all_cells(std::vector<OutputData*>& all_out_data, out_data_file_struct *out_data_files_template, const int output_rec, const ProgramState* state) {
 
-	if (netCDF == NULL) {
-		fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t%02i\t%02i\t%02i\t. File: \"%s\".\n",
-				dmy->year, dmy->month, dmy->day, dmy->hour, state->options.NETCDF_FULL_FILE_PATH);
-		return;
-	}
+  if (netCDF == NULL) {
+	  fprintf(stderr, "Warning: could not write to netCDF file. Record %04i\t Lat: %f, Lon: %f. File: \"%s\".\n",
+	         output_rec, lat, lon, netCDFOutputFileName.c_str());
+    return;
+  }
 
-	const size_t timeIndex = getTimeIndex(dmy, timeIndexDivisor, state);
-
+	const size_t timeIndex = size_t(output_rec);
 	const size_t start3Vals [] = { timeIndex, 0, 0 };     // (t, y, x)
 	const size_t count3Vals [] = { 1,(size_t) state->global_param.gridNumLatDivisions,(size_t) state->global_param.gridNumLonDivisions };
 	const size_t start4Vals [] = { timeIndex, 0, 0, 0 };  // (t, z, y, x)
@@ -391,9 +408,6 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 	for (int file_idx = 0; file_idx < state->options.Noutfiles; file_idx++) {
 		// Loop over this output file's data variables
 		for (int var_idx = 0; var_idx < out_data_files_template[file_idx].nvars; var_idx++) {
-
-//			  		fprintf(stderr, "WriteOutputAllCells::write_data: varname = %s,  timeIndex = %d\n",all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, timeIndex);
-
 			// Create temporary array of data for this variable across all cells
 			float *vardata, *vardata_ptr;
 			int varnumelem = all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].nelem;
@@ -431,7 +445,7 @@ void WriteOutputNetCDF::write_data_all_cells(std::vector<out_data_struct*>& all_
 					variable.putVar(start3, count3, vardata);
 				}
 			} catch (std::exception& e) {
-				fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname, (int)timeIndex);
+				fprintf(stderr, "Error writing variable: %s, at timeIndex: %d\n", all_out_data[0][out_data_files_template[file_idx].varid[var_idx]].varname.c_str(), (int)timeIndex);
 
 				throw;
 			}
@@ -446,7 +460,7 @@ void WriteOutputNetCDF::compressFiles() {
   // This method is intentionally empty.
 }
 
-void WriteOutputNetCDF::write_header(out_data_struct* out_data, const dmy_struct* dmy,
+void WriteOutputNetCDF::write_header(OutputData* out_data, const dmy_struct* dmy,
     const ProgramState* state) {
   // This is not applicable for netCDF output format. Intentionally empty.
 }

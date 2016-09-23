@@ -117,9 +117,10 @@
 #include "StateIO.h"
 #include "VegConditions.h"
 #include "WriteOutputContext.h"
+#include "OutputData.h"
 
 /*** SubRoutine Prototypes ***/
-void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, const ProgramState* state);
+void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struct* dmy, int rec, dist_prcp_struct* prcp, const soil_con_struct* soil, ProgramState* state);
 double advected_sensible_heat(double, double, double, double, double);
 atmos_data_struct * alloc_atmos(int, int);
 double arno_evap(layer_data_struct *, layer_data_struct *, double, double, 
@@ -195,7 +196,7 @@ double canopy_evap(layer_data_struct *, layer_data_struct *, veg_var_struct *,
     double, double, double, double, double, double, double, double *, const double *,
     const double *, const double *, const double *, const float *, const ProgramState*);
 
-void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const out_data_struct* outData, ProgramState *state);
+void initializeNetCDFOutput(const filenames_struct *fnames, const out_data_file_struct* outFiles, const OutputData* outData, ProgramState *state);
 
 filep_struct   get_files(const filenames_struct *, ProgramState*);
 void check_state_file(char *, ProgramState*);
@@ -207,14 +208,14 @@ void collect_eb_terms(const energy_bal_struct& energy,
     double AreaFract, double TreeAdjustFactor, bool HasVeg, bool HasGlac,
     bool IsWet, double lakefactor, int overstory, int band, double *depth,
     double *dz, double *frost_fract, double frost_slope,
-    out_data_struct *out_data, const ProgramState* state);
+    OutputData *out_data, const ProgramState* state);
 void collect_wb_terms(const hru_data_struct& cell,
     const veg_var_struct& veg_var, const snow_data_struct& snow,
     const glac_data_struct& glacier, const lake_var_struct& lake_var,
     double precipitation_mu, double Cv,
     double TreeAdjustFactor, bool HasVeg, bool HasGlac, bool IsWet,
     double lakefactor, int overstory, double *depth, double *frost_fract,
-    out_data_struct *out_data, const ProgramState* state);
+    OutputData *out_data, const ProgramState* state);
 void   compress_files(char string[]);
 void   compute_dz(double *, double *, int, double);
 void   correct_precip(double *, double, double, double, double);
@@ -223,12 +224,12 @@ void   compute_runoff_and_asat(const soil_con_struct *, double *, double, double
 void   compute_soil_layer_thermal_properties(layer_data_struct *, const soil_con_struct*, int);
 void   compute_treeline(atmos_data_struct *, const dmy_struct *, double, double *, char *, const ProgramState*);
 double compute_zwt(const soil_con_struct *, int, double);
-void copy_output_data(std::vector<out_data_struct*>&current_output_data, out_data_struct *out_data_list, const ProgramState *state);
+void copy_output_data(std::vector<OutputData*>&current_output_data, OutputData *out_data_list, const ProgramState *state);
 
-out_data_struct *create_output_list(const ProgramState*);
+OutputData *create_output_list(const ProgramState*);
 
 int dist_prec(cell_info_struct*, const dmy_struct *, filep_struct *, WriteOutputFormat *,
-    out_data_struct *, int, char, const ProgramState*);
+    OutputData *, int, char, const ProgramState*);
 
 int distribute_node_moisture_properties(energy_bal_struct*,
     const soil_con_struct*, double *, const ProgramState*);
@@ -339,7 +340,6 @@ void   free_atmos(int nrecs, atmos_data_struct **atmos);
 void   free_dmy(dmy_struct **dmy);
 void   free_vegcon(cell_info_struct& cell);
 void   free_veglib(veg_lib_struct **);
-void   free_out_data(out_data_struct **);
 int    full_energy(char, int, atmos_data_struct *, dist_prcp_struct *,
 		     const dmy_struct *, lake_con_struct *, const soil_con_struct *,
 		     WriteDebug*, const ProgramState*);
@@ -357,9 +357,8 @@ void   hermite(int, double *, double *, double *, double *, double *);
 void   HourlyT(int, int, int *, double *, int *, double *, double *);
 
 void copy_data_file_format(const out_data_file_struct* out_template, std::vector<out_data_file_struct*>& list, const ProgramState* state);
-//void copy_output_format(WriteOutputContext* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
 void copy_output_format(const WriteOutputFormat* context, std::vector<WriteOutputFormat*>& format, const ProgramState* state);
-void   init_output_list(out_data_struct *, int, const char *, int, float);
+void   init_output_list(OutputData *, int, const char *, int, float);
 void   initialize_atmos(atmos_data_struct *, const dmy_struct *, FILE **, int *ncids, soil_con_struct *, const ProgramState*);
 
 int initialize_model_state(cell_info_struct*, dmy_struct, filep_struct, int, const char*, const ProgramState *);
@@ -397,13 +396,11 @@ void   nrerror(const char *);
 
 FILE  *open_file(const char *string, const char *type);
 
-void parse_output_info(const char*, out_data_file_struct *, out_data_struct *, ProgramState*);
+void parse_output_info(const char*, out_data_file_struct *, OutputData *, ProgramState*);
 double penman(double, double, double, double, double, double, double);
 void   prepare_full_energy(HRU&, int, const soil_con_struct *, double *, double *, const ProgramState*);
 double priestley(double, double);
-int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, const ProgramState*);
-//int put_data(cell_info_struct *, WriteOutputFormat*, out_data_struct*, const dmy_struct *, int, ProgramState*);
-
+int put_data(cell_info_struct *, WriteOutputFormat*, OutputData*, const dmy_struct *, int, const ProgramState*);
 double read_arcinfo_value(char *, double, double);
 int    read_arcinfo_info(char *, double **, double **, int **);
 void   read_atmos_data(FILE *, int ncid, int, int, double **, soil_con_struct *, const ProgramState*);
@@ -415,7 +412,7 @@ soil_con_struct read_soilparam(FILE *, char *, char *, char *, ProgramState*);
 soil_con_struct read_soilparam_arc(FILE *, char *, int *, char *, int,
     double *lat, double *lng, int *cellnum, ProgramState*);
 veg_lib_struct *read_veglib(FILE *, int *, char);
-void read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
+int read_vegparam(FILE *, cell_info_struct&, const ProgramState*);
 int redistribute_during_storm(HRU& hru, int rec, double Wdmax, double new_mu,
     double *max_moist, const ProgramState* state);
 void   redistribute_moisture(layer_data_struct *, double *, double *,
@@ -431,10 +428,9 @@ void set_node_parameters(double *, double *, double *, double *, double *,
     double *, double *, double *, double *, double *, double *, double *,
     double *, double ***, double *, double *, double *, double *, int, int,
     char, const ProgramState*);
-out_data_file_struct *set_output_defaults(out_data_struct *, const ProgramState* state);
-//int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, const char *, int, const char *, int, float);
-int set_output_var(out_data_file_struct *, int, int, out_data_struct *, const char *, int, const char *, int, float);
-double snow_albedo(double, double, double, double, double, double, int, char, const soil_con_struct*, const ProgramState*);
+out_data_file_struct *set_output_defaults(OutputData *, const ProgramState* state);
+int set_output_var(out_data_file_struct *, int, int, OutputData *, std::string, int, std::string, int, float);
+double snow_albedo(double, double, double, double, double, double, int, bool, const soil_con_struct*, const ProgramState*);
 double snow_density(snow_data_struct *, double, double, double, double, double, const ProgramState*);
 int snow_intercept(double, double, double, double, double, double, double,
     double, double, double, double, double, double *, double *, double *,
@@ -562,7 +558,7 @@ double volumetric_heat_capacity(double,double,double,double);
 void wrap_compute_zwt(const soil_con_struct *, hru_data_struct *, const ProgramState*);
 void write_atmosdata(atmos_data_struct *, int, const ProgramState*);
 void write_dist_prcp(dist_prcp_struct *);
-void write_forcing_file(cell_info_struct*, int, WriteOutputFormat *, out_data_struct *, const ProgramState*, dmy_struct*);
+void write_forcing_file(cell_info_struct*, int, WriteOutputFormat *, OutputData *, const ProgramState*, dmy_struct*);
 void write_layer(layer_data_struct *, int, int, const double*);
 void write_model_state(cell_info_struct* cell, const char* filename, const ProgramState  *state);
 void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const ProgramState *state);
@@ -571,4 +567,4 @@ void write_soilparam(soil_con_struct *, const ProgramState*);
 void write_vegparam(const cell_info_struct&, const ProgramState*);
 void write_vegvar(veg_var_struct *, int);
 
-void zero_output_list(out_data_struct *);
+void zero_output_list(OutputData *);

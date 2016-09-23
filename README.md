@@ -101,7 +101,7 @@ WIND_N|vas|north component of wind speed||
 2. Generating Disaggregated Forcings (OUTPUT\_FORCE=TRUE)
 ---------------------------------------------------------
 
-In order to run VIC in meteorological disaggregation mode, i.e. to generate your own hourly forcing file, make the following changes to the global parameters file: 
+In order to run VIC in meteorological disaggregation mode, for instance to generate your own hourly forcing file, make the following changes to the global parameters file: 
 
 ### 2.1
 
@@ -109,9 +109,13 @@ Move the OUTPUT\_FORCE line to the bottom of the *Simulation Parameters* section
 
 ### 2.2
 
-Change TIME\_STEP to 1 (hourly), rather than 24, to indicate that the simulation will be run at hourly time steps.
+Set TIME\_STEP to the simulation time step length (in hours), and set OUT\_STEP to generate X-hourly output forcings (i.e. generate forcing data at X-hour steps, where X must be evenly divisible by 24, i.e. 1/3/4/6/8/12 hour output OUT\_STEP values are all valid).
 
-For example: 
+### 2.3
+
+Take advantage of time-chunked writes to speed up execution by reducing the number of write-to-disk operations in meteorological disaggregation mode. VIC does this by buffering the output data for DISAGG\_WRITE\_CHUNK\_SIZE time records between writes to disk. The optimal value for this parameter will depend on the available RAM of the host machine, but values up to 10,000 have been successfully tested on desktop machines.  VIC runs in a 'cell-major' looping style when in meteorological disaggregation mode, meaning that it loads input forcings and generates & writes out the output forcings for one cell at a time (freeing memory allocated to input forcings at the end of processing each cell).  In other words, the maximum value for DISAGG\_WRITE\_CHUNK\_SIZE will have to be balanced with the RAM required by the total number of time records' worth of input forcings loaded per cell for the particular run, determined by the range specified by the parameters START\_YEAR & END\_YEAR and the input forcings time step size FORCE\_DT.  Note, however, that the domain size (number of grid cells) has no effect on the total RAM requirements when running VIC in meteorological disaggregation mode, as cells are processed one at a time.
+
+For example, to run at 1-hour time steps (from an hourly input forcings file) and output 3-hourly forcings, writing to disk on every 10,000th time step:
 
     ########################################################################
     # Simulation Parameters
@@ -121,9 +125,18 @@ For example: 
     STARTYEAR       1960     # year to begin generating forcings for (this will be the start year in the output file)
     END_YEAR        1995     # last year to generate forcings for 
     ...
-    OUTPUT_FORCE    TRUE     # indicates to VIC that it should only generate hourly forcing data, then exit (no hydrological simulation is executed)
+    OUTPUT_FORCE    TRUE     # indicates to VIC that it should only generate forcing data, then exit
+    DISAGG_WRITE_CHUNK_SIZE	10000	# write 10,000 time records to disk at a time
+    
+    ########################################################################
+	# Output Files and Parameters
+	########################################################################
+	RESULT_DIR      /path/to/output/forcing/file
+	NETCDF_OUTPUT_FILENAME  output_forcing_filename.nc
+	OUT_STEP        3
+    
 
-### 2.3
+### 2.4
 
 In the *Output Files and Parameters* section, specify where you want the disaggregated forcings output file to be written, and optionally, the NETCDF\_OUTPUT\_FILENAME to give it in that location (if this parameter is not provided, the default filename will be *results.nc*).  Specify the output time step size, OUT\_STEP, as 1 for hourly, or 3 if you want output in 3-hour intervals, etc. (if this is left as 0, VIC will default to using the value given for the TIME\_STEP parameter).
 
@@ -136,7 +149,7 @@ For example:
     NETCDF_OUTPUT_FILENAME hourly_disagg_forcings.nc
     OUT_STEP 1
 
-### 2.4
+### 2.5
 
 The standard set of output variables in disaggregated forcings output mode are PREC, AIR_TEMP, SHORTWAVE, LONGWAVE, DENSITY, PRESSURE, VP, and WIND. This is equivalent to providing the following in the global file:
 
@@ -154,7 +167,7 @@ The standard set of output variables in disaggregated forcings output mode are P
 
 (i.e. If no OUTVAR entries are provided in the global file, these are the variables that will be generated)
 
-### 2.5
+### 2.6
 
 Optionally, provide mapping of output forcing variable names.  If no mapped name is provided, the \<standard VIC varname\> format will be used for the NetCDF variable name (e.g. OUT\_WIND in the following example will  result in the NetCDF variable name WIND in the output disaggregated forcings file).  Note that N\_OUTFILES, OUTFILE, and the \<prefix\> value given are all ignored if the output file format is set to NetCDF, but \<nvars\> still must be set correctly to the number of variables to be written (i.e. the number of OUTVAR lines to follow).  **These mapped forcings output variable names will be those that VIC will have to read in when you use the hourly forcings NetCDF file later as input to your simulation.  If you choose the default mapping given in Table 1.1, VIC will recognize these as valid forcing inputs.  If not, you will have to set the input forcing mappings accordingly, as shown in Section 3.2 (in this example, my\_shortwave\_varname would not be recognized by default as a valid forcing variable).**
 
@@ -187,9 +200,9 @@ For example:
 3. Feeding Hourly Disaggregated Forcings into VIC
 -------------------------------------------------
 
-Time-major NetCDF forcing files generated by VIC in meteorological disaggregator mode (OUTPUT\_FORCE=TRUE), being by default at hourly time steps, can be used as inputs to VIC in normal simulation run mode (OUTPUT\_FORCE=FALSE).
+Time-major NetCDF forcing files generated by VIC in meteorological disaggregator mode (OUTPUT\_FORCE=TRUE) can be used as inputs to VIC in normal hydrological simulation mode (OUTPUT\_FORCE=FALSE).
 
-To support reading of hourly disaggregated forcings into VIC, make the following modifications to the global parameter file:
+To support reading of disaggregated forcings into VIC, make modifications to the global parameter file as detailed in the following subsections:
 
 ### 3.1
 

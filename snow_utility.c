@@ -233,7 +233,7 @@ double snow_albedo(double new_snow,
                    double cold_content,
                    double dt,
                    int    last_snow,
-                   char   MELTING,
+                   bool   MELTING,
                    const soil_con_struct* soil,
                    const ProgramState* state) {
 /**********************************************************************

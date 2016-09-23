@@ -6,7 +6,7 @@ void WriteOutputBinary::openFile() {
   }
 }
 
-void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
+void WriteOutputBinary::write_data(OutputData* out_data, const dmy_struct* dmy, int dt, const ProgramState* state) {
   // Initialize pointers
   char               *tmp_cptr = (char *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(char));
   short int          *tmp_siptr = (short int *)calloc(N_OUTVAR_TYPES*state->options.Nlayer*state->options.SNOW_BAND,sizeof(short int));
@@ -115,7 +115,7 @@ void WriteOutputBinary::write_data(out_data_struct* out_data, const dmy_struct* 
    varname   (char)*len          Variable name
    type      (char)*1            Code identifying variable type
    mult      (float)*1           Multiplier for variable*/
-void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct* dmy, const ProgramState* state) {
+void WriteOutputBinary::write_header(OutputData* out_data, const dmy_struct* dmy, const ProgramState* state) {
   unsigned short      Identifier;
   unsigned short      Nbytes;
   unsigned short      Nbytes1;
@@ -176,16 +176,17 @@ void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct
     }
 
     // Loop over this output file's data variables
-    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
-      // Loop over this variable's elements
-      for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
-        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
-          sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
-        else
-          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
-        Nbytes2 += sizeof(char) + strlen(tmp_str)*sizeof(char) + sizeof(char) + sizeof(float);
-      }
-    }
+    // NOTE: the above loops disabled to support conversion of C->C++ strings (and as part of making Binary output mode go away)
+//    for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
+//      // Loop over this variable's elements
+//      for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
+//        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
+//          sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
+//        else
+//          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
+//        Nbytes2 += sizeof(char) + strlen(tmp_str)*sizeof(char) + sizeof(char) + sizeof(float);
+//      }
+//    }
 
     // ***** Compute the total number of bytes in the header *****
 
@@ -277,10 +278,10 @@ void WriteOutputBinary::write_header(out_data_struct* out_data, const dmy_struct
     for (int var_idx = 0; var_idx < dataFiles[file_idx]->nvars; var_idx++) {
       // Loop over this variable's elements
       for (int elem_idx = 0; elem_idx < out_data[dataFiles[file_idx]->varid[var_idx]].nelem; elem_idx++) {
-        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
-          sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
-        else
-          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
+//        if (out_data[dataFiles[file_idx]->varid[var_idx]].nelem > 1)
+//         sprintf(tmp_str, "%s_%d", out_data[dataFiles[file_idx]->varid[var_idx]].varname, elem_idx);
+//        else
+//          strcpy(tmp_str, out_data[dataFiles[file_idx]->varid[var_idx]].varname);
         tmp_len = strlen(tmp_str);
         fwrite(&tmp_len, sizeof(char), 1, dataFiles[file_idx]->fh);
         fwrite(tmp_str, sizeof(char), tmp_len, dataFiles[file_idx]->fh);
@@ -303,7 +304,7 @@ void WriteOutputBinary::compressFiles() {
   }
 }
 
-void WriteOutputBinary::prepareDataForWriting(out_data_struct* out_data) {
+void WriteOutputBinary::prepareDataForWriting(OutputData* out_data) {
   for (int v=0; v<N_OUTVAR_TYPES; v++) {
     for (int i=0; i<out_data[v].nelem; i++) {
       out_data[v].aggdata[i] *= out_data[v].mult;
