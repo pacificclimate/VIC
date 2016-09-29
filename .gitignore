@@ -12,3 +12,4 @@ Debug/makefile
 .metadata/*
 venv/*
 __pycache__/*
+/Default/

@@ -603,15 +603,14 @@ int  put_data(cell_info_struct  *cell,
 
   /********************
     Check Water Balance 
-    ********************/
+  ********************/
   inflow  = out_data[OUT_PREC].data[0] + out_data[OUT_LAKE_CHAN_IN].data[0]; // mm over grid cell
   outflow = out_data[OUT_EVAP].data[0] + out_data[OUT_RUNOFF].data[0] + out_data[OUT_BASEFLOW].data[0]; // mm over grid cell
   glac_icebal = out_data[OUT_GLAC_IMBAL].data[0];
   storage = 0.;
   for(int index=0;index<state->options.Nlayer;index++)
     if(state->options.MOISTFRACT)
-      storage += (out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index]) 
-	* cell->soil_con.depth[index] * 1000;
+      storage += (out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index]) * cell->soil_con.depth[index] * 1000;
     else
       storage += out_data[OUT_SOIL_LIQ].data[index] + out_data[OUT_SOIL_ICE].data[index];
   storage += out_data[OUT_SWE].data[0] + out_data[OUT_SNOW_CANOPY].data[0] + out_data[OUT_WDEW].data[0] + out_data[OUT_SURFSTOR].data[0] + out_data[OUT_GLAC_WAT_STOR].data[0];
