@@ -583,7 +583,7 @@ int surface_fluxes_glac(
 
   hru.glacier.outflow_coef = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq);
   hru.glacier.water_storage += hru.glacier.inflow;
-  hru.glacier.outflow = step_dt * hru.glacier.outflow_coef * hru.glacier.water_storage;
+  hru.glacier.outflow = hru.glacier.outflow_coef * hru.glacier.water_storage;
   hru.glacier.water_storage -= hru.glacier.outflow;
 
 #if EXCESS_ICE
