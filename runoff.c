@@ -4,16 +4,16 @@
 #include <math.h>
 
 static char vcid[] = "$Id: runoff.c,v 5.7.2.24 2011/06/05 19:42:23 vicadmin Exp $";
-int  runoff(hru_data_struct  *cell_wet,
-	    hru_data_struct  *cell_dry,
-            energy_bal_struct *energy,
-      const soil_con_struct   *soil_con,
-	    double            *ppt, 
-	    int                SubsidenceUpdate,
-	    double             precipitation_mu,
-	    int                band,
-	    int                rec,
-	    const ProgramState *state)
+int  runoff(hru_data_struct       *cell_wet,
+            hru_data_struct       *cell_dry,
+            energy_bal_struct     *energy,
+            const soil_con_struct *soil_con,
+            double                *ppt, 
+            int                    SubsidenceUpdate,
+            double                 precipitation_mu,
+            int                    band,
+            int                    rec,
+            const ProgramState    *state)
 /**********************************************************************
 	runoff.c	Keith Cherkauer		May 18, 1996
 
@@ -207,7 +207,7 @@ int  runoff(hru_data_struct  *cell_wet,
 #endif // LOW_RES_MOIST
   double             excess_water;
   double             net_excess_water;
-  hru_data_struct  *cell;
+  hru_data_struct   *cell;
 
   /** Set Residual Moisture **/
   for ( i = 0; i < state->options.Nlayer; i++ )

@@ -938,11 +938,14 @@ int surface_fluxes(char                 overstory,
 #if EXCESS_ICE
   if(SubsidenceUpdate != 2) {
 #endif
+  ppt[WET] += cell_wet->excess_moist;
+  ppt[DRY] += cell_dry->excess_moist;
+  cell_wet->excess_moist = 0.;
+  cell_dry->excess_moist = 0.;
   cell_wet->inflow = ppt[WET];
   cell_dry->inflow = ppt[DRY];
 
-  ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt,
-      SubsidenceUpdate, hru.mu, hru.bandIndex, rec, state);
+  ErrorFlag = runoff(cell_wet, cell_dry, energy, soil_con, ppt, SubsidenceUpdate, hru.mu, hru.bandIndex, rec, state);
 
   return (ErrorFlag);
 #if EXCESS_ICE

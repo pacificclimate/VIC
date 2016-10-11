@@ -37,6 +37,7 @@ void initialize_soil (std::vector<HRU>& elements,
 
     cellRef.baseflow = 0;
     cellRef.runoff = 0;
+    cellRef.excess_moist = 0.;
     for (int lindex = 0; lindex < state->options.Nlayer; lindex++) {
       cellRef.layer[lindex].evap = 0;
       cellRef.layer[lindex].moist = soil_con->init_moist[lindex];

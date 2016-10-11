@@ -132,7 +132,6 @@ void read_initial_model_state(const char* initStateFilename, cell_info_struct *c
 
   //Read specific stuff follows:
   if ( state->options.Nnode == 1 ) cell->soil_con.dz_node[0] = 0;
-
   if ( state->options.Nnode == 1 ) cell->soil_con.Zsum_node[0] = 0;
   if ( cell->soil_con.Zsum_node[state->options.Nnode-1] - cell->soil_con.dp > SMALL) {
     fprintf( stderr, "WARNING: Sum of soil nodes (%f) exceeds defined damping depth (%f).  Resetting damping depth.\n", cell->soil_con.Zsum_node[state->options.Nnode-1], cell->soil_con.dp );
