@@ -578,36 +578,34 @@ int surface_fluxes_glac(
 
   /* calculate glacier outflow and HRU runoff; all glacier outflow is assumed to be surface runoff */
   hru.glacier.inflow = ppt[WET] + ppt[DRY];
-  ppt[WET] = 0.;
-  ppt[DRY] = 0.;
-  //  hru.cell[WET].runoff = 0.;
-  //  hru.cell[DRY].runoff = 0.;
-  //  hru.cell[WET].baseflow = 0.;
-  //  hru.cell[DRY].baseflow = 0.;
+  ppt[WET] = hru.cell[WET].excess_moist;
+  ppt[DRY] = hru.cell[DRY].excess_moist;
+  hru.cell[WET].excess_moist = 0.;
+  hru.cell[DRY].excess_moist = 0.;
 
-  double wt = hru.glacier.water_storage + hru.glacier.inflow;
-  double kt = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq * 1000.); /* multiply by 1000 to convert swe to millimetres */
-  double qt = kt * wt;
-  wt -= qt;   /* always positive as qt always less than wt */
-  hru.glacier.water_storage = wt;
-  hru.glacier.outflow = qt;
-  hru.glacier.outflow_coef = kt;
+  hru.glacier.outflow_coef = soil_con->GLAC_KMIN + soil_con->GLAC_DK * exp(-soil_con->GLAC_A * hru.snow.swq);
+  hru.glacier.water_storage += hru.glacier.inflow;
+  hru.glacier.outflow = hru.glacier.outflow_coef * hru.glacier.water_storage;
+  hru.glacier.water_storage -= hru.glacier.outflow;
 
 #if EXCESS_ICE
   if(SubsidenceUpdate != 2) {
 #endif
-  hru.cell[WET].inflow = 0.;
-  hru.cell[DRY].inflow = 0.;
+  hru.cell[WET].inflow = ppt[WET];
+  hru.cell[DRY].inflow = ppt[DRY];
 
   ErrorFlag = runoff(&hru.cell[WET], &hru.cell[DRY], &hru.energy, soil_con, ppt,
       SubsidenceUpdate, hru.mu, hru.bandIndex, rec, state);
 
-  hru.cell[WET].runoff += (qt * 1000.); /* convert to mm; keeps units consistent with surface_fluxes.c */
+  hru.cell[WET].runoff += (hru.glacier.outflow * 1000.); /* convert to mm; keeps units consistent with surface_fluxes.c */
+  hru.cell[DRY].runoff += (hru.glacier.outflow * 1000.);
 
   return (ErrorFlag);
 #if EXCESS_ICE
 } else {
-	hru.cell[WET].runoff = qt * 1000.;
+    /* Not entirely sure what is supposed to happen here */
+    hru.cell[WET].runoff = hru.glacier.outflow * 1000.;
+    hru.cell[DRY].runoff = hru.glacier.outflow * 1000.;
 }
 #endif
 

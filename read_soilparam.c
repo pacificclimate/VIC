@@ -19,42 +19,67 @@ soil_con_struct read_soilparam(FILE *soilparam,
   This routine reads soil parameters for each grid cell.
 
   Parameters Read from File:
-  TYPE   NAME                    UNITS   DESCRIPTION
-  int    gridcel;                N/A     grid cell number
-  float  lat;		         degrees grid cell central latitude
-  float  lng;		         degrees grid cell central longitude
-  double b_infilt;  	         N/A     infiltration parameter
-  double Ds;		         fract   fraction of maximum subsurface
-                                         flow rate
-  double Dsmax;  	         mm/day  maximum subsurface flow rate
-  double Ws;		         fract   fraction of maximum soil moisture
-  double c;                      N/A     exponent in ARNO baseflow curve
-  double expt[MAX_LAYERS];         N/A     exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6
-  double Ksat[MAX_LAYERS];         mm/day  saturated hydraulic conductivity
-  double phi_s[MAX_LAYERS];        mm/mm   saturated matrix potential
-  double init_moist[MAX_LAYERS];   mm      initial layer moisture level
-  float  elevation;	         m       grid cell elevation
-  double depth[MAX_LAYERS];        m       thickness of each layer
-  double avg_temp;	         C       average soil temperature
-  double dp;		         m       soil thermal damping depth
-  double bubble;	         cm      bubbling pressure, HBH 5.15
-  double quartz;	         fract   quartz content of soil
-  double organic;	         fract   organic content of soil
-  double bulk_density[MAX_LAYERS]; kg/m^3  soil bulk density
-  double soil_density;		 kg/m^3  soil partical density
-  double rough;		         m       soil surface roughness
-  double snow_rough;             m       snow surface roughness
+  TYPE   NAME                       UNITS    DESCRIPTION
+  int    gridcel;                   N/A      grid cell number
+  float  lat;                       degrees  grid cell central latitude
+  float  lng;                       degrees  grid cell central longitude
+  double b_infilt;                  N/A      infiltration parameter
+  double Ds;                        fract    fraction of maximum subsurface flow rate
+  double Dsmax;                     mm/day   maximum subsurface flow rate
+  double Ws;                        fract    fraction of maximum soil moisture
+  double c;                         N/A      exponent in ARNO baseflow curve
+  double expt[MAX_LAYERS];          N/A      exponent n (=3+2/lambda) in Campbell's eqn for hydraulic conductivity, HBH 5.6
+  double Ksat[MAX_LAYERS];          mm/day   saturated hydraulic conductivity
+  double phi_s[MAX_LAYERS];         mm/mm    saturated matrix potential
+  double init_moist[MAX_LAYERS];    mm       initial layer moisture level
+  float  elevation;                 m        grid cell elevation
+  double depth[MAX_LAYERS];         m        thickness of each layer
+  double avg_temp;                  C        average soil temperature
+  double dp;                        m        soil thermal damping depth
+  double bubble;                    cm       bubbling pressure, HBH 5.15
+  double quartz;                    fract    quartz content of soil
+  double organic;                   fract    organic content of soil
+  double bulk_density[MAX_LAYERS];  kg/m^3   soil bulk density
+  double soil_density;              kg/m^3   soil partical density
+  double off_gmt;                   hours    time zone offset from GMT.
+  double Wcr_FRACT[MAX_LAYERS];     fract    fractional soil moisture content at the critical point (~70% of field capacity)
+  doubel Wpwp_FRACT[MAX_LAYERS];    fract    fractional soil moisture content at the wilting point
+  double rough;                     m        soil surface roughness
+  double snow_rough;                m        snow surface roughness
+  double annual_prec;               mm       average annual precipitation
+  double resid_moist[MAX_LAYERS];   fract    residual moisture
+  int    FS_ACTIVE;                 N/A      if TRUE then frozen soil algorithm is active for the current grid cell
+  double depth_full_snow_cover;     m        minimum depth for full snow cover [SPATIAL_SNOW = TRUE]
+  double frost_slope;               N/A      slope of frost distribution [if EXCESS_ICE]
+  double init_ice_fract[MAX_LAYERS];         ??? [if EXCESS_ICE]
+  double avgJulyAirTemp;            C        average July air temperature
+  double NEW_SNOW_ALB;              N/A      new snow albedo [if GLACIER_SOIL_FILE_FORMAT]
+  double SNOW_ALB_ACCUM_A;          N/A      accumulation period albedo dedcay parameter [if GLACIER_SOIL_FILE_FORMAT]
+  double SNOW_ALB_ACCUM_B;          N/A      accumulation period albedo dedcay exponent [if GLACIER_SOIL_FILE_FORMAT]
+  double SNOW_ALB_THAW_A;           N/A      thaw period albedo dedcay parameter [if GLACIER_SOIL_FILE_FORMAT]
+  double SNOW_ALB_THAW_B;           N/A      thaw period albedo dedcay exponent [if GLACIER_SOIL_FILE_FORMAT]
+  double MIN_RAIN_TEMP;             C        rain/snow temperature threshold parameter 1 [if GLACIER_SOIL_FILE_FORMAT]
+  double MAX_SNOW_TEMP;             C        rain/snow temperature threshold parameter 1 [if GLACIER_SOIL_FILE_FORMAT]
+  double PADJ_R;                    N/A      rainfall adjustment factor [if GLACIER_SOIL_FILE_FORMAT]
+  double PADJ_S;                    N/A      snowfall adjustment factor [if GLACIER_SOIL_FILE_FORMAT]
+  double T_LAPSE;                   C/km     temperature lapse rate [if GLACIER_SOIL_FILE_FORMAT]
+  double PGRAD;                     1/km     precipitation gradient coefficient [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_SURF_THICK;           mm       thickness of glacier active layer [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_SURF_WE;              mm       water equivalent of glacier surface layer [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_KMIN;                 1/TS     minimum glacier outflow coefficient [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_DK;                   1/TS     maximum glacier outflow coefficient = GLAC_KMIN + GLAC_DK [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_A;                    1/m      exponent controlling decrease of GLAC_DK with increasing SWE [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_ALBEDO;               fract    glacier ice surface albedo [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_ROUGH;                m        glacier ice surface roughness [if GLACIER_SOIL_FILE_FORMAT]
 
   Parameters Computed from those in the File:
-  TYPE   NAME                    UNITS   DESCRIPTION
-  double max_moist[MAX_LAYERS];    mm      maximum moisture content per layer
-  double max_infil;	         N/A     maximum infiltration rate
-  double Wcr[MAX_LAYERS];	         mm      critical moisture level for soil
-                                         layer, evaporation is no longer
-                                         affected moisture stress in the soil
-  double Wpwp[MAX_LAYERS];         mm      soil moisture content at permanent
-                                         wilting point
-  float  time_zone_lng;	         degrees central meridian of the time zone
+  TYPE   NAME                       UNITS   DESCRIPTION
+  double max_moist[MAX_LAYERS];     mm      maximum moisture content per layer
+  double max_infil;                 N/A     maximum infiltration rate
+  double Wcr[MAX_LAYERS];           mm      critical moisture level for soil layer, evaporation is no longer
+                                            affected moisture stress in the soil
+  double Wpwp[MAX_LAYERS];          mm      soil moisture content at permanent wilting point
+  float  time_zone_lng;             degrees central meridian of the time zone
 
 
   Modifications:
@@ -672,17 +697,17 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.SNOW_ALB_ACCUM_B = 0.58;
       temp.SNOW_ALB_THAW_A = 0.82;
       temp.SNOW_ALB_THAW_B = 0.46;
-      temp.MIN_RAIN_TEMP = -1.0;
-      temp.MAX_SNOW_TEMP = 5.0;
+      temp.MIN_RAIN_TEMP = 1.0;
+      temp.MAX_SNOW_TEMP = 10.0;
       temp.PADJ_R = 1.0;
       temp.PADJ_S = 1.0;
       temp.T_LAPSE = 6.5;
       temp.PGRAD = 0.0;
       temp.GLAC_SURF_THICK = 100.0;
       temp.GLAC_SURF_WE = 91.7;
-      temp.GLAC_KMIN = 0.05;
-      temp.GLAC_DK = 0.75;
-      temp.GLAC_A = 0.01;
+      temp.GLAC_KMIN = 0.01;
+      temp.GLAC_DK = 0.24;
+      temp.GLAC_A = 20.;
       temp.GLAC_ALBEDO = 0.3;
       temp.GLAC_ROUGH = 0.002;
 
@@ -824,6 +849,11 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.GLAC_DK);
+      if((temp.GLAC_DK + temp.GLAC_KMIN) > 1.0) {
+        sprintf(ErrStr,"ERROR: GLAC_KMIN (%f) plus GLAC_DK (%f) must be less than 1, else glacier outflow will exceed glacier water storage\n",
+        		temp.GLAC_KMIN, temp.GLAC_DK);
+        nrerror(ErrStr);
+      }
 
       // Read GLAC_A.
       token = strtok (NULL, delimiters);
