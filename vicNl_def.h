@@ -151,10 +151,10 @@
 #define INVALID_INT  INT_MIN
 
 //The compiler will automatically call the correct function based on the (overloaded) input type
-inline bool IS_INVALID(float a) { return isnan(a); }
-inline bool IS_VALID(float a) { return !isnan(a); }
-inline bool IS_INVALID(double a) { return isnan(a); }
-inline bool IS_VALID(double a) { return !isnan(a); }
+inline bool IS_INVALID(float a) { return std::isnan(a); }
+inline bool IS_VALID(float a) { return !std::isnan(a); }
+inline bool IS_INVALID(double a) { return std::isnan(a); }
+inline bool IS_VALID(double a) { return !std::isnan(a); }
 inline bool IS_INVALID(int a) { return a == INVALID_INT; }
 inline bool IS_VALID(int a) { return (!IS_INVALID(a)); }
 
