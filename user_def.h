@@ -25,6 +25,9 @@
 /***** If TRUE include all model messages to stdout, and stderr *****/
 #define VERBOSE TRUE
 
+/***** If TRUE print out glacier mass balance equation fit information *****/
+#define GLACIER_DEBUG TRUE
+
 /***** If TRUE all energy balance calculations are iterated to minimize
        the total column (air, canopy, snow and ground) error.  Otherwise
        no iteration is used and the model estimates the new fluxes

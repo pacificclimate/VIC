@@ -54,13 +54,13 @@ void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struc
 			&& (abs(nextDate.year - state->global_param.glacierAccumStartYear) % state->global_param.glacierAccumInterval == 0)
 			&& nextDate.month == state->global_param.glacierAccumStartMonth
 			&& nextDate.day == state->global_param.glacierAccumStartDay
-			&& (((state->global_param.dt <= 12) && (dmy[rec].hour == 23)) || (state->global_param.dt == 24 )) ) {
+			&& (((state->global_param.dt <= 12) && (nextDate.hour == 0)) || (state->global_param.dt == 24 )) ) {
 
 		GlacierMassBalanceResult result(prcp->hruList, soil, dmy[rec]);
-#if LINK_DEBUG
+#if GLACIER_DEBUG
 		fprintf(stderr, "accumulateGlacierMassBalance for cell at %4.5f %4.5f:\n", soil->lat, soil->lng );
 		result.printForDebug();
-#endif /* LINK_DEBUG */
+#endif /* GLACIER_DEBUG */
 		resetAccumulationValues(&(prcp->hruList));
 		*gmbEquation = result.equation; // update GMB polynomial for this cell
 	}
