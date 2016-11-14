@@ -58,7 +58,7 @@ void accumulateGlacierMassBalance(GraphingEquation* gmbEquation, const dmy_struc
 
 		GlacierMassBalanceResult result(prcp->hruList, soil, dmy[rec]);
 #if GLACIER_DEBUG
-		fprintf(stderr, "accumulateGlacierMassBalance for cell at %4.5f %4.5f:\n", soil->lat, soil->lng );
+		fprintf(stderr, "accumulateGlacierMassBalance for cell %d at %4.5f %4.5f:\n", soil->gridcel, soil->lat, soil->lng );
 		result.printForDebug();
 #endif /* GLACIER_DEBUG */
 		resetAccumulationValues(&(prcp->hruList));
