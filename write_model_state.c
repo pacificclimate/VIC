@@ -176,8 +176,8 @@ void processCellForStateFile(cell_info_struct* cell, StateIO* stream, const Prog
       it->veg_con.vegIndex = getVegIndex(it->veg_con.vegClass, state);
       if (originalVeg != it->veg_con.vegClass || originalBand != it->bandIndex) {
         std::stringstream ss;
-        ss << "The vegetation and snow band indices in the model state file (veg = " << originalVeg << ", band = " << originalBand << ")\n";
-        ss << "do not match those currently requested (veg = " << it->veg_con.vegClass << ", band = " << it->bandIndex << "). \n";
+        ss << "The vegetation and snow band indices in the model state file (veg = " << it->veg_con.vegClass << ", band = " << it->bandIndex << ")\n";
+        ss << "do not match those currently requested (veg = " << originalVeg << ", band = " << originalBand << "). \n";
         ss << "At HRU dimension index: " << stream->getCurrentDimensionIndex(HRU_DIM) << "\n";
         ss << "Model state file must be stored with variables for all vegetation indexed by variables for all snow bands.\n";
         throw VICException(ss.str());
