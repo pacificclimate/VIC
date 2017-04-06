@@ -379,6 +379,18 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     fprintf(stderr,"SNOW_BAND\t\t%d\n",options.SNOW_BAND);
 
   fprintf(stderr,"\n");
+  fprintf(stderr,"Input Glacier Dynamics Data:\n");
+  if (options.GLACIER_DYNAMICS){
+    fprintf(stderr,"GLACIER_DYNAMICS\t\tTRUE\n");
+    fprintf(stderr,"GLACIER_ACCUM_START_YEAR\t\t%d\n", global_param.glacierAccumStartYear);
+    fprintf(stderr,"GLACIER_ACCUM_START_MONTH\t\t%d\n", global_param.glacierAccumStartMonth);
+    fprintf(stderr,"GLACIER_ACCUM_START_DAY\t\t%d\n", global_param.glacierAccumStartDay);
+    fprintf(stderr,"GLACIER_ACCUM_INTERVAL\t\t%d\n", global_param.glacierAccumInterval);
+  }
+  else
+    fprintf(stderr,"GLACIER_DYNAMICS\t\tFALSE\n");
+
+  fprintf(stderr,"\n");
   fprintf(stderr,"Input Lake Data:\n");
   if (options.LAKES)
     fprintf(stderr,"LAKES\t\tTRUE\t%s\n",names->lakeparam);
@@ -416,7 +428,7 @@ void ProgramState::display_current_settings(int mode,filenames_struct *names)
     else if (options.STATE_FORMAT == StateOutputFormat::ASCII_STATEFILE)
       fprintf(stderr,"STATE_FORMAT\tASCII\n");
     else
-      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE");
+      fprintf(stderr,"STATE_FORMAT\tNETCDF_STATEFILE\n");
   }
   else {
     fprintf(stderr,"SAVE_STATE\t\tFALSE\n");
