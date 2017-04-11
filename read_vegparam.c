@@ -232,6 +232,11 @@ int read_vegparam(FILE *vegparam,
     HRU e = initHRU(curVeg, state);
     e.bandIndex = curBandIndex;
     cell.prcp.hruList.push_back(e);
+
+    //Update band properties
+    if (curVeg.vegClass == state->options.GLACIER_ID)
+       cell.soil_con.AreaFractGlac[curBandIndex] = curVeg.Cv;
+
   } // end of loop
 
   // Determine if we have bare soil

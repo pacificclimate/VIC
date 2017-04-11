@@ -7,13 +7,10 @@ static char vcid[] = "$Id$";
 double solve_snow(char     overstory,
 		  double               BareAlbedo,
 		  double               LongUnderOut, // LW from understory
-		  double               MIN_RAIN_TEMP,
-		  double               MAX_SNOW_TEMP,
 		  double               Tcanopy, // canopy air temperature
 		  double               Tgrnd, // soil surface temperature
 		  double               air_temp, // air temperature
 		  double               precipitation_mu,
-		  double               prec,
 		  double               snow_grnd_flux,
 		  double              *AlbedoUnder,
 		  double              *latent_heat_Le,
@@ -28,11 +25,7 @@ double solve_snow(char     overstory,
 		  double              *coverage, // best guess snow coverage
 		  double              *delta_coverage, // snow cover fraction change
 		  VegConditions       &displacement,
-		  double              *gauge_correction,
 		  double              *melt_energy,
-		  double              *out_prec,
-		  double              *out_rain,
-		  double              *out_snow,
 		  double              *ppt,
 		  double              *rainfall,
 		  VegConditions       &ref_height,
@@ -136,7 +129,6 @@ double solve_snow(char     overstory,
   double              rainonly;
   double              tmp_Wdew[2];
   double              tmp_grnd_flux;
-  double              store_snowfall;
   int                 month;
   int                 hour;
   int                 day_in_year;
@@ -153,18 +145,6 @@ double solve_snow(char     overstory,
 
   /* initialize storage for energy consumed in changing snowpack cover fraction */
   (*melt_energy)     = 0.;
-
-  /** Calculate Fraction of Precipitation that falls as Rain; scale rainfall and snowfall**/
-  rainonly = calc_rainonly(air_temp, prec, MAX_SNOW_TEMP, MIN_RAIN_TEMP, precipitation_mu, state);
-  snowfall[WET] = gauge_correction[SNOW] * (prec - rainonly) * soil_con->PADJ_S;
-  rainfall[WET] = gauge_correction[RAIN] * rainonly * soil_con->PADJ_R;
-  snowfall[DRY] = 0.;
-  rainfall[DRY] = 0.;
-
-  (*out_prec) = snowfall[WET] + rainfall[WET];
-  (*out_rain) = rainfall[WET];
-  (*out_snow) = snowfall[WET];
-  store_snowfall = snowfall[WET];
 
   /** Compute latent heats **/
   (*latent_heat_Le) = (2.501e6 - 0.002361e6 * air_temp);
@@ -313,7 +293,7 @@ double solve_snow(char     overstory,
 #endif
 
       /** compute understory albedo and net shortwave radiation **/
-      if ( snow->swq > 0 && store_snowfall == 0 ) {
+      if ( snow->swq > 0 && snowfall[WET] == 0 ) {
         // age snow albedo if no new snowfall
         // ignore effects of snow dropping from canopy; only consider fresh snow from sky
         snow->last_snow++;

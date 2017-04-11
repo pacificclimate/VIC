@@ -710,6 +710,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.GLAC_A = 20.;
       temp.GLAC_ALBEDO = 0.3;
       temp.GLAC_ROUGH = 0.002;
+      temp.GLAC_REDF = 0.0;
 
     /* Only attempt to read the new glacier soil parameters if GLACIER_SOIL_FILE_FORMAT is TRUE
      * (ie. not in legacy soil file format mode). If GLACIER_SOIL_FILE_FORMAT is FALSE then the
@@ -881,6 +882,15 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.GLAC_ROUGH);
+
+      // Read GLAC_REDF.
+      token = strtok (NULL, delimiters);
+      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+      if( token == NULL ) {
+        sprintf(ErrStr,"ERROR: Can't find values for GLAC_REDF in soil file\n");
+        nrerror(ErrStr);
+      }
+      sscanf(token, "%lf", &temp.GLAC_REDF);
 
 #endif
 
@@ -1125,6 +1135,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       *************************************************/
       Nbands         = state->options.SNOW_BAND;
       temp.AreaFract     = (double *)calloc(Nbands,sizeof(double));
+      temp.AreaFractGlac = (double *)calloc(Nbands,sizeof(double));
       temp.BandElev      = (float *)calloc(Nbands,sizeof(float));
       temp.Tfactor       = (double *)calloc(Nbands,sizeof(double));
       temp.Pfactor       = (double *)calloc(Nbands,sizeof(double));
@@ -1141,6 +1152,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /** Set default values for factors to use unmodified forcing data **/
       for (band = 0; band < Nbands; band++) {
         temp.AreaFract[band] = 0.;
+        temp.AreaFractGlac[band] = 0.;
         temp.BandElev[band]  = temp.elevation;
         temp.Tfactor[band]   = 0.;
         temp.Pfactor[band]   = 1.;
