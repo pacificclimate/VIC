@@ -232,6 +232,7 @@ OutputData *create_output_list(const ProgramState* state) {
   out_data[OUT_VP].varname = "OUT_VP";                           /* near surface vapor pressure [kPa] */
   out_data[OUT_VPD].varname = "OUT_VPD";                         /* near surface vapor pressure deficit [kPa] */
   out_data[OUT_WIND].varname = "OUT_WIND";                       /* near surface wind speed [m/s] */
+  out_data[OUT_AREA].varname = "OUT_AREA";                       /* cell area [m2] */
 
   // Dynamic Soil Layer Terms - EXCESS_ICE option
 #if EXCESS_ICE
@@ -245,7 +246,9 @@ OutputData *create_output_list(const ProgramState* state) {
   out_data[OUT_ADV_SENS_BAND].varname = "OUT_ADV_SENS_BAND";               /* net sensible heat flux advected to snow pack [W/m2] */
   out_data[OUT_ADVECTION_BAND].varname = "OUT_ADVECTION_BAND";             /* advected energy [W/m2] */
   out_data[OUT_ALBEDO_BAND].varname = "OUT_ALBEDO_BAND";                   /* albedo [fraction] */
+  out_data[OUT_AREA_BAND].varname = "OUT_AREA_BAND";                       /* band area [fraction] */
   out_data[OUT_DELTACC_BAND].varname = "OUT_DELTACC_BAND";                 /* change in cold content in snow pack [W/m2] */
+  out_data[OUT_ELEV_BAND].varname = "OUT_ELEV_BAND";                       /* band median elevation [m] */
   out_data[OUT_GRND_FLUX_BAND].varname = "OUT_GRND_FLUX_BAND";             /* net heat flux into ground [W/m2] */
   out_data[OUT_IN_LONG_BAND].varname = "OUT_IN_LONG_BAND";                 /* incoming longwave flux at surface (under veg) [W/m2] */
   out_data[OUT_LATENT_BAND].varname = "OUT_LATENT_BAND";                   /* net upward latent heat flux [W/m2] */
@@ -453,6 +456,7 @@ OutputData *create_output_list(const ProgramState* state) {
 
   out_data[OUT_AREA_BAND].aggtype = AGG_TYPE_END;
   out_data[OUT_ELEV_BAND].aggtype = AGG_TYPE_END;
+  out_data[OUT_AREA].aggtype = AGG_TYPE_END;
 
   out_data[OUT_GLAC_WAT_STOR].aggtype = AGG_TYPE_END;
   out_data[OUT_GLAC_AREA].aggtype = AGG_TYPE_END;

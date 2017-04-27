@@ -247,6 +247,14 @@ int  put_data(cell_info_struct  *cell,
     out_data[OUT_VPD].data[0] = cell->atmos[rec].vpd[state->NR] / kPa2Pa;
     out_data[OUT_WIND].data[0] = cell->atmos[rec].wind[state->NR];
   }
+  
+  // Store cell properties
+  out_data[OUT_AREA].data[0] = cell->soil_con.cell_area;
+  for (int band = 0; band < state->options.SNOW_BAND; band++) {
+    out_data[OUT_AREA_BAND].data[band] = cell->soil_con.AreaFract[band];
+    out_data[OUT_ELEV_BAND].data[band] = cell->soil_con.BandElev[band];
+  }
+  
   /****************************************
    Store Output for all Vegetation Types (except lakes)
    ****************************************/
@@ -288,10 +296,6 @@ int  put_data(cell_info_struct  *cell,
 
         if(ThisAreaFract > 0. && ( hru->isArtificialBareSoil
            || ( !cell->soil_con.AboveTreeLine[band] || (cell->soil_con.AboveTreeLine[band] && !overstory)))) {
-
-           /** Record band elevation - repeatedly overwritten, but will retain last value for each band **/
-           out_data[OUT_ELEV_BAND].data[band] = cell->soil_con.BandElev[hru->bandIndex];
-
 
           /*******************************************************
             Store Output for Wet and Dry Fractions
@@ -627,14 +631,6 @@ int  put_data(cell_info_struct  *cell,
 			      out_data[OUT_ADVECTION].data[0] - out_data[OUT_DELTACC].data[0]- out_data[OUT_SNOW_FLUX].data[0] + out_data[OUT_RFRZ_ENERGY].data[0],
 				  -out_data[OUT_GLAC_DELTACC].data[0] - out_data[OUT_GLAC_MELT_ENERGY].data[0],
 			      state->global_param.nrecs, &cell->cellErrors);
-
-    /* fprintf(stderr, "\%i\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n",
-      		rec, out_data[OUT_NET_SHORT].data[0], out_data[OUT_NET_LONG].data[0], out_data[OUT_LATENT].data[0], out_data[OUT_LATENT_SUB].data[0],
-  			out_data[OUT_SENSIBLE].data[0], out_data[OUT_ADV_SENS].data[0], out_data[OUT_GRND_FLUX].data[0], out_data[OUT_DELTAH].data[0],
-  			out_data[OUT_FUSION].data[0], out_data[OUT_ADVECTION].data[0], out_data[OUT_DELTACC].data[0], out_data[OUT_SNOW_FLUX].data[0],
-  			out_data[OUT_RFRZ_ENERGY].data[0], out_data[OUT_GLAC_DELTACC].data[0], out_data[OUT_GLAC_FLUX].data[0], out_data[OUT_GLAC_MELT_ENERGY].data[0],
-  			out_data[OUT_RAINF].data[0], out_data[OUT_SNOWF].data[0], out_data[OUT_SWE].data[0], out_data[OUT_SNOW_MELT].data[0], out_data[OUT_REFREEZE].data[0],
-  			out_data[OUT_SURF_TEMP].data[0], out_data[OUT_SNOW_SURF_TEMP].data[0], out_data[OUT_SNOW_PACK_TEMP].data[0], out_data[OUT_GLAC_SURF_TEMP].data[0]); */
   }
 
 
@@ -681,6 +677,8 @@ int  put_data(cell_info_struct  *cell,
   out_data[OUT_AERO_RESIST].aggdata[0] = 1/out_data[OUT_AERO_COND].aggdata[0];
   out_data[OUT_AERO_RESIST1].aggdata[0] = 1/out_data[OUT_AERO_COND1].aggdata[0];
   out_data[OUT_AERO_RESIST2].aggdata[0] = 1/out_data[OUT_AERO_COND2].aggdata[0];
+  
+  
 
   /********************
     Output procedure
@@ -1145,9 +1143,6 @@ void collect_eb_terms(const energy_bal_struct& energy,
     throw VICException("Error: AreaFract is zero! cannot divide by 0 (put_data.c)");
   }
   double bandFactor = Cv * lakefactor / AreaFract;
-
-  /** record band area **/
-  out_data[OUT_AREA_BAND].data[band] += (Cv * lakefactor);
 
   /** record band snow water equivalent **/
   out_data[OUT_SWE_BAND].data[band] += snow.swq * bandFactor * 1000.;
