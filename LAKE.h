@@ -61,8 +61,10 @@
 #define lamwlw 1.4 // Hostetler and Bartlein assume 0.85 1/m (total)
 #define  a1 0.7        /* Percent of radiation in visible band. */
 #define  a2 0.3        /* Percent of radiation in infrared band. */
-#define QWTAU 86400./2.   /* D. Pollard sub-ice time constant. */
-#define RADIUS 6371.228 /* Earth radius in km. */
+#define QWTAU    86400./2. /* D. Pollard sub-ice time constant. */
+#define RADIUS   6371.228  /* Mean Earth radius in km. */
+#define RADIUS_E 6378.137  /* Equatorial Earth radius in km (WGS84 ellipsoid) */
+#define RADIUS_P 6356.7523 /* Polar Earth radius in km (WGS84 ellipsoid) */
 
 //#endif // LAKE_SET
 
