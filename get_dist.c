@@ -35,7 +35,7 @@ double get_dist(double lat1, double long1, double lat2, double long2)
   //Geocentric Earth radius (https://en.wikipedia.org/wiki/Earth_radius)
   term1 = pow(pow(RADIUS_E, 2.0)*cos(phi1), 2.0);
   term2 = pow(pow(RADIUS_P, 2.0)*sin(phi1), 2.0);
-  term3 = (pow(RADIUS_E*cos(phi1),2.0) + pow(RADIUS_P*sin(phi), 2.0));
+  term3 = (pow(RADIUS_E*cos(phi1),2.0) + pow(RADIUS_P*sin(phi1), 2.0));
   RAD = sqrt((term1 + term2)/term3);
   //Distance using haversine formula(https://en.wikipedia.org/wiki/Haversine_formula)
   distance = 2.0*RAD*(asin(sqrt(pow(sin((phi2-phi1)/2), 2.0) + cos(phi1)*cos(phi2)*pow(sin((theta2-theta1)/2), 2.0))));
