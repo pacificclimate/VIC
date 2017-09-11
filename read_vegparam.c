@@ -247,8 +247,8 @@ int read_vegparam(FILE *vegparam,
     }
     cell.Cv_sum = 1.;
   }
-  else if(cell.Cv_sum>0.99 && cell.Cv_sum<1.0){
-    fprintf(stderr,"WARNING: Cv > 0.99 and Cv < 1.0 (%f) at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", cell.Cv_sum, cell.soil_con.gridcel);
+  else if(cell.Cv_sum>0.98 && cell.Cv_sum<1.0){
+    fprintf(stderr,"WARNING: Cv > 0.98 and Cv < 1.0 (%f) at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", cell.Cv_sum, cell.soil_con.gridcel);
     for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
       hru->veg_con.Cv = hru->veg_con.Cv / cell.Cv_sum;
     }
@@ -318,7 +318,7 @@ int read_vegparam(FILE *vegparam,
   if (cell.Cv_sum < 1.) {
     if (state->options.GLACIER_DYNAMICS) {
        std::stringstream ss;
-       ss << "Error: cell " << cell.soil_con.gridcel << ", Cv " << cell.Cv_sum << " cannot be less than 0.99 when GLACIER_DYNAMICS is TRUE.";
+       ss << "Error: cell " << cell.soil_con.gridcel << ", Cv " << cell.Cv_sum << " cannot be less than 0.98 when GLACIER_DYNAMICS is TRUE.";
        throw VICException(ss.str());
      }
      else {
