@@ -172,6 +172,7 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_VP",    			VariableMetaData("kPa", "VP", "water_vapor_partial_pressure_in_air", "Near surface vapor pressure", "time: mean area: mean")},
 		{"OUT_VPD",    			VariableMetaData("kPa", "VPD", "water_vapor_saturation_deficit_in_air", "Near surface vapor pressure deficit", "time: mean area: mean")},
 		{"OUT_WIND",       		VariableMetaData("m s-1", "WIND", "wind_speed", "Near surface wind speed", "time: mean area: mean")},
+		{"OUT_AREA",       		VariableMetaData("m2", "AREA", "area", "Grid cell area", "time: point area: sum")},
 		//Band-specific terms
 		{"OUT_ADV_SENS_BAND", 		VariableMetaData("W m-2", "ADV_SENS_BAND", "", "Net sensible flux advected to snow pack", "time: mean area: mean")},
 		{"OUT_ADVECTION_BAND",     	VariableMetaData("W m-2", "ADVECTION_BAND", "", "advected energy", "time: mean area: mean")},

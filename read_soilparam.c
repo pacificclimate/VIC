@@ -71,6 +71,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
   double GLAC_A;                    1/m      exponent controlling decrease of GLAC_DK with increasing SWE [if GLACIER_SOIL_FILE_FORMAT]
   double GLAC_ALBEDO;               fract    glacier ice surface albedo [if GLACIER_SOIL_FILE_FORMAT]
   double GLAC_ROUGH;                m        glacier ice surface roughness [if GLACIER_SOIL_FILE_FORMAT]
+  double GLAC_REDF                  N/A      snow redistribution parameter [if GLACIER_SOIL_FILE_FORMAT]
 
   Parameters Computed from those in the File:
   TYPE   NAME                       UNITS   DESCRIPTION
@@ -163,7 +164,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
   double          right_lng;
   double          left_lng;
   double          delta;
-  double          dist;
+  double          darea;
   size_t          length;
   int             Nbands,band;
   int             flag;
@@ -710,6 +711,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       temp.GLAC_A = 20.;
       temp.GLAC_ALBEDO = 0.3;
       temp.GLAC_ROUGH = 0.002;
+      temp.GLAC_REDF = 0.0;
 
     /* Only attempt to read the new glacier soil parameters if GLACIER_SOIL_FILE_FORMAT is TRUE
      * (ie. not in legacy soil file format mode). If GLACIER_SOIL_FILE_FORMAT is FALSE then the
@@ -881,6 +883,15 @@ soil_con_struct read_soilparam(FILE *soilparam,
         nrerror(ErrStr);
       }
       sscanf(token, "%lf", &temp.GLAC_ROUGH);
+
+      // Read GLAC_REDF.
+      token = strtok (NULL, delimiters);
+      while (token != NULL && (length=strlen(token))==0) token = strtok (NULL, delimiters);
+      if( token == NULL ) {
+        sprintf(ErrStr,"ERROR: Can't find values for GLAC_REDF in soil file\n");
+        nrerror(ErrStr);
+      }
+      sscanf(token, "%lf", &temp.GLAC_REDF);
 
 #endif
 
@@ -1095,20 +1106,20 @@ soil_con_struct read_soilparam(FILE *soilparam,
           lat = fabs(temp.lat);
           lng = fabs(temp.lng);
 
-          start_lat = lat - state->global_param.resolution / 2;
-          right_lng = lng + state->global_param.resolution / 2;
-          left_lng  = lng - state->global_param.resolution / 2;
+          start_lat = lat - state->global_param.resolution / 2.;
+          right_lng = lng + state->global_param.resolution / 2.;
+          left_lng  = lng - state->global_param.resolution / 2.;
 
-          delta = get_dist(lat,lng,lat+state->global_param.resolution/10.,lng);
+          delta = get_dist(lat,lng,lat+state->global_param.resolution/100.,lng);
 
-          dist = 0.;
+          darea = 0.;
 
-          for ( i = 0; i < 10; i++ ) {
-            dist += get_dist(start_lat,left_lng,start_lat,right_lng) * delta;
-            start_lat += state->global_param.resolution/10;
+          for ( i = 0; i < 100; i++ ) {
+            darea += get_dist(start_lat,left_lng,start_lat,right_lng) * delta;
+            start_lat += state->global_param.resolution/100.;
           }
 
-          temp.cell_area = dist * 1000. * 1000.; /* Grid cell area in m^2. */
+          temp.cell_area = darea * 1000. * 1000.; /* Grid cell area in m^2. */
 
         }
 
@@ -1125,6 +1136,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       *************************************************/
       Nbands         = state->options.SNOW_BAND;
       temp.AreaFract     = (double *)calloc(Nbands,sizeof(double));
+      temp.AreaFractGlac = (double *)calloc(Nbands,sizeof(double));
       temp.BandElev      = (float *)calloc(Nbands,sizeof(float));
       temp.Tfactor       = (double *)calloc(Nbands,sizeof(double));
       temp.Pfactor       = (double *)calloc(Nbands,sizeof(double));
@@ -1141,6 +1153,7 @@ soil_con_struct read_soilparam(FILE *soilparam,
       /** Set default values for factors to use unmodified forcing data **/
       for (band = 0; band < Nbands; band++) {
         temp.AreaFract[band] = 0.;
+        temp.AreaFractGlac[band] = 0.;
         temp.BandElev[band]  = temp.elevation;
         temp.Tfactor[band]   = 0.;
         temp.Pfactor[band]   = 1.;

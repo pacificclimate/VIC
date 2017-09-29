@@ -232,18 +232,23 @@ int read_vegparam(FILE *vegparam,
     HRU e = initHRU(curVeg, state);
     e.bandIndex = curBandIndex;
     cell.prcp.hruList.push_back(e);
+
+    //Update band properties
+    if (curVeg.vegClass == state->options.GLACIER_ID)
+       cell.soil_con.AreaFractGlac[curBandIndex] = curVeg.Cv;
+
   } // end of loop
 
   // Determine if we have bare soil
   if(cell.Cv_sum>1.0){
-    fprintf(stderr,"WARNING: Cv exceeds 1.0 at grid cell %d, fractions being adjusted to equal 1\n", cell.soil_con.gridcel);
+    fprintf(stderr,"WARNING: Cv exceeds 1.0 (%f) at grid cell %d, fractions being adjusted to equal 1\n", cell.Cv_sum, cell.soil_con.gridcel);
     for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
       hru->veg_con.Cv = hru->veg_con.Cv / cell.Cv_sum;
     }
     cell.Cv_sum = 1.;
   }
-  else if(cell.Cv_sum>0.99 && cell.Cv_sum<1.0){
-    fprintf(stderr,"WARNING: Cv > 0.99 and Cv < 1.0 at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", cell.soil_con.gridcel);
+  else if(cell.Cv_sum>0.95 && cell.Cv_sum<1.0){
+    fprintf(stderr,"WARNING: Cv > 0.95 and Cv < 1.0 (%f) at grid cell %d, model assuming that bare soil is not to be run - fractions being adjusted to equal 1\n", cell.Cv_sum, cell.soil_con.gridcel);
     for(std::vector<HRU>::iterator hru = cell.prcp.hruList.begin(); hru != cell.prcp.hruList.end(); ++hru) {
       hru->veg_con.Cv = hru->veg_con.Cv / cell.Cv_sum;
     }
@@ -311,32 +316,39 @@ int read_vegparam(FILE *vegparam,
 
   // Bare soil tile
   if (cell.Cv_sum < 1.) {
-    double CvPerBand = (1.0 - cell.Cv_sum) / (double)state->options.SNOW_BAND;
-    // A bare soil HRU is added to each elevation.
-    for (int band = 0; band < state->options.SNOW_BAND; band++) {
-      veg_con_struct bareSoilVeg;
-      bareSoilVeg.vegClass = state->num_veg_types; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
-      bareSoilVeg.vegIndex = state->num_veg_types;
-      bareSoilVeg.Cv = CvPerBand;
-      // Don't allocate any root-zone-related arrays
-      if(state->options.BLOWING) {
-        if (numHRUs > 0) {
-          bareSoilVeg.sigma_slope = cell.prcp.hruList[0].veg_con.sigma_slope;
-          bareSoilVeg.lag_one = cell.prcp.hruList[0].veg_con.lag_one;
-          bareSoilVeg.fetch = cell.prcp.hruList[0].veg_con.fetch;
+    if (state->options.GLACIER_DYNAMICS) {
+       std::stringstream ss;
+       ss << "Error: cell " << cell.soil_con.gridcel << ", Cv " << cell.Cv_sum << " cannot be less than 0.95 when GLACIER_DYNAMICS is TRUE.";
+       throw VICException(ss.str());
+     }
+     else {
+       double CvPerBand = (1.0 - cell.Cv_sum) / (double)state->options.SNOW_BAND;
+       // A bare soil HRU is added to each elevation.
+       for (int band = 0; band < state->options.SNOW_BAND; band++) {
+         veg_con_struct bareSoilVeg;
+         bareSoilVeg.vegClass = state->num_veg_types; // Create a veg_class ID for bare soil, which is not mentioned in the veg library
+         bareSoilVeg.vegIndex = state->num_veg_types;
+         bareSoilVeg.Cv = CvPerBand;
+         // Don't allocate any root-zone-related arrays
+         if(state->options.BLOWING) {
+           if (numHRUs > 0) {
+             bareSoilVeg.sigma_slope = cell.prcp.hruList[0].veg_con.sigma_slope;
+             bareSoilVeg.lag_one = cell.prcp.hruList[0].veg_con.lag_one;
+             bareSoilVeg.fetch = cell.prcp.hruList[0].veg_con.fetch;
+           }
+           else {
+             bareSoilVeg.sigma_slope = 0.005;
+             bareSoilVeg.lag_one = 0.95;
+             bareSoilVeg.fetch = 2000;
+           }
         }
-        else {
-          bareSoilVeg.sigma_slope = 0.005;
-          bareSoilVeg.lag_one = 0.95;
-          bareSoilVeg.fetch = 2000;
-        }
+        HRU bareSoil = initHRU(bareSoilVeg, state);
+        bareSoil.bandIndex = band;
+        bareSoil.isArtificialBareSoil = true;
+        cell.prcp.hruList.push_back(bareSoil);
       }
-      HRU bareSoil = initHRU(bareSoilVeg, state);
-      bareSoil.bandIndex = band;
-      bareSoil.isArtificialBareSoil = true;
-      cell.prcp.hruList.push_back(bareSoil);
+      cell.Cv_sum = 1;
     }
-    cell.Cv_sum = 1;
   }
 // MDF: added return of numHRUs for state file dimension allocation
   return numHRUs;

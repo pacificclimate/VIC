@@ -562,6 +562,9 @@ void runModel(std::vector<cell_info_struct>& cell_data_structs,
       if (cell_data_structs[cellidx].isValid)
         accumulateGlacierMassBalance(&(cell_data_structs[cellidx].gmbEquation), dmy, rec, &(cell_data_structs[cellidx].prcp), &(cell_data_structs[cellidx].soil_con), state);
 
+#if PARALLEL_AVAILABLE
+#pragma omp critical(write_state)
+#endif
       /************************************
        Save model state at assigned date
        (after the final time step of the assigned date)
