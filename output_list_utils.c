@@ -163,6 +163,7 @@ OutputData *create_output_list(const ProgramState* state) {
   out_data[OUT_RAINF].varname = "OUT_RAINF";                     /* rainfall [mm] (ALMA_OUTPUT: [mm/s]) */
   out_data[OUT_REFREEZE].varname = "OUT_REFREEZE";               /* refreezing of water in the snow [mm] (ALMA_OUTPUT: [mm/s]) */
   out_data[OUT_RUNOFF].varname = "OUT_RUNOFF";                   /* surface runoff [mm] (ALMA_OUTPUT: [mm/s]) */
+  out_data[OUT_RUNOFF_SNOW].varname = "OUT_RUNOFF_SNOW";         /* surface runoff from snow and ice melt [mm] (ALMA_OUTPUT: [mm/s]) */
   out_data[OUT_SNOW_MELT].varname = "OUT_SNOW_MELT";             /* snow melt [mm] (ALMA_OUTPUT: [mm/s]) */
   out_data[OUT_SNOWF].varname = "OUT_SNOWF";                     /* snowfall [mm] (ALMA_OUTPUT: [mm/s]) */
   out_data[OUT_SUB_BLOWING].varname = "OUT_SUB_BLOWING";         /* net sublimation of blowing snow [mm] (ALMA_OUTPUT: [mm/s]) */

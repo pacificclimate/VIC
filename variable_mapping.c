@@ -106,6 +106,7 @@ void ProgramState:: build_output_variable_mapping() {
 		{"OUT_RAINF",       		VariableMetaData("mm", "RAINF", "thickness_of_rainfall_amount", "Rainfall", "time: mean area: mean")},
 		{"OUT_REFREEZE",		VariableMetaData("mm", "REFREEZE", "", "Refreezing of water in the snow", "time: mean area: mean")},
 		{"OUT_RUNOFF",     		VariableMetaData("mm", "RUNOFF", "thickness_of_surface_runoff_amount", "Surface runoff", "time: mean area: mean")},
+		{"OUT_RUNOFF_SNOW",		VariableMetaData("mm", "RUNOFF_SNOW", "thickness_of_surface_runoff_amount_from_snow_and_ice_melt", "Surface runoff from snow and ice met", "time: mean area: mean")},
 		{"OUT_SNOW_MELT",  		VariableMetaData("mm", "SNOW_MELT", "thickness_of_surface_snow_melt_amount", "Snow melt", "time: mean area: mean")},
 		{"OUT_SNOWF",       		VariableMetaData("mm", "SNOWF", "lwe_thickness_of_snowfall_amount", "Snowfall", "time: mean area: mean")},
 		{"OUT_SUB_BLOWING", 		VariableMetaData("mm", "SUB_BLOWING", "", "Net sublimation of blowing snow", "time: mean area: mean")},

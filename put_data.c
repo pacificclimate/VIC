@@ -722,6 +722,7 @@ int  put_data(cell_info_struct  *cell,
       out_data[OUT_RAINF].aggdata[0] /= out_dt_sec;
       out_data[OUT_REFREEZE].aggdata[0] /= out_dt_sec;
       out_data[OUT_RUNOFF].aggdata[0] /= out_dt_sec;
+      out_data[OUT_RUNOFF_SNOW].aggdata[0] /= out_dt_sec;
       out_data[OUT_SNOW_MELT].aggdata[0] /= out_dt_sec;
       out_data[OUT_SNOWF].aggdata[0] /= out_dt_sec;
       out_data[OUT_SUB_BLOWING].aggdata[0] /= out_dt_sec;
@@ -825,6 +826,11 @@ void collect_wb_terms(const hru_data_struct&  cell,
   /** record runoff **/
   out_data[OUT_RUNOFF].data[0]   += cell.runoff * AreaFactor;
 
+  /** record runoff from snow and ice melt **/
+  if (snow.swq> 0.0 || HasGlac) {
+     out_data[OUT_RUNOFF_SNOW].data[0] += cell.runoff * AreaFactor;
+  }
+  
   /** record baseflow **/
   out_data[OUT_BASEFLOW].data[0] += cell.baseflow * AreaFactor; 
 

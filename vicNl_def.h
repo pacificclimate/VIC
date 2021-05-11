@@ -423,6 +423,7 @@ OUT_PREC            ,  /* incoming precipitation [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_RAINF           ,  /* rainfall  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_REFREEZE        ,  /* refreezing of water in the snow  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_RUNOFF          ,  /* surface runoff [mm] (ALMA_OUTPUT: [mm/s]) */
+OUT_RUNOFF_SNOW     ,  /* surface runoff from snow and ice melt [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SNOW_MELT       ,  /* snow melt  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SNOWF           ,  /* snowfall  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SUB_BLOWING     ,  /* net sublimation of blowing snow [mm] (ALMA_OUTPUT: [mm/s]) */
