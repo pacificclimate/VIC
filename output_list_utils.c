@@ -440,6 +440,7 @@ OutputData *create_output_list(const ProgramState* state) {
   out_data[OUT_RAINF].aggtype = AGG_TYPE_SUM;
   out_data[OUT_REFREEZE].aggtype = AGG_TYPE_SUM;
   out_data[OUT_RUNOFF].aggtype = AGG_TYPE_SUM;
+  out_data[OUT_RUNOFF_SNOW].aggtype = AGG_TYPE_SUM;
   out_data[OUT_SNOW_MELT].aggtype = AGG_TYPE_SUM;
   out_data[OUT_SNOWF].aggtype = AGG_TYPE_SUM;
   out_data[OUT_SUB_BLOWING].aggtype = AGG_TYPE_SUM;
