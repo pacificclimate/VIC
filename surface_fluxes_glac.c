@@ -158,6 +158,10 @@ int surface_fluxes_glac(
 
   step_aero_resist = new AeroResistUsed[N_PET_TYPES];
 
+  // Snowfall redistribution parameters
+  double Gmod = 0.0;
+  double SnowRedisFact = 1.0;
+
   /***********************************************************************
    Set temporary variables - preserves original values until iterations
    are completed
@@ -239,9 +243,17 @@ int surface_fluxes_glac(
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
     step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];  // precipitation in mm
 
+    /* Set glacier snowfall redistribution parameters for glaciated hru in this snowband */
+    if (soil_con->AreaFractGlac[hru.bandIndex] > 0.){
+      Gmod = soil_con->AreaFractGlac[hru.bandIndex]/soil_con->AreaFract[hru.bandIndex]*soil_con->GLAC_REDF;
+      SnowRedisFact = soil_con->AreaFract[hru.bandIndex]/soil_con->AreaFractGlac[hru.bandIndex] -
+            (soil_con->AreaFract[hru.bandIndex] - soil_con->AreaFractGlac[hru.bandIndex])/soil_con->AreaFractGlac[hru.bandIndex] *
+            (1.-Gmod);
+    }
+
     /** Calculate fraction of precipitation that falls as rain; scale rainfall and snowfall**/
     rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP, soil_con->MIN_RAIN_TEMP, hru.mu, state);
-    snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly) * soil_con->PADJ_S;
+    snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly) * soil_con->PADJ_S * SnowRedisFact;
     rainfall[WET] = gauge_correction[RAIN] * rainOnly * soil_con->PADJ_R;
     snowfall[DRY] = 0.;
     rainfall[DRY] = 0.;

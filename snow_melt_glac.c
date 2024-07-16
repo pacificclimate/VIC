@@ -121,6 +121,8 @@ int snow_melt_glac(double latent_heat_Le,
           PackCC = 0.0;
         } else {
           PackSwq -= FirnToIce;
+          DeltaPackCC = CH_ICE * FirnToIce * snow->pack_temp; //This cold content is added to the glacier
+          PackCC -= DeltaPackCC;
         }
       }
     }
@@ -179,6 +181,7 @@ int snow_melt_glac(double latent_heat_Le,
       snow->vapor_flux = -(snow->surf_water);
       snow->surface_flux = -(snow->surf_water) - snow->blowing_flux;
       snow->surf_water = 0.0;
+
     } else
       snow->surf_water += snow->vapor_flux;
 
@@ -282,6 +285,7 @@ int snow_melt_glac(double latent_heat_Le,
         snow->surface_flux = -SurfaceSwq - snow->blowing_flux;
         SurfaceSwq = 0.0;
         Ice = PackSwq;
+
       } else {
         SurfaceSwq += snow->vapor_flux;
         Ice += snow->vapor_flux;

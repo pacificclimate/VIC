@@ -14,7 +14,7 @@ static char vcid[] = "$Id$";
 #define GRND_TOL 0.001
 #define OVER_TOL 0.001
 
-int surface_fluxes(char                 overstory,
+int surface_fluxes(char         overstory,
 		   double               BareAlbedo,
 		   double               height,
 		   double               ice0,
@@ -46,16 +46,16 @@ int surface_fluxes(char                 overstory,
 		   atmos_data_struct   *atmos,
 		   const dmy_struct    *dmy,
 		   energy_bal_struct   *energy,
-		   hru_data_struct    *cell_dry,
-		   hru_data_struct    *cell_wet,
+		   hru_data_struct     *cell_dry,
+		   hru_data_struct     *cell_wet,
 		   snow_data_struct    *snow,
 		   const soil_con_struct *soil_con,
 		   veg_var_struct      *veg_var_dry,
 		   veg_var_struct      *veg_var_wet,
-		   float              lag_one,
-		   float              sigma_slope,
-		   float              fetch,
-		   const ProgramState *state)
+		   float                lag_one,
+		   float                sigma_slope,
+		   float                fetch,
+		   const ProgramState  *state)
 /**********************************************************************
 	surface_fluxes	Keith Cherkauer		February 29, 2000
 
@@ -195,6 +195,7 @@ int surface_fluxes(char                 overstory,
   double                 snow_grnd_flux; // ground heat flux into snowpack
   double                 tol_under;
   double                 tol_over;
+  double                 rainOnly;
 
   // Step-specific quantities
   double                 step_Wdew[2];
@@ -284,6 +285,10 @@ int surface_fluxes(char                 overstory,
   double A_snow_flux;
 
   step_aero_resist = new AeroResistUsed[N_PET_TYPES];
+
+  // Snowfall redistribution parameters
+  double Gmod = 0.0;
+  double SnowRedisFact = 1.0;
 
   /***********************************************************************
    Set temporary variables - preserves original values until iterations
@@ -419,6 +424,23 @@ int surface_fluxes(char                 overstory,
     Tair = atmos->air_temp[hidx] + soil_con->Tfactor[hru.bandIndex];
     step_prec[WET] = atmos->prec[hidx] / hru.mu * soil_con->Pfactor[hru.bandIndex];
 
+    /* Set glacier snowfall redistribution parameters for for non-glaciated hru in this snowband */
+    if (soil_con->AreaFractGlac[hru.bandIndex] > 0.){
+      Gmod = soil_con->AreaFractGlac[hru.bandIndex]/soil_con->AreaFract[hru.bandIndex]*soil_con->GLAC_REDF;
+      SnowRedisFact = 1.-Gmod;
+    }
+
+    /** Calculate Fraction of Precipitation that falls as Rain; scale rainfall and snowfall**/
+    rainOnly = calc_rainonly(Tair, step_prec[WET], soil_con->MAX_SNOW_TEMP, soil_con->MIN_RAIN_TEMP, hru.mu, state);
+    snowfall[WET] = gauge_correction[SNOW] * (step_prec[WET] - rainOnly) * soil_con->PADJ_S * SnowRedisFact;
+    rainfall[WET] = gauge_correction[RAIN] * rainOnly * soil_con->PADJ_R;
+    snowfall[DRY] = 0.;
+    rainfall[DRY] = 0.;
+
+    step_out_prec = snowfall[WET] + rainfall[WET];
+    step_out_rain = rainfall[WET];
+    step_out_snow = snowfall[WET];
+
     // initialize ground surface temperature
     Tgrnd = energy->T[0];
 
@@ -532,16 +554,15 @@ int surface_fluxes(char                 overstory,
         LongUnderOut = iter_soil_energy.LongUnderOut;
 
         /** Solve snow accumulation, ablation and interception **/
-        step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut, soil_con->MIN_RAIN_TEMP,
-        	soil_con->MAX_SNOW_TEMP, Tcanopy, Tgrnd, Tair, hru.mu, step_prec[WET], snow_grnd_flux,
-            &energy->AlbedoUnder, latent_heat_Le, &LongUnderIn, &NetLongSnow, &NetShortGrnd,
-            &NetShortSnow, &ShortUnderIn, &OldTSurf, iter_aero_resist, iter_aero_resist_used,
-            &coverage, &delta_coverage, displacement, gauge_correction, &step_melt_energy,
-            &step_out_prec, &step_out_rain, &step_out_snow, step_ppt, rainfall, ref_height,
-            roughness, snow_inflow, snowfall, &surf_atten, wind_speed, root, UNSTABLE_SNOW,
-            step_dt, rec, hidx, veg_class, hru.isArtificialBareSoil, UnderStory, dmy, *atmos,
-            &(iter_snow_energy), iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con,
-            &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]), state);
+        step_melt = solve_snow(overstory, BareAlbedo, LongUnderOut, Tcanopy, Tgrnd, Tair,
+            hru.mu, snow_grnd_flux, &energy->AlbedoUnder, latent_heat_Le, &LongUnderIn,
+            &NetLongSnow, &NetShortGrnd, &NetShortSnow, &ShortUnderIn, &OldTSurf,
+            iter_aero_resist, iter_aero_resist_used, &coverage, &delta_coverage, displacement,
+            &step_melt_energy, step_ppt, rainfall, ref_height, roughness, snow_inflow, snowfall,
+            &surf_atten, wind_speed, root, UNSTABLE_SNOW, step_dt, rec, hidx, veg_class,
+            hru.isArtificialBareSoil, UnderStory, dmy, *atmos, &(iter_snow_energy), iter_layer[DRY],
+            iter_layer[WET], &(iter_snow), soil_con, &(iter_snow_veg_var[DRY]), &(iter_snow_veg_var[WET]),
+            state);
 
 // iter_snow_energy.sensible + iter_snow_energy.latent + iter_snow_energy.latent_sub + NetShortSnow + NetLongSnow + ( snow_grnd_flux + iter_snow_energy.advection - iter_snow_energy.deltaCC + iter_snow_energy.refreeze_energy + iter_snow_energy.advected_sensible ) * step_snow.coverage
         if (step_melt == ERROR)
@@ -563,20 +584,16 @@ int surface_fluxes(char                 overstory,
          Solve Energy Balance Components at Soil Surface
          **************************************************/
 
-        Tsurf = calc_surf_energy_bal((*latent_heat_Le), LongUnderIn, NetLongSnow,
-            NetShortGrnd, NetShortSnow, OldTSurf, ShortUnderIn,
-            iter_snow.albedo, iter_snow_energy.latent,
-            iter_snow_energy.latent_sub, iter_snow_energy.sensible, Tcanopy,
-            VPDcanopy, VPcanopy, iter_snow_energy.advection,
-            step_snow.coldcontent, delta_coverage, dp, ice0, step_melt_energy,
-            moist0, hru.mu, iter_snow.coverage,
-            (step_snow.depth + iter_snow.depth) / 2., BareAlbedo, surf_atten,
-            iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
-            displacement, &step_melt, step_ppt, rainfall, ref_height, roughness,
-            snowfall, wind_speed, root, INCLUDE_SNOW, UnderStory, state->options.Nnode,
-            step_dt, hidx, state->options.Nlayer, (int) overstory, rec,
-            veg_class, hru.isArtificialBareSoil, atmos, &(dmy[rec]), &iter_soil_energy, iter_layer[DRY],
-            iter_layer[WET], &(iter_snow), soil_con, &iter_soil_veg_var[DRY],
+        Tsurf = calc_surf_energy_bal((*latent_heat_Le), LongUnderIn, NetLongSnow, NetShortGrnd,
+            NetShortSnow, OldTSurf, ShortUnderIn, iter_snow.albedo, iter_snow_energy.latent,
+            iter_snow_energy.latent_sub, iter_snow_energy.sensible, Tcanopy, VPDcanopy, VPcanopy,
+            iter_snow_energy.advection, step_snow.coldcontent, delta_coverage, dp, ice0,
+            step_melt_energy, moist0, hru.mu, iter_snow.coverage, (step_snow.depth + iter_snow.depth) / 2.,
+            BareAlbedo, surf_atten, iter_snow.vapor_flux, iter_aero_resist, iter_aero_resist_used,
+            displacement, &step_melt, step_ppt, rainfall, ref_height, roughness, snowfall, wind_speed,
+            root, INCLUDE_SNOW, UnderStory, state->options.Nnode, step_dt, hidx, state->options.Nlayer,
+            (int) overstory, rec, veg_class, hru.isArtificialBareSoil, atmos, &(dmy[rec]), &iter_soil_energy,
+            iter_layer[DRY], iter_layer[WET], &(iter_snow), soil_con, &iter_soil_veg_var[DRY],
             &iter_soil_veg_var[WET], state->global_param.nrecs, state);
 
         if ((int) Tsurf == ERROR) {

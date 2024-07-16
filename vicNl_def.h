@@ -423,6 +423,7 @@ OUT_PREC            ,  /* incoming precipitation [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_RAINF           ,  /* rainfall  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_REFREEZE        ,  /* refreezing of water in the snow  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_RUNOFF          ,  /* surface runoff [mm] (ALMA_OUTPUT: [mm/s]) */
+OUT_RUNOFF_SNOW     ,  /* surface runoff from snow and ice melt [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SNOW_MELT       ,  /* snow melt  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SNOWF           ,  /* snowfall  [mm] (ALMA_OUTPUT: [mm/s]) */
 OUT_SUB_BLOWING     ,  /* net sublimation of blowing snow [mm] (ALMA_OUTPUT: [mm/s]) */
@@ -489,6 +490,7 @@ OUT_TSKC            ,  /* cloud cover fraction [fraction] */
 OUT_VP              ,  /* near surface vapor pressure [kPa] (ALMA_OUTPUT: [Pa]) */
 OUT_VPD             ,  /* near surface vapor pressure deficit [kPa] (ALMA_OUTPUT: [Pa]) */
 OUT_WIND            ,  /* near surface wind speed [m/s] */
+OUT_AREA            ,  /* cell area [m2] */
 // Band-specific quantities
 OUT_ADV_SENS_BAND       ,  /* net sensible heat flux advected to snow pack [W/m2] */
 OUT_ADVECTION_BAND      ,  /* advected energy [W/m2] */
@@ -948,8 +950,9 @@ typedef struct {
   double   soil_density[MAX_LAYERS];  /* soil particle density (kg/m^3) */
   double   soil_dens_min[MAX_LAYERS]; /* particle density of mineral soil (kg/m^3) */
   double   soil_dens_org[MAX_LAYERS]; /* particle density of organic soil (kg/m^3) */
-  float   *BandElev;                  /* Elevation of each snow elevation band */
+  float   *BandElev;                  /* Elevation of each snow band [m]*/
   double  *AreaFract;                 /* Fraction of grid cell included in each snow elevation band */
+  double  *AreaFractGlac;             /* Fraction of grid cell in each snow elevation band that is glacier */
   double  *Pfactor;                   /* Change in Precipitation due to elevation (fract) in each snow elevation band */
   double  *Tfactor;                   /* Change in temperature due to elevation (C) in each snow elevation band */
   char    *AboveTreeLine;             /* Flag to indicate if band is above the treeline */
@@ -995,6 +998,7 @@ typedef struct {
   double   GLAC_A;             /* Outflow parameter (1/m) */
   double   GLAC_ALBEDO;        /* Glacier ice surface albedo (-) */
   double   GLAC_ROUGH;         /* Glacier ice surface roughness (m) */
+  double   GLAC_REDF;          /* Snowfall redistribution factor (-) */
 
 } soil_con_struct;
 

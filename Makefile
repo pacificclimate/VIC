@@ -46,6 +46,7 @@
 
 # Set CC = your compiler here
 CC = g++
+#CC = clang
 
 SOURCE_VERSION = $(shell git describe --abbrev=10 --dirty --always --tags)
 COMPILE_TIME = $(shell date)
@@ -53,11 +54,16 @@ MACHINE_INFO = $(shell uname -a)
 DEFINES = -DSOURCE_VERSION="\"${SOURCE_VERSION}\"" -DCOMPILE_TIME="\"${COMPILE_TIME}\"" -DMACHINE_INFO="\"${MACHINE_INFO}\""
 
 # Uncomment for normal optimized code flags (fastest run option)
-#CFLAGS  = -I. -O3 -Wall -Wno-unused
-NETCDF_LIBS = -lnetcdf -lnetcdf_c++4
-LIBRARY = -lm $(NETCDF_LIBS)
+INCDIR = -I/opt/local/include -I/opt/local/include/libomp
+#NETCDF_LIBS = -L/opt/local/lib -lnetcdf -lnetcdf_c++4 
+#OPENMP_LIBS = -Xpreprocessor -fopenmp -lomp
+#LIBRARY = -lm $(NETCDF_LIBS) $(OPENMP_LIBS)
+LIBRARY = -lm -L/opt/local/lib -lnetcdf -lnetcdf_c++4 -L/opt/local/lib/libomp -Xpreprocessor -fopenmp -lomp
+#CFLAGS  = -I. $(INCDIR) -O3 -Wall -Wno-unused
+
 # Uncomment to include debugging information
-CFLAGS  = -I. -g -Wall -std=c++11 -fopenmp -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
+#CFLAGS  = -I. -g -Wall -std=c++11 -I/opt/local/include/libomp -L/opt/local/lib/libomp -fopenmp -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
+CFLAGS  = -I. $(INCDIR) -g -Wall -std=c++11 -Wextra -Werror -Wno-unused -Wno-unused-parameter -Wno-error $(DEFINES)
 
 # Uncomment to include execution profiling information
 #CFLAGS  = -I. -O3 -pg -Wall -Wno-unused
